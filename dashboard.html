@@ -104,36 +104,42 @@
     <script src="js/auth.js"></script>
     <script src="js/db.js"></script>
     <script>
-        // Cargar datos del dashboard
-        async function loadDashboard() {
-            if (!currentNegocio) return;
-            
-            document.getElementById('negocioNombre').textContent = currentNegocio.nombre;
-            document.getElementById('userEmail').textContent = currentUser.email;
-            
-            // Ventas de hoy
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-            const ventas = await getVentas(hoy);
-            const totalHoy = ventas.reduce((sum, v) => sum + v.total, 0);
-            document.getElementById('ventasHoy').textContent = `RD$ ${totalHoy.toFixed(2)}`;
-            
-            // Total productos
-            const productos = await getProductos();
-            document.getElementById('totalProductos').textContent = productos.length;
-            
-            // Total clientes
-            const clientes = await getClientes();
-            document.getElementById('totalClientes').textContent = clientes.length;
-            
-            // Estado caja
-            const cajaAbierta = await getCajaAbierta();
-            document.getElementById('estadoCaja').textContent = cajaAbierta ? 'Abierta' : 'Cerrada';
-            document.getElementById('estadoCaja').style.color = cajaAbierta ? '#48bb78' : '#e53e3e';
-            
-            // Últimas ventas
-            const ultimasVentas = await getVentas();
-            const tbody = document.querySelector('#ultimasVentas tbody');
+       // Cargar datos del dashboard
+async function loadDashboard() {
+    try {
+        const negocio = await getCurrentNegocio();
+        if (!negocio) return;
+        
+        document.getElementById('negocioNombre').textContent = negocio.nombre;
+        document.getElementById('userEmail').textContent = currentUser?.email || '';
+        
+        // Ventas de hoy
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const ventas = await getVentas(hoy);
+        const totalHoy = ventas.reduce((sum, v) => sum + v.total, 0);
+        document.getElementById('ventasHoy').textContent = `RD$ ${totalHoy.toFixed(2)}`;
+        
+        // Total productos
+        const productos = await getProductos();
+        document.getElementById('totalProductos').textContent = productos.length;
+        
+        // Total clientes
+        const clientes = await getClientes();
+        document.getElementById('totalClientes').textContent = clientes.length;
+        
+        // Estado caja
+        const cajaAbierta = await getCajaAbierta();
+        const estadoCajaElem = document.getElementById('estadoCaja');
+        if (estadoCajaElem) {
+            estadoCajaElem.textContent = cajaAbierta ? 'Abierta' : 'Cerrada';
+            estadoCajaElem.style.color = cajaAbierta ? '#48bb78' : '#e53e3e';
+        }
+        
+        // Últimas ventas
+        const ultimasVentas = await getVentas();
+        const tbody = document.querySelector('#ultimasVentas tbody');
+        if (tbody) {
             tbody.innerHTML = '';
             ultimasVentas.slice(0, 10).forEach(venta => {
                 const row = tbody.insertRow();
@@ -142,23 +148,26 @@
                 row.insertCell(2).textContent = `RD$ ${venta.total.toFixed(2)}`;
                 row.insertCell(3).textContent = venta.estado || 'Completada';
             });
-            
-            // Productos más vendidos
-            const ventasProductos = {};
-            ventas.forEach(venta => {
-                venta.items?.forEach(item => {
-                    if (!ventasProductos[item.nombre]) {
-                        ventasProductos[item.nombre] = 0;
-                    }
-                    ventasProductos[item.nombre] += item.cantidad;
-                });
+        }
+        
+        // Productos más vendidos
+        const ventasProductos = {};
+        ventas.forEach(venta => {
+            venta.items?.forEach(item => {
+                if (!ventasProductos[item.nombre]) {
+                    ventasProductos[item.nombre] = 0;
+                }
+                ventasProductos[item.nombre] += item.cantidad;
             });
-            
-            const topProductos = Object.entries(ventasProductos)
-                .sort((a,b) => b[1] - a[1])
-                .slice(0, 5);
-            
-            const ctx = document.getElementById('productosChart').getContext('2d');
+        });
+        
+        const topProductos = Object.entries(ventasProductos)
+            .sort((a,b) => b[1] - a[1])
+            .slice(0, 5);
+        
+        const canvas = document.getElementById('productosChart');
+        if (canvas && typeof Chart !== 'undefined') {
+            const ctx = canvas.getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -171,14 +180,15 @@
                 }
             });
         }
-        
-        // Esperar autenticación
-        const checkAuth = setInterval(() => {
-            if (currentNegocio) {
-                clearInterval(checkAuth);
-                loadDashboard();
-            }
-        }, 500);
+    } catch (error) {
+        console.error('Error al cargar dashboard:', error);
+    }
+}
+
+// Esperar autenticación
+onAuthReady(() => {
+    loadDashboard();
+});
     </script>
 </body>
 </html>

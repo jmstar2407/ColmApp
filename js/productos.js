@@ -1,31 +1,50 @@
 let productosLista = [];
 
 async function loadProductos() {
-    if (!currentNegocio) return;
-    
-    document.getElementById('negocioNombre').textContent = currentNegocio.nombre;
-    
-    productosLista = await getProductos();
-    mostrarProductos(productosLista);
-    
-    // Cargar categorías únicas para el filtro
-    const categorias = [...new Set(productosLista.map(p => p.categoria).filter(c => c))];
-    const filterSelect = document.getElementById('filterCategoria');
-    filterSelect.innerHTML = '<option value="">Todas las categorías</option>';
-    categorias.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat;
-        option.textContent = cat;
-        filterSelect.appendChild(option);
-    });
-    
-    // Configurar búsqueda y filtros
-    document.getElementById('searchProduct').addEventListener('input', filtrarProductos);
-    document.getElementById('filterCategoria').addEventListener('change', filtrarProductos);
+    try {
+        const negocio = await getCurrentNegocio();
+        if (!negocio) {
+            console.log('Esperando autenticación...');
+            return;
+        }
+        
+        document.getElementById('negocioNombre').textContent = negocio.nombre;
+        
+        productosLista = await getProductos();
+        mostrarProductos(productosLista);
+        
+        // Cargar categorías únicas para el filtro
+        const categorias = [...new Set(productosLista.map(p => p.categoria).filter(c => c))];
+        const filterSelect = document.getElementById('filterCategoria');
+        if (filterSelect) {
+            filterSelect.innerHTML = '<option value="">Todas las categorías</option>';
+            categorias.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                filterSelect.appendChild(option);
+            });
+        }
+        
+        // Configurar búsqueda y filtros
+        const searchInput = document.getElementById('searchProduct');
+        if (searchInput) {
+            searchInput.addEventListener('input', filtrarProductos);
+        }
+        
+        const filterSelectElem = document.getElementById('filterCategoria');
+        if (filterSelectElem) {
+            filterSelectElem.addEventListener('change', filtrarProductos);
+        }
+    } catch (error) {
+        console.error('Error al cargar productos:', error);
+    }
 }
 
 function mostrarProductos(productos) {
     const tbody = document.querySelector('#productosTable tbody');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
     
     productos.forEach(producto => {
@@ -61,8 +80,8 @@ function mostrarProductos(productos) {
 }
 
 function filtrarProductos() {
-    const searchTerm = document.getElementById('searchProduct').value.toLowerCase();
-    const categoria = document.getElementById('filterCategoria').value;
+    const searchTerm = document.getElementById('searchProduct')?.value.toLowerCase() || '';
+    const categoria = document.getElementById('filterCategoria')?.value || '';
     
     let filtrados = productosLista;
     
@@ -83,6 +102,8 @@ function filtrarProductos() {
 function mostrarModalProducto(id = null) {
     const modal = document.getElementById('productoModal');
     const form = document.getElementById('productoForm');
+    
+    if (!modal || !form) return;
     
     if (id) {
         const producto = productosLista.find(p => p.id === id);
@@ -112,46 +133,60 @@ async function editarProducto(id) {
 
 async function eliminarProducto(id) {
     if (confirm('¿Está seguro de eliminar este producto?')) {
-        await eliminarProducto(id);
-        await loadProductos();
-        alert('Producto eliminado');
+        try {
+            await eliminarProducto(id);
+            await loadProductos();
+            alert('Producto eliminado');
+        } catch (error) {
+            alert('Error al eliminar producto: ' + error.message);
+        }
     }
 }
 
-document.getElementById('productoForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const id = document.getElementById('productoId').value;
-    const producto = {
-        nombre: document.getElementById('nombre').value,
-        codigoBarras: document.getElementById('codigoBarras').value,
-        categoria: document.getElementById('categoria').value,
-        precio: parseFloat(document.getElementById('precio').value),
-        costo: parseFloat(document.getElementById('costo').value) || 0,
-        stock: parseInt(document.getElementById('stock').value) || 0,
-        imagen: document.getElementById('imagen').value
-    };
-    
-    if (id) {
-        await actualizarProducto(id, producto);
-        alert('Producto actualizado');
-    } else {
-        await crearProducto(producto);
-        alert('Producto creado');
+// Configurar el formulario cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    const productoForm = document.getElementById('productoForm');
+    if (productoForm) {
+        productoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('productoId').value;
+            const producto = {
+                nombre: document.getElementById('nombre').value,
+                codigoBarras: document.getElementById('codigoBarras').value,
+                categoria: document.getElementById('categoria').value,
+                precio: parseFloat(document.getElementById('precio').value),
+                costo: parseFloat(document.getElementById('costo').value) || 0,
+                stock: parseInt(document.getElementById('stock').value) || 0,
+                imagen: document.getElementById('imagen').value
+            };
+            
+            try {
+                if (id) {
+                    await actualizarProducto(id, producto);
+                    alert('Producto actualizado');
+                } else {
+                    await crearProducto(producto);
+                    alert('Producto creado');
+                }
+                
+                closeModal();
+                await loadProductos();
+            } catch (error) {
+                alert('Error al guardar producto: ' + error.message);
+            }
+        });
     }
-    
-    closeModal();
-    await loadProductos();
 });
 
 function closeModal() {
-    document.getElementById('productoModal').style.display = 'none';
+    const modal = document.getElementById('productoModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
-// Esperar autenticación
-const checkAuth = setInterval(() => {
-    if (currentNegocio) {
-        clearInterval(checkAuth);
-        loadProductos();
-    }
-}, 500);
+// Esperar autenticación para cargar productos
+onAuthReady(() => {
+    loadProductos();
+});

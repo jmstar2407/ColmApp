@@ -150,10 +150,12 @@ function closeModal() {
     document.getElementById('egresoForm').reset();
 }
 
-// Esperar autenticación
-const checkAuth = setInterval(() => {
-    if (currentNegocio) {
-        clearInterval(checkAuth);
-        loadContabilidad();
-    }
-}, 500);
+// Esperar autenticación para cargar datos
+onAuthReady(() => {
+    // Llamar a la función principal de carga
+    if (typeof loadPOSData === 'function') loadPOSData();
+    if (typeof loadCajaData === 'function') loadCajaData();
+    if (typeof loadClientes === 'function') loadClientes();
+    if (typeof loadReportes === 'function') loadReportes();
+    if (typeof loadContabilidad === 'function') loadContabilidad();
+});
