@@ -1,4 +1,4 @@
-// auth.js - Versión completa y corregida
+// auth.js - Versión completa con funciones globales
 // Variables globales
 let currentUser = null;
 let currentNegocio = null;
@@ -327,24 +327,32 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     }
 });
 
-// Logout
-function logout() {
+// Logout - Función global
+window.logout = function() {
     sessionStorage.removeItem('currentNegocioId');
     sessionStorage.removeItem('currentNegocio');
     auth.signOut();
-}
+};
 
-// Mostrar/ocultar registro
-function showRegister() {
-    document.getElementById('registerModal').style.display = 'flex';
-}
+// Mostrar/ocultar registro - Funciones globales
+window.showRegister = function() {
+    const modal = document.getElementById('registerModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    } else {
+        console.error('Modal de registro no encontrado');
+    }
+};
 
-function hideRegister() {
-    document.getElementById('registerModal').style.display = 'none';
-}
+window.hideRegister = function() {
+    const modal = document.getElementById('registerModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};
 
-// Verificar caja abierta
-async function verificarCajaAbierta() {
+// Verificar caja abierta - Función global
+window.verificarCajaAbierta = async function() {
     try {
         const negocio = await getCurrentNegocio();
         if (!negocio) return false;
@@ -361,4 +369,10 @@ async function verificarCajaAbierta() {
         console.error('Error al verificar caja:', error);
         return false;
     }
-}
+};
+
+// Exportar funciones necesarias globalmente
+window.onAuthReady = onAuthReady;
+window.getCurrentNegocio = getCurrentNegocio;
+window.currentNegocio = () => currentNegocio;
+window.currentUser = () => currentUser;
