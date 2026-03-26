@@ -1,4 +1,4 @@
-// auth.js - Versión corregida
+// auth.js - Versión completa y corregida
 // Variables globales
 let currentUser = null;
 let currentNegocio = null;
@@ -88,82 +88,8 @@ auth.onAuthStateChanged(async (user) => {
                     sessionStorage.setItem('currentNegocioId', currentNegocio.id);
                     sessionStorage.setItem('currentNegocio', JSON.stringify(currentNegocio));
                 } else {
-                    // Último intento: buscar por cualquier documento que tenga este email en cualquier campo
-                    console.log('Buscando negocio con email en cualquier campo...');
-                    const negociosSnapshot = await db.collection('negocios').get();
-                    let negocioEncontrado = null;
-                    
-                    negociosSnapshot.docs.forEach(doc => {
-                        const data = doc.data();
-                        if (data.email === user.email || data.correo === user.email) {
-                            negocioEncontrado = { id: doc.id, ...data };
-                        }
-                    });
-                    
-                    if (negocioEncontrado) {
-                        currentNegocio = negocioEncontrado;
-                        console.log('Negocio encontrado en búsqueda general:', currentNegocio.nombre);
-                        
-                        // Actualizar campos
-                        await db.collection('negocios').doc(currentNegocio.id).update({
-                            propietarioUid: user.uid,
-                            email: user.email
-                        });
-                        
-                        sessionStorage.setItem('currentNegocioId', currentNegocio.id);
-                        sessionStorage.setItem('currentNegocio', JSON.stringify(currentNegocio));
-                    } else {
-                        console.error('No se encontró negocio para el usuario. Creando negocio temporal...');
-                        
-                        // Crear negocio automáticamente si no existe
-                        const nuevoNegocio = {
-                            nombre: 'Mi Colmado',
-                            RNC: '',
-                            direccion: 'Dirección no especificada',
-                            telefono: '',
-                            propietarioUid: user.uid,
-                            email: user.email,
-                            plan: 'basico',
-                            creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
-                            config: {
-                                itbis: 18,
-                                itbisAsumeCliente: true,
-                                ncfSerie: 'B01'
-                            }
-                        };
-                        
-                        const negocioRef = await db.collection('negocios').add(nuevoNegocio);
-                        currentNegocio = { id: negocioRef.id, ...nuevoNegocio };
-                        console.log('Negocio creado automáticamente:', currentNegocio.id);
-                        
-                        // Crear configuración inicial
-                        await db.collection('negocios').doc(negocioRef.id).collection('configuraciones').doc('general').set({
-                            itbis: 18,
-                            itbisAsumeCliente: true,
-                            ncfSerie: 'B01',
-                            ultimoNCF: 1
-                        });
-                        
-                        // Crear caja inicial cerrada
-                        await db.collection('negocios').doc(negocioRef.id).collection('caja').add({
-                            estado: 'cerrada',
-                            fechaApertura: null,
-                            fechaCierre: firebase.firestore.FieldValue.serverTimestamp(),
-                            montoInicial: 0,
-                            montoFinal: 0
-                        });
-                        
-                        // Crear cliente por defecto
-                        await db.collection('negocios').doc(negocioRef.id).collection('clientes').add({
-                            nombre: 'Consumidor Final',
-                            rnc: '',
-                            tipo: 'consumidor',
-                            creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        
-                        sessionStorage.setItem('currentNegocioId', currentNegocio.id);
-                        sessionStorage.setItem('currentNegocio', JSON.stringify(currentNegocio));
-                    }
+                    console.log('No se encontró negocio para este usuario. Esto es normal si es un nuevo registro.');
+                    currentNegocio = null;
                 }
             }
         } catch (error) {
@@ -180,7 +106,7 @@ auth.onAuthStateChanged(async (user) => {
             }
         });
         
-        // Redirigir a dashboard si estamos en login
+        // Redirigir a dashboard si estamos en login y hay negocio
         if (shouldRedirectToDashboard() && currentNegocio) {
             window.location.href = 'dashboard.html';
         }
@@ -221,11 +147,218 @@ async function getCurrentNegocio() {
         return currentNegocio;
     }
     
-    // Esperar a que la autenticación esté lista (máximo 10 segundos)
-    for (let i = 0; i < 100; i++) {
+    // Esperar a que la autenticación esté lista (máximo 5 segundos)
+    for (let i = 0; i < 50; i++) {
         if (currentNegocio) return currentNegocio;
         await new Promise(resolve => setTimeout(resolve, 100));
     }
     
     throw new Error('No se pudo obtener el negocio actual');
+}
+
+// Login
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorDiv = document.getElementById('errorMessage');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    // Limpiar sessionStorage antes de login
+    sessionStorage.removeItem('currentNegocioId');
+    sessionStorage.removeItem('currentNegocio');
+    
+    submitBtn.textContent = 'Iniciando sesión...';
+    submitBtn.disabled = true;
+    
+    try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        console.log('Login exitoso, esperando carga de negocio...');
+        errorDiv.style.display = 'none';
+        
+        // Esperar a que se cargue el negocio
+        setTimeout(() => {
+            if (!currentNegocio) {
+                console.log('No se encontró negocio asociado');
+                errorDiv.textContent = 'No se encontró un negocio asociado a esta cuenta. Por favor, regístrese primero.';
+                errorDiv.style.display = 'block';
+                auth.signOut();
+            }
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error de login:', error);
+        errorDiv.textContent = 'Error: ' + error.message;
+        errorDiv.style.display = 'block';
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+});
+
+// Registrar nuevo negocio
+document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const negocioNombre = document.getElementById('negocioNombre').value;
+    const negocioRNC = document.getElementById('negocioRNC').value;
+    const negocioDireccion = document.getElementById('negocioDireccion').value;
+    const negocioTelefono = document.getElementById('negocioTelefono').value;
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Registrando...';
+    submitBtn.disabled = true;
+    
+    try {
+        // Verificar si el usuario ya existe
+        let userCredential;
+        try {
+            // Intentar crear usuario
+            userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            console.log('Usuario creado:', userCredential.user.uid);
+        } catch (createError) {
+            // Si el usuario ya existe, intentar iniciar sesión
+            if (createError.code === 'auth/email-already-in-use') {
+                console.log('Usuario ya existe, intentando iniciar sesión...');
+                userCredential = await auth.signInWithEmailAndPassword(email, password);
+                console.log('Sesión iniciada con usuario existente:', userCredential.user.uid);
+            } else {
+                throw createError;
+            }
+        }
+        
+        const user = userCredential.user;
+        
+        // Verificar si ya tiene un negocio
+        const existingNegocio = await db.collection('negocios')
+            .where('propietarioUid', '==', user.uid)
+            .limit(1)
+            .get();
+        
+        if (!existingNegocio.empty) {
+            alert('Este usuario ya tiene un negocio registrado. Será redirigido al dashboard.');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+        
+        // Crear negocio con todos los campos necesarios
+        const negocioData = {
+            nombre: negocioNombre,
+            RNC: negocioRNC || '',
+            direccion: negocioDireccion,
+            telefono: negocioTelefono || '',
+            propietarioUid: user.uid,
+            email: email,
+            plan: 'basico',
+            creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
+            config: {
+                itbis: 18,
+                itbisAsumeCliente: true,
+                ncfSerie: 'B01'
+            }
+        };
+        
+        const negocioRef = await db.collection('negocios').add(negocioData);
+        console.log('Negocio creado con ID:', negocioRef.id);
+        
+        // Crear configuración inicial
+        await db.collection('negocios').doc(negocioRef.id).collection('configuraciones').doc('general').set({
+            itbis: 18,
+            itbisAsumeCliente: true,
+            ncfSerie: 'B01',
+            ultimoNCF: 1
+        });
+        
+        // Crear caja inicial cerrada
+        await db.collection('negocios').doc(negocioRef.id).collection('caja').add({
+            estado: 'cerrada',
+            fechaApertura: null,
+            fechaCierre: firebase.firestore.FieldValue.serverTimestamp(),
+            montoInicial: 0,
+            montoFinal: 0
+        });
+        
+        // Crear cliente por defecto "Consumidor Final"
+        await db.collection('negocios').doc(negocioRef.id).collection('clientes').add({
+            nombre: 'Consumidor Final',
+            rnc: '',
+            tipo: 'consumidor',
+            creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        alert('Negocio registrado exitosamente');
+        hideRegister();
+        
+        // Guardar negocio en sessionStorage antes de redirigir
+        const negocioObj = { id: negocioRef.id, ...negocioData };
+        sessionStorage.setItem('currentNegocioId', negocioRef.id);
+        sessionStorage.setItem('currentNegocio', JSON.stringify(negocioObj));
+        
+        // Redirigir al dashboard
+        window.location.href = 'dashboard.html';
+        
+    } catch (error) {
+        console.error('Error al registrar:', error);
+        let errorMessage = 'Error al registrar: ';
+        
+        switch (error.code) {
+            case 'auth/weak-password':
+                errorMessage += 'La contraseña debe tener al menos 6 caracteres.';
+                break;
+            case 'auth/invalid-email':
+                errorMessage += 'El correo electrónico no es válido.';
+                break;
+            case 'auth/email-already-in-use':
+                errorMessage += 'Este correo ya está registrado. Por favor, inicie sesión.';
+                break;
+            default:
+                errorMessage += error.message;
+        }
+        
+        alert(errorMessage);
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+});
+
+// Logout
+function logout() {
+    sessionStorage.removeItem('currentNegocioId');
+    sessionStorage.removeItem('currentNegocio');
+    auth.signOut();
+}
+
+// Mostrar/ocultar registro
+function showRegister() {
+    document.getElementById('registerModal').style.display = 'flex';
+}
+
+function hideRegister() {
+    document.getElementById('registerModal').style.display = 'none';
+}
+
+// Verificar caja abierta
+async function verificarCajaAbierta() {
+    try {
+        const negocio = await getCurrentNegocio();
+        if (!negocio) return false;
+        
+        const cajaSnapshot = await db.collection('negocios')
+            .doc(negocio.id)
+            .collection('caja')
+            .where('estado', '==', 'abierta')
+            .limit(1)
+            .get();
+        
+        return !cajaSnapshot.empty;
+    } catch (error) {
+        console.error('Error al verificar caja:', error);
+        return false;
+    }
 }
