@@ -1,3 +1,4 @@
+// auth.js - Versión corregida
 // Variables globales
 let currentUser = null;
 let currentNegocio = null;
@@ -45,6 +46,7 @@ auth.onAuthStateChanged(async (user) => {
             // SEGUNDO: Buscar negocio en Firestore
             console.log('Buscando negocio para usuario:', user.uid);
             
+            // Intentar buscar por propietarioUid
             const negocioQuery = await db.collection('negocios')
                 .where('propietarioUid', '==', user.uid)
                 .limit(1)
@@ -55,15 +57,14 @@ auth.onAuthStateChanged(async (user) => {
                     id: negocioQuery.docs[0].id,
                     ...negocioQuery.docs[0].data()
                 };
-                console.log('Negocio cargado desde Firestore:', currentNegocio.nombre);
+                console.log('Negocio cargado desde Firestore por UID:', currentNegocio.nombre);
                 
                 // Guardar en sessionStorage para persistencia
                 sessionStorage.setItem('currentNegocioId', currentNegocio.id);
                 sessionStorage.setItem('currentNegocio', JSON.stringify(currentNegocio));
             } else {
-                console.error('No se encontró negocio para el usuario. Verificando si es un usuario nuevo...');
-                
-                // Verificar si el usuario tiene algún negocio (podría haber error en el campo)
+                // Intentar buscar por email
+                console.log('Buscando negocio por email:', user.email);
                 const allNegociosQuery = await db.collection('negocios')
                     .where('email', '==', user.email)
                     .limit(1)
@@ -77,7 +78,7 @@ auth.onAuthStateChanged(async (user) => {
                     console.log('Negocio encontrado por email:', currentNegocio.nombre);
                     
                     // Actualizar el propietarioUid si es necesario
-                    if (!currentNegocio.propietarioUid) {
+                    if (!currentNegocio.propietarioUid || currentNegocio.propietarioUid !== user.uid) {
                         await db.collection('negocios').doc(currentNegocio.id).update({
                             propietarioUid: user.uid
                         });
@@ -87,14 +88,82 @@ auth.onAuthStateChanged(async (user) => {
                     sessionStorage.setItem('currentNegocioId', currentNegocio.id);
                     sessionStorage.setItem('currentNegocio', JSON.stringify(currentNegocio));
                 } else {
-                    console.error('No hay negocio asociado a este usuario. Redirigiendo a registro...');
-                    currentNegocio = null;
+                    // Último intento: buscar por cualquier documento que tenga este email en cualquier campo
+                    console.log('Buscando negocio con email en cualquier campo...');
+                    const negociosSnapshot = await db.collection('negocios').get();
+                    let negocioEncontrado = null;
                     
-                    // Si no hay negocio, mostrar mensaje y redirigir al registro
-                    alert('No se encontró un negocio asociado a tu cuenta. Por favor, registra tu negocio.');
-                    auth.signOut();
-                    window.location.href = 'index.html';
-                    return;
+                    negociosSnapshot.docs.forEach(doc => {
+                        const data = doc.data();
+                        if (data.email === user.email || data.correo === user.email) {
+                            negocioEncontrado = { id: doc.id, ...data };
+                        }
+                    });
+                    
+                    if (negocioEncontrado) {
+                        currentNegocio = negocioEncontrado;
+                        console.log('Negocio encontrado en búsqueda general:', currentNegocio.nombre);
+                        
+                        // Actualizar campos
+                        await db.collection('negocios').doc(currentNegocio.id).update({
+                            propietarioUid: user.uid,
+                            email: user.email
+                        });
+                        
+                        sessionStorage.setItem('currentNegocioId', currentNegocio.id);
+                        sessionStorage.setItem('currentNegocio', JSON.stringify(currentNegocio));
+                    } else {
+                        console.error('No se encontró negocio para el usuario. Creando negocio temporal...');
+                        
+                        // Crear negocio automáticamente si no existe
+                        const nuevoNegocio = {
+                            nombre: 'Mi Colmado',
+                            RNC: '',
+                            direccion: 'Dirección no especificada',
+                            telefono: '',
+                            propietarioUid: user.uid,
+                            email: user.email,
+                            plan: 'basico',
+                            creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
+                            config: {
+                                itbis: 18,
+                                itbisAsumeCliente: true,
+                                ncfSerie: 'B01'
+                            }
+                        };
+                        
+                        const negocioRef = await db.collection('negocios').add(nuevoNegocio);
+                        currentNegocio = { id: negocioRef.id, ...nuevoNegocio };
+                        console.log('Negocio creado automáticamente:', currentNegocio.id);
+                        
+                        // Crear configuración inicial
+                        await db.collection('negocios').doc(negocioRef.id).collection('configuraciones').doc('general').set({
+                            itbis: 18,
+                            itbisAsumeCliente: true,
+                            ncfSerie: 'B01',
+                            ultimoNCF: 1
+                        });
+                        
+                        // Crear caja inicial cerrada
+                        await db.collection('negocios').doc(negocioRef.id).collection('caja').add({
+                            estado: 'cerrada',
+                            fechaApertura: null,
+                            fechaCierre: firebase.firestore.FieldValue.serverTimestamp(),
+                            montoInicial: 0,
+                            montoFinal: 0
+                        });
+                        
+                        // Crear cliente por defecto
+                        await db.collection('negocios').doc(negocioRef.id).collection('clientes').add({
+                            nombre: 'Consumidor Final',
+                            rnc: '',
+                            tipo: 'consumidor',
+                            creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        sessionStorage.setItem('currentNegocioId', currentNegocio.id);
+                        sessionStorage.setItem('currentNegocio', JSON.stringify(currentNegocio));
+                    }
                 }
             }
         } catch (error) {
@@ -152,157 +221,11 @@ async function getCurrentNegocio() {
         return currentNegocio;
     }
     
-    // Esperar a que la autenticación esté lista (máximo 5 segundos)
-    for (let i = 0; i < 50; i++) {
+    // Esperar a que la autenticación esté lista (máximo 10 segundos)
+    for (let i = 0; i < 100; i++) {
         if (currentNegocio) return currentNegocio;
         await new Promise(resolve => setTimeout(resolve, 100));
     }
     
     throw new Error('No se pudo obtener el negocio actual');
-}
-
-// Login
-document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const errorDiv = document.getElementById('errorMessage');
-    
-    // Limpiar sessionStorage antes de login
-    sessionStorage.removeItem('currentNegocioId');
-    sessionStorage.removeItem('currentNegocio');
-    
-    try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        console.log('Login exitoso, esperando carga de negocio...');
-        errorDiv.style.display = 'none';
-    } catch (error) {
-        console.error('Error de login:', error);
-        errorDiv.textContent = 'Error: ' + error.message;
-        errorDiv.style.display = 'block';
-    }
-});
-
-// Registrar nuevo negocio
-document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-    const negocioNombre = document.getElementById('negocioNombre').value;
-    const negocioRNC = document.getElementById('negocioRNC').value;
-    const negocioDireccion = document.getElementById('negocioDireccion').value;
-    const negocioTelefono = document.getElementById('negocioTelefono').value;
-    
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Registrando...';
-    submitBtn.disabled = true;
-    
-    try {
-        // Crear usuario
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        console.log('Usuario creado:', user.uid);
-        
-        // Crear negocio con todos los campos necesarios
-        const negocioData = {
-            nombre: negocioNombre,
-            RNC: negocioRNC || '',
-            direccion: negocioDireccion,
-            telefono: negocioTelefono || '',
-            propietarioUid: user.uid,
-            email: email, // Guardar email para búsqueda alternativa
-            plan: 'basico',
-            creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
-            config: {
-                itbis: 18,
-                itbisAsumeCliente: true,
-                ncfSerie: 'B01'
-            }
-        };
-        
-        const negocioRef = await db.collection('negocios').add(negocioData);
-        console.log('Negocio creado con ID:', negocioRef.id);
-        
-        // Crear configuración inicial
-        await db.collection('negocios').doc(negocioRef.id).collection('configuraciones').doc('general').set({
-            itbis: 18,
-            itbisAsumeCliente: true,
-            ncfSerie: 'B01',
-            ultimoNCF: 1
-        });
-        
-        // Crear caja inicial cerrada
-        await db.collection('negocios').doc(negocioRef.id).collection('caja').add({
-            estado: 'cerrada',
-            fechaApertura: null,
-            fechaCierre: firebase.firestore.FieldValue.serverTimestamp(),
-            montoInicial: 0,
-            montoFinal: 0
-        });
-        
-        // Crear cliente por defecto "Consumidor Final"
-        await db.collection('negocios').doc(negocioRef.id).collection('clientes').add({
-            nombre: 'Consumidor Final',
-            rnc: '',
-            tipo: 'consumidor',
-            creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        alert('Negocio registrado exitosamente');
-        hideRegister();
-        
-        // Guardar negocio en sessionStorage antes de iniciar sesión
-        const negocioObj = { id: negocioRef.id, ...negocioData };
-        sessionStorage.setItem('currentNegocioId', negocioRef.id);
-        sessionStorage.setItem('currentNegocio', JSON.stringify(negocioObj));
-        
-        // Iniciar sesión automáticamente
-        await auth.signInWithEmailAndPassword(email, password);
-        
-    } catch (error) {
-        console.error('Error al registrar:', error);
-        alert('Error al registrar: ' + error.message);
-    } finally {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    }
-});
-
-// Logout
-function logout() {
-    sessionStorage.removeItem('currentNegocioId');
-    sessionStorage.removeItem('currentNegocio');
-    auth.signOut();
-}
-
-// Mostrar/ocultar registro
-function showRegister() {
-    document.getElementById('registerModal').style.display = 'flex';
-}
-
-function hideRegister() {
-    document.getElementById('registerModal').style.display = 'none';
-}
-
-// Verificar caja abierta
-async function verificarCajaAbierta() {
-    try {
-        const negocio = await getCurrentNegocio();
-        if (!negocio) return false;
-        
-        const cajaSnapshot = await db.collection('negocios')
-            .doc(negocio.id)
-            .collection('caja')
-            .where('estado', '==', 'abierta')
-            .limit(1)
-            .get();
-        
-        return !cajaSnapshot.empty;
-    } catch (error) {
-        console.error('Error al verificar caja:', error);
-        return false;
-    }
 }
