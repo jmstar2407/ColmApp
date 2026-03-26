@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS - Punto de Venta</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span class="material-icons">store</span>
+                <h3 id="negocioNombre">Cargando...</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="pos.html" class="active">POS</a>
+                <a href="productos.html">Productos</a>
+                <a href="clientes.html">Clientes</a>
+                <a href="caja.html">Caja</a>
+                <a href="reportes.html">Reportes</a>
+                <a href="contabilidad.html">Contabilidad</a>
+                <a href="#" onclick="logout()">Cerrar Sesión</a>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <div class="top-bar">
+                <h1>Punto de Venta</h1>
+                <div id="cajaStatus" class="caja-status"></div>
+            </div>
+            
+            <div class="pos-container">
+                <div class="products-section">
+                    <div class="search-bar">
+                        <input type="text" id="searchProduct" placeholder="Buscar por nombre o código de barras...">
+                        <button onclick="showAddProductModal()" class="btn-primary" style="width: auto;">+ Producto</button>
+                    </div>
+                    <div id="productsGrid" class="products-grid"></div>
+                </div>
+                
+                <div class="cart-container">
+                    <h3>Carrito de Venta</h3>
+                    <div id="cartItems" class="cart-items"></div>
+                    <div class="cart-totals">
+                        <div>Subtotal: <span id="subtotal">RD$ 0.00</span></div>
+                        <div>ITBIS (18%): <span id="itbis">RD$ 0.00</span></div>
+                        <div class="total">Total: <span id="total">RD$ 0.00</span></div>
+                    </div>
+                    <div class="payment-options">
+                        <select id="clienteSelect">
+                            <option value="">Consumidor Final</option>
+                        </select>
+                        <button onclick="procesarVenta()" class="btn-primary" id="btnVender">Vender</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal para agregar cliente rápido -->
+    <div id="clienteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('clienteModal')">&times;</span>
+            <h2>Nuevo Cliente</h2>
+            <form id="clienteForm">
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" id="clienteNombre" required>
+                </div>
+                <div class="form-group">
+                    <label>RNC/Cédula</label>
+                    <input type="text" id="clienteRNC">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" id="clienteTelefono">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="clienteEmail">
+                </div>
+                <button type="submit" class="btn-primary">Guardar Cliente</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para agregar producto rápido -->
+    <div id="productoModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('productoModal')">&times;</span>
+            <h2>Nuevo Producto</h2>
+            <form id="productoForm">
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" id="productoNombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Precio *</label>
+                    <input type="number" id="productoPrecio" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Costo</label>
+                    <input type="number" id="productoCosto" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Stock</label>
+                    <input type="number" id="productoStock" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Código de Barras</label>
+                    <input type="text" id="productoCodigo">
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <input type="text" id="productoCategoria">
+                </div>
+                <button type="submit" class="btn-primary">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para ticket -->
+    <div id="ticketModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 300px;">
+            <h2>Ticket de Venta</h2>
+            <div id="ticketContent"></div>
+            <button onclick="closeModal('ticketModal')" class="btn-primary">Cerrar</button>
+            <button onclick="imprimirTicket()" class="btn-secondary">Imprimir</button>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/pos.js"></script>
+</body>
+</html>

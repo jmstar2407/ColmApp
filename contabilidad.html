@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contabilidad - POS Colmado</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span class="material-icons">store</span>
+                <h3 id="negocioNombre">Cargando...</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="pos.html">POS</a>
+                <a href="productos.html">Productos</a>
+                <a href="clientes.html">Clientes</a>
+                <a href="caja.html">Caja</a>
+                <a href="reportes.html">Reportes</a>
+                <a href="contabilidad.html" class="active">Contabilidad</a>
+                <a href="#" onclick="logout()">Cerrar Sesión</a>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <div class="top-bar">
+                <h1>Contabilidad</h1>
+                <button onclick="mostrarModalEgreso()" class="btn-primary">+ Registrar Egreso</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Ingresos Totales</h3>
+                    <div class="value" id="totalIngresos">RD$ 0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Egresos Totales</h3>
+                    <div class="value" id="totalEgresos">RD$ 0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Ganancia Neta</h3>
+                    <div class="value" id="gananciaNeta">RD$ 0</div>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Balance General</h3>
+                    <canvas id="balanceChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <h2>Movimientos Contables</h2>
+                <div class="search-bar">
+                    <input type="date" id="fechaDesde">
+                    <input type="date" id="fechaHasta">
+                    <button onclick="filtrarMovimientos()" class="btn-primary">Filtrar</button>
+                </div>
+                <table id="movimientosTable">
+                    <thead>
+                        <tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Concepto</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                        <tr style="font-weight: bold;">
+                            <td colspan="2">Totales:</td>
+                            <td id="totalMovimientos">RD$ 0</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal egreso -->
+    <div id="egresoModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Registrar Egreso</h2>
+            <form id="egresoForm">
+                <div class="form-group">
+                    <label>Monto *</label>
+                    <input type="number" id="monto" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Concepto *</label>
+                    <input type="text" id="concepto" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="categoria">
+                        <option value="gasto_operativo">Gasto Operativo</option>
+                        <option value="compra_mercancia">Compra de Mercancía</option>
+                        <option value="gasto_administrativo">Gasto Administrativo</option>
+                        <option value="otros">Otros</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Registrar Egreso</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/contabilidad.js"></script>
+</body>
+</html>

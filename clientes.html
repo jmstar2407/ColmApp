@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - POS Colmado</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span class="material-icons">store</span>
+                <h3 id="negocioNombre">Cargando...</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="pos.html">POS</a>
+                <a href="productos.html">Productos</a>
+                <a href="clientes.html" class="active">Clientes</a>
+                <a href="caja.html">Caja</a>
+                <a href="reportes.html">Reportes</a>
+                <a href="contabilidad.html">Contabilidad</a>
+                <a href="#" onclick="logout()">Cerrar Sesión</a>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <div class="top-bar">
+                <h1>Clientes</h1>
+                <button onclick="mostrarModalCliente()" class="btn-primary">+ Nuevo Cliente</button>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" id="searchCliente" placeholder="Buscar cliente...">
+            </div>
+            
+            <div class="table-container">
+                <table id="clientesTable">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>RNC/Cédula</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Tipo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal cliente -->
+    <div id="clienteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Nuevo Cliente</h2>
+            <form id="clienteForm">
+                <input type="hidden" id="clienteId">
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" id="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>RNC/Cédula</label>
+                    <input type="text" id="rnc">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" id="telefono">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email">
+                </div>
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" id="direccion">
+                </div>
+                <button type="submit" class="btn-primary">Guardar Cliente</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/clientes.js"></script>
+</body>
+</html>
