@@ -21,7 +21,30 @@ auth.onAuthStateChanged(async (user) => {
         currentUser = user;
         
         try {
-            // Obtener negocio del usuario
+            // PRIMERO: Intentar recuperar de sessionStorage
+            const storedNegocioId = sessionStorage.getItem('currentNegocioId');
+            const storedNegocio = sessionStorage.getItem('currentNegocio');
+            
+            if (storedNegocioId && storedNegocio) {
+                currentNegocio = JSON.parse(storedNegocio);
+                console.log('Negocio cargado desde sessionStorage:', currentNegocio.nombre);
+                authReady = true;
+                
+                // Notificar listeners
+                authListeners.forEach(listener => {
+                    listener(currentNegocio, currentUser);
+                });
+                
+                // Redirigir si es necesario
+                if (shouldRedirectToDashboard()) {
+                    window.location.href = 'dashboard.html';
+                }
+                return;
+            }
+            
+            // SEGUNDO: Buscar negocio en Firestore
+            console.log('Buscando negocio para usuario:', user.uid);
+            
             const negocioQuery = await db.collection('negocios')
                 .where('propietarioUid', '==', user.uid)
                 .limit(1)
@@ -32,14 +55,47 @@ auth.onAuthStateChanged(async (user) => {
                     id: negocioQuery.docs[0].id,
                     ...negocioQuery.docs[0].data()
                 };
-                console.log('Negocio cargado:', currentNegocio.nombre);
+                console.log('Negocio cargado desde Firestore:', currentNegocio.nombre);
                 
-                // Guardar en sessionStorage para persistencia entre páginas
+                // Guardar en sessionStorage para persistencia
                 sessionStorage.setItem('currentNegocioId', currentNegocio.id);
                 sessionStorage.setItem('currentNegocio', JSON.stringify(currentNegocio));
             } else {
-                console.error('No se encontró negocio para el usuario');
-                currentNegocio = null;
+                console.error('No se encontró negocio para el usuario. Verificando si es un usuario nuevo...');
+                
+                // Verificar si el usuario tiene algún negocio (podría haber error en el campo)
+                const allNegociosQuery = await db.collection('negocios')
+                    .where('email', '==', user.email)
+                    .limit(1)
+                    .get();
+                
+                if (!allNegociosQuery.empty) {
+                    currentNegocio = {
+                        id: allNegociosQuery.docs[0].id,
+                        ...allNegociosQuery.docs[0].data()
+                    };
+                    console.log('Negocio encontrado por email:', currentNegocio.nombre);
+                    
+                    // Actualizar el propietarioUid si es necesario
+                    if (!currentNegocio.propietarioUid) {
+                        await db.collection('negocios').doc(currentNegocio.id).update({
+                            propietarioUid: user.uid
+                        });
+                        console.log('PropietarioUid actualizado');
+                    }
+                    
+                    sessionStorage.setItem('currentNegocioId', currentNegocio.id);
+                    sessionStorage.setItem('currentNegocio', JSON.stringify(currentNegocio));
+                } else {
+                    console.error('No hay negocio asociado a este usuario. Redirigiendo a registro...');
+                    currentNegocio = null;
+                    
+                    // Si no hay negocio, mostrar mensaje y redirigir al registro
+                    alert('No se encontró un negocio asociado a tu cuenta. Por favor, registra tu negocio.');
+                    auth.signOut();
+                    window.location.href = 'index.html';
+                    return;
+                }
             }
         } catch (error) {
             console.error('Error al cargar negocio:', error);
@@ -56,12 +112,8 @@ auth.onAuthStateChanged(async (user) => {
         });
         
         // Redirigir a dashboard si estamos en login
-        if (window.location.pathname.includes('index.html') || 
-            window.location.pathname === '/' ||
-            window.location.pathname === '/index.html') {
-            if (currentNegocio) {
-                window.location.href = 'dashboard.html';
-            }
+        if (shouldRedirectToDashboard() && currentNegocio) {
+            window.location.href = 'dashboard.html';
         }
     } else {
         currentUser = null;
@@ -80,6 +132,14 @@ auth.onAuthStateChanged(async (user) => {
         }
     }
 });
+
+// Función auxiliar para verificar si debe redirigir al dashboard
+function shouldRedirectToDashboard() {
+    return window.location.pathname.includes('index.html') || 
+           window.location.pathname === '/' ||
+           window.location.pathname === '/index.html' ||
+           window.location.pathname === '/login.html';
+}
 
 // Función para obtener el negocio actual (con reintentos)
 async function getCurrentNegocio() {
@@ -109,10 +169,16 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
     const errorDiv = document.getElementById('errorMessage');
     
+    // Limpiar sessionStorage antes de login
+    sessionStorage.removeItem('currentNegocioId');
+    sessionStorage.removeItem('currentNegocio');
+    
     try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        console.log('Login exitoso, esperando carga de negocio...');
         errorDiv.style.display = 'none';
     } catch (error) {
+        console.error('Error de login:', error);
         errorDiv.textContent = 'Error: ' + error.message;
         errorDiv.style.display = 'block';
     }
@@ -129,18 +195,25 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     const negocioDireccion = document.getElementById('negocioDireccion').value;
     const negocioTelefono = document.getElementById('negocioTelefono').value;
     
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Registrando...';
+    submitBtn.disabled = true;
+    
     try {
         // Crear usuario
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
+        console.log('Usuario creado:', user.uid);
         
-        // Crear negocio
+        // Crear negocio con todos los campos necesarios
         const negocioData = {
             nombre: negocioNombre,
-            RNC: negocioRNC,
+            RNC: negocioRNC || '',
             direccion: negocioDireccion,
-            telefono: negocioTelefono,
+            telefono: negocioTelefono || '',
             propietarioUid: user.uid,
+            email: email, // Guardar email para búsqueda alternativa
             plan: 'basico',
             creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
             config: {
@@ -151,6 +224,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
         };
         
         const negocioRef = await db.collection('negocios').add(negocioData);
+        console.log('Negocio creado con ID:', negocioRef.id);
         
         // Crear configuración inicial
         await db.collection('negocios').doc(negocioRef.id).collection('configuraciones').doc('general').set({
@@ -169,19 +243,38 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
             montoFinal: 0
         });
         
+        // Crear cliente por defecto "Consumidor Final"
+        await db.collection('negocios').doc(negocioRef.id).collection('clientes').add({
+            nombre: 'Consumidor Final',
+            rnc: '',
+            tipo: 'consumidor',
+            creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
         alert('Negocio registrado exitosamente');
         hideRegister();
+        
+        // Guardar negocio en sessionStorage antes de iniciar sesión
+        const negocioObj = { id: negocioRef.id, ...negocioData };
+        sessionStorage.setItem('currentNegocioId', negocioRef.id);
+        sessionStorage.setItem('currentNegocio', JSON.stringify(negocioObj));
         
         // Iniciar sesión automáticamente
         await auth.signInWithEmailAndPassword(email, password);
         
     } catch (error) {
+        console.error('Error al registrar:', error);
         alert('Error al registrar: ' + error.message);
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
     }
 });
 
 // Logout
 function logout() {
+    sessionStorage.removeItem('currentNegocioId');
+    sessionStorage.removeItem('currentNegocio');
     auth.signOut();
 }
 
