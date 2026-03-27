@@ -813,13 +813,12 @@ import {
 
 // ─── ⚠️ CONFIGURA FIREBASE AQUÍ ───
 const firebaseConfig = {
-  apiKey: "AIzaSyB7cX3O8Nkhg5XYsuH1UIn0ZDyxoxLzTB4",
-  authDomain: "colmapp-4aaa4.firebaseapp.com",
-  projectId: "colmapp-4aaa4",
-  storageBucket: "colmapp-4aaa4.firebasestorage.app",
-  messagingSenderId: "767529335752",
-  appId: "1:767529335752:web:5967b10a0e0da050f91efd",
-  measurementId: "G-22YKHGWTMH"
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROJECT.firebaseapp.com",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_PROJECT.appspot.com",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID"
 };
 // ─────────────────────────────────
 
@@ -1079,7 +1078,7 @@ const POS = {
           ? `<div class="product-img"><img src="${p.imagen}" alt="${p.nombre}" loading="lazy"></div>`
           : `<div class="product-img">📦</div>`;
         const out = p.stock<=0;
-        return `<div class="product-card${out?' out-of-stock':''}" onclick="${out?'':''}" data-id="${p.id}">
+        return `<div class="product-card${out ? " out-of-stock" : ""}" data-id="${p.id}">
           ${imgHtml}
           <div class="product-name">${p.nombre}</div>
           <div class="product-cat-badge">${p.categoria||'General'}</div>
@@ -1159,11 +1158,11 @@ const POS = {
         </div>`;
       }).join('');
       const total = State.cart.reduce((a,i)=>a+i.qty,0);
-      $('cart-count').textContent=`${total} producto${total!==1?'s':''}`;
+      $('cart-count').textContent=`${total} producto${total !== 1 ? "s" : ""}`;
     }
     const { subtotal, itbis, total } = POS.getTotals();
     $('cart-subtotal').textContent = fmt(subtotal);
-    $('cart-itbis-label').textContent = `ITBIS (${State.config.itbis||18}%)${State.config.itbisMode==='empresa'?' ✓ incluido':''}`;
+    $('cart-itbis-label').textContent = `ITBIS (${State.config.itbis||18}%)${State.config.itbisMode === "empresa" ? " ✓ incluido" : ""}`;
     $('cart-itbis').textContent = fmt(itbis);
     $('cart-total').textContent = fmt(total);
   },
@@ -1305,7 +1304,7 @@ const POS = {
         <div class="ticket-row"><span>Cambio:</span><span>${fmt(factura.cambio)}</span></div>
         `:''}
         <div class="ticket-footer">
-          <div>${factura.tipo==='fiscal'?'Con Comprobante Fiscal':'Consumidor Final'}</div>
+          <div>${factura.tipo === "fiscal" ? "Con Comprobante Fiscal" : "Consumidor Final"}</div>
           <div style="margin-top:4px">¡Gracias por su compra!</div>
           <div>Powered by ColmadoPOS</div>
         </div>
@@ -1364,7 +1363,7 @@ const Inventory = {
         <td><span class="badge badge-blue">${p.categoria||'General'}</span></td>
         <td style="font-weight:700;color:var(--green)">${fmt(p.precio)}</td>
         <td style="color:var(--text2)">${fmt(p.costo||0)}</td>
-        <td><span class="${lowStock?'badge badge-red':'badge badge-green'}">${p.stock||0}</span></td>
+        <td><span class="${lowStock ? 'badge badge-red' : 'badge badge-green'}">${p.stock||0}</span></td>
         <td style="font-size:12px;color:var(--text2)">${p.codigo||'—'}</td>
         <td>
           <div style="display:flex;gap:6px">
@@ -1502,7 +1501,7 @@ const Caja = {
     $('caja-summary').innerHTML=`
       <div class="stat-card"><div class="stat-card-label">Ingresos de Hoy</div><div class="stat-card-value text-green">${fmt(ing)}</div></div>
       <div class="stat-card"><div class="stat-card-label">Egresos de Hoy</div><div class="stat-card-value text-red">${fmt(egr)}</div></div>
-      <div class="stat-card"><div class="stat-card-label">Balance del Día</div><div class="stat-card-value ${ing-egr>=0?'text-green':'text-red'}">${fmt(ing-egr)}</div></div>`;
+      <div class="stat-card"><div class="stat-card-label">Balance del Día</div><div class="stat-card-value ${ing-egr>=0 ? "text-green" : "text-red"}">${fmt(ing-egr)}</div></div>`;
     await Caja.loadTransactions();
     await Caja.loadHistorial();
   },
@@ -1514,13 +1513,13 @@ const Caja = {
     $('caja-tx-list').innerHTML = txs.length ? txs.map(t=>`
       <div class="tx-item">
         <div class="tx-item-left">
-          <div class="tx-icon ${t.tipo==='ingreso'?'tx-icon-in':'tx-icon-out'}">${t.tipo==='ingreso'?'↑':'↓'}</div>
+          <div class="tx-icon ${t.tipo==="ingreso" ? "tx-icon-in" : "tx-icon-out"}">${t.tipo==="ingreso" ? "↑" : "↓"}</div>
           <div>
             <div style="font-size:13px;font-weight:600">${t.descripcion}</div>
             <div style="font-size:11px;color:var(--text2)">${t.empleadoNombre||''}</div>
           </div>
         </div>
-        <div style="font-weight:700;color:${t.tipo==='ingreso'?'var(--green)':'var(--red)'}">${t.tipo==='ingreso'?'+':'−'}${fmt(t.monto)}</div>
+        <div style="font-weight:700;color:${t.tipo==="ingreso" ? "var(--green)" : "var(--red)"}">${t.tipo==="ingreso" ? "+" : "−"}${fmt(t.monto)}</div>
       </div>`).join('') : '<div style="color:var(--text3);text-align:center;padding:20px">Sin transacciones aún</div>';
   },
   async loadHistorial(){
@@ -1671,11 +1670,11 @@ const Facturas = {
       return `<div class="factura-row" onclick="Facturas.openDetail('${f.id}')">
         <div class="factura-num">#${f.numero}</div>
         <div class="factura-info">
-          <div style="font-weight:600">${f.items?.length||0} producto(s) · ${f.empleadoNombre||'—'}</div>
-          <div style="font-size:12px;color:var(--text2)">${fecha} · ${f.metodo||'efectivo'} ${f.ncf?'· NCF: '+f.ncf:''}</div>
+          <div style="font-weight:600">${f.items?.length||0} producto(s) · ${f.empleadoNombre||"—"}</div>
+          <div style="font-size:12px;color:var(--text2)">${fecha} · ${f.metodo||"efectivo"} ${f.ncf ? "· NCF: "+f.ncf : ""}</div>
         </div>
-        <div class="factura-amount ${isPending?'pending'}">${fmt(f.total)}</div>
-        <span class="badge ${isPending?'badge-orange':'badge-green'}">${isPending?'Pendiente':'Pagada'}</span>
+        <div class="factura-amount ${isPending ? "pending" : ""}">${fmt(f.total)}</div>
+        <span class="badge ${isPending ? "badge-orange" : "badge-green"}">${isPending ? "Pendiente" : "Pagada"}</span>
       </div>`;
     }).join('');
   },
@@ -1688,9 +1687,9 @@ const Facturas = {
       <div class="flex flex-col gap-4">
         <div class="grid-2">
           <div><div style="font-size:12px;color:var(--text2)">Número</div><div style="font-weight:800;font-family:'Syne',sans-serif">${f.numero}</div></div>
-          <div><div style="font-size:12px;color:var(--text2)">Estado</div><span class="badge ${isPending?'badge-orange':'badge-green'}">${isPending?'Pendiente':'Pagada'}</span></div>
+          <div><div style="font-size:12px;color:var(--text2)">Estado</div><span class="badge ${isPending ? "badge-orange" : "badge-green"}">${isPending ? "Pendiente" : "Pagada"}</span></div>
           <div><div style="font-size:12px;color:var(--text2)">Fecha</div><div>${fecha}</div></div>
-          <div><div style="font-size:12px;color:var(--text2)">Empleado</div><div>${f.empleadoNombre||'—'}</div></div>
+          <div><div style="font-size:12px;color:var(--text2)">Empleado</div><div>${f.empleadoNombre||"—"}</div></div>
           ${f.ncf?`<div><div style="font-size:12px;color:var(--text2)">NCF</div><div style="font-weight:700">${f.ncf}</div></div>`:''}
           <div><div style="font-size:12px;color:var(--text2)">Método Pago</div><div>${f.metodo||'—'}</div></div>
         </div>
@@ -1859,7 +1858,7 @@ const Stats = {
       <div class="grid-3">
         <div class="stat-card"><div class="stat-card-label">Total Ingresos</div><div class="stat-card-value text-green">${fmt(totalIngresos)}</div></div>
         <div class="stat-card"><div class="stat-card-label">Costo de Ventas</div><div class="stat-card-value text-red">${fmt(totalCosto)}</div></div>
-        <div class="stat-card"><div class="stat-card-label">Ganancia Neta</div><div class="stat-card-value ${ganancia>=0?'text-green':'text-red'}">${fmt(ganancia)}</div></div>
+        <div class="stat-card"><div class="stat-card-label">Ganancia Neta</div><div class="stat-card-value ${ganancia>=0 ? "text-green" : "text-red"}">${fmt(ganancia)}</div></div>
       </div>`;
   }
 };
