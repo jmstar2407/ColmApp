@@ -20,7 +20,7 @@
     <span id="caja-status-badge" class="caja-status caja-cerrada">● Caja Cerrada</span>
     <span id="caja-fecha" style="color:var(--c-muted); font-size:.85rem;"></span>
     <div style="margin-left:auto; display:flex; gap:.5rem;">
-      <button id="btn-abrir-caja" class="btn btn-primary" onclick="mostrarModal('modal-apertura')">🔓 Abrir Caja</button>
+      <button id="btn-abrir-caja" class="btn btn-primary" onclick="abrirModalCaja()">🔓 Abrir Caja</button>
       <button id="btn-cerrar-caja" class="btn btn-danger" style="display:none" onclick="mostrarModal('modal-cierre')">🔒 Cerrar Caja</button>
       <button id="btn-trans" class="btn btn-ghost" style="display:none" onclick="mostrarModal('modal-transaccion')">+ Movimiento</button>
     </div>
@@ -191,8 +191,10 @@ let unsubTrans = null;
 
 requireAuth(async () => {
   initHeader();
-  document.getElementById('apertura-responsable').value = AppState.user.email;
-  document.getElementById('apertura-fecha').value = fechaHoy();
+  const elResp = document.getElementById('apertura-responsable');
+  if (elResp) elResp.value = AppState.user.email;
+  const elFecha = document.getElementById('apertura-fecha');
+  if (elFecha) elFecha.value = fechaHoy();
   await cargarEstadoCaja();
   await cargarHistorial();
 });
@@ -462,6 +464,14 @@ document.addEventListener('DOMContentLoaded', () => {
     inp.type = 'hidden';
   }
 });
+
+function abrirModalCaja() {
+  const elResp = document.getElementById('apertura-responsable');
+  if (elResp) elResp.value = AppState.user?.email || '';
+  const elFecha = document.getElementById('apertura-fecha');
+  if (elFecha) elFecha.value = fechaHoy();
+  mostrarModal('modal-apertura');
+}
 </script>
 </body>
 </html>
