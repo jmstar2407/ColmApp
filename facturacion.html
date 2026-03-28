@@ -224,67 +224,50 @@ async function verificarCajaStatus() {
   }
 }
 
-// ─── CARGAR PRODUCTOS ──────────────────────────────────────────
-const INV_CACHE_KEY = () => `inv_${AppState.negocioId}`;
-const INV_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+// ─── CACHÉ INVENTARIO (localStorage) ─────────────────────────
+const INV_CACHE_TTL = 5 * 60 * 1000; // 5 min
+
+function _invKey() { return `inv_${AppState.negocioId}`; }
 
 function leerInventarioCache() {
   try {
-    const raw = localStorage.getItem(INV_CACHE_KEY());
+    const raw = localStorage.getItem(_invKey());
     if (!raw) return null;
     const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts > INV_CACHE_TTL) { localStorage.removeItem(INV_CACHE_KEY()); return null; }
+    if (Date.now() - ts > INV_CACHE_TTL) { localStorage.removeItem(_invKey()); return null; }
     return data;
   } catch(e) { return null; }
 }
 
 function guardarInventarioCache(data) {
   try {
-    localStorage.setItem(INV_CACHE_KEY(), JSON.stringify({ data, ts: Date.now() }));
+    localStorage.setItem(_invKey(), JSON.stringify({ data, ts: Date.now() }));
   } catch(e) {
-    // Si localStorage está lleno (por imágenes base64), guardar sin imágenes
-    try {
-      const sinImg = data.map(p => { const c = {...p}; delete c._imgCache; return c; });
-      localStorage.setItem(INV_CACHE_KEY(), JSON.stringify({ data: sinImg, ts: Date.now() }));
-    } catch(e2) {}
+    // Si el storage está lleno (imágenes base64 pesadas), limpiar y reintentar
+    try { localStorage.removeItem(_invKey()); } catch(e2) {}
   }
 }
 
+// ─── CARGAR PRODUCTOS ──────────────────────────────────────────
 async function cargarProductos() {
-  const grid = document.getElementById('product-grid');
-
-  // Cargar desde caché primero para respuesta inmediata
+  // 1. Mostrar caché inmediatamente si existe
   const cache = leerInventarioCache();
   if (cache && cache.length) {
     productos = cache;
     llenarCategorias();
     renderProductos(productos);
-    // Recargar en background para tener datos frescos
-    actualizarProductosBackground();
+    // Actualizar en background silenciosamente
+    fetchProductosFirestore(true);
     return;
   }
-
-  grid.innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
-  await fetchProductosFirestore();
-}
-
-async function fetchProductosFirestore() {
+  // 2. Sin caché: spinner y cargar de Firestore
   const grid = document.getElementById('product-grid');
-  try {
-    const snap = await db.collection('negocios').doc(AppState.negocioId)
-      .collection('inventario')
-      .where('activo', '==', true)
-      .get();
-    productos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    guardarInventarioCache(productos);
-    llenarCategorias();
-    renderProductos(productos);
-  } catch(e) {
-    grid.innerHTML = '<div class="empty-state"><div class="es-icon">⚠️</div><h3>Error cargando productos</h3></div>';
-  }
+  grid.innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
+  await fetchProductosFirestore(false);
 }
 
-async function actualizarProductosBackground() {
+async function fetchProductosFirestore(background) {
+  const grid = document.getElementById('product-grid');
   try {
     const snap = await db.collection('negocios').doc(AppState.negocioId)
       .collection('inventario')
@@ -292,15 +275,26 @@ async function actualizarProductosBackground() {
       .get();
     const frescos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     guardarInventarioCache(frescos);
-    // Solo re-renderizar si hay cambios para no interrumpir al cajero
-    const antes = JSON.stringify(productos.map(p => p.id + p.stock + p.precio));
-    const despues = JSON.stringify(frescos.map(p => p.id + p.stock + p.precio));
-    if (antes !== despues) {
+    if (background) {
+      // Solo re-renderizar si cambió algo (stock, precio)
+      const sigFirma = p => p.id + '|' + p.stock + '|' + p.precio;
+      const antesStr = productos.map(sigFirma).join(',');
+      const despuesStr = frescos.map(sigFirma).join(',');
+      if (antesStr !== despuesStr) {
+        productos = frescos;
+        llenarCategorias();
+        renderProductos(productos);
+      }
+    } else {
       productos = frescos;
       llenarCategorias();
       renderProductos(productos);
     }
-  } catch(e) {}
+  } catch(e) {
+    if (!background) {
+      grid.innerHTML = '<div class="empty-state"><div class="es-icon">⚠️</div><h3>Error cargando productos</h3></div>';
+    }
+  }
 }
 
 function llenarCategorias() {
@@ -563,7 +557,7 @@ async function procesarFactura(estado) {
     carrito = [];
     renderCarrito();
 
-    // Actualizar stock en UI y cache
+    // Actualizar stock en UI y caché
     for (const item of carritoSnapshot) {
       const prod = productos.find(p => p.id === item.id);
       if (prod) prod.stock = Math.max(0, (prod.stock || 0) - item.cantidad);
