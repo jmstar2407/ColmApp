@@ -59,8 +59,56 @@ async function cargarDatosNegocio(uid) {
 }
 
 // ─── VERIFICAR CAJA ABIERTA ───────────────────────────────────
+// Clave localStorage para persistencia de caja
+function _cajaKey() {
+  return `caja_${AppState.negocioId}_${fechaHoy()}`;
+}
+
+function guardarCajaLocal(cajaId, cajaData) {
+  try {
+    localStorage.setItem(_cajaKey(), JSON.stringify({ cajaId, cajaData, fecha: fechaHoy() }));
+  } catch(e) {}
+}
+
+function limpiarCajaLocal() {
+  try {
+    // Limpiar claves de días anteriores
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith(`caja_${AppState.negocioId}_`)) localStorage.removeItem(k);
+    });
+  } catch(e) {}
+}
+
+function leerCajaLocal() {
+  try {
+    const raw = localStorage.getItem(_cajaKey());
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data.fecha !== fechaHoy()) { localStorage.removeItem(_cajaKey()); return null; }
+    return data;
+  } catch(e) { return null; }
+}
+
 async function verificarCaja() {
   const hoy = fechaHoy();
+
+  // Intentar restaurar desde localStorage primero
+  const local = leerCajaLocal();
+  if (local && local.cajaId) {
+    // Verificar que siga abierta en Firestore
+    try {
+      const doc = await db.collection('negocios').doc(AppState.negocioId)
+        .collection('caja').doc(local.cajaId).get();
+      if (doc.exists && doc.data().estado === 'abierta') {
+        AppState.cajaAbierta = true;
+        AppState.cajaId = local.cajaId;
+        return doc.data();
+      }
+    } catch(e) {}
+    limpiarCajaLocal();
+  }
+
+  // Consultar Firestore
   const snap = await db.collection('negocios').doc(AppState.negocioId)
     .collection('caja')
     .where('fecha', '==', hoy)
@@ -71,10 +119,12 @@ async function verificarCaja() {
   if (!snap.empty) {
     AppState.cajaAbierta = true;
     AppState.cajaId = snap.docs[0].id;
+    guardarCajaLocal(snap.docs[0].id, snap.docs[0].data());
     return snap.docs[0].data();
   }
   AppState.cajaAbierta = false;
   AppState.cajaId = null;
+  limpiarCajaLocal();
   return null;
 }
 

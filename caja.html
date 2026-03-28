@@ -240,6 +240,7 @@ async function abrirCaja() {
       });
     AppState.cajaId = ref.id;
     AppState.cajaAbierta = true;
+    guardarCajaLocal(ref.id, { fecha: fechaHoy() });
 
     // Registrar fondo como primera transacción
     if (fondo > 0) {
@@ -274,6 +275,7 @@ async function cerrarCaja() {
       });
     AppState.cajaAbierta = false;
     AppState.cajaId = null;
+    limpiarCajaLocal();
     cerrarModal('modal-cierre');
     toast('Caja cerrada correctamente', 'success');
     await cargarEstadoCaja();

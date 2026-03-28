@@ -225,20 +225,82 @@ async function verificarCajaStatus() {
 }
 
 // ─── CARGAR PRODUCTOS ──────────────────────────────────────────
+const INV_CACHE_KEY = () => `inv_${AppState.negocioId}`;
+const INV_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
+function leerInventarioCache() {
+  try {
+    const raw = localStorage.getItem(INV_CACHE_KEY());
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > INV_CACHE_TTL) { localStorage.removeItem(INV_CACHE_KEY()); return null; }
+    return data;
+  } catch(e) { return null; }
+}
+
+function guardarInventarioCache(data) {
+  try {
+    localStorage.setItem(INV_CACHE_KEY(), JSON.stringify({ data, ts: Date.now() }));
+  } catch(e) {
+    // Si localStorage está lleno (por imágenes base64), guardar sin imágenes
+    try {
+      const sinImg = data.map(p => { const c = {...p}; delete c._imgCache; return c; });
+      localStorage.setItem(INV_CACHE_KEY(), JSON.stringify({ data: sinImg, ts: Date.now() }));
+    } catch(e2) {}
+  }
+}
+
 async function cargarProductos() {
   const grid = document.getElementById('product-grid');
+
+  // Cargar desde caché primero para respuesta inmediata
+  const cache = leerInventarioCache();
+  if (cache && cache.length) {
+    productos = cache;
+    llenarCategorias();
+    renderProductos(productos);
+    // Recargar en background para tener datos frescos
+    actualizarProductosBackground();
+    return;
+  }
+
   grid.innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
+  await fetchProductosFirestore();
+}
+
+async function fetchProductosFirestore() {
+  const grid = document.getElementById('product-grid');
   try {
     const snap = await db.collection('negocios').doc(AppState.negocioId)
       .collection('inventario')
       .where('activo', '==', true)
       .get();
     productos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    guardarInventarioCache(productos);
     llenarCategorias();
     renderProductos(productos);
   } catch(e) {
     grid.innerHTML = '<div class="empty-state"><div class="es-icon">⚠️</div><h3>Error cargando productos</h3></div>';
   }
+}
+
+async function actualizarProductosBackground() {
+  try {
+    const snap = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('inventario')
+      .where('activo', '==', true)
+      .get();
+    const frescos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    guardarInventarioCache(frescos);
+    // Solo re-renderizar si hay cambios para no interrumpir al cajero
+    const antes = JSON.stringify(productos.map(p => p.id + p.stock + p.precio));
+    const despues = JSON.stringify(frescos.map(p => p.id + p.stock + p.precio));
+    if (antes !== despues) {
+      productos = frescos;
+      llenarCategorias();
+      renderProductos(productos);
+    }
+  } catch(e) {}
 }
 
 function llenarCategorias() {
@@ -497,14 +559,16 @@ async function procesarFactura(estado) {
 
     cerrarModal('modal-pago');
     mostrarExito(factura);
+    const carritoSnapshot = [...carrito];
     carrito = [];
     renderCarrito();
 
-    // Actualizar stock en UI
-    for (const item of carrito) {
+    // Actualizar stock en UI y cache
+    for (const item of carritoSnapshot) {
       const prod = productos.find(p => p.id === item.id);
       if (prod) prod.stock = Math.max(0, (prod.stock || 0) - item.cantidad);
     }
+    guardarInventarioCache(productos);
     filtrarProductos();
 
   } catch(e) {
