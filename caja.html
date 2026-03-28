@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ColmadoPOS — Caja</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="app-header"></div>
+
+<div class="page-wrapper">
+  <div class="page-title">
+    <span class="icon">💰</span> Gestión de Caja
+  </div>
+
+  <!-- STATUS DE CAJA -->
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+    <span id="caja-status-badge" class="caja-status caja-cerrada">● Caja Cerrada</span>
+    <span id="caja-fecha" style="color:var(--c-muted); font-size:.85rem;"></span>
+    <div style="margin-left:auto; display:flex; gap:.5rem;">
+      <button id="btn-abrir-caja" class="btn btn-primary" onclick="mostrarModal('modal-apertura')">🔓 Abrir Caja</button>
+      <button id="btn-cerrar-caja" class="btn btn-danger" style="display:none" onclick="mostrarModal('modal-cierre')">🔒 Cerrar Caja</button>
+      <button id="btn-trans" class="btn btn-ghost" style="display:none" onclick="mostrarModal('modal-transaccion')">+ Movimiento</button>
+    </div>
+  </div>
+
+  <!-- STATS CAJA -->
+  <div class="grid-4" style="margin-bottom:1.5rem;" id="caja-stats">
+    <div class="stat-card green">
+      <div class="stat-icon">💵</div>
+      <div class="stat-label">Fondo Inicial</div>
+      <div class="stat-value green" id="stat-fondo">RD$ 0.00</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">📈</div>
+      <div class="stat-label">Ingresos</div>
+      <div class="stat-value green" id="stat-ingresos">RD$ 0.00</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-icon">📉</div>
+      <div class="stat-label">Egresos</div>
+      <div class="stat-value red" id="stat-egresos">RD$ 0.00</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-icon">💰</div>
+      <div class="stat-label">Balance en Caja</div>
+      <div class="stat-value blue" id="stat-balance">RD$ 0.00</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- TRANSACCIONES HOY -->
+    <div class="card">
+      <div class="card-title">Movimientos del Día</div>
+      <div id="transacciones-list">
+        <div class="empty-state">
+          <div class="es-icon">📊</div>
+          <h3>Sin movimientos</h3>
+          <p>Abre la caja para registrar movimientos</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESUMEN VENTAS -->
+    <div class="card">
+      <div class="card-title">Resumen de Ventas</div>
+      <div id="resumen-ventas">
+        <div class="empty-state">
+          <div class="es-icon">🧾</div>
+          <h3>Sin ventas hoy</h3>
+        </div>
+      </div>
+
+      <hr style="border-color:var(--c-border); margin:1rem 0;" />
+      <div class="card-title">Historial de Cajas</div>
+      <div id="historial-cajas" class="table-wrapper">
+        <div class="loading-center"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL APERTURA -->
+<div class="modal-overlay" id="modal-apertura">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🔓 Apertura de Caja</span>
+      <button class="modal-close" onclick="cerrarModal('modal-apertura')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Fondo Inicial (RD$)</label>
+        <input type="number" id="fondo-inicial" class="form-control" placeholder="0.00" step="0.01" min="0" value="0" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Responsable</label>
+        <input type="text" id="apertura-responsable" class="form-control"
+               value="" readonly style="opacity:.7" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observaciones</label>
+        <input type="text" id="apertura-notas" class="form-control" placeholder="Apertura normal..." />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-apertura')">Cancelar</button>
+      <button class="btn btn-primary" onclick="abrirCaja()">🔓 Confirmar Apertura</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CIERRE -->
+<div class="modal-overlay" id="modal-cierre">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🔒 Cierre de Caja</span>
+      <button class="modal-close" onclick="cerrarModal('modal-cierre')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-warn" style="margin-bottom:1rem;">
+        ⚠️ Una vez cerrada la caja, no se podrán registrar más ventas del día.
+      </div>
+      <div id="resumen-cierre" style="background:var(--c-surface); border-radius:var(--radius); padding:1rem; margin-bottom:1rem;"></div>
+      <div class="form-group">
+        <label class="form-label">Efectivo en Caja (Físico)</label>
+        <input type="number" id="efectivo-fisico" class="form-control" placeholder="Cuenta el efectivo..." step="0.01" min="0" />
+      </div>
+      <div id="diferencia-display" style="display:none; margin-top:.75rem;"></div>
+      <div class="form-group">
+        <label class="form-label">Observaciones de Cierre</label>
+        <input type="text" id="cierre-notas" class="form-control" placeholder="Todo en orden..." />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-cierre')">Cancelar</button>
+      <button class="btn btn-danger" onclick="cerrarCaja()">🔒 Confirmar Cierre</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRANSACCIÓN -->
+<div class="modal-overlay" id="modal-transaccion">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">+ Registrar Movimiento</span>
+      <button class="modal-close" onclick="cerrarModal('modal-transaccion')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <div style="display:flex; gap:.5rem;">
+          <button id="tipo-ingreso" class="btn btn-primary" onclick="selTipo('ingreso')" style="flex:1;">📈 Ingreso</button>
+          <button id="tipo-egreso" class="btn btn-ghost" onclick="selTipo('egreso')" style="flex:1;">📉 Egreso</button>
+        </div>
+        <input type="hidden" id="tipo-trans" value="ingreso" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Concepto</label>
+        <input type="text" id="trans-concepto" class="form-control" placeholder="Ej: Pago proveedor, Préstamo..." required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Monto (RD$)</label>
+        <input type="number" id="trans-monto" class="form-control" placeholder="0.00" step="0.01" min="0.01" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <input type="text" id="trans-notas" class="form-control" placeholder="Opcional..." />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-transaccion')">Cancelar</button>
+      <button class="btn btn-primary" onclick="registrarTransaccion()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="header.js"></script>
+
+<script>
+let cajaData = null;
+let unsubTrans = null;
+
+requireAuth(async () => {
+  initHeader();
+  document.getElementById('apertura-responsable').value = AppState.user.email;
+  document.getElementById('apertura-fecha').value = fechaHoy();
+  await cargarEstadoCaja();
+  await cargarHistorial();
+});
+
+async function cargarEstadoCaja() {
+  cajaData = await verificarCaja();
+  const badge = document.getElementById('caja-status-badge');
+  const btnAbrir = document.getElementById('btn-abrir-caja');
+  const btnCerrar = document.getElementById('btn-cerrar-caja');
+  const btnTrans = document.getElementById('btn-trans');
+
+  if (cajaData) {
+    badge.textContent = '● Caja Abierta';
+    badge.className = 'caja-status caja-abierta';
+    document.getElementById('caja-fecha').textContent = `Fecha: ${cajaData.fecha}`;
+    btnAbrir.style.display = 'none';
+    btnCerrar.style.display = '';
+    btnTrans.style.display = '';
+    cargarStatsYTransacciones();
+  } else {
+    badge.textContent = '● Caja Cerrada';
+    badge.className = 'caja-status caja-cerrada';
+    btnAbrir.style.display = '';
+    btnCerrar.style.display = 'none';
+    btnTrans.style.display = 'none';
+  }
+}
+
+async function abrirCaja() {
+  const fondo = parseFloat(document.getElementById('fondo-inicial').value) || 0;
+  const notas = document.getElementById('apertura-notas').value;
+  try {
+    const ref = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('caja').add({
+        fecha: fechaHoy(),
+        estado: 'abierta',
+        fondoInicial: fondo,
+        totalVentas: 0,
+        cantidadVentas: 0,
+        totalIngresos: fondo,
+        totalEgresos: 0,
+        notas,
+        abiertaPor: AppState.user.email,
+        abiertaEn: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    AppState.cajaId = ref.id;
+    AppState.cajaAbierta = true;
+
+    // Registrar fondo como primera transacción
+    if (fondo > 0) {
+      await ref.collection('transacciones').add({
+        tipo: 'ingreso',
+        concepto: 'Fondo inicial de apertura',
+        monto: fondo,
+        hora: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    cerrarModal('modal-apertura');
+    toast('Caja abierta correctamente', 'success');
+    await cargarEstadoCaja();
+  } catch(e) {
+    toast('Error al abrir caja: ' + e.message, 'error');
+  }
+}
+
+async function cerrarCaja() {
+  const fisico = parseFloat(document.getElementById('efectivo-fisico').value) || 0;
+  const notas = document.getElementById('cierre-notas').value;
+  if (!AppState.cajaId) return;
+  try {
+    await db.collection('negocios').doc(AppState.negocioId)
+      .collection('caja').doc(AppState.cajaId).update({
+        estado: 'cerrada',
+        cerradaPor: AppState.user.email,
+        cerradaEn: firebase.firestore.FieldValue.serverTimestamp(),
+        efectivoFisico: fisico,
+        notasCierre: notas
+      });
+    AppState.cajaAbierta = false;
+    AppState.cajaId = null;
+    cerrarModal('modal-cierre');
+    toast('Caja cerrada correctamente', 'success');
+    await cargarEstadoCaja();
+    await cargarHistorial();
+  } catch(e) {
+    toast('Error al cerrar caja: ' + e.message, 'error');
+  }
+}
+
+function prepararCierre() {
+  if (!cajaData) return;
+  const balance = (cajaData.totalIngresos || 0) - (cajaData.totalEgresos || 0);
+  document.getElementById('resumen-cierre').innerHTML = `
+    <div class="summary-row"><span>Fondo Inicial</span><span style="font-family:var(--font-mono)">${formatoMoneda(cajaData.fondoInicial || 0)}</span></div>
+    <div class="summary-row"><span>Total Ventas</span><span style="font-family:var(--font-mono); color:var(--c-primary)">${formatoMoneda(cajaData.totalVentas || 0)}</span></div>
+    <div class="summary-row"><span>Otros Ingresos</span><span style="font-family:var(--font-mono)">${formatoMoneda((cajaData.totalIngresos || 0) - (cajaData.totalVentas || 0) - (cajaData.fondoInicial || 0))}</span></div>
+    <div class="summary-row"><span>Egresos</span><span style="font-family:var(--font-mono); color:var(--c-danger)">${formatoMoneda(cajaData.totalEgresos || 0)}</span></div>
+    <div class="summary-row total"><span>Balance Esperado</span><span style="font-family:var(--font-mono)">${formatoMoneda(balance)}</span></div>
+  `;
+
+  document.getElementById('efectivo-fisico').oninput = function() {
+    const fisico = parseFloat(this.value) || 0;
+    const dif = fisico - balance;
+    const el = document.getElementById('diferencia-display');
+    el.style.display = '';
+    el.className = `alert ${Math.abs(dif) < 0.01 ? 'alert-success' : dif > 0 ? 'alert-info' : 'alert-error'}`;
+    el.textContent = dif === 0 ? '✓ Caja cuadrada' :
+      dif > 0 ? `Sobrante: ${formatoMoneda(dif)}` :
+      `Faltante: ${formatoMoneda(Math.abs(dif))}`;
+  };
+}
+
+function cargarStatsYTransacciones() {
+  if (!AppState.cajaId) return;
+  if (unsubTrans) unsubTrans();
+
+  // Escuchar transacciones en tiempo real
+  unsubTrans = db.collection('negocios').doc(AppState.negocioId)
+    .collection('caja').doc(AppState.cajaId)
+    .onSnapshot(snap => {
+      if (!snap.exists) return;
+      cajaData = snap.data();
+      actualizarStats();
+    });
+
+  db.collection('negocios').doc(AppState.negocioId)
+    .collection('caja').doc(AppState.cajaId)
+    .collection('transacciones')
+    .orderBy('hora', 'desc')
+    .onSnapshot(snap => {
+      renderTransacciones(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+  // Resumen ventas del día
+  cargarResumenVentas();
+}
+
+function actualizarStats() {
+  if (!cajaData) return;
+  const ingresos = cajaData.totalIngresos || 0;
+  const egresos = cajaData.totalEgresos || 0;
+  document.getElementById('stat-fondo').textContent = formatoMoneda(cajaData.fondoInicial || 0);
+  document.getElementById('stat-ingresos').textContent = formatoMoneda(ingresos);
+  document.getElementById('stat-egresos').textContent = formatoMoneda(egresos);
+  document.getElementById('stat-balance').textContent = formatoMoneda(ingresos - egresos);
+}
+
+function renderTransacciones(lista) {
+  const el = document.getElementById('transacciones-list');
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon">📊</div><h3>Sin movimientos</h3></div>';
+    return;
+  }
+  el.innerHTML = lista.map(t => {
+    const hora = t.hora?.toDate?.()?.toLocaleTimeString('es-DO', {
+      timeZone: 'America/Santo_Domingo', hour: '2-digit', minute: '2-digit'
+    }) || '--:--';
+    return `
+      <div class="transaccion-item">
+        <span class="trans-icon">${t.tipo === 'ingreso' ? '📈' : '📉'}</span>
+        <div class="trans-info">
+          <div class="trans-concepto">${t.concepto}</div>
+          <div class="trans-hora">${hora}</div>
+        </div>
+        <span class="trans-monto ${t.tipo === 'ingreso' ? 'trans-ingreso' : 'trans-egreso'}">
+          ${t.tipo === 'ingreso' ? '+' : '-'}${formatoMoneda(t.monto)}
+        </span>
+      </div>
+    `;
+  }).join('');
+}
+
+async function cargarResumenVentas() {
+  try {
+    const snap = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('facturas')
+      .where('fecha', '==', fechaHoy())
+      .where('estado', '==', 'pagada')
+      .get();
+    const facturas = snap.docs.map(d => d.data());
+    const total = facturas.reduce((s, f) => s + (f.total || 0), 0);
+    document.getElementById('resumen-ventas').innerHTML = `
+      <div class="summary-row"><span>Facturas Pagadas</span><span>${facturas.length}</span></div>
+      <div class="summary-row"><span>Total Ventas</span><span style="font-family:var(--font-mono); color:var(--c-primary)">${formatoMoneda(total)}</span></div>
+      <div class="summary-row"><span>ITBIS Recaudado</span><span style="font-family:var(--font-mono)">${formatoMoneda(facturas.reduce((s,f) => s+(f.itbis||0),0))}</span></div>
+    `;
+  } catch(e) {}
+}
+
+async function registrarTransaccion() {
+  const tipo = document.getElementById('tipo-trans').value;
+  const concepto = document.getElementById('trans-concepto').value.trim();
+  const monto = parseFloat(document.getElementById('trans-monto').value);
+  if (!concepto || !monto || monto <= 0) { toast('Completa todos los campos', 'error'); return; }
+  if (!AppState.cajaId) { toast('No hay caja abierta', 'error'); return; }
+  try {
+    const batch = db.batch();
+    const transRef = db.collection('negocios').doc(AppState.negocioId)
+      .collection('caja').doc(AppState.cajaId)
+      .collection('transacciones').doc();
+    batch.set(transRef, {
+      tipo, concepto, monto,
+      notas: document.getElementById('trans-notas').value,
+      hora: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const cajaRef = db.collection('negocios').doc(AppState.negocioId)
+      .collection('caja').doc(AppState.cajaId);
+    if (tipo === 'ingreso') {
+      batch.update(cajaRef, { totalIngresos: firebase.firestore.FieldValue.increment(monto) });
+    } else {
+      batch.update(cajaRef, { totalEgresos: firebase.firestore.FieldValue.increment(monto) });
+    }
+    await batch.commit();
+    cerrarModal('modal-transaccion');
+    document.getElementById('trans-concepto').value = '';
+    document.getElementById('trans-monto').value = '';
+    toast('Movimiento registrado', 'success');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+function selTipo(tipo) {
+  document.getElementById('tipo-trans').value = tipo;
+  document.getElementById('tipo-ingreso').className = tipo === 'ingreso' ? 'btn btn-primary' : 'btn btn-ghost';
+  document.getElementById('tipo-egreso').className = tipo === 'egreso' ? 'btn btn-danger' : 'btn btn-ghost';
+}
+
+async function cargarHistorial() {
+  try {
+    const snap = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('caja')
+      .orderBy('abiertaEn', 'desc')
+      .limit(10)
+      .get();
+    const cajas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const el = document.getElementById('historial-cajas');
+    if (!cajas.length) {
+      el.innerHTML = '<p style="color:var(--c-muted); font-size:.85rem; padding:.5rem 0;">Sin historial</p>';
+      return;
+    }
+    el.innerHTML = `<table>
+      <thead><tr><th>Fecha</th><th>Ventas</th><th>Balance</th><th>Estado</th></tr></thead>
+      <tbody>
+        ${cajas.map(c => `
+          <tr>
+            <td style="font-size:.8rem;">${c.fecha || '--'}</td>
+            <td style="font-family:var(--font-mono); font-size:.8rem;">${formatoMoneda(c.totalVentas || 0)}</td>
+            <td style="font-family:var(--font-mono); font-size:.8rem;">${formatoMoneda((c.totalIngresos||0)-(c.totalEgresos||0))}</td>
+            <td><span class="badge ${c.estado === 'abierta' ? 'badge-green' : 'badge-gray'}">${c.estado}</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+  } catch(e) {}
+}
+
+// Parche para campo de fecha en modal que se olvidó agregar
+document.addEventListener('DOMContentLoaded', () => {
+  const ap = document.getElementById('modal-apertura');
+  if (ap && !document.getElementById('apertura-fecha')) {
+    const inp = document.createElement('input');
+    inp.id = 'apertura-fecha';
+    inp.type = 'hidden';
+  }
+});
+</script>
+</body>
+</html>

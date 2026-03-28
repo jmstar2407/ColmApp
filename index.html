@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ColmadoPOS — Acceso</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🏪</div>
+      <h1>ColmadoPOS</h1>
+      <p>Sistema de Facturación Electrónica · RD</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-login" onclick="switchTab('login')">Iniciar Sesión</button>
+      <button class="login-tab" id="tab-registro" onclick="switchTab('registro')">Crear Negocio</button>
+    </div>
+
+    <!-- FORM LOGIN -->
+    <form id="form-login" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <input type="email" id="login-email" class="form-control" placeholder="correo@ejemplo.com" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <input type="password" id="login-pass" class="form-control" placeholder="••••••••" required />
+      </div>
+      <div id="login-error" class="alert alert-error" style="display:none"></div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg" id="btn-login">
+        <span>Acceder al Sistema</span>
+      </button>
+    </form>
+
+    <!-- FORM REGISTRO -->
+    <form id="form-registro" class="form-hidden" onsubmit="handleRegistro(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre del Negocio</label>
+          <input type="text" id="reg-nombre" class="form-control" placeholder="Colmado Don Pepe" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">RNC / Cédula</label>
+          <input type="text" id="reg-rnc" class="form-control" placeholder="101-12345-6" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Dirección</label>
+        <input type="text" id="reg-direccion" class="form-control" placeholder="Calle Duarte #1, Santo Domingo" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" id="reg-telefono" class="form-control" placeholder="809-555-0000" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Plan</label>
+          <select id="reg-plan" class="form-control">
+            <option value="basico">Básico (Gratis)</option>
+            <option value="pro">Pro</option>
+          </select>
+        </div>
+      </div>
+      <hr style="border-color: var(--c-border); margin: 1rem 0;" />
+      <div class="form-group">
+        <label class="form-label">Correo del Propietario</label>
+        <input type="email" id="reg-email" class="form-control" placeholder="propietario@ejemplo.com" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input type="password" id="reg-pass" class="form-control" placeholder="Min. 6 caracteres" required minlength="6" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar</label>
+          <input type="password" id="reg-pass2" class="form-control" placeholder="Repite la contraseña" required minlength="6" />
+        </div>
+      </div>
+      <div id="reg-error" class="alert alert-error" style="display:none"></div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg" id="btn-registro">
+        <span>Crear Mi Negocio</span>
+      </button>
+    </form>
+
+    <p style="text-align:center; color:var(--c-muted); font-size:.75rem; margin-top:1.5rem;">
+      DGII Ready · Ley 32-23 · República Dominicana
+    </p>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+  // Si ya está autenticado, redirigir
+  auth.onAuthStateChanged(user => {
+    if (user) window.location.href = 'facturacion.html';
+  });
+
+  function switchTab(tab) {
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-registro').classList.toggle('active', tab === 'registro');
+    document.getElementById('form-login').classList.toggle('form-hidden', tab !== 'login');
+    document.getElementById('form-registro').classList.toggle('form-hidden', tab !== 'registro');
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-login');
+    const errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span>Entrando...</span>';
+    try {
+      await auth.signInWithEmailAndPassword(
+        document.getElementById('login-email').value.trim(),
+        document.getElementById('login-pass').value
+      );
+      window.location.href = 'facturacion.html';
+    } catch (err) {
+      const msgs = {
+        'auth/user-not-found': 'Usuario no encontrado.',
+        'auth/wrong-password': 'Contraseña incorrecta.',
+        'auth/invalid-email': 'Correo inválido.',
+        'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde.',
+      };
+      errEl.textContent = msgs[err.code] || err.message;
+      errEl.style.display = 'flex';
+      btn.disabled = false;
+      btn.innerHTML = '<span>Acceder al Sistema</span>';
+    }
+  }
+
+  async function handleRegistro(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-registro');
+    const errEl = document.getElementById('reg-error');
+    errEl.style.display = 'none';
+
+    const pass = document.getElementById('reg-pass').value;
+    const pass2 = document.getElementById('reg-pass2').value;
+    if (pass !== pass2) {
+      errEl.textContent = 'Las contraseñas no coinciden.';
+      errEl.style.display = 'flex'; return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>Creando negocio...</span>';
+
+    try {
+      const cred = await auth.createUserWithEmailAndPassword(
+        document.getElementById('reg-email').value.trim(),
+        pass
+      );
+
+      // Crear documento del negocio en Firestore
+      const negocioRef = db.collection('negocios').doc();
+      await negocioRef.set({
+        nombre: document.getElementById('reg-nombre').value.trim(),
+        RNC: document.getElementById('reg-rnc').value.trim(),
+        direccion: document.getElementById('reg-direccion').value.trim(),
+        telefono: document.getElementById('reg-telefono').value.trim(),
+        propietarioUid: cred.user.uid,
+        plan: document.getElementById('reg-plan').value,
+        creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
+        empleados: []
+      });
+
+      // Crear config inicial
+      await negocioRef.collection('configuraciones').doc('general').set({
+        itbis: 18,
+        moneda: 'DOP',
+        ncfActivo: true,
+        tipoNcf: 'B01',
+        logoUrl: ''
+      });
+
+      await negocioRef.collection('configuraciones').doc('ncf').set({
+        secuencia_B01: 0,
+        secuencia_B02: 0,
+        secuencia_B14: 0
+      });
+
+      window.location.href = 'facturacion.html';
+    } catch (err) {
+      const msgs = {
+        'auth/email-already-in-use': 'Este correo ya está registrado.',
+        'auth/weak-password': 'Contraseña muy débil. Mínimo 6 caracteres.',
+        'auth/invalid-email': 'Correo electrónico inválido.',
+      };
+      errEl.textContent = msgs[err.code] || err.message;
+      errEl.style.display = 'flex';
+      btn.disabled = false;
+      btn.innerHTML = '<span>Crear Mi Negocio</span>';
+    }
+  }
+</script>
+</body>
+</html>

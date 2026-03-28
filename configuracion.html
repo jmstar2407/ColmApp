@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ColmadoPOS — Configuración</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="app-header"></div>
+
+<div class="page-wrapper">
+  <div class="page-title">
+    <span class="icon">⚙️</span> Configuración
+  </div>
+
+  <div id="acceso-denegado" style="display:none;">
+    <div class="alert alert-error">🔒 Solo los administradores pueden acceder a esta sección.</div>
+  </div>
+
+  <div id="config-contenido" style="display:none;">
+    <div class="grid-2">
+
+      <!-- Datos del negocio -->
+      <div class="card">
+        <div class="config-section-title">🏪 Datos del Negocio</div>
+        <div class="form-group">
+          <label class="form-label">Nombre del Negocio</label>
+          <input type="text" id="cfg-nombre" class="form-control" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">RNC</label>
+            <input type="text" id="cfg-rnc" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono</label>
+            <input type="text" id="cfg-telefono" class="form-control" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dirección</label>
+          <input type="text" id="cfg-direccion" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email de contacto</label>
+          <input type="email" id="cfg-email" class="form-control" />
+        </div>
+        <button class="btn btn-primary" onclick="guardarNegocio()">💾 Guardar Datos</button>
+      </div>
+
+      <!-- Configuración fiscal -->
+      <div class="card">
+        <div class="config-section-title">🧾 Configuración ITBIS & NCF</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tasa ITBIS (%)</label>
+            <select id="cfg-itbis" class="form-control">
+              <option value="0">0% — Exento</option>
+              <option value="16">16% — Reducido</option>
+              <option value="18" selected>18% — General</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">NCF por defecto</label>
+            <select id="cfg-ncf-tipo" class="form-control">
+              <option value="B02">B02 - Consumidor Final</option>
+              <option value="B01">B01 - Crédito Fiscal</option>
+              <option value="B14">B14 - Gubernamental</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label style="display:flex; align-items:center; gap:.5rem; cursor:pointer;">
+            <input type="checkbox" id="cfg-ncf-activo" checked style="accent-color:var(--c-primary);" />
+            <span>Habilitar NCF en facturas</span>
+          </label>
+        </div>
+
+        <hr style="border-color:var(--c-border); margin:1rem 0;" />
+        <div class="config-section-title">Secuencias NCF Actuales</div>
+        <div id="ncf-secuencias">
+          <div class="loading-center" style="min-height:60px;"><div class="spinner"></div></div>
+        </div>
+        <div class="form-row" style="margin-top:1rem;">
+          <div class="form-group">
+            <label class="form-label">Reiniciar secuencia NCF tipo</label>
+            <select id="ncf-reiniciar-tipo" class="form-control">
+              <option value="B01">B01</option>
+              <option value="B02">B02</option>
+              <option value="B14">B14</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Desde número</label>
+            <input type="number" id="ncf-reiniciar-desde" class="form-control" placeholder="0" min="0" value="0" />
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="reiniciarNCF()">🔄 Reiniciar Secuencia</button>
+        <button class="btn btn-primary" style="margin-left:.5rem;" onclick="guardarConfigFiscal()">💾 Guardar Config Fiscal</button>
+      </div>
+
+      <!-- Empleados -->
+      <div class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+          <div class="config-section-title" style="margin-bottom:0;">👥 Empleados</div>
+          <button class="btn btn-sm btn-primary" onclick="mostrarModal('modal-empleado')">+ Agregar</button>
+        </div>
+        <div id="empleados-lista">
+          <div class="loading-center" style="min-height:60px;"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Reportes / Contabilidad -->
+      <div class="card">
+        <div class="config-section-title">📊 Reportes Rápidos</div>
+        <div class="form-row" style="margin-bottom:1rem;">
+          <div class="form-group">
+            <label class="form-label">Desde</label>
+            <input type="date" id="rep-desde" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hasta</label>
+            <input type="date" id="rep-hasta" class="form-control" />
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-full" onclick="generarReporte()" style="margin-bottom:.75rem;">📊 Generar Reporte</button>
+        <div id="reporte-resultado" style="display:none;">
+          <div class="grid-2" style="gap:.5rem; margin-bottom:1rem;">
+            <div class="stat-card green" style="padding:.75rem;">
+              <div class="stat-label">Ingresos</div>
+              <div class="stat-value green" id="rep-ingresos" style="font-size:1.2rem;">RD$ 0</div>
+            </div>
+            <div class="stat-card red" style="padding:.75rem;">
+              <div class="stat-label">ITBIS</div>
+              <div class="stat-value red" id="rep-itbis" style="font-size:1.2rem;">RD$ 0</div>
+            </div>
+          </div>
+          <div style="height:200px;">
+            <canvas id="chart-ventas"></canvas>
+          </div>
+        </div>
+
+        <hr style="border-color:var(--c-border); margin:1rem 0;" />
+        <div class="config-section-title">📋 Contabilidad</div>
+        <div id="contabilidad-resumen">
+          <div class="summary-row"><span>Ingresos Totales</span><span style="font-family:var(--font-mono); color:var(--c-primary);" id="cont-ingresos">-</span></div>
+          <div class="summary-row"><span>Egresos Totales</span><span style="font-family:var(--font-mono); color:var(--c-danger);" id="cont-egresos">-</span></div>
+          <div class="summary-row total"><span>Ganancia Neta</span><span style="font-family:var(--font-mono);" id="cont-ganancia">-</span></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:.75rem;" onclick="cargarContabilidad()">Actualizar</button>
+      </div>
+
+      <!-- Peligro Zone -->
+      <div class="card" style="grid-column: span 2; border-color:rgba(255,77,109,.3);">
+        <div class="config-section-title" style="color:var(--c-danger);">⚠️ Zona de Peligro</div>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+          <div style="flex:1;">
+            <p style="font-size:.85rem; color:var(--c-muted);">Exportar todos los datos del negocio en formato JSON.</p>
+          </div>
+          <button class="btn btn-ghost" onclick="exportarDatos()">📥 Exportar Datos</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EMPLEADO -->
+<div class="modal-overlay" id="modal-empleado">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">👤 Agregar Empleado</span>
+      <button class="modal-close" onclick="cerrarModal('modal-empleado')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nombre completo</label>
+        <input type="text" id="emp-nombre" class="form-control" placeholder="María García" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cargo</label>
+        <input type="text" id="emp-cargo" class="form-control" placeholder="Cajera, Vendedor..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teléfono</label>
+        <input type="tel" id="emp-tel" class="form-control" placeholder="809-000-0000" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-empleado')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEmpleado()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="header.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+
+<script>
+let chartVentas = null;
+
+requireAuth(async () => {
+  if (!AppState.isAdmin) {
+    document.getElementById('acceso-denegado').style.display = '';
+    initHeader();
+    return;
+  }
+  document.getElementById('config-contenido').style.display = '';
+  initHeader();
+  await cargarConfig();
+  await cargarNcfSecuencias();
+  await cargarEmpleadosLista();
+  await cargarContabilidad();
+  setFechasReporte();
+});
+
+async function cargarConfig() {
+  const negocio = AppState.negocioData;
+  if (negocio) {
+    document.getElementById('cfg-nombre').value = negocio.nombre || '';
+    document.getElementById('cfg-rnc').value = negocio.RNC || '';
+    document.getElementById('cfg-telefono').value = negocio.telefono || '';
+    document.getElementById('cfg-direccion').value = negocio.direccion || '';
+    document.getElementById('cfg-email').value = negocio.email || '';
+  }
+  try {
+    const snap = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('configuraciones').doc('general').get();
+    if (snap.exists) {
+      const data = snap.data();
+      document.getElementById('cfg-itbis').value = data.itbis || 18;
+      document.getElementById('cfg-ncf-tipo').value = data.tipoNcf || 'B02';
+      document.getElementById('cfg-ncf-activo').checked = data.ncfActivo !== false;
+    }
+  } catch(e) {}
+}
+
+async function guardarNegocio() {
+  try {
+    await db.collection('negocios').doc(AppState.negocioId).update({
+      nombre: document.getElementById('cfg-nombre').value.trim(),
+      RNC: document.getElementById('cfg-rnc').value.trim(),
+      telefono: document.getElementById('cfg-telefono').value.trim(),
+      direccion: document.getElementById('cfg-direccion').value.trim(),
+      email: document.getElementById('cfg-email').value.trim()
+    });
+    toast('Datos del negocio guardados', 'success');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function guardarConfigFiscal() {
+  try {
+    await db.collection('negocios').doc(AppState.negocioId)
+      .collection('configuraciones').doc('general').set({
+        itbis: parseInt(document.getElementById('cfg-itbis').value),
+        tipoNcf: document.getElementById('cfg-ncf-tipo').value,
+        ncfActivo: document.getElementById('cfg-ncf-activo').checked,
+        moneda: 'DOP'
+      }, { merge: true });
+    toast('Configuración fiscal guardada', 'success');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function cargarNcfSecuencias() {
+  try {
+    const snap = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('configuraciones').doc('ncf').get();
+    const data = snap.exists ? snap.data() : {};
+    const tipos = ['B01', 'B02', 'B14'];
+    document.getElementById('ncf-secuencias').innerHTML = tipos.map(t => `
+      <div class="summary-row">
+        <span>${t}</span>
+        <span class="ncf-badge">${t}${String(data[`secuencia_${t}`]||0).padStart(8,'0')}</span>
+        <span style="color:var(--c-muted); font-size:.8rem;">${data[`secuencia_${t}`]||0} emitidos</span>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+async function reiniciarNCF() {
+  const tipo = document.getElementById('ncf-reiniciar-tipo').value;
+  const desde = parseInt(document.getElementById('ncf-reiniciar-desde').value) || 0;
+  if (!confirm(`¿Reiniciar NCF ${tipo} desde ${desde}? Esto afecta la secuencia de facturas.`)) return;
+  try {
+    await db.collection('negocios').doc(AppState.negocioId)
+      .collection('configuraciones').doc('ncf')
+      .set({ [`secuencia_${tipo}`]: desde }, { merge: true });
+    toast(`Secuencia ${tipo} reiniciada desde ${desde}`, 'success');
+    await cargarNcfSecuencias();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function cargarEmpleadosLista() {
+  const el = document.getElementById('empleados-lista');
+  try {
+    const snap = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('empleados').get();
+    const emp = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (!emp.length) {
+      el.innerHTML = '<p style="color:var(--c-muted); font-size:.85rem;">Sin empleados registrados</p>';
+      return;
+    }
+    el.innerHTML = emp.map(e => `
+      <div style="display:flex; align-items:center; gap:.75rem; padding:.65rem; border-radius:8px; background:var(--c-surface); margin-bottom:.5rem;">
+        <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--c-primary),var(--c-info)); display:flex; align-items:center; justify-content:center; font-weight:700; color:#000;">
+          ${e.nombre[0].toUpperCase()}
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:600; font-size:.85rem;">${e.nombre}</div>
+          <div style="font-size:.75rem; color:var(--c-muted);">${e.cargo||'Empleado'} · ${e.telefono||'-'}</div>
+        </div>
+        <button class="btn btn-sm btn-ghost btn-icon" onclick="eliminarEmpleado('${e.id}')">🗑️</button>
+      </div>
+    `).join('');
+  } catch(e) { el.innerHTML = '<p style="color:var(--c-danger);">Error cargando empleados</p>'; }
+}
+
+async function guardarEmpleado() {
+  const nombre = document.getElementById('emp-nombre').value.trim();
+  if (!nombre) { toast('El nombre es obligatorio', 'error'); return; }
+  try {
+    await db.collection('negocios').doc(AppState.negocioId)
+      .collection('empleados').add({
+        nombre,
+        cargo: document.getElementById('emp-cargo').value.trim(),
+        telefono: document.getElementById('emp-tel').value.trim(),
+        creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    cerrarModal('modal-empleado');
+    toast('Empleado agregado', 'success');
+    await cargarEmpleadosLista();
+    document.getElementById('emp-nombre').value = '';
+    document.getElementById('emp-cargo').value = '';
+    document.getElementById('emp-tel').value = '';
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function eliminarEmpleado(id) {
+  if (!confirm('¿Eliminar este empleado?')) return;
+  try {
+    await db.collection('negocios').doc(AppState.negocioId)
+      .collection('empleados').doc(id).delete();
+    toast('Empleado eliminado', 'success');
+    await cargarEmpleadosLista();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+function setFechasReporte() {
+  const hoy = new Date().toISOString().slice(0,10);
+  const hace30 = new Date(Date.now() - 30*24*60*60*1000).toISOString().slice(0,10);
+  document.getElementById('rep-desde').value = hace30;
+  document.getElementById('rep-hasta').value = hoy;
+}
+
+async function generarReporte() {
+  const desde = document.getElementById('rep-desde').value;
+  const hasta = document.getElementById('rep-hasta').value;
+  try {
+    const snap = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('facturas')
+      .where('estado', '==', 'pagada')
+      .get();
+
+    const facts = snap.docs.map(d => d.data())
+      .filter(f => {
+        const fecha = f.creadoEn?.toDate?.()?.toISOString().slice(0,10) || '';
+        return fecha >= desde && fecha <= hasta;
+      });
+
+    const totalIngresos = facts.reduce((s,f) => s+(f.total||0), 0);
+    const totalItbis = facts.reduce((s,f) => s+(f.itbis||0), 0);
+    document.getElementById('rep-ingresos').textContent = formatoMoneda(totalIngresos);
+    document.getElementById('rep-itbis').textContent = formatoMoneda(totalItbis);
+    document.getElementById('reporte-resultado').style.display = '';
+
+    // Gráfico diario
+    const porDia = {};
+    facts.forEach(f => {
+      const dia = f.creadoEn?.toDate?.()?.toLocaleDateString('es-DO', { timeZone:'America/Santo_Domingo', day:'2-digit', month:'2-digit' }) || '-';
+      porDia[dia] = (porDia[dia] || 0) + (f.total || 0);
+    });
+    const labels = Object.keys(porDia).slice(-14);
+    const valores = labels.map(l => porDia[l]);
+
+    const ctx = document.getElementById('chart-ventas').getContext('2d');
+    if (chartVentas) chartVentas.destroy();
+    chartVentas = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ label: 'Ventas', data: valores, backgroundColor: 'rgba(0,208,132,.7)', borderRadius: 6 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#8890b0', font: { size: 10 } }, grid: { color: '#2e3247' } },
+          y: { ticks: { color: '#8890b0', font: { size: 10 }, callback: v => 'RD$'+v.toLocaleString() }, grid: { color: '#2e3247' } }
+        }
+      }
+    });
+    toast(`Reporte generado: ${facts.length} facturas`, 'success');
+  } catch(e) { toast('Error generando reporte: ' + e.message, 'error'); }
+}
+
+async function cargarContabilidad() {
+  try {
+    const [factSnap, cajaSnap] = await Promise.all([
+      db.collection('negocios').doc(AppState.negocioId).collection('facturas').where('estado','==','pagada').get(),
+      db.collection('negocios').doc(AppState.negocioId).collection('caja').get()
+    ]);
+    const ingresos = factSnap.docs.reduce((s,d) => s+(d.data().total||0), 0);
+    const egresos = cajaSnap.docs.reduce((s,d) => s+(d.data().totalEgresos||0), 0);
+    const ganancia = ingresos - egresos;
+    document.getElementById('cont-ingresos').textContent = formatoMoneda(ingresos);
+    document.getElementById('cont-egresos').textContent = formatoMoneda(egresos);
+    const ganEl = document.getElementById('cont-ganancia');
+    ganEl.textContent = formatoMoneda(ganancia);
+    ganEl.style.color = ganancia >= 0 ? 'var(--c-primary)' : 'var(--c-danger)';
+  } catch(e) {}
+}
+
+async function exportarDatos() {
+  try {
+    const [invSnap, factSnap, cajaSnap] = await Promise.all([
+      db.collection('negocios').doc(AppState.negocioId).collection('inventario').get(),
+      db.collection('negocios').doc(AppState.negocioId).collection('facturas').get(),
+      db.collection('negocios').doc(AppState.negocioId).collection('caja').get()
+    ]);
+    const datos = {
+      negocio: AppState.negocioData,
+      exportadoEn: new Date().toISOString(),
+      inventario: invSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+      facturas: factSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+      cajas: cajaSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+    };
+    const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `colmadopos_export_${Date.now()}.json`;
+    link.click();
+    toast('Datos exportados correctamente', 'success');
+  } catch(e) { toast('Error exportando: ' + e.message, 'error'); }
+}
+</script>
+</body>
+</html>

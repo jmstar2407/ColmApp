@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ColmadoPOS — Facturación</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="app-header"></div>
+
+<div class="page-wrapper" style="padding-top: calc(var(--header-h) + 1rem);">
+
+  <!-- ALERTA CAJA CERRADA -->
+  <div id="alerta-caja" class="alert alert-error" style="display:none; margin-bottom:1rem;">
+    ⚠️ La caja está cerrada. Ve a <a href="caja.html" style="color:inherit;font-weight:700">Caja</a> para abrirla antes de vender.
+  </div>
+
+  <!-- POS LAYOUT -->
+  <div class="pos-layout" id="pos-layout">
+
+    <!-- PANEL IZQUIERDO: PRODUCTOS -->
+    <div class="pos-products">
+      <!-- Barra búsqueda y filtros -->
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
+        <div class="search-bar" style="flex:1; min-width:200px;">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="buscar-producto" class="form-control" placeholder="Buscar producto..." oninput="filtrarProductos()" />
+        </div>
+        <select id="filtro-categoria" class="form-control" style="width:auto;" onchange="filtrarProductos()">
+          <option value="">Todas las categorías</option>
+        </select>
+        <div style="display:flex; align-items:center; gap:.5rem;">
+          <span style="font-size:.8rem; color:var(--c-muted);">Empleado:</span>
+          <select id="sel-empleado" class="form-control" style="width:auto; font-size:.82rem;">
+            <option value="">Sin asignar</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid de productos -->
+      <div class="pos-product-grid" id="product-grid">
+        <div class="loading-center"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- PANEL DERECHO: CARRITO -->
+    <div class="pos-cart">
+      <div class="cart-header">
+        <span>🛒 Carrito</span>
+        <button class="btn btn-sm btn-ghost" onclick="limpiarCarrito()">Limpiar</button>
+      </div>
+
+      <div class="cart-items" id="cart-items">
+        <div class="cart-empty">
+          <div class="cart-empty-icon">🛒</div>
+          <p>Agrega productos al carrito</p>
+        </div>
+      </div>
+
+      <div class="cart-summary">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span class="amount" id="cart-subtotal">RD$ 0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>ITBIS (<span id="tasa-itbis">18</span>%)</span>
+          <span class="amount" id="cart-itbis">RD$ 0.00</span>
+        </div>
+        <div class="summary-row total">
+          <span>TOTAL</span>
+          <span class="amount" id="cart-total">RD$ 0.00</span>
+        </div>
+      </div>
+
+      <div class="cart-actions">
+        <div style="display:flex; gap:.5rem;">
+          <select id="tipo-ncf" class="form-control" style="font-size:.8rem;">
+            <option value="B02">B02 - Consumidor Final</option>
+            <option value="B01">B01 - Crédito Fiscal</option>
+            <option value="B14">B14 - Gubernamental</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg" id="btn-cobrar" onclick="abrirModalPago()">
+          💳 Cobrar
+        </button>
+        <button class="btn btn-ghost btn-full btn-sm" onclick="guardarPendiente()">
+          💾 Guardar como Pendiente
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAGO -->
+<div class="modal-overlay" id="modal-pago">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">💳 Procesar Pago</span>
+      <button class="modal-close" onclick="cerrarModal('modal-pago')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="pago-display">
+        <div class="pago-total-label">Total a Cobrar</div>
+        <div class="pago-total-monto" id="pago-total-display">RD$ 0.00</div>
+        <div style="display:flex; justify-content:center; gap:1rem; margin-top:.75rem; font-size:.8rem; color:var(--c-muted);">
+          <span>Items: <strong id="pago-items">0</strong></span>
+          <span>NCF: <span class="ncf-badge" id="pago-ncf">B02</span></span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Método de Pago</label>
+          <select id="metodo-pago" class="form-control" onchange="actualizarMetodoPago()">
+            <option value="efectivo">Efectivo</option>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="transferencia">Transferencia</option>
+          </select>
+        </div>
+        <div class="form-group" id="grupo-efectivo">
+          <label class="form-label">Monto Recibido (RD$)</label>
+          <input type="number" id="monto-recibido" class="form-control" placeholder="0.00"
+                 step="0.01" min="0" oninput="calcularCambio()" />
+        </div>
+      </div>
+
+      <div id="display-cambio" class="cambio-display" style="display:none;">
+        <div>
+          <div class="cambio-label">Cambio a devolver</div>
+        </div>
+        <div class="cambio-monto" id="monto-cambio">RD$ 0.00</div>
+      </div>
+
+      <!-- RNC cliente para B01 -->
+      <div id="grupo-rnc" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">RNC/Cédula del Cliente</label>
+          <input type="text" id="cliente-rnc" class="form-control" placeholder="101-00000-0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre del Cliente</label>
+          <input type="text" id="cliente-nombre" class="form-control" placeholder="Empresa / Persona" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notas (opcional)</label>
+        <input type="text" id="pago-notas" class="form-control" placeholder="Observaciones..." />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-pago')">Cancelar</button>
+      <button class="btn btn-accent" onclick="procesarFactura('pendiente')">💾 Pendiente</button>
+      <button class="btn btn-primary" id="btn-procesar-pago" onclick="procesarFactura('pagada')">✓ Confirmar Pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FACTURA EMITIDA -->
+<div class="modal-overlay" id="modal-exito">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">✅ Factura Generada</span>
+      <button class="modal-close" onclick="cerrarModal('modal-exito')">✕</button>
+    </div>
+    <div class="modal-body" id="exito-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-exito')">Cerrar</button>
+      <button class="btn btn-primary" onclick="imprimirFactura()">🖨️ Imprimir</button>
+      <button class="btn btn-ghost" onclick="nuevaVenta()">+ Nueva Venta</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="header.js"></script>
+
+<script>
+// ─── ESTADO LOCAL ─────────────────────────────────────────────
+let carrito = [];
+let productos = [];
+let configNegocio = { itbis: 18 };
+let ultimaFacturaId = null;
+
+// ─── INIT ─────────────────────────────────────────────────────
+requireAuth(async () => {
+  initHeader();
+  await cargarConfig();
+  await verificarCajaStatus();
+  await cargarProductos();
+  await cargarEmpleadosSelect();
+});
+
+async function cargarConfig() {
+  try {
+    const snap = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('configuraciones').doc('general').get();
+    if (snap.exists) {
+      configNegocio = snap.data();
+      document.getElementById('tasa-itbis').textContent = configNegocio.itbis || 18;
+    }
+  } catch(e) {}
+}
+
+async function verificarCajaStatus() {
+  const caja = await verificarCaja();
+  const alerta = document.getElementById('alerta-caja');
+  const btnCobrar = document.getElementById('btn-cobrar');
+  if (!caja) {
+    alerta.style.display = 'flex';
+    btnCobrar.disabled = true;
+    btnCobrar.title = 'Abre la caja primero';
+  } else {
+    alerta.style.display = 'none';
+    btnCobrar.disabled = false;
+  }
+}
+
+// ─── CARGAR PRODUCTOS ──────────────────────────────────────────
+async function cargarProductos() {
+  const grid = document.getElementById('product-grid');
+  grid.innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
+  try {
+    const snap = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('inventario')
+      .where('activo', '==', true)
+      .get();
+    productos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    llenarCategorias();
+    renderProductos(productos);
+  } catch(e) {
+    grid.innerHTML = '<div class="empty-state"><div class="es-icon">⚠️</div><h3>Error cargando productos</h3></div>';
+  }
+}
+
+function llenarCategorias() {
+  const sel = document.getElementById('filtro-categoria');
+  const cats = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
+  sel.innerHTML = '<option value="">Todas las categorías</option>' +
+    cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function renderProductos(lista) {
+  const grid = document.getElementById('product-grid');
+  if (!lista.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="es-icon">📦</div>
+      <h3>Sin productos</h3>
+      <p>Agrega productos en el módulo Inventario</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = lista.map(p => {
+    const sinStock = (p.stock || 0) <= 0;
+    const stockBajo = !sinStock && (p.stock || 0) <= (p.stockMinimo || 5);
+    return `
+      <div class="product-card ${sinStock ? 'sin-stock' : ''} ${stockBajo ? 'stock-bajo' : ''}"
+           onclick="agregarAlCarrito('${p.id}')">
+        ${p.imagenUrl
+          ? `<img src="${p.imagenUrl}" alt="${p.nombre}" class="product-img" />`
+          : `<div class="product-img-placeholder">${p.emoji || '📦'}</div>`
+        }
+        <div class="product-name">${p.nombre}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="product-price">${formatoMoneda(p.precio)}</div>
+          <div class="product-stock ${stockBajo ? 'text-warn' : ''}">Stock: ${p.stock || 0}</div>
+        </div>
+        ${sinStock ? '<div class="badge badge-red">Sin stock</div>' : ''}
+        ${stockBajo && !sinStock ? '<div class="badge badge-yellow">Stock bajo</div>' : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function filtrarProductos() {
+  const q = document.getElementById('buscar-producto').value.toLowerCase();
+  const cat = document.getElementById('filtro-categoria').value;
+  let lista = productos;
+  if (q) lista = lista.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo || '').toLowerCase().includes(q));
+  if (cat) lista = lista.filter(p => p.categoria === cat);
+  renderProductos(lista);
+}
+
+// ─── CARRITO ───────────────────────────────────────────────────
+function agregarAlCarrito(id) {
+  if (!AppState.cajaAbierta) { toast('Debes abrir la caja primero', 'error'); return; }
+  const prod = productos.find(p => p.id === id);
+  if (!prod || (prod.stock || 0) <= 0) return;
+  const exist = carrito.find(i => i.id === id);
+  if (exist) {
+    if (exist.cantidad >= (prod.stock || 0)) { toast('Stock insuficiente', 'error'); return; }
+    exist.cantidad++;
+  } else {
+    carrito.push({ ...prod, cantidad: 1 });
+  }
+  renderCarrito();
+}
+
+function cambiarCantidad(id, delta) {
+  const item = carrito.find(i => i.id === id);
+  const prod = productos.find(p => p.id === id);
+  if (!item) return;
+  item.cantidad += delta;
+  if (item.cantidad <= 0) {
+    carrito = carrito.filter(i => i.id !== id);
+  } else if (prod && item.cantidad > (prod.stock || 0)) {
+    item.cantidad -= delta;
+    toast('Stock insuficiente', 'error');
+  }
+  renderCarrito();
+}
+
+function eliminarItem(id) {
+  carrito = carrito.filter(i => i.id !== id);
+  renderCarrito();
+}
+
+function limpiarCarrito() {
+  carrito = [];
+  renderCarrito();
+}
+
+function renderCarrito() {
+  const container = document.getElementById('cart-items');
+  if (!carrito.length) {
+    container.innerHTML = '<div class="cart-empty"><div class="cart-empty-icon">🛒</div><p>Agrega productos al carrito</p></div>';
+    actualizarTotales(0, 0, 0);
+    return;
+  }
+  container.innerHTML = carrito.map(item => {
+    const subtotalItem = item.precio * item.cantidad;
+    return `
+      <div class="cart-item">
+        <div class="cart-item-info">
+          <div class="cart-item-name" title="${item.nombre}">${item.nombre}</div>
+          <div class="cart-item-price">${formatoMoneda(item.precio)} c/u</div>
+        </div>
+        <div class="cart-item-controls">
+          <button class="qty-btn" onclick="cambiarCantidad('${item.id}',-1)">−</button>
+          <span class="qty-display">${item.cantidad}</span>
+          <button class="qty-btn" onclick="cambiarCantidad('${item.id}',1)">+</button>
+        </div>
+        <div class="cart-item-total">${formatoMoneda(subtotalItem)}</div>
+        <button class="btn-remove-item" onclick="eliminarItem('${item.id}')">✕</button>
+      </div>
+    `;
+  }).join('');
+
+  const subtotal = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
+  const tasaItbis = (configNegocio.itbis || 18) / 100;
+  const itbis = subtotal * tasaItbis;
+  const total = subtotal + itbis;
+  actualizarTotales(subtotal, itbis, total);
+}
+
+function actualizarTotales(sub, itbis, total) {
+  document.getElementById('cart-subtotal').textContent = formatoMoneda(sub);
+  document.getElementById('cart-itbis').textContent = formatoMoneda(itbis);
+  document.getElementById('cart-total').textContent = formatoMoneda(total);
+}
+
+function getTotales() {
+  const subtotal = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
+  const tasaItbis = (configNegocio.itbis || 18) / 100;
+  const itbis = subtotal * tasaItbis;
+  const total = subtotal + itbis;
+  return { subtotal, itbis, total };
+}
+
+// ─── MODAL PAGO ────────────────────────────────────────────────
+function abrirModalPago() {
+  if (!carrito.length) { toast('El carrito está vacío', 'error'); return; }
+  if (!AppState.cajaAbierta) { toast('Debes abrir la caja primero', 'error'); return; }
+  const { total } = getTotales();
+  const ncf = document.getElementById('tipo-ncf').value;
+  document.getElementById('pago-total-display').textContent = formatoMoneda(total);
+  document.getElementById('pago-items').textContent = carrito.reduce((s,i) => s+i.cantidad, 0);
+  document.getElementById('pago-ncf').textContent = ncf;
+  document.getElementById('monto-recibido').value = '';
+  document.getElementById('display-cambio').style.display = 'none';
+  actualizarMetodoPago();
+  mostrarModal('modal-pago');
+}
+
+function actualizarMetodoPago() {
+  const metodo = document.getElementById('metodo-pago').value;
+  const ncf = document.getElementById('tipo-ncf').value;
+  document.getElementById('grupo-efectivo').style.display = metodo === 'efectivo' ? '' : 'none';
+  document.getElementById('grupo-rnc').style.display = ncf === 'B01' ? '' : 'none';
+  if (metodo !== 'efectivo') document.getElementById('display-cambio').style.display = 'none';
+}
+
+function calcularCambio() {
+  const { total } = getTotales();
+  const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0;
+  const cambio = recibido - total;
+  const display = document.getElementById('display-cambio');
+  const montoEl = document.getElementById('monto-cambio');
+  display.style.display = 'flex';
+  display.classList.toggle('negativo', cambio < 0);
+  montoEl.textContent = formatoMoneda(Math.abs(cambio));
+  montoEl.previousElementSibling?.remove();
+  const label = document.createElement('div');
+  label.className = 'cambio-label';
+  label.textContent = cambio < 0 ? 'Falta por cobrar' : 'Cambio a devolver';
+  display.firstElementChild.innerHTML = '';
+  display.firstElementChild.appendChild(label);
+}
+
+// ─── PROCESAR FACTURA ──────────────────────────────────────────
+async function procesarFactura(estado) {
+  const btn = document.getElementById('btn-procesar-pago');
+  const metodo = document.getElementById('metodo-pago').value;
+  const { subtotal, itbis, total } = getTotales();
+  const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0;
+
+  if (metodo === 'efectivo' && estado === 'pagada' && recibido < total) {
+    toast('El monto recibido es menor al total', 'error'); return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Procesando...';
+
+  try {
+    const ncf = await generarNCF(document.getElementById('tipo-ncf').value);
+    const empleadoId = document.getElementById('sel-empleado').value;
+    const empleadoNombre = document.getElementById('sel-empleado').selectedOptions[0]?.text || 'Sin asignar';
+
+    const factura = {
+      ncf,
+      estado,
+      metodo,
+      subtotal,
+      itbis,
+      total,
+      cambio: metodo === 'efectivo' ? Math.max(0, recibido - total) : 0,
+      montoRecibido: recibido,
+      items: carrito.map(i => ({ id: i.id, nombre: i.nombre, precio: i.precio, cantidad: i.cantidad, subtotal: i.precio * i.cantidad })),
+      empleadoId,
+      empleadoNombre,
+      clienteRnc: document.getElementById('cliente-rnc')?.value || '',
+      clienteNombre: document.getElementById('cliente-nombre')?.value || '',
+      notas: document.getElementById('pago-notas').value,
+      cajaId: AppState.cajaId,
+      creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
+      creadoPor: AppState.user.uid,
+      negocioId: AppState.negocioId,
+      fecha: fechaHoy()
+    };
+
+    // Guardar factura
+    const ref = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('facturas').add(factura);
+    ultimaFacturaId = ref.id;
+    factura.id = ref.id;
+
+    // Descontar stock en batch
+    const batch = db.batch();
+    for (const item of carrito) {
+      const prodRef = db.collection('negocios').doc(AppState.negocioId)
+        .collection('inventario').doc(item.id);
+      batch.update(prodRef, { stock: firebase.firestore.FieldValue.increment(-item.cantidad) });
+    }
+
+    // Registrar en caja (si pagada)
+    if (estado === 'pagada' && AppState.cajaId) {
+      const cajaRef = db.collection('negocios').doc(AppState.negocioId)
+        .collection('caja').doc(AppState.cajaId)
+        .collection('transacciones').doc();
+      batch.set(cajaRef, {
+        tipo: 'ingreso',
+        concepto: `Venta #${ncf}`,
+        monto: total,
+        facturaId: ref.id,
+        hora: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      const cajaDocRef = db.collection('negocios').doc(AppState.negocioId)
+        .collection('caja').doc(AppState.cajaId);
+      batch.update(cajaDocRef, {
+        totalVentas: firebase.firestore.FieldValue.increment(total),
+        cantidadVentas: firebase.firestore.FieldValue.increment(1)
+      });
+    }
+
+    await batch.commit();
+
+    // Enviar a DGII (mock)
+    await enviarDGII(factura);
+
+    cerrarModal('modal-pago');
+    mostrarExito(factura);
+    carrito = [];
+    renderCarrito();
+
+    // Actualizar stock en UI
+    for (const item of carrito) {
+      const prod = productos.find(p => p.id === item.id);
+      if (prod) prod.stock = Math.max(0, (prod.stock || 0) - item.cantidad);
+    }
+    filtrarProductos();
+
+  } catch(e) {
+    toast('Error al procesar: ' + e.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✓ Confirmar Pago';
+}
+
+async function guardarPendiente() {
+  if (!carrito.length) { toast('El carrito está vacío', 'error'); return; }
+  await procesarFactura('pendiente');
+}
+
+// ─── ÉXITO ─────────────────────────────────────────────────────
+function mostrarExito(factura) {
+  document.getElementById('exito-body').innerHTML = `
+    <div style="text-align:center; padding:.5rem 0 1.5rem;">
+      <div style="font-size:3rem; margin-bottom:.75rem;">✅</div>
+      <h2 style="font-size:1.3rem; margin-bottom:.5rem;">Factura Generada</h2>
+      <p style="color:var(--c-muted); font-size:.85rem;">NCF: <span class="ncf-badge">${factura.ncf}</span></p>
+    </div>
+    <div class="card">
+      <div class="summary-row"><span>Subtotal</span><span style="font-family:var(--font-mono)">${formatoMoneda(factura.subtotal)}</span></div>
+      <div class="summary-row"><span>ITBIS</span><span style="font-family:var(--font-mono)">${formatoMoneda(factura.itbis)}</span></div>
+      <div class="summary-row total"><span>Total Cobrado</span><span style="font-family:var(--font-mono)">${formatoMoneda(factura.total)}</span></div>
+      ${factura.cambio > 0 ? `<div class="summary-row" style="color:var(--c-primary)"><span>Cambio</span><span style="font-family:var(--font-mono)">${formatoMoneda(factura.cambio)}</span></div>` : ''}
+    </div>
+    <div style="display:flex; justify-content:center; margin-top:1rem;">
+      <span class="badge ${factura.estado === 'pagada' ? 'badge-green' : 'badge-yellow'}">
+        ${factura.estado === 'pagada' ? '✓ Pagada' : '⏳ Pendiente'}
+      </span>
+    </div>
+  `;
+  mostrarModal('modal-exito');
+}
+
+function imprimirFactura() {
+  if (!ultimaFacturaId) return;
+  window.open(`facturas-generadas.html?print=${ultimaFacturaId}`, '_blank');
+}
+
+function nuevaVenta() {
+  cerrarModal('modal-exito');
+  cargarProductos();
+}
+
+// ─── EMPLEADOS SELECT ──────────────────────────────────────────
+async function cargarEmpleadosSelect() {
+  const empleados = await cargarEmpleados();
+  const sel = document.getElementById('sel-empleado');
+  if (empleados.length) {
+    sel.innerHTML = '<option value="">Sin asignar</option>' +
+      empleados.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+  }
+}
+</script>
+</body>
+</html>

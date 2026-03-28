@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ColmadoPOS — Facturas</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="app-header"></div>
+
+<div class="page-wrapper">
+  <div class="page-title">
+    <span class="icon">📋</span> Facturas Generadas
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-4" style="margin-bottom:1.25rem;">
+    <div class="stat-card green">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">Pagadas Hoy</div>
+      <div class="stat-value green" id="stat-pagadas">0</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-label">Pendientes</div>
+      <div class="stat-value yellow" id="stat-pendientes">0</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-icon">💵</div>
+      <div class="stat-label">Total Hoy</div>
+      <div class="stat-value blue" id="stat-total-hoy">RD$ 0</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">📊</div>
+      <div class="stat-label">ITBIS Hoy</div>
+      <div class="stat-value green" id="stat-itbis-hoy">RD$ 0</div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card" style="margin-bottom:1rem;">
+    <div style="display:flex; gap:.75rem; flex-wrap:wrap; align-items:flex-end;">
+      <div class="form-group" style="margin:0; flex:1; min-width:160px;">
+        <label class="form-label">Desde</label>
+        <input type="date" id="filtro-desde" class="form-control" />
+      </div>
+      <div class="form-group" style="margin:0; flex:1; min-width:160px;">
+        <label class="form-label">Hasta</label>
+        <input type="date" id="filtro-hasta" class="form-control" />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label">Estado</label>
+        <select id="filtro-estado-f" class="form-control" style="min-width:130px;">
+          <option value="">Todos</option>
+          <option value="pagada">Pagadas</option>
+          <option value="pendiente">Pendientes</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label class="form-label">NCF</label>
+        <select id="filtro-ncf" class="form-control">
+          <option value="">Todos</option>
+          <option value="B02">B02</option>
+          <option value="B01">B01</option>
+          <option value="B14">B14</option>
+        </select>
+      </div>
+      <div class="search-bar" style="flex:1; min-width:180px;">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="buscar-fact" class="form-control" placeholder="Buscar NCF, cliente..." oninput="filtrarFacturas()" />
+      </div>
+      <button class="btn btn-primary" onclick="buscarFacturas()">Buscar</button>
+      <button class="btn btn-ghost" onclick="exportarCSV()">📥 CSV</button>
+    </div>
+  </div>
+
+  <!-- Tabla facturas -->
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>NCF</th>
+            <th>Fecha / Hora</th>
+            <th>Items</th>
+            <th>Subtotal</th>
+            <th>ITBIS</th>
+            <th>Total</th>
+            <th>Método</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="fact-tbody">
+          <tr><td colspan="9"><div class="loading-center"><div class="spinner"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:.75rem 0; color:var(--c-muted); font-size:.8rem;">
+      <span id="fact-count">Cargando...</span>
+      <div style="display:flex; gap:.5rem;">
+        <button class="btn btn-sm btn-ghost" id="btn-prev" onclick="cambiarPagina(-1)" disabled>← Anterior</button>
+        <span id="pag-info" style="padding:.35rem .75rem;">Pág 1</span>
+        <button class="btn btn-sm btn-ghost" id="btn-next" onclick="cambiarPagina(1)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE FACTURA -->
+<div class="modal-overlay" id="modal-factura-detalle">
+  <div class="modal modal-lg" id="modal-factura-content">
+    <div class="modal-header">
+      <span class="modal-title">🧾 Detalle de Factura</span>
+      <button class="modal-close" onclick="cerrarModal('modal-factura-detalle')">✕</button>
+    </div>
+    <div class="modal-body" id="detalle-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-factura-detalle')">Cerrar</button>
+      <button class="btn btn-ghost" id="btn-dgii-enviar" onclick="enviarDGIIModal()">📡 Enviar DGII</button>
+      <button class="btn btn-primary" onclick="imprimirModal()">🖨️ Imprimir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="header.js"></script>
+
+<script>
+let facturas = [];
+let facturasFiltradas = [];
+let paginaActual = 0;
+const POR_PAGINA = 20;
+let facturaDetalleActual = null;
+
+requireAuth(async () => {
+  initHeader();
+  setFechasDefault();
+  await cargarFacturas();
+  // Si hay ?print=id, abrir directo
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('print')) abrirDetalle(params.get('print'));
+});
+
+function setFechasDefault() {
+  const hoy = fechaHoy();
+  // fechaHoy devuelve dd/mm/yyyy — necesitamos yyyy-mm-dd para input date
+  const partes = hoy.split('/');
+  const iso = partes.length === 3 ? `${partes[2]}-${partes[1]}-${partes[0]}` : new Date().toISOString().slice(0,10);
+  document.getElementById('filtro-desde').value = iso;
+  document.getElementById('filtro-hasta').value = iso;
+}
+
+async function cargarFacturas() {
+  const desde = document.getElementById('filtro-desde').value;
+  const hasta = document.getElementById('filtro-hasta').value;
+  const estado = document.getElementById('filtro-estado-f').value;
+
+  const tbody = document.getElementById('fact-tbody');
+  tbody.innerHTML = `<tr><td colspan="9"><div class="loading-center"><div class="spinner"></div></div></td></tr>`;
+
+  try {
+    let query = db.collection('negocios').doc(AppState.negocioId)
+      .collection('facturas')
+      .orderBy('creadoEn', 'desc')
+      .limit(200);
+
+    const snap = await query.get();
+    facturas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    filtrarFacturas();
+    actualizarStatsFacturas();
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--c-danger);">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function buscarFacturas() { cargarFacturas(); }
+
+function filtrarFacturas() {
+  const q = document.getElementById('buscar-fact').value.toLowerCase();
+  const estado = document.getElementById('filtro-estado-f').value;
+  const ncf = document.getElementById('filtro-ncf').value;
+
+  facturasFiltradas = facturas.filter(f => {
+    if (q && !((f.ncf||'').toLowerCase().includes(q) || (f.clienteNombre||'').toLowerCase().includes(q))) return false;
+    if (estado && f.estado !== estado) return false;
+    if (ncf && !(f.ncf||'').startsWith(ncf)) return false;
+    return true;
+  });
+
+  paginaActual = 0;
+  renderTabla();
+}
+
+function renderTabla() {
+  const inicio = paginaActual * POR_PAGINA;
+  const pagina = facturasFiltradas.slice(inicio, inicio + POR_PAGINA);
+  const tbody = document.getElementById('fact-tbody');
+  
+  document.getElementById('fact-count').textContent = `${facturasFiltradas.length} facturas encontradas`;
+  document.getElementById('pag-info').textContent = `Pág ${paginaActual + 1} de ${Math.ceil(facturasFiltradas.length / POR_PAGINA) || 1}`;
+  document.getElementById('btn-prev').disabled = paginaActual === 0;
+  document.getElementById('btn-next').disabled = inicio + POR_PAGINA >= facturasFiltradas.length;
+
+  if (!pagina.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">
+      <div class="es-icon">📋</div><h3>Sin facturas</h3><p>No hay facturas en este período</p>
+    </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = pagina.map(f => {
+    const fecha = f.creadoEn?.toDate?.()?.toLocaleString('es-DO', { timeZone:'America/Santo_Domingo', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) || '--';
+    const metodoIcon = { efectivo:'💵', tarjeta:'💳', transferencia:'🏦' }[f.metodo] || '💵';
+    return `
+      <tr class="factura-row" style="cursor:pointer;" onclick="abrirDetalle('${f.id}')">
+        <td><span class="ncf-badge">${f.ncf || '-'}</span></td>
+        <td style="font-size:.8rem; color:var(--c-muted);">${fecha}</td>
+        <td style="text-align:center;">${(f.items||[]).reduce((s,i)=>s+i.cantidad,0)}</td>
+        <td style="font-family:var(--font-mono);">${formatoMoneda(f.subtotal)}</td>
+        <td style="font-family:var(--font-mono); color:var(--c-muted);">${formatoMoneda(f.itbis)}</td>
+        <td style="font-family:var(--font-mono); font-weight:700;">${formatoMoneda(f.total)}</td>
+        <td><span>${metodoIcon} ${f.metodo||'-'}</span></td>
+        <td>
+          <span class="badge ${f.estado==='pagada'?'badge-green':'badge-yellow'}">
+            ${f.estado==='pagada'?'✓ Pagada':'⏳ Pendiente'}
+          </span>
+        </td>
+        <td onclick="event.stopPropagation()">
+          <div style="display:flex; gap:.3rem;">
+            ${f.estado==='pendiente' ? `<button class="btn btn-sm btn-primary" onclick="marcarPagada('${f.id}')">✓ Pagar</button>` : ''}
+            <button class="btn btn-sm btn-ghost" onclick="abrirDetalle('${f.id}')">👁</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function cambiarPagina(dir) {
+  paginaActual = Math.max(0, paginaActual + dir);
+  renderTabla();
+}
+
+function actualizarStatsFacturas() {
+  const hoy = fechaHoy();
+  const deHoy = facturas.filter(f => f.fecha === hoy);
+  const pagadas = deHoy.filter(f => f.estado === 'pagada');
+  const pendientes = facturas.filter(f => f.estado === 'pendiente');
+  const totalHoy = pagadas.reduce((s,f) => s+(f.total||0), 0);
+  const itbisHoy = pagadas.reduce((s,f) => s+(f.itbis||0), 0);
+  document.getElementById('stat-pagadas').textContent = pagadas.length;
+  document.getElementById('stat-pendientes').textContent = pendientes.length;
+  document.getElementById('stat-total-hoy').textContent = formatoMoneda(totalHoy);
+  document.getElementById('stat-itbis-hoy').textContent = formatoMoneda(itbisHoy);
+}
+
+async function abrirDetalle(id) {
+  const f = facturas.find(x => x.id === id) || await (async () => {
+    const s = await db.collection('negocios').doc(AppState.negocioId).collection('facturas').doc(id).get();
+    return s.exists ? { id: s.id, ...s.data() } : null;
+  })();
+  if (!f) return;
+  facturaDetalleActual = f;
+
+  const negocio = AppState.negocioData || {};
+  const fecha = f.creadoEn?.toDate?.()?.toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' }) || '--';
+
+  document.getElementById('detalle-body').innerHTML = `
+    <div id="area-impresion">
+      <!-- Cabecera negocio -->
+      <div style="text-align:center; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--c-border);">
+        <h2 style="font-size:1.2rem; font-weight:800;">${negocio.nombre || 'Mi Negocio'}</h2>
+        <p style="color:var(--c-muted); font-size:.8rem;">RNC: ${negocio.RNC || '-'}</p>
+        <p style="color:var(--c-muted); font-size:.8rem;">${negocio.direccion || ''}</p>
+        <p style="color:var(--c-muted); font-size:.8rem;">${negocio.telefono || ''}</p>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:.5rem;">
+        <div>
+          <div style="font-size:.75rem; color:var(--c-muted);">NCF</div>
+          <div class="ncf-badge" style="font-size:.9rem;">${f.ncf}</div>
+        </div>
+        <div>
+          <div style="font-size:.75rem; color:var(--c-muted);">Estado</div>
+          <span class="badge ${f.estado==='pagada'?'badge-green':'badge-yellow'}">
+            ${f.estado==='pagada'?'✓ Pagada':'⏳ Pendiente'}
+          </span>
+        </div>
+        <div>
+          <div style="font-size:.75rem; color:var(--c-muted);">Fecha</div>
+          <div style="font-size:.82rem;">${fecha}</div>
+        </div>
+        <div>
+          <div style="font-size:.75rem; color:var(--c-muted);">Cajero</div>
+          <div style="font-size:.82rem;">${f.empleadoNombre || 'N/A'}</div>
+        </div>
+      </div>
+
+      ${f.clienteNombre ? `<div style="background:var(--c-surface); border-radius:var(--radius); padding:.75rem; margin-bottom:1rem;">
+        <div style="font-size:.75rem; color:var(--c-muted);">Cliente</div>
+        <div style="font-weight:600;">${f.clienteNombre}</div>
+        ${f.clienteRnc ? `<div style="font-size:.8rem; color:var(--c-muted);">RNC: ${f.clienteRnc}</div>` : ''}
+      </div>` : ''}
+
+      <!-- Items -->
+      <table style="margin-bottom:1rem;">
+        <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th></tr></thead>
+        <tbody>
+          ${(f.items||[]).map(i => `
+            <tr>
+              <td>${i.nombre}</td>
+              <td style="text-align:center;">${i.cantidad}</td>
+              <td style="font-family:var(--font-mono);">${formatoMoneda(i.precio)}</td>
+              <td style="font-family:var(--font-mono); font-weight:700;">${formatoMoneda(i.subtotal)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <!-- Totales -->
+      <div style="background:var(--c-surface); border-radius:var(--radius); padding:1rem;">
+        <div class="summary-row"><span>Subtotal</span><span style="font-family:var(--font-mono);">${formatoMoneda(f.subtotal)}</span></div>
+        <div class="summary-row"><span>ITBIS</span><span style="font-family:var(--font-mono);">${formatoMoneda(f.itbis)}</span></div>
+        <div class="summary-row total"><span>TOTAL</span><span style="font-family:var(--font-mono);">${formatoMoneda(f.total)}</span></div>
+        ${f.cambio > 0 ? `<div class="summary-row" style="color:var(--c-primary)"><span>Cambio</span><span style="font-family:var(--font-mono);">${formatoMoneda(f.cambio)}</span></div>` : ''}
+      </div>
+
+      ${f.notas ? `<p style="color:var(--c-muted); font-size:.8rem; margin-top:.75rem;">Nota: ${f.notas}</p>` : ''}
+
+      <p style="text-align:center; color:var(--c-muted); font-size:.75rem; margin-top:1.5rem;">
+        ¡Gracias por su compra! • ${negocio.nombre || 'ColmadoPOS'}
+      </p>
+    </div>
+  `;
+  mostrarModal('modal-factura-detalle');
+}
+
+async function marcarPagada(id) {
+  if (!confirm('¿Marcar esta factura como pagada?')) return;
+  try {
+    await db.collection('negocios').doc(AppState.negocioId)
+      .collection('facturas').doc(id).update({
+        estado: 'pagada',
+        pagadaEn: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    toast('Factura marcada como pagada', 'success');
+    await cargarFacturas();
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+function imprimirModal() {
+  const contenido = document.getElementById('area-impresion').innerHTML;
+  const ventana = window.open('', '_blank');
+  ventana.document.write(`
+    <html><head><title>Factura</title>
+    <style>
+      body { font-family: 'Courier New', monospace; max-width: 380px; margin: 0 auto; padding: 1rem; }
+      table { width:100%; border-collapse:collapse; }
+      td, th { padding:.3rem .5rem; border-bottom:1px solid #eee; font-size:11px; }
+      .ncf-badge { font-family:monospace; font-size:.8rem; }
+      .summary-row { display:flex; justify-content:space-between; padding:.2rem 0; }
+      .summary-row.total { font-weight:bold; border-top:1px solid #000; margin-top:.5rem; }
+      @media print { button { display:none; } }
+    </style>
+    </head><body>${contenido}</body></html>
+  `);
+  ventana.document.close();
+  ventana.print();
+}
+
+async function enviarDGIIModal() {
+  if (!facturaDetalleActual) return;
+  const btn = document.getElementById('btn-dgii-enviar');
+  btn.disabled = true; btn.textContent = '📡 Enviando...';
+  const result = await enviarDGII(facturaDetalleActual);
+  toast(result.mensaje, 'success');
+  btn.disabled = false; btn.textContent = '📡 Enviar DGII';
+}
+
+function exportarCSV() {
+  const rows = [['NCF','Fecha','Total','ITBIS','Estado','Metodo','Empleado']];
+  facturasFiltradas.forEach(f => {
+    const fecha = f.creadoEn?.toDate?.()?.toLocaleDateString('es-DO') || f.fecha || '-';
+    rows.push([f.ncf||'-', fecha, f.total||0, f.itbis||0, f.estado, f.metodo, f.empleadoNombre||'-']);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `facturas_${fechaHoy().replace(/\//g,'-')}.csv`;
+  link.click();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ColmadoPOS — Inventario</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="app-header"></div>
+
+<div class="page-wrapper">
+  <div class="inv-header">
+    <div class="page-title" style="margin-bottom:0;">
+      <span class="icon">📦</span> Inventario
+    </div>
+    <div class="inv-controls">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="buscar-inv" class="form-control" placeholder="Buscar..." oninput="filtrarInventario()" />
+      </div>
+      <select id="filtro-cat-inv" class="form-control" style="width:auto;" onchange="filtrarInventario()">
+        <option value="">Todas</option>
+      </select>
+      <select id="filtro-estado" class="form-control" style="width:auto;" onchange="filtrarInventario()">
+        <option value="">Todos</option>
+        <option value="activo">Activos</option>
+        <option value="bajo">Stock Bajo</option>
+        <option value="agotado">Agotados</option>
+      </select>
+      <button class="btn btn-primary" onclick="abrirModalProducto()">+ Producto</button>
+    </div>
+  </div>
+
+  <!-- Stats rápidas -->
+  <div class="grid-4" style="margin-bottom:1.25rem;" id="inv-stats">
+    <div class="stat-card blue">
+      <div class="stat-icon">📦</div>
+      <div class="stat-label">Total Productos</div>
+      <div class="stat-value blue" id="stat-total">0</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-label">Stock Bajo</div>
+      <div class="stat-value yellow" id="stat-bajo">0</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-icon">🚫</div>
+      <div class="stat-label">Agotados</div>
+      <div class="stat-value red" id="stat-agotado">0</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">💵</div>
+      <div class="stat-label">Valor Inventario</div>
+      <div class="stat-value green" id="stat-valor">RD$ 0</div>
+    </div>
+  </div>
+
+  <!-- Tabla productos -->
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Imagen</th>
+            <th>Producto</th>
+            <th>Código</th>
+            <th>Categoría</th>
+            <th>Precio Venta</th>
+            <th>Costo</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="inv-tbody">
+          <tr><td colspan="9"><div class="loading-center"><div class="spinner"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUCTO -->
+<div class="modal-overlay" id="modal-producto">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-prod-title">+ Nuevo Producto</span>
+      <button class="modal-close" onclick="cerrarModal('modal-producto')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div style="grid-column: span 2;">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nombre del Producto *</label>
+              <input type="text" id="prod-nombre" class="form-control" placeholder="Ej: Arroz Iberia 5 Lbs" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Código / Barcode</label>
+              <input type="text" id="prod-codigo" class="form-control" placeholder="7501000000000" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Categoría</label>
+              <input type="text" id="prod-categoria" class="form-control" placeholder="Ej: Granos, Bebidas..." list="categorias-list" />
+              <datalist id="categorias-list"></datalist>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Emoji (ícono)</label>
+              <input type="text" id="prod-emoji" class="form-control" placeholder="📦" maxlength="2" />
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label class="form-label">Precio de Venta (RD$) *</label>
+              <input type="number" id="prod-precio" class="form-control" placeholder="0.00" step="0.01" min="0" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Costo (RD$)</label>
+              <input type="number" id="prod-costo" class="form-control" placeholder="0.00" step="0.01" min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Margen</label>
+              <div class="form-control" id="margen-display" style="color:var(--c-primary); font-family:var(--font-mono);">--%</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Stock Actual</label>
+              <input type="number" id="prod-stock" class="form-control" placeholder="0" min="0" step="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Stock Mínimo (alerta)</label>
+              <input type="number" id="prod-stock-min" class="form-control" placeholder="5" min="0" step="1" value="5" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <input type="text" id="prod-desc" class="form-control" placeholder="Descripción opcional..." />
+          </div>
+          <div class="form-group">
+            <label style="display:flex; align-items:center; gap:.5rem; cursor:pointer; font-size:.85rem;">
+              <input type="checkbox" id="prod-activo" checked style="accent-color:var(--c-primary);" />
+              Producto activo (visible en POS)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload imagen -->
+      <div class="form-group">
+        <label class="form-label">Imagen del Producto</label>
+        <div class="img-upload-area" id="upload-area" onclick="document.getElementById('prod-imagen').click()">
+          <div id="upload-placeholder">
+            📷 Haz clic para subir imagen<br/>
+            <small style="color:var(--c-muted)">JPG, PNG · Máx 2MB</small>
+          </div>
+          <img id="img-preview" class="img-preview" style="display:none;" />
+        </div>
+        <input type="file" id="prod-imagen" accept="image/*" style="display:none" onchange="previewImagen()" />
+        <input type="hidden" id="prod-imagen-url" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-producto')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-guardar-prod" onclick="guardarProducto()">Guardar Producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJUSTE STOCK -->
+<div class="modal-overlay" id="modal-stock">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📦 Ajustar Stock</span>
+      <button class="modal-close" onclick="cerrarModal('modal-stock')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="stock-prod-nombre" style="font-weight:700; margin-bottom:1rem;"></p>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select id="ajuste-tipo" class="form-control">
+            <option value="set">Establecer exacto</option>
+            <option value="add">Agregar</option>
+            <option value="sub">Restar</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cantidad</label>
+          <input type="number" id="ajuste-cantidad" class="form-control" min="0" step="1" value="0" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motivo</label>
+        <input type="text" id="ajuste-motivo" class="form-control" placeholder="Ej: Compra, Inventario físico..." />
+      </div>
+      <input type="hidden" id="ajuste-prod-id" />
+      <input type="hidden" id="ajuste-stock-actual" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-stock')">Cancelar</button>
+      <button class="btn btn-primary" onclick="aplicarAjuste()">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script src="header.js"></script>
+
+<script>
+let productos = [];
+let editandoId = null;
+let imagenFile = null;
+
+requireAuth(async () => {
+  initHeader();
+  await cargarInventario();
+});
+
+async function cargarInventario() {
+  try {
+    const snap = await db.collection('negocios').doc(AppState.negocioId)
+      .collection('inventario')
+      .orderBy('nombre')
+      .get();
+    productos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    actualizarStats();
+    llenarCategorias();
+    renderTabla(productos);
+  } catch(e) {
+    toast('Error cargando inventario: ' + e.message, 'error');
+  }
+}
+
+function actualizarStats() {
+  const bajo = productos.filter(p => (p.stock||0) > 0 && (p.stock||0) <= (p.stockMinimo||5));
+  const agotado = productos.filter(p => (p.stock||0) <= 0);
+  const valor = productos.reduce((s,p) => s + (p.costo||0) * (p.stock||0), 0);
+  document.getElementById('stat-total').textContent = productos.length;
+  document.getElementById('stat-bajo').textContent = bajo.length;
+  document.getElementById('stat-agotado').textContent = agotado.length;
+  document.getElementById('stat-valor').textContent = formatoMoneda(valor);
+}
+
+function llenarCategorias() {
+  const cats = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
+  const sel = document.getElementById('filtro-cat-inv');
+  sel.innerHTML = '<option value="">Todas</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  const dl = document.getElementById('categorias-list');
+  if (dl) dl.innerHTML = cats.map(c => `<option value="${c}">`).join('');
+}
+
+function filtrarInventario() {
+  const q = document.getElementById('buscar-inv').value.toLowerCase();
+  const cat = document.getElementById('filtro-cat-inv').value;
+  const estado = document.getElementById('filtro-estado').value;
+  let lista = productos;
+  if (q) lista = lista.filter(p => p.nombre.toLowerCase().includes(q) || (p.codigo||'').includes(q));
+  if (cat) lista = lista.filter(p => p.categoria === cat);
+  if (estado === 'activo') lista = lista.filter(p => p.activo && (p.stock||0) > 0);
+  if (estado === 'bajo')   lista = lista.filter(p => (p.stock||0) > 0 && (p.stock||0) <= (p.stockMinimo||5));
+  if (estado === 'agotado') lista = lista.filter(p => (p.stock||0) <= 0);
+  renderTabla(lista);
+}
+
+function renderTabla(lista) {
+  const tbody = document.getElementById('inv-tbody');
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">
+      <div class="es-icon">📦</div><h3>Sin productos</h3><p>Agrega tu primer producto</p>
+    </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = lista.map(p => {
+    const sinStock = (p.stock||0) <= 0;
+    const bajo = !sinStock && (p.stock||0) <= (p.stockMinimo||5);
+    const margen = p.precio && p.costo ? (((p.precio - p.costo) / p.precio) * 100).toFixed(1) + '%' : '-';
+    return `
+      <tr>
+        <td>
+          ${p.imagenUrl
+            ? `<img src="${p.imagenUrl}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;"/>`
+            : `<div style="width:44px;height:44px;border-radius:8px;background:var(--c-surface);display:flex;align-items:center;justify-content:center;font-size:1.3rem;">${p.emoji||'📦'}</div>`
+          }
+        </td>
+        <td>
+          <div style="font-weight:600;">${p.nombre}</div>
+          ${p.descripcion ? `<div style="font-size:.75rem;color:var(--c-muted);">${p.descripcion}</div>` : ''}
+        </td>
+        <td style="font-family:var(--font-mono);font-size:.78rem;color:var(--c-muted);">${p.codigo||'-'}</td>
+        <td><span class="badge badge-blue">${p.categoria||'-'}</span></td>
+        <td style="font-family:var(--font-mono);font-weight:700;">${formatoMoneda(p.precio)}</td>
+        <td style="font-family:var(--font-mono);color:var(--c-muted);">${formatoMoneda(p.costo)}</td>
+        <td>
+          <span style="font-family:var(--font-mono);font-weight:700;color:${sinStock?'var(--c-danger)':bajo?'var(--c-warn)':'var(--c-primary)'};">
+            ${p.stock||0}
+          </span>
+          ${bajo ? '<span class="badge badge-yellow" style="margin-left:.3rem;">Bajo</span>' : ''}
+          ${sinStock ? '<span class="badge badge-red" style="margin-left:.3rem;">Agotado</span>' : ''}
+        </td>
+        <td><span class="badge ${p.activo?'badge-green':'badge-gray'}">${p.activo?'Activo':'Inactivo'}</span></td>
+        <td>
+          <div style="display:flex;gap:.35rem;">
+            <button class="btn btn-sm btn-ghost btn-icon" title="Editar" onclick="editarProducto('${p.id}')">✏️</button>
+            <button class="btn btn-sm btn-ghost btn-icon" title="Ajustar stock" onclick="abrirAjusteStock('${p.id}')">📦</button>
+            <button class="btn btn-sm btn-ghost btn-icon" title="Eliminar" onclick="confirmarEliminar('${p.id}','${p.nombre.replace(/'/g,"\\'")}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ─── MODAL PRODUCTO ────────────────────────────────────────────
+function abrirModalProducto(id = null) {
+  editandoId = null;
+  imagenFile = null;
+  document.getElementById('modal-prod-title').textContent = '+ Nuevo Producto';
+  ['prod-nombre','prod-codigo','prod-categoria','prod-emoji','prod-precio','prod-costo','prod-stock','prod-desc','prod-imagen-url']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('prod-stock-min').value = '5';
+  document.getElementById('prod-activo').checked = true;
+  document.getElementById('img-preview').style.display = 'none';
+  document.getElementById('upload-placeholder').style.display = '';
+  document.getElementById('margen-display').textContent = '--%';
+  mostrarModal('modal-producto');
+}
+
+function editarProducto(id) {
+  const p = productos.find(x => x.id === id);
+  if (!p) return;
+  editandoId = id;
+  imagenFile = null;
+  document.getElementById('modal-prod-title').textContent = 'Editar Producto';
+  document.getElementById('prod-nombre').value = p.nombre || '';
+  document.getElementById('prod-codigo').value = p.codigo || '';
+  document.getElementById('prod-categoria').value = p.categoria || '';
+  document.getElementById('prod-emoji').value = p.emoji || '';
+  document.getElementById('prod-precio').value = p.precio || '';
+  document.getElementById('prod-costo').value = p.costo || '';
+  document.getElementById('prod-stock').value = p.stock || 0;
+  document.getElementById('prod-stock-min').value = p.stockMinimo || 5;
+  document.getElementById('prod-desc').value = p.descripcion || '';
+  document.getElementById('prod-activo').checked = p.activo !== false;
+  document.getElementById('prod-imagen-url').value = p.imagenUrl || '';
+  if (p.imagenUrl) {
+    const preview = document.getElementById('img-preview');
+    preview.src = p.imagenUrl;
+    preview.style.display = 'block';
+    document.getElementById('upload-placeholder').style.display = 'none';
+  }
+  calcularMargen();
+  mostrarModal('modal-producto');
+}
+
+function previewImagen() {
+  const file = document.getElementById('prod-imagen').files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { toast('La imagen supera 2MB', 'error'); return; }
+  imagenFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('img-preview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    document.getElementById('upload-placeholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function calcularMargen() {
+  const precio = parseFloat(document.getElementById('prod-precio').value) || 0;
+  const costo = parseFloat(document.getElementById('prod-costo').value) || 0;
+  const el = document.getElementById('margen-display');
+  if (precio > 0 && costo > 0) {
+    const margen = ((precio - costo) / precio * 100).toFixed(1);
+    el.textContent = margen + '%';
+    el.style.color = margen >= 0 ? 'var(--c-primary)' : 'var(--c-danger)';
+  } else {
+    el.textContent = '--%';
+  }
+}
+document.addEventListener('input', e => {
+  if (['prod-precio','prod-costo'].includes(e.target.id)) calcularMargen();
+});
+
+async function guardarProducto() {
+  const nombre = document.getElementById('prod-nombre').value.trim();
+  const precio = parseFloat(document.getElementById('prod-precio').value);
+  if (!nombre || !precio) { toast('Nombre y precio son obligatorios', 'error'); return; }
+
+  const btn = document.getElementById('btn-guardar-prod');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    let imagenUrl = document.getElementById('prod-imagen-url').value;
+
+    // Subir imagen a Firebase Storage si hay una nueva
+    if (imagenFile) {
+      const ext = imagenFile.name.split('.').pop();
+      const path = `negocios/${AppState.negocioId}/productos/${Date.now()}.${ext}`;
+      const ref = storage.ref(path);
+      await ref.put(imagenFile);
+      imagenUrl = await ref.getDownloadURL();
+    }
+
+    const data = {
+      nombre,
+      codigo: document.getElementById('prod-codigo').value.trim(),
+      categoria: document.getElementById('prod-categoria').value.trim(),
+      emoji: document.getElementById('prod-emoji').value.trim() || '📦',
+      precio,
+      costo: parseFloat(document.getElementById('prod-costo').value) || 0,
+      stock: parseInt(document.getElementById('prod-stock').value) || 0,
+      stockMinimo: parseInt(document.getElementById('prod-stock-min').value) || 5,
+      descripcion: document.getElementById('prod-desc').value.trim(),
+      activo: document.getElementById('prod-activo').checked,
+      imagenUrl,
+      actualizadoEn: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    const colRef = db.collection('negocios').doc(AppState.negocioId).collection('inventario');
+    if (editandoId) {
+      await colRef.doc(editandoId).update(data);
+      toast('Producto actualizado', 'success');
+    } else {
+      data.creadoEn = firebase.firestore.FieldValue.serverTimestamp();
+      await colRef.add(data);
+      toast('Producto creado', 'success');
+    }
+    cerrarModal('modal-producto');
+    await cargarInventario();
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Guardar Producto';
+}
+
+async function confirmarEliminar(id, nombre) {
+  if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
+  try {
+    await db.collection('negocios').doc(AppState.negocioId)
+      .collection('inventario').doc(id).delete();
+    toast('Producto eliminado', 'success');
+    await cargarInventario();
+  } catch(e) {
+    toast('Error al eliminar: ' + e.message, 'error');
+  }
+}
+
+// ─── AJUSTE STOCK ─────────────────────────────────────────────
+function abrirAjusteStock(id) {
+  const p = productos.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('ajuste-prod-id').value = id;
+  document.getElementById('ajuste-stock-actual').value = p.stock || 0;
+  document.getElementById('stock-prod-nombre').textContent = `${p.emoji||'📦'} ${p.nombre} — Stock actual: ${p.stock||0}`;
+  document.getElementById('ajuste-cantidad').value = 0;
+  document.getElementById('ajuste-motivo').value = '';
+  mostrarModal('modal-stock');
+}
+
+async function aplicarAjuste() {
+  const id = document.getElementById('ajuste-prod-id').value;
+  const tipo = document.getElementById('ajuste-tipo').value;
+  const cant = parseInt(document.getElementById('ajuste-cantidad').value) || 0;
+  const actual = parseInt(document.getElementById('ajuste-stock-actual').value) || 0;
+  const motivo = document.getElementById('ajuste-motivo').value;
+
+  let nuevoStock;
+  if (tipo === 'set') nuevoStock = cant;
+  else if (tipo === 'add') nuevoStock = actual + cant;
+  else nuevoStock = Math.max(0, actual - cant);
+
+  try {
+    await db.collection('negocios').doc(AppState.negocioId)
+      .collection('inventario').doc(id).update({ stock: nuevoStock });
+    toast(`Stock ajustado a ${nuevoStock}`, 'success');
+    cerrarModal('modal-stock');
+    await cargarInventario();
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+</script>
+</body>
+</html>
