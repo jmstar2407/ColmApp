@@ -1,209 +1,1183 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ColmadoPOS — Acceso</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colmapp - Sistema de Facturación</title>
+    <link rel="icon" href="./img/icon 512x512.png" type="image/png" sizes="any">
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="./js/header-component.js"></script>
+
 </head>
+
 <body>
 
-<div class="login-page">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="logo-icon">🏪</div>
-      <h1>ColmadoPOS</h1>
-      <p>Sistema de Facturación Electrónica · RD</p>
+    <header-component></header-component>
+
+    <div class="container">
+
+        <div class="main-layout">
+            <div class="left-panel">
+                <div class="search-section">
+                    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Buscar productos...">
+                    <select class="category-filter" id="categoryFilter">
+                        <option value="">Todas las categorías</option>
+                        <!-- Las categorías se llenarán dinámicamente -->
+                    </select>
+                    <div class="view-toggle">
+                        <button class="view-btn active" id="gridViewBtn" onclick="toggleViewMode('grid')"><img
+                                src="./img/icons/grid.png"></button>
+                        <button class="view-btn" id="listViewBtn" onclick="toggleViewMode('list')"><img
+                                src="./img/icons/list.png"></button>
+                    </div>
+                </div>
+
+                <div class="products-grid">
+                    <div class="products-container" id="productsContainer">
+                        <div class="loading-spinner">Cargando productos...</div>
+                    </div>
+                </div>
+
+                <div class="mesas-section">
+                    <div class="mesas-grid" id="mesasGrid" style="display: none;">
+                        <!-- Las cajas se generarán aquí -->
+                    </div>
+                    <button class="quick-sale-btn" onclick="selectQuickSale()">⚡ Factura Rápida</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="current-order">
+                    <div class="order-header">
+                        <h3 id="orderTitle">⚡ Factura Rápida</h3>
+                    </div>
+
+                    <div class="order-items" id="orderItems">
+                        <!-- Los items del pedido se mostrarán aquí -->
+                    </div>
+
+                    <div class="order-footer">
+                        <div class="order-total">
+                            <div class="total-label">Total:</div>
+                            <div class="total-amount" id="totalAmount">$0.00</div>
+                        </div>
+
+                        <div class="payment-section">
+                            <button class="btn-facturar" onclick="processPayment()">Facturar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Copyright 2026 - Developed By José Polanco</p>
+        </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="login-tabs">
-      <button class="login-tab active" id="tab-login" onclick="switchTab('login')">Iniciar Sesión</button>
-      <button class="login-tab" id="tab-registro" onclick="switchTab('registro')">Crear Negocio</button>
+    <!-- Modal para procesar pago -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="Modal-Title">
+                <h3>Procesar Factura</h3>
+                <button class="close-modal-btn" onclick="closePaymentModal()">×</button>
+            </div>
+
+            <div class="Modal-Body" id="bodyfactura">
+                <div class="payment-modal-layout">
+                    <div class="payment-left-section">
+                        <div class="payment-summary" id="paymentSummary">
+                            <!-- Resumen de productos se mostrará aquí -->
+                        </div>
+
+                        <div class="input-group"
+                            style="background: #ffffff;display: inline-flex;flex-direction: column;align-items: center;border-radius: 7px;">
+                            <label>Método de Pago:</label>
+                            <div class="payment-methods">
+                                <button class="payment-btn payment-efectivo active"
+                                    onclick="selectPaymentMethod('efectivo')">Efectivo</button>
+                                <!-- <button class="payment-btn payment-tarjeta"
+                                onclick="selectPaymentMethod('tarjeta')">Tarjeta</button> -->
+                                <!--  <button class="payment-btn payment-transferencia"
+                                onclick="selectPaymentMethod('transferencia')">Transferencia</button> -->
+                            </div>
+                            <input type="hidden" id="paymentMethod" value="efectivo">
+                        </div>
+                    </div>
+
+                    <div class="payment-right-section">
+                        <div class="input-group" id="receivedGroup">
+                            <label>Dinero Recibido:</label>
+                            <input type="number" id="receivedAmount" placeholder="0" step="0.01">
+                        </div>
+
+                        <div class="input-group" id="changeGroup">
+                            <label>Cambio:</label>
+                            <input type="text" id="changeAmount" readonly>
+                        </div>
+
+                        <div class="numeric-keyboard">
+                            <button class="numeric-key" onclick="appendToAmount('7')">7</button>
+                            <button class="numeric-key" onclick="appendToAmount('8')">8</button>
+                            <button class="numeric-key" onclick="appendToAmount('9')">9</button>
+                            <button class="numeric-key" onclick="appendToAmount('4')">4</button>
+                            <button class="numeric-key" onclick="appendToAmount('5')">5</button>
+                            <button class="numeric-key" onclick="appendToAmount('6')">6</button>
+                            <button class="numeric-key" onclick="appendToAmount('1')">1</button>
+                            <button class="numeric-key" onclick="appendToAmount('2')">2</button>
+                            <button class="numeric-key" onclick="appendToAmount('3')">3</button>
+                            <button class="numeric-key" onclick="removeLastDigit()" id="clearBtn"><span><img
+                                        src="./img/icons/borrar_1.png"></span></button>
+                            <button class="numeric-key" onclick="appendToAmount('0')">0</button>
+                            <button class="numeric-key" onclick="clearAmount()" id="clearBtn"><img
+                                    src="./img/icons/borrar_2.png"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="Modal-Footer">
+                <div class="modal-buttons">
+                    <!-- Botón para imprimir sin confirmar pago -->
+                    <button class="btn-secondary" onclick="printInvoiceWithoutPayment()">🖨️ Imprimir Factura</button>
+                    <button class="btn-primary" onclick="confirmPayment()">Confirmar Pago <img
+                            src="./img/icons/check_1.png"></button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- FORM LOGIN -->
-    <form id="form-login" onsubmit="handleLogin(event)">
-      <div class="form-group">
-        <label class="form-label">Correo electrónico</label>
-        <input type="email" id="login-email" class="form-control" placeholder="correo@ejemplo.com" required />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Contraseña</label>
-        <input type="password" id="login-pass" class="form-control" placeholder="••••••••" required />
-      </div>
-      <div id="login-error" class="alert alert-error" style="display:none"></div>
-      <button type="submit" class="btn btn-primary btn-full btn-lg" id="btn-login">
-        <span>Acceder al Sistema</span>
-      </button>
-    </form>
 
-    <!-- FORM REGISTRO -->
-    <form id="form-registro" class="form-hidden" onsubmit="handleRegistro(event)">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Nombre del Negocio</label>
-          <input type="text" id="reg-nombre" class="form-control" placeholder="Colmado Don Pepe" required />
-        </div>
-        <div class="form-group">
-          <label class="form-label">RNC / Cédula</label>
-          <input type="text" id="reg-rnc" class="form-control" placeholder="101-12345-6" required />
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Dirección</label>
-        <input type="text" id="reg-direccion" class="form-control" placeholder="Calle Duarte #1, Santo Domingo" />
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Teléfono</label>
-          <input type="tel" id="reg-telefono" class="form-control" placeholder="809-555-0000" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Plan</label>
-          <select id="reg-plan" class="form-control">
-            <option value="basico">Básico (Gratis)</option>
-            <option value="pro">Pro</option>
-          </select>
-        </div>
-      </div>
-      <hr style="border-color: var(--c-border); margin: 1rem 0;" />
-      <div class="form-group">
-        <label class="form-label">Correo del Propietario</label>
-        <input type="email" id="reg-email" class="form-control" placeholder="propietario@ejemplo.com" required />
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Contraseña</label>
-          <input type="password" id="reg-pass" class="form-control" placeholder="Min. 6 caracteres" required minlength="6" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Confirmar</label>
-          <input type="password" id="reg-pass2" class="form-control" placeholder="Repite la contraseña" required minlength="6" />
-        </div>
-      </div>
-      <div id="reg-error" class="alert alert-error" style="display:none"></div>
-      <button type="submit" class="btn btn-primary btn-full btn-lg" id="btn-registro">
-        <span>Crear Mi Negocio</span>
-      </button>
-    </form>
 
-    <p style="text-align:center; color:var(--c-muted); font-size:.75rem; margin-top:1.5rem;">
-      DGII Ready · Ley 32-23 · República Dominicana
-    </p>
-  </div>
-</div>
+    <!-- Modal para vista previa de factura -->
+    <div class="modal" id="invoiceModal">
+        <div class="modal-content">
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-<script src="firebase-config.js"></script>
+            <div class="Modal-Title">
+                <h3>📄 Vista Previa Factura</h3>
+            </div>
 
-<script>
-  // Si ya está autenticado, redirigir
-  auth.onAuthStateChanged(user => {
-    if (user) window.location.href = 'facturacion.html';
-  });
+            <div class="Modal-Body" id="bodyfactura">
+                <div class="invoice-preview" id="invoicePreview">
+                    <!-- Contenido de la factura se generará aquí -->
+                </div>
+            </div>
 
-  function switchTab(tab) {
-    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-    document.getElementById('tab-registro').classList.toggle('active', tab === 'registro');
-    document.getElementById('form-login').classList.toggle('form-hidden', tab !== 'login');
-    document.getElementById('form-registro').classList.toggle('form-hidden', tab !== 'registro');
-  }
+            <div class="Modal-Footer">
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="closeInvoiceModal()">Cancelar</button>
+                    <button class="btn-primary" onclick="printInvoice()">🖨️ Imprimir Factura</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  async function handleLogin(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-login');
-    const errEl = document.getElementById('login-error');
-    errEl.style.display = 'none';
-    btn.disabled = true;
-    btn.innerHTML = '<span>Entrando...</span>';
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-auth-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+
+    <script>
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCa3ntHg9DqV3JefcvFP9cg8xCmwm0wlLo",
+            authDomain: "facturacion-drink.firebaseapp.com",
+            projectId: "facturacion-drink",
+            storageBucket: "facturacion-drink.appspot.com",
+            messagingSenderId: "1093109447685",
+            appId: "1:1093109447685:web:a3015f3494f757a625b06c"
+        };
+
+        // Inicializar Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();   // 👈 agregado
+        const db = firebase.firestore();
+
+        // Verificar autenticación antes de cargar la app
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                // Si no hay sesión activa, redirigir al login
+                window.location.href = 'login.html';
+            } else {
+                // Si hay sesión, cargar la app
+                initializeApp();
+            }
+        });
+
+        // Estado de la aplicación
+        let currentMesa = 'mesa1';
+        let isQuickSale = false;
+        let productos = [];
+        let mesas = {};
+        let currentEditingMesa = null;
+        let viewMode = localStorage.getItem('productViewMode') || 'grid';
+
+
+        // Productos de ejemplo (solo como respaldo si Firestore falla)
+        const sampleProducts = [
+            { id: 'prod1', name: 'Arroz Blanco (lb)', price: 12.00, stock: 100, image: '🌾', description: '' },
+            { id: 'prod2', name: 'Habichuela Roja (lb)', price: 25.00, stock: 50, image: '🫘', description: '' },
+            { id: 'prod3', name: 'Aceite Vegetal (lt)', price: 85.00, stock: 30, image: '🫙', description: '' },
+            { id: 'prod4', name: 'Pollo Entero (lb)', price: 55.00, stock: 20, image: '🍗', description: '' },
+            { id: 'prod5', name: 'Salami Induveca', price: 45.00, stock: 25, image: '🥩', description: '' },
+            { id: 'prod6', name: 'Plátano Verde (unid)', price: 8.00, stock: 80, image: '🍌', description: '' },
+            { id: 'prod7', name: 'Pan de Agua', price: 5.00, stock: 60, image: '🍞', description: '' },
+            { id: 'prod8', name: 'Leche Completa (lt)', price: 95.00, stock: 40, image: '🥛', description: '' }
+        ];
+
+        // Función para configurar el listener de cajas
+        function setupMesasListener() {
+            db.collection('mesas').onSnapshot((snapshot) => {
+                mesas = {};
+                snapshot.forEach((doc) => {
+                    const mesaData = doc.data();
+                    mesas[doc.id] = {
+                        name: mesaData.name || `Caja ${doc.id}`,
+                        items: mesaData.items || [],
+                        total: mesaData.total || 0
+                    };
+                });
+
+                // Si no hay cajas, crea algunas por defecto
+                if (Object.keys(mesas).length === 0) {
+                    createDefaultMesas();
+                }
+
+                renderMesas();
+
+                // Si la caja actual fue eliminada, selecciona la primera disponible
+                if (currentMesa && !mesas[currentMesa]) {
+                    const firstMesaId = Object.keys(mesas)[0];
+                    if (firstMesaId) {
+                        selectMesa(firstMesaId);
+                    } else {
+                        currentMesa = null;
+                        updateOrderDisplay();
+                    }
+                }
+            }, (error) => {
+                console.error('Error en listener de mesas:', error);
+                showNotification('Error al cargar cajas', 'error');
+            });
+        }
+
+        // Función para crear cajas por defecto si no hay ninguna
+        async function createDefaultMesas() {
+            const defaultMesas = {
+                mesa1: { name: 'Caja 1', items: [], total: 0 },
+                mesa2: { name: 'Caja 2', items: [], total: 0 },
+                mesa3: { name: 'Caja 3', items: [], total: 0 },
+                mesa4: { name: 'Caja 4', items: [], total: 0 }
+            };
+
+            const batch = db.batch();
+
+            for (const [id, mesa] of Object.entries(defaultMesas)) {
+                const mesaRef = db.collection('mesas').doc(id);
+                batch.set(mesaRef, mesa);
+            }
+
+            try {
+                await batch.commit();
+            } catch (error) {
+                console.error('Error al crear mesas por defecto:', error);
+            }
+        }
+
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeApp();
+        });
+
+        async function initializeApp() {
+            try {
+                // Mostrar spinner de carga
+                document.getElementById('productsContainer').innerHTML = '<div class="loading-spinner">Cargando productos...</div>';
+                document.getElementById('gridViewBtn').classList.toggle('active', viewMode === 'grid');
+                document.getElementById('listViewBtn').classList.toggle('active', viewMode === 'list');
+
+                // Cargar productos desde Firestore
+                await loadProductsFromFirestore();
+
+                // Configurar listener en tiempo real para cajas
+                await setupMesasListener();
+
+                // Renderizar interfaz
+                renderProducts();
+
+                // Seleccionar factura rápida al iniciar
+                selectQuickSale();
+
+                // Configurar eventos
+                setupEventListeners();
+
+
+            } catch (error) {
+                console.error('Error al inicializar:', error);
+                showNotification('Error al inicializar el sistema', 'error');
+            }
+        }
+
+
+        function setupEventListeners() {
+            // Búsqueda de productos
+            document.getElementById('searchBox').addEventListener('input', function (e) {
+                const searchTerm = e.target.value.toLowerCase();
+                renderProducts(searchTerm);
+            });
+
+            // Eventos del modal de pago
+            document.getElementById('paymentMethod').addEventListener('change', function (e) {
+                const isEfectivo = e.target.value === 'efectivo';
+                document.getElementById('receivedGroup').style.display = isEfectivo ? 'block' : 'none';
+                document.getElementById('changeGroup').style.display = isEfectivo ? 'block' : 'none';
+            });
+
+            document.getElementById('receivedAmount').addEventListener('input', function (e) {
+                const received = parseFloat(e.target.value) || 0;
+                const total = parseFloat(document.getElementById('paymentAmount').value) || 0;
+                const change = received - total;
+                document.getElementById('changeAmount').value = change >= 0 ? change.toFixed(0) : '0';
+            });
+
+            // Cerrar modales al hacer clic fuera
+            /*
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('active');
+                }
+            });
+            */
+        }
+
+        // Función para cargar productos desde Firestore
+        async function loadProductsFromFirestore() {
+            try {
+                // Cargar categorías primero
+                const categoriesSnapshot = await db.collection('categories').get();
+                const categories = categoriesSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    name: doc.data().name
+                }));
+
+                // Cargar productos
+                const snapshot = await db.collection('products').get();
+                productos = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const category = categories.find(cat => cat.id === data.category);
+                    return {
+                        id: doc.id,
+                        name: data.name,
+                        price: Number(data.price),
+                        stock: Number(data.stock),
+                        image: data.icon || '🛒',
+                        description: data.description || '',
+                        category: category ? category.name : 'Sin categoría',
+                        categoryId: data.category || ''
+                    };
+                });
+
+                // Actualizar selector de categorías
+                updateCategoryFilter(categories);
+
+                if (productos.length === 0) {
+                    console.warn('No hay productos en Firestore, usando datos de muestra');
+                    productos = sampleProducts;
+                }
+            } catch (error) {
+                console.error('Error al cargar productos:', error);
+                showNotification('Error al cargar productos', 'error');
+                productos = sampleProducts;
+            }
+        }
+
+        function updateCategoryFilter(categories) {
+            const filter = document.getElementById('categoryFilter');
+            filter.innerHTML = '<option value="">Todas las categorías</option>';
+
+            categories.forEach(category => {
+                filter.innerHTML += `<option value="${category.id}">${category.name}</option>`;
+            });
+
+            // Añadir evento para filtrar
+            filter.addEventListener('change', function () {
+                renderProducts();
+            });
+        }
+
+        // Agrega esta función para cambiar entre vistas
+        function toggleViewMode(mode) {
+            viewMode = mode;
+            localStorage.setItem('productViewMode', mode);
+
+            // Actualizar botones activos
+            document.getElementById('gridViewBtn').classList.toggle('active', mode === 'grid');
+            document.getElementById('listViewBtn').classList.toggle('active', mode === 'list');
+
+            renderProducts();
+        }
+
+
+        function renderProducts(searchTerm = '') {
+            const container = document.getElementById('productsContainer');
+            const categoryFilter = document.getElementById('categoryFilter').value;
+
+            const filteredProducts = productos.filter(product => {
+                const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesCategory = !categoryFilter || product.categoryId === categoryFilter;
+                return matchesSearch && matchesCategory;
+            });
+
+            if (filteredProducts.length === 0) {
+                container.innerHTML = '<div class="no-products">No se encontraron productos</div>';
+                return;
+            }
+
+            // Aplicar clase según el modo de vista
+            container.className = 'products-container';
+            if (viewMode === 'list') {
+                container.classList.add('list-view');
+            }
+
+            container.innerHTML = filteredProducts.map(product => {
+                let imageContent;
+                if (product.image.startsWith('http') || product.image.startsWith('data:image')) {
+                    imageContent = `<img src="${product.image}" alt="${product.name}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+                } else {
+                    imageContent = `<div style="font-size:48px;">${product.image}</div>`;
+                }
+
+                return `
+        <div class="product-card ${viewMode === 'list' ? 'list-view' : ''}" onclick="addProductToOrder('${product.id}')">
+            <div class="product-image">${imageContent}</div>
+            <div id="divlistview">
+            <div class="product-name">${product.name}</div>
+            <!-- ${viewMode === 'grid' ? `<div class="product-category">${product.category}</div>` : ''} -->
+            <div class="product-category">${product.category}</div>
+            <div class="product-price">RD$${formatNumber(product.price)}</div>
+            <!-- ${viewMode === 'grid' ? `<div class="product-stock">Stock: ${product.stock}</div>` : ''} -->
+            <div class="product-stock">Stock: ${product.stock}</div>
+            </div>
+        </div>
+        `;
+            }).join('');
+        }
+
+        function renderMesas() {
+            const container = document.getElementById('mesasGrid');
+
+            // Ordenar cajas por nombre
+            const sortedMesas = Object.entries(mesas)
+                .sort((a, b) => a[1].name.localeCompare(b[1].name));
+
+            container.innerHTML = sortedMesas.map(([mesaId, mesa]) => {
+                const hasItems = mesa.items.length > 0;
+                const isActive = currentMesa === mesaId && !isQuickSale;
+
+                return `
+            <button class="mesa-btn ${isActive ? 'active' : ''} ${hasItems ? 'has-items' : ''}" 
+                    onclick="selectMesa('${mesaId}')">
+                ${mesa.name}
+                ${hasItems ? `<br><small>$${mesa.total.toFixed(0)}</small>` : ''}
+            </button>
+        `;
+            }).join('');
+        }
+
+        function selectMesa(mesaId) {
+            if (mesas[mesaId]) {
+                currentMesa = mesaId;
+                isQuickSale = false;
+                updateOrderDisplay();
+                renderMesas();
+                // Remover clase active del botón de factura rápida
+                document.querySelector('.quick-sale-btn').classList.remove('active');
+            } else {
+                showNotification('Caja no encontrada', 'error');
+            }
+        }
+
+        function selectQuickSale() {
+            isQuickSale = true;
+            currentMesa = null;
+            updateOrderDisplay();
+            renderMesas();
+            // Agregar clase active al botón de factura rápida
+            document.querySelector('.quick-sale-btn').classList.add('active');
+        }
+
+
+        async function addProductToOrder(productId) {
+            const product = productos.find(p => p.id === productId);
+            if (!product) return;
+
+            if (product.stock <= 0) {
+                showNotification('Producto sin stock', 'error');
+                return;
+            }
+
+            let targetOrder;
+            if (isQuickSale) {
+                if (!window.quickOrder) {
+                    window.quickOrder = { items: [], total: 0 };
+                }
+                targetOrder = window.quickOrder;
+            } else {
+                if (!currentMesa || !mesas[currentMesa]) {
+                    showNotification('Selecciona una caja primero', 'error');
+                    return;
+                }
+                targetOrder = mesas[currentMesa];
+            }
+
+            const existingItem = targetOrder.items.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+                existingItem.subtotal = existingItem.quantity * existingItem.price;
+            } else {
+                targetOrder.items.push({
+                    id: productId,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    subtotal: product.price
+                });
+            }
+
+            targetOrder.total = targetOrder.items.reduce((sum, item) => sum + item.subtotal, 0);
+
+            // Actualizar Firebase si no es quick sale
+            if (!isQuickSale) {
+                try {
+                    await db.collection('mesas').doc(currentMesa).update({
+                        items: targetOrder.items,
+                        total: targetOrder.total
+                    });
+                } catch (error) {
+                    console.error('Error al actualizar mesa:', error);
+                    showNotification('Error al actualizar caja', 'error');
+                    return;
+                }
+            }
+
+            updateOrderDisplay();
+            renderMesas();
+            showNotification(`${product.name} agregado`, 'success');
+        }
+
+        function updateOrderDisplay() {
+            let currentOrder;
+            let orderTitle;
+
+            if (isQuickSale) {
+                currentOrder = window.quickOrder || { items: [], total: 0 };
+                orderTitle = '⚡ Factura Rápida';
+            } else {
+                if (!mesas || !mesas[currentMesa]) {
+                    currentOrder = { items: [], total: 0 };
+                    orderTitle = 'Seleccione una caja';
+                } else {
+                    currentOrder = mesas[currentMesa];
+                    orderTitle = mesas[currentMesa].name;
+                }
+            }
+
+            document.getElementById('orderTitle').textContent = orderTitle;
+
+            const itemsContainer = document.getElementById('orderItems');
+            if (currentOrder.items.length === 0) {
+                itemsContainer.innerHTML = `
+                <div style="text-align: center; color: #a0aec0; padding: 40px;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">🛒</div>
+                    <div>No hay productos en el pedido</div>
+                </div>
+            `;
+            } else {
+                itemsContainer.innerHTML = currentOrder.items.map(item => {
+                    const product = productos.find(p => p.id === item.id);
+                    let iconContent;
+
+                    if (product) {
+                        if (product.image.startsWith('http') || product.image.startsWith('data:image')) {
+                            iconContent = `<img src="${product.image}" alt="${product.name}" class="order-item-image">`;
+                        } else {
+                            iconContent = `<div class="order-item-emoji">${product.image}</div>`;
+                        }
+                    } else {
+                        iconContent = '<div class="order-item-emoji">🛒</div>';
+                    }
+
+                    return `
+                    <div class="order-item">
+                        <div class="item-icon">${iconContent}</div>
+                        <div class="item-info">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">RD$${formatNumber(item.price)} c/u</div>
+                        </div>
+                        <div class="item-controls">
+                            <button class="qty-btn" onclick="updateQuantity('${item.id}', -1)">-</button>
+                            <div class="qty-display">${item.quantity}</div>
+                            <button class="qty-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
+                            <button class="remove-btn" onclick="confirmRemoveItem('${item.id}')"><img src="./img/icons/papelera_1.png" style="height: 100%;"></button>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+            }
+
+            document.getElementById('totalAmount').textContent = `RD$${formatNumber(currentOrder.total, true)}`;
+        }
+
+
+        // Añadir esta función para formatear números:
+        function formatNumber(amount, removeDecimals = false) {
+            let formatted;
+            if (removeDecimals) {
+                formatted = Math.round(amount).toLocaleString('en-US');
+            } else {
+                formatted = amount.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+            return formatted;
+        }
+
+
+        function confirmRemoveItem(productId) {
+            const product = productos.find(p => p.id === productId);
+            const productName = product ? product.name : 'este artículo';
+
+            if (confirm(`¿Estás seguro de que quieres eliminar ${productName} del pedido?`)) {
+                removeItem(productId);
+            }
+        }
+
+        async function updateQuantity(productId, change) {
+            let targetOrder;
+            if (isQuickSale) {
+                targetOrder = window.quickOrder;
+            } else {
+                targetOrder = mesas[currentMesa];
+            }
+
+            const item = targetOrder.items.find(item => item.id === productId);
+            if (!item) return;
+
+            const newQuantity = item.quantity + change;
+
+            if (newQuantity <= 0) {
+                const product = productos.find(p => p.id === productId);
+                const productName = product ? product.name : 'este artículo';
+
+                if (confirm(`¿Estás seguro de que quieres eliminar ${productName} del pedido?`)) {
+                    await removeItem(productId);
+                }
+                return;
+            }
+
+            const product = productos.find(p => p.id === productId);
+            if (newQuantity > product.stock) {
+                showNotification('No hay suficiente stock', 'error');
+                return;
+            }
+
+            item.quantity = newQuantity;
+            item.subtotal = item.quantity * item.price;
+            targetOrder.total = targetOrder.items.reduce((sum, item) => sum + item.subtotal, 0);
+
+            // Actualizar Firebase si no es quick sale
+            if (!isQuickSale) {
+                try {
+                    await db.collection('mesas').doc(currentMesa).update({
+                        items: targetOrder.items,
+                        total: targetOrder.total
+                    });
+                } catch (error) {
+                    console.error('Error al actualizar mesa:', error);
+                    showNotification('Error al actualizar caja', 'error');
+                    return;
+                }
+            }
+
+            updateOrderDisplay();
+            renderMesas();
+        }
+
+        async function removeItem(productId) {
+            let targetOrder;
+            if (isQuickSale) {
+                targetOrder = window.quickOrder;
+            } else {
+                targetOrder = mesas[currentMesa];
+            }
+
+            const itemIndex = targetOrder.items.findIndex(item => item.id === productId);
+            if (itemIndex > -1) {
+                targetOrder.items.splice(itemIndex, 1);
+                targetOrder.total = targetOrder.items.reduce((sum, item) => sum + item.subtotal, 0);
+
+                // Actualizar Firebase si no es quick sale
+                if (!isQuickSale) {
+                    try {
+                        await db.collection('mesas').doc(currentMesa).update({
+                            items: targetOrder.items,
+                            total: targetOrder.total
+                        });
+                    } catch (error) {
+                        console.error('Error al actualizar mesa:', error);
+                        showNotification('Error al actualizar caja', 'error');
+                        return;
+                    }
+                }
+
+                updateOrderDisplay();
+                renderMesas();
+                showNotification('Producto eliminado', 'success');
+            }
+        }
+
+        function removeLastDigit() {
+            const input = document.getElementById('receivedAmount');
+            let currentValue = input.value;
+
+            if (currentValue.length > 0) {
+                // Eliminar el último carácter
+                input.value = currentValue.slice(0, -1);
+
+                // Si queda vacío, poner "0"
+                if (input.value === '') {
+                    input.value = '0';
+                }
+
+                // Disparar el evento input para actualizar el cambio
+                const event = new Event('input');
+                input.dispatchEvent(event);
+            }
+        }
+
+        function selectPaymentMethod(method) {
+            // Quitar clase active de todos los botones
+            document.querySelectorAll('.payment-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Añadir clase active al botón seleccionado
+            document.querySelector(`.payment-${method}`).classList.add('active');
+
+            // Actualizar el valor del método de pago
+            document.getElementById('paymentMethod').value = method;
+
+            // Mostrar/ocultar campos según el método
+            const isEfectivo = method === 'efectivo';
+            document.getElementById('receivedGroup').style.display = isEfectivo ? 'block' : 'none';
+            document.getElementById('changeGroup').style.display = isEfectivo ? 'block' : 'none';
+        }
+
+        function processPayment() {
+            let currentOrder;
+            if (isQuickSale) {
+                currentOrder = window.quickOrder || { items: [], total: 0 };
+            } else {
+                currentOrder = mesas[currentMesa];
+            }
+
+            if (currentOrder.items.length === 0) {
+                showNotification('No hay productos para facturar', 'error');
+                return;
+            }
+
+            //document.getElementById('paymentMethod').value = 'efectivo';
+            document.getElementById('receivedAmount').value = '';
+            document.getElementById('changeAmount').value = '0';
+
+            if (!document.getElementById('paymentAmount')) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.id = 'paymentAmount';
+                input.value = currentOrder.total.toFixed(0);
+                document.getElementById('paymentModal').querySelector('.modal-content').appendChild(input);
+            } else {
+                document.getElementById('paymentAmount').value = currentOrder.total.toFixed(0);
+            }
+
+            document.getElementById('receivedGroup').style.display = 'block';
+            document.getElementById('changeGroup').style.display = 'block';
+
+            updatePaymentSummary(currentOrder);
+
+            document.getElementById('receivedAmount').addEventListener('input', function (e) {
+                const received = parseFloat(e.target.value) || 0;
+                const total = parseFloat(document.getElementById('paymentAmount').value) || 0;
+                const change = received - total;
+
+                const changeInput = document.getElementById('changeAmount');
+                if (change >= 0) {
+                    changeInput.value = change.toFixed(0);
+                    changeInput.style.color = '#38a169';
+                } else {
+                    changeInput.value = Math.abs(change).toFixed(0);
+                    changeInput.style.color = '#e53e3e';
+                }
+            });
+
+            document.getElementById('paymentModal').classList.add('active');
+        }
+
+        function updatePaymentSummary(order) {
+            const summaryContainer = document.getElementById('paymentSummary');
+
+            let summaryHTML = `
+            <p>Factura<p>
+        <div class="payment-summary-header">
+            <span>Productos</span>
+            <span>Precio</span>
+            <span>Cant.</span>
+            <span>Subtotal</span>
+        </div>
+    `;
+
+            summaryHTML += order.items.map(item => `
+        <div class="payment-summary-item">
+            <span>${item.name}</span>
+            <span>RD$${item.price.toFixed(0)}</span>
+            <span>x${item.quantity}</span>
+            <span>RD$${item.subtotal.toFixed(0)}</span>
+        </div>
+    `).join('');
+
+            summaryHTML += `
+        <div class="payment-summary-total">
+            <span colspan="3">Total:</span>
+            <span>RD$${order.total.toFixed(0)}</span>
+        </div>
+    `;
+
+            summaryContainer.innerHTML = summaryHTML;
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('active');
+        }
+
+        function appendToAmount(value) {
+            const input = document.getElementById('receivedAmount');
+            const currentValue = input.value;
+
+            if (currentValue === '0' && value !== '00') {
+                input.value = value;
+            } else if (currentValue.includes('.') && currentValue.split('.')[1].length >= 2) {
+                return;
+            } else if (value === '00' && currentValue === '') {
+                input.value = '0';
+            } else {
+                input.value += value;
+            }
+
+            const event = new Event('input');
+            input.dispatchEvent(event);
+        }
+
+        function clearAmount() {
+            document.getElementById('receivedAmount').value = '';
+            document.getElementById('changeAmount').value = '0.00';
+        }
+
+        async function confirmPayment() {
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    const receivedAmount = parseFloat(document.getElementById('receivedAmount').value) || 0;
+    const changeAmount = parseFloat(document.getElementById('changeAmount').value) || 0;
+
+    let currentOrder;
+    if (isQuickSale) {
+        currentOrder = window.quickOrder || { items: [], total: 0 };
+    } else {
+        currentOrder = mesas[currentMesa];
+    }
+
+    const subtotal = currentOrder.total;
+    const taxRate = 0.18; // 18% de ITBIS
+    const taxAmount = subtotal * taxRate;
+    const totalAmount = subtotal + taxAmount;
+
+    if (paymentMethod === 'efectivo' && receivedAmount < totalAmount) {
+        showNotification('El dinero recibido es insuficiente', 'error');
+        return;
+    }
+
+    if (currentOrder.items.length === 0) {
+        showNotification('No hay productos para facturar', 'error');
+        return;
+    }
+
     try {
-      await auth.signInWithEmailAndPassword(
-        document.getElementById('login-email').value.trim(),
-        document.getElementById('login-pass').value
-      );
-      window.location.href = 'facturacion.html';
-    } catch (err) {
-      const msgs = {
-        'auth/user-not-found': 'Usuario no encontrado.',
-        'auth/wrong-password': 'Contraseña incorrecta.',
-        'auth/invalid-email': 'Correo inválido.',
-        'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde.',
-      };
-      errEl.textContent = msgs[err.code] || err.message;
-      errEl.style.display = 'flex';
-      btn.disabled = false;
-      btn.innerHTML = '<span>Acceder al Sistema</span>';
+        // Obtener información del usuario actual
+        const user = auth.currentUser;
+        let employeeInfo = {
+            id: user.uid,
+            name: 'Usuario',
+            email: user.email
+        };
+        
+        // Intentar obtener información adicional del empleado desde Firestore
+        try {
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                employeeInfo.name = userData.name || userData.displayName || user.email.split('@')[0];
+            }
+        } catch (error) {
+            console.error('Error al obtener información del usuario:', error);
+        }
+
+        const invoice = {
+            id: generateInvoiceId(),
+            timestamp: new Date(),
+            mesa: isQuickSale ? 'Factura Rápida' : mesas[currentMesa].name,
+            items: [...currentOrder.items],
+            subtotal: subtotal,
+            tax: taxAmount, // Guardar el monto del ITBIS
+            total: totalAmount, // Guardar el total con ITBIS
+            paymentMethod: paymentMethod,
+            receivedAmount: paymentMethod === 'efectivo' ? receivedAmount : totalAmount,
+            changeAmount: paymentMethod === 'efectivo' ? changeAmount : 0,
+            status: 'paid',
+            employee: employeeInfo // Añadir información del empleado
+        };
+
+        await db.collection('invoices').doc(invoice.id).set(invoice);
+
+        await updateProductStock(currentOrder.items);
+
+        if (!isQuickSale) {
+            await db.collection('mesas').doc(currentMesa).update({
+                items: [],
+                total: 0
+            });
+        } else {
+            window.quickOrder = { items: [], total: 0 };
+        }
+
+        closePaymentModal();
+        updateOrderDisplay();
+        renderMesas();
+        showPaymentSummary(invoice);
+        showNotification('Factura procesada correctamente', 'success');
+
+    } catch (error) {
+        console.error('Error al procesar pago:', error);
+        showNotification('Error al procesar el pago', 'error');
     }
-  }
+}
 
-  async function handleRegistro(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-registro');
-    const errEl = document.getElementById('reg-error');
-    errEl.style.display = 'none';
+        function generateInvoiceId() {
+            const timestamp = Date.now();
+            const random = Math.floor(Math.random() * 1000);
+            return `INV-${timestamp}-${random}`;
+        }
 
-    const pass = document.getElementById('reg-pass').value;
-    const pass2 = document.getElementById('reg-pass2').value;
-    if (pass !== pass2) {
-      errEl.textContent = 'Las contraseñas no coinciden.';
-      errEl.style.display = 'flex'; return;
+        async function updateProductStock(items) {
+            try {
+                const batch = db.batch();
+
+                items.forEach(item => {
+                    const productRef = db.collection('products').doc(item.id);
+                    const product = productos.find(p => p.id === item.id);
+
+                    if (product) {
+                        const newStock = product.stock - item.quantity;
+                        batch.update(productRef, { stock: newStock });
+                        product.stock = newStock;
+                    }
+                });
+
+                await batch.commit();
+                renderProducts();
+            } catch (error) {
+                console.error('Error al actualizar stock:', error);
+                showNotification('Error al actualizar stock', 'error');
+            }
+        }
+
+function showPaymentSummary(invoice) {
+    const itemsHTML = invoice.items.map(item => `
+        <tr>
+            <td>${item.name}</td>
+            <td>${formatCurrency(item.price)}</td>
+            <td>x${item.quantity}</td>
+            <td>${formatCurrency(item.subtotal)}</td>
+        </tr>
+    `).join('');
+
+    // Obtener fecha y hora en formato 12h AM/PM
+    const now = new Date();
+    const options = { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true 
+    };
+    const formattedDate = now.toLocaleString('es-ES', options);
+
+    // Mostrar información de pago en efectivo si aplica
+    const efectivoHTML = invoice.paymentMethod === 'efectivo' ? `
+        <tr class="efectivo-info">
+            <td colspan="3">Monto Recibido:</td>
+            <td>${formatCurrency(invoice.receivedAmount)}</td>
+        </tr>
+        <tr class="efectivo-info">
+            <td colspan="3">Cambio:</td>
+            <td>${formatCurrency(invoice.changeAmount)}</td>
+        </tr>
+    ` : '';
+
+    // Añadir información del empleado
+    const employeeHTML = invoice.employee ? `
+        <tr>
+            <td colspan="3"><strong>Empleado:</strong></td>
+            <td>${invoice.employee.name}</td>
+        </tr>
+    ` : '';
+
+    const html = `
+        <div class="factura-modern">
+            <h2 class="titulo">FACTURA</h2>
+            <p>MI COLMADO</p>
+            <p>${formattedDate}</p>
+            <hr>
+            <p><strong>ID:</strong> ${invoice.id}</p>
+            <p><strong>Caja:</strong> ${invoice.mesa}</p>
+            <p><strong>Método:</strong> ${invoice.paymentMethod.toUpperCase()}</p>
+            <table class="factura-tabla">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Cant.</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHTML}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Subtotal:</td>
+                        <td>${formatCurrency(invoice.subtotal)}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">ITBIS (18%):</td>
+                        <td>${formatCurrency(invoice.tax)}</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3"><strong>Total:</strong></td>
+                        <td><strong>${formatCurrency(invoice.total)}</strong></td>
+                    </tr>
+                    ${efectivoHTML}
+                    <tr>
+                        <td colspan="3"><strong>Método de pago:</strong></td>
+                        <td>${invoice.paymentMethod.toUpperCase()}</td>
+                    </tr>
+                    ${employeeHTML}
+                </tfoot>
+            </table>
+            <hr>
+            <p class="gracias">¡GRACIAS POR SU COMPRA!</p>
+            <p class="gracias">¡Que le aproveche!</p>
+        </div>
+    `;
+
+    document.getElementById('invoicePreview').innerHTML = html;
+    document.getElementById('invoiceModal').classList.add('active');
+}
+
+
+
+        function closeInvoiceModal() {
+            document.getElementById('invoiceModal').classList.remove('active');
+        }
+
+        function printInvoice() {
+            window.print();
+            closeInvoiceModal();
+        }
+
+        function centerText(text, width) {
+            const pad = Math.max(0, width - text.length);
+            const leftPad = Math.floor(pad / 2);
+            const rightPad = pad - leftPad;
+            return ' '.repeat(leftPad) + text + ' '.repeat(rightPad);
+        }
+
+        function formatCurrency(amount) {
+            return '$' + amount.toFixed(0);
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+
+        // Función para imprimir factura sin procesar el pago
+function printInvoiceWithoutPayment() {
+    let currentOrder;
+    if (isQuickSale) {
+        currentOrder = window.quickOrder || { items: [], total: 0 };
+    } else {
+        currentOrder = mesas[currentMesa];
     }
 
-    btn.disabled = true;
-    btn.innerHTML = '<span>Creando negocio...</span>';
-
-    try {
-      const cred = await auth.createUserWithEmailAndPassword(
-        document.getElementById('reg-email').value.trim(),
-        pass
-      );
-
-      // Crear documento del negocio en Firestore
-      const negocioRef = db.collection('negocios').doc();
-      await negocioRef.set({
-        nombre: document.getElementById('reg-nombre').value.trim(),
-        RNC: document.getElementById('reg-rnc').value.trim(),
-        direccion: document.getElementById('reg-direccion').value.trim(),
-        telefono: document.getElementById('reg-telefono').value.trim(),
-        propietarioUid: cred.user.uid,
-        plan: document.getElementById('reg-plan').value,
-        creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
-        empleados: []
-      });
-
-      // Crear config inicial
-      await negocioRef.collection('configuraciones').doc('general').set({
-        itbis: 18,
-        moneda: 'DOP',
-        ncfActivo: true,
-        tipoNcf: 'B01',
-        logoUrl: ''
-      });
-
-      await negocioRef.collection('configuraciones').doc('ncf').set({
-        secuencia_B01: 0,
-        secuencia_B02: 0,
-        secuencia_B14: 0
-      });
-
-      window.location.href = 'facturacion.html';
-    } catch (err) {
-      const msgs = {
-        'auth/email-already-in-use': 'Este correo ya está registrado.',
-        'auth/weak-password': 'Contraseña muy débil. Mínimo 6 caracteres.',
-        'auth/invalid-email': 'Correo electrónico inválido.',
-      };
-      errEl.textContent = msgs[err.code] || err.message;
-      errEl.style.display = 'flex';
-      btn.disabled = false;
-      btn.innerHTML = '<span>Crear Mi Negocio</span>';
+    if (currentOrder.items.length === 0) {
+        showNotification('No hay productos para facturar', 'error');
+        return;
     }
-  }
-</script>
+
+    const subtotal = currentOrder.total;
+    const taxRate = 0.18; // 18% de ITBIS
+    const taxAmount = subtotal * taxRate;
+    const totalAmount = subtotal + taxAmount;
+
+    // Crear objeto de factura temporal
+    const tempInvoice = {
+        id: 'TEMP-' + Date.now(),
+        timestamp: new Date(),
+        mesa: isQuickSale ? 'Factura Rápida' : mesas[currentMesa].name,
+        items: [...currentOrder.items],
+        subtotal: subtotal,
+        tax: taxAmount,
+        total: totalAmount,
+        paymentMethod: 'pendiente',
+        receivedAmount: 0,
+        changeAmount: 0,
+        status: 'pending'
+    };
+
+    // Mostrar vista previa
+    showPaymentSummary(tempInvoice);
+
+    // Cerrar modal de pago
+    closePaymentModal();
+}
+    </script>
 </body>
+
 </html>
+
+<!-- 1 -->
