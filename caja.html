@@ -1,477 +1,2058 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ColmadoPOS — Caja</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bebidapp - Caja</title>
+    <link rel="icon" href="./img/icon 512x512.png" type="image/png" sizes="any">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <script src="./js/header-component.js"></script>
+    <style>
+        :root {
+            --primary: #4299e1;
+            --success: #48bb78;
+            --danger: #f56565;
+            --warning: #ed8936;
+            --dark: #2d3748;
+            --light: #f8f9fa;
+            --gray: #718096;
+            --border-radius: 15px;
+            --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .caja-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+        }
+        
+        .status-section {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .caja-status {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .status-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            border-left: 5px solid var(--gray);
+        }
+        
+        .status-card.active {
+            background: linear-gradient(135deg, #38a169, #48bb78);
+            color: white;
+            border-left: 5px solid #2f855a;
+        }
+        
+        .status-card.closed {
+            background: linear-gradient(135deg, #e53e3e, #f56565);
+            color: white;
+            border-left: 5px solid #c53030;
+        }
+        
+        .status-info {
+            flex: 1;
+        }
+        
+        .status-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .status-details {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .status-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: var(--transition);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric-icon {
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .metric-info {
+            flex: 1;
+        }
+        
+        .metric-title {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+        
+        .metric-value.positive {
+            color: var(--success);
+        }
+        
+        .metric-value.negative {
+            color: var(--danger);
+        }
+        
+        .actions-section {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--dark);
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .action-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+        
+        .action-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .action-btn.success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .action-btn.danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .action-btn.warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .transactions-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: var(--transition);
+        }
+        
+        .transaction-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-type {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .transaction-type.income {
+            color: var(--success);
+        }
+        
+        .transaction-type.expense {
+            color: var(--danger);
+        }
+        
+        .transaction-amount {
+            font-weight: bold;
+        }
+        
+        .transaction-details {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+        
+        .caja-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        .caja-section {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .history-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .history-filters select, 
+        .history-filters input {
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .history-item {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .history-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .history-date {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .history-amount {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .history-details {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease;
+        }
+        
+        .modal-content.large {
+            max-width: 800px;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .Modal-Title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .Modal-Title h3 {
+            font-size: 1.4rem;
+            color: var(--dark);
+        }
+        
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: var(--transition);
+        }
+        
+        .close-modal-btn:hover {
+            color: var(--danger);
+        }
+        
+        .Modal-Body {
+            padding: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--dark);
+        }
+        
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .input-group input:focus,
+        .input-group textarea:focus,
+        .input-group select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        .input-error {
+            border-color: var(--danger) !important;
+        }
+        
+        .error-message {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .cash-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .cash-info p {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .cash-info .highlight {
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .confirmation-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0fff4;
+            border-radius: 8px;
+            border: 1px solid #c6f6d5;
+        }
+        
+        .Modal-Footer {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        .btn-primary {
+            padding: 12px 25px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+        
+        .btn-primary:hover {
+            background: #3182ce;
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            padding: 12px 25px;
+            background: #e2e8f0;
+            color: var(--dark);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        /* Invoice details */
+        .invoice-details {
+            margin-bottom: 20px;
+        }
+        
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .invoice-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .invoice-items th,
+        .invoice-items td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .invoice-items th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .invoice-totals {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .invoice-totals td {
+            padding: 8px;
+            text-align: right;
+        }
+        
+        .invoice-totals tr.total td {
+            font-weight: bold;
+            border-top: 2px solid #e2e8f0;
+            font-size: 1.1rem;
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 1100;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .notification.success {
+            background: var(--success);
+        }
+        
+        .notification.error {
+            background: var(--danger);
+        }
+        
+        .notification.warning {
+            background: var(--warning);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .caja-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .history-filters {
+                flex-direction: column;
+            }
+            
+            .modal-content.large {
+                max-width: 500px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .status-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .status-actions {
+                justify-content: center;
+            }
+            
+            .modal-content {
+                margin: 10px;
+                width: calc(100% - 20px);
+            }
+            
+            .invoice-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+    </style>
 </head>
 <body>
 
-<div id="app-header"></div>
+        <header-component></header-component>
 
-<div class="page-wrapper">
-  <div class="page-title">
-    <span class="icon">💰</span> Gestión de Caja
-  </div>
-
-  <!-- STATUS DE CAJA -->
-  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
-    <span id="caja-status-badge" class="caja-status caja-cerrada">● Caja Cerrada</span>
-    <span id="caja-fecha" style="color:var(--c-muted); font-size:.85rem;"></span>
-    <div style="margin-left:auto; display:flex; gap:.5rem;">
-      <button id="btn-abrir-caja" class="btn btn-primary" onclick="abrirModalCaja()">🔓 Abrir Caja</button>
-      <button id="btn-cerrar-caja" class="btn btn-danger" style="display:none" onclick="mostrarModal('modal-cierre')">🔒 Cerrar Caja</button>
-      <button id="btn-trans" class="btn btn-ghost" style="display:none" onclick="mostrarModal('modal-transaccion')">+ Movimiento</button>
-    </div>
-  </div>
-
-  <!-- STATS CAJA -->
-  <div class="grid-4" style="margin-bottom:1.5rem;" id="caja-stats">
-    <div class="stat-card green">
-      <div class="stat-icon">💵</div>
-      <div class="stat-label">Fondo Inicial</div>
-      <div class="stat-value green" id="stat-fondo">RD$ 0.00</div>
-    </div>
-    <div class="stat-card green">
-      <div class="stat-icon">📈</div>
-      <div class="stat-label">Ingresos</div>
-      <div class="stat-value green" id="stat-ingresos">RD$ 0.00</div>
-    </div>
-    <div class="stat-card red">
-      <div class="stat-icon">📉</div>
-      <div class="stat-label">Egresos</div>
-      <div class="stat-value red" id="stat-egresos">RD$ 0.00</div>
-    </div>
-    <div class="stat-card blue">
-      <div class="stat-icon">💰</div>
-      <div class="stat-label">Balance en Caja</div>
-      <div class="stat-value blue" id="stat-balance">RD$ 0.00</div>
-    </div>
-  </div>
-
-  <div class="grid-2">
-    <!-- TRANSACCIONES HOY -->
-    <div class="card">
-      <div class="card-title">Movimientos del Día</div>
-      <div id="transacciones-list">
-        <div class="empty-state">
-          <div class="es-icon">📊</div>
-          <h3>Sin movimientos</h3>
-          <p>Abre la caja para registrar movimientos</p>
+        
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-cash-register"></i> Sistema de Caja - Brink POS</h1>
         </div>
-      </div>
-    </div>
-
-    <!-- RESUMEN VENTAS -->
-    <div class="card">
-      <div class="card-title">Resumen de Ventas</div>
-      <div id="resumen-ventas">
-        <div class="empty-state">
-          <div class="es-icon">🧾</div>
-          <h3>Sin ventas hoy</h3>
+        
+        <div class="caja-container">
+            <div class="dashboard">
+                <div class="status-section">
+                    <div class="caja-status">
+                        <div id="statusCard" class="status-card closed">
+                            <div class="status-info">
+                                <div class="status-title"><i class="fas fa-info-circle"></i> Estado de Caja</div>
+                                <div id="statusText" class="status-value">Cerrada</div>
+                                <div id="statusTime" class="status-details">
+                                    <span><i class="fas fa-clock"></i> --:--</span>
+                                    <span><i class="fas fa-user"></i> -----</span>
+                                </div>
+                            </div>
+                            <div class="status-actions" id="statusActions">
+                                <button id="openCajaBtn" class="action-btn success"><i class="fas fa-lock-open"></i> Abrir Caja</button>
+                            </div>
+                        </div>
+                        
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-money-bill-wave"></i></div>
+                                <div class="metric-info">
+                                    <div class="metric-title">Efectivo Inicial</div>
+                                    <div id="initialCash" class="metric-value">RD$0.00</div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="metric-info">
+                                    <div class="metric-title">Ventas Totales</div>
+                                    <div id="totalSales" class="metric-value positive">RD$0.00</div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-plus-circle"></i></div>
+                                <div class="metric-info">
+                                    <div class="metric-title">Ingresos</div>
+                                    <div id="totalIncome" class="metric-value positive">RD$0.00</div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-minus-circle"></i></div>
+                                <div class="metric-info">
+                                    <div class="metric-title">Retiros</div>
+                                    <div id="totalExpenses" class="metric-value negative">RD$0.00</div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-calculator"></i></div>
+                                <div class="metric-info">
+                                    <div class="metric-title">Efectivo Esperado</div>
+                                    <div id="expectedCash" class="metric-value">RD$0.00</div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-cash-register"></i></div>
+                                <div class="metric-info">
+                                    <div class="metric-title">Efectivo en Caja</div>
+                                    <div id="currentCash" class="metric-value">RD$0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="actions-section">
+                        <div class="section-title"><i class="fas fa-tasks"></i> Operaciones de Caja</div>
+                        <div class="action-buttons">
+                            <button id="addIncomeBtn" class="action-btn primary" disabled><i class="fas fa-plus"></i> Ingresar Efectivo</button>
+                            <button id="addExpenseBtn" class="action-btn danger" disabled><i class="fas fa-minus"></i> Retirar Efectivo</button>
+                            <button id="partialClosureBtn" class="action-btn warning" disabled><i class="fas fa-money-check"></i> Corte Parcial</button>
+                            <button id="closeCajaBtn" class="action-btn" disabled><i class="fas fa-lock"></i> Cerrar Caja</button>
+                        </div>
+                        
+                        <div class="section-title"><i class="fas fa-history"></i> Transacciones Recientes</div>
+                        <div id="transactionsList" class="transactions-list">
+                            <div style="text-align: center; color: #a0aec0; padding: 20px;">
+                                <i class="fas fa-receipt" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <p>No hay transacciones registradas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="caja-section">
+                    <div class="section-title"><i class="fas fa-file-invoice-dollar"></i> Facturas del Día</div>
+                    <div id="invoicesList" class="transactions-list">
+                        <div style="text-align: center; color: #a0aec0; padding: 20px;">
+                            <i class="fas fa-file-alt" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                            <p>No hay facturas registradas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="caja-section">
+                <div class="section-title"><i class="fas fa-history"></i> Historial de Cierres</div>
+                
+                <div class="history-filters">
+                    <select id="dateFilter">
+                        <option value="all">Todos los períodos</option>
+                        <option value="today">Hoy</option>
+                        <option value="week">Esta semana</option>
+                        <option value="month">Este mes</option>
+                    </select>
+                    <input type="text" id="userFilter" placeholder="Filtrar por responsable...">
+                    <button class="filter-btn" id="applyFilters">Aplicar Filtros</button>
+                </div>
+                
+                <div id="historyList" class="transactions-list">
+                    <div style="text-align: center; color: #a0aec0; padding: 20px;">
+                        <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>No hay historial de cajas</p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <hr style="border-color:var(--c-border); margin:1rem 0;" />
-      <div class="card-title">Historial de Cajas</div>
-      <div id="historial-cajas" class="table-wrapper">
-        <div class="loading-center"><div class="spinner"></div></div>
-      </div>
     </div>
-  </div>
-</div>
-
-<!-- MODAL APERTURA -->
-<div class="modal-overlay" id="modal-apertura">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">🔓 Apertura de Caja</span>
-      <button class="modal-close" onclick="cerrarModal('modal-apertura')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Fondo Inicial (RD$)</label>
-        <input type="number" id="fondo-inicial" class="form-control" placeholder="0.00" step="0.01" min="0" value="0" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Responsable</label>
-        <input type="text" id="apertura-responsable" class="form-control"
-               value="" readonly style="opacity:.7" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Observaciones</label>
-        <input type="text" id="apertura-notas" class="form-control" placeholder="Apertura normal..." />
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="cerrarModal('modal-apertura')">Cancelar</button>
-      <button class="btn btn-primary" onclick="abrirCaja()">🔓 Confirmar Apertura</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL CIERRE -->
-<div class="modal-overlay" id="modal-cierre">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">🔒 Cierre de Caja</span>
-      <button class="modal-close" onclick="cerrarModal('modal-cierre')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="alert alert-warn" style="margin-bottom:1rem;">
-        ⚠️ Una vez cerrada la caja, no se podrán registrar más ventas del día.
-      </div>
-      <div id="resumen-cierre" style="background:var(--c-surface); border-radius:var(--radius); padding:1rem; margin-bottom:1rem;"></div>
-      <div class="form-group">
-        <label class="form-label">Efectivo en Caja (Físico)</label>
-        <input type="number" id="efectivo-fisico" class="form-control" placeholder="Cuenta el efectivo..." step="0.01" min="0" />
-      </div>
-      <div id="diferencia-display" style="display:none; margin-top:.75rem;"></div>
-      <div class="form-group">
-        <label class="form-label">Observaciones de Cierre</label>
-        <input type="text" id="cierre-notas" class="form-control" placeholder="Todo en orden..." />
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="cerrarModal('modal-cierre')">Cancelar</button>
-      <button class="btn btn-danger" onclick="cerrarCaja()">🔒 Confirmar Cierre</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL TRANSACCIÓN -->
-<div class="modal-overlay" id="modal-transaccion">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">+ Registrar Movimiento</span>
-      <button class="modal-close" onclick="cerrarModal('modal-transaccion')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Tipo</label>
-        <div style="display:flex; gap:.5rem;">
-          <button id="tipo-ingreso" class="btn btn-primary" onclick="selTipo('ingreso')" style="flex:1;">📈 Ingreso</button>
-          <button id="tipo-egreso" class="btn btn-ghost" onclick="selTipo('egreso')" style="flex:1;">📉 Egreso</button>
+    
+    <!-- Modal para abrir caja -->
+    <div class="modal caja-modal" id="openCajaModal">
+        <div class="modal-content">
+            <div class="Modal-Title">
+                <h3><i class="fas fa-lock-open"></i> Abrir Caja</h3>
+                <button class="close-modal-btn" onclick="closeModal('openCajaModal')">×</button>
+            </div>
+            
+            <div class="Modal-Body">
+                <div class="cash-info">
+                    <p>Monto actual en caja: <span class="highlight" id="currentCashAmount">RD$0.00</span></p>
+                    <p>Debe contar el efectivo físico y confirmar que coincide con este monto.</p>
+                </div>
+                
+                <div class="input-group">
+                    <label><i class="fas fa-money-bill-wave"></i> Efectivo Inicial:</label>
+                    <input type="number" id="initialAmount" placeholder="0.00" step="0.01" min="0" oninput="validateInitialAmount()">
+                    <div class="error-message" id="amountError">El monto debe coincidir con el efectivo en caja</div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-user"></i> Responsable:</label>
+                    <input type="text" id="openedBy" placeholder="Nombre del responsable" oninput="toggleConfirmButton()">
+                    <div class="error-message" id="userError">Debe indicar el responsable</div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-sticky-note"></i> Observaciones:</label>
+                    <textarea id="openNotes" rows="3" placeholder="Observaciones (opcional)"></textarea>
+                </div>
+                
+                <div class="confirmation-check">
+                    <input type="checkbox" id="confirmCash" onchange="toggleConfirmButton()">
+                    <label for="confirmCash">Confirmo que he contado el efectivo físico y coincide con el monto indicado</label>
+                </div>
+            </div>
+            
+            <div class="Modal-Footer">
+                <div class="modal-buttons">
+                    <button class="btn-secondary" onclick="closeModal('openCajaModal')">Cancelar</button>
+                    <button class="btn-primary" id="confirmOpenBtn" onclick="openCaja()" disabled>Abrir Caja</button>
+                </div>
+            </div>
         </div>
-        <input type="hidden" id="tipo-trans" value="ingreso" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Concepto</label>
-        <input type="text" id="trans-concepto" class="form-control" placeholder="Ej: Pago proveedor, Préstamo..." required />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Monto (RD$)</label>
-        <input type="number" id="trans-monto" class="form-control" placeholder="0.00" step="0.01" min="0.01" required />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Notas</label>
-        <input type="text" id="trans-notas" class="form-control" placeholder="Opcional..." />
-      </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="cerrarModal('modal-transaccion')">Cancelar</button>
-      <button class="btn btn-primary" onclick="registrarTransaccion()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script src="app.js"></script>
-<script src="header.js"></script>
-
-<script>
-let cajaData = null;
-let unsubTrans = null;
-
-requireAuth(async () => {
-  initHeader();
-  const elResp = document.getElementById('apertura-responsable');
-  if (elResp) elResp.value = AppState.user.email;
-  const elFecha = document.getElementById('apertura-fecha');
-  if (elFecha) elFecha.value = fechaHoy();
-  await cargarEstadoCaja();
-  await cargarHistorial();
-});
-
-async function cargarEstadoCaja() {
-  cajaData = await verificarCaja();
-  const badge = document.getElementById('caja-status-badge');
-  const btnAbrir = document.getElementById('btn-abrir-caja');
-  const btnCerrar = document.getElementById('btn-cerrar-caja');
-  const btnTrans = document.getElementById('btn-trans');
-
-  if (cajaData) {
-    badge.textContent = '● Caja Abierta';
-    badge.className = 'caja-status caja-abierta';
-    document.getElementById('caja-fecha').textContent = `Fecha: ${cajaData.fecha}`;
-    btnAbrir.style.display = 'none';
-    btnCerrar.style.display = '';
-    btnTrans.style.display = '';
-    cargarStatsYTransacciones();
-  } else {
-    badge.textContent = '● Caja Cerrada';
-    badge.className = 'caja-status caja-cerrada';
-    btnAbrir.style.display = '';
-    btnCerrar.style.display = 'none';
-    btnTrans.style.display = 'none';
-  }
-}
-
-async function abrirCaja() {
-  const fondo = parseFloat(document.getElementById('fondo-inicial').value) || 0;
-  const notas = document.getElementById('apertura-notas').value;
-  try {
-    const ref = await db.collection('negocios').doc(AppState.negocioId)
-      .collection('caja').add({
-        fecha: fechaHoy(),
-        estado: 'abierta',
-        fondoInicial: fondo,
-        totalVentas: 0,
-        cantidadVentas: 0,
-        totalIngresos: fondo,
-        totalEgresos: 0,
-        notas,
-        abiertaPor: AppState.user.email,
-        abiertaEn: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    AppState.cajaId = ref.id;
-    AppState.cajaAbierta = true;
-    guardarCajaLocal(ref.id, { fecha: fechaHoy() });
-
-    // Registrar fondo como primera transacción
-    if (fondo > 0) {
-      await ref.collection('transacciones').add({
-        tipo: 'ingreso',
-        concepto: 'Fondo inicial de apertura',
-        monto: fondo,
-        hora: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-
-    cerrarModal('modal-apertura');
-    toast('Caja abierta correctamente', 'success');
-    await cargarEstadoCaja();
-  } catch(e) {
-    toast('Error al abrir caja: ' + e.message, 'error');
-  }
-}
-
-async function cerrarCaja() {
-  const fisico = parseFloat(document.getElementById('efectivo-fisico').value) || 0;
-  const notas = document.getElementById('cierre-notas').value;
-  if (!AppState.cajaId) return;
-  try {
-    await db.collection('negocios').doc(AppState.negocioId)
-      .collection('caja').doc(AppState.cajaId).update({
-        estado: 'cerrada',
-        cerradaPor: AppState.user.email,
-        cerradaEn: firebase.firestore.FieldValue.serverTimestamp(),
-        efectivoFisico: fisico,
-        notasCierre: notas
-      });
-    AppState.cajaAbierta = false;
-    AppState.cajaId = null;
-    limpiarCajaLocal();
-    cerrarModal('modal-cierre');
-    toast('Caja cerrada correctamente', 'success');
-    await cargarEstadoCaja();
-    await cargarHistorial();
-  } catch(e) {
-    toast('Error al cerrar caja: ' + e.message, 'error');
-  }
-}
-
-function prepararCierre() {
-  if (!cajaData) return;
-  const balance = (cajaData.totalIngresos || 0) - (cajaData.totalEgresos || 0);
-  document.getElementById('resumen-cierre').innerHTML = `
-    <div class="summary-row"><span>Fondo Inicial</span><span style="font-family:var(--font-mono)">${formatoMoneda(cajaData.fondoInicial || 0)}</span></div>
-    <div class="summary-row"><span>Total Ventas</span><span style="font-family:var(--font-mono); color:var(--c-primary)">${formatoMoneda(cajaData.totalVentas || 0)}</span></div>
-    <div class="summary-row"><span>Otros Ingresos</span><span style="font-family:var(--font-mono)">${formatoMoneda((cajaData.totalIngresos || 0) - (cajaData.totalVentas || 0) - (cajaData.fondoInicial || 0))}</span></div>
-    <div class="summary-row"><span>Egresos</span><span style="font-family:var(--font-mono); color:var(--c-danger)">${formatoMoneda(cajaData.totalEgresos || 0)}</span></div>
-    <div class="summary-row total"><span>Balance Esperado</span><span style="font-family:var(--font-mono)">${formatoMoneda(balance)}</span></div>
-  `;
-
-  document.getElementById('efectivo-fisico').oninput = function() {
-    const fisico = parseFloat(this.value) || 0;
-    const dif = fisico - balance;
-    const el = document.getElementById('diferencia-display');
-    el.style.display = '';
-    el.className = `alert ${Math.abs(dif) < 0.01 ? 'alert-success' : dif > 0 ? 'alert-info' : 'alert-error'}`;
-    el.textContent = dif === 0 ? '✓ Caja cuadrada' :
-      dif > 0 ? `Sobrante: ${formatoMoneda(dif)}` :
-      `Faltante: ${formatoMoneda(Math.abs(dif))}`;
-  };
-}
-
-function cargarStatsYTransacciones() {
-  if (!AppState.cajaId) return;
-  if (unsubTrans) unsubTrans();
-
-  // Escuchar transacciones en tiempo real
-  unsubTrans = db.collection('negocios').doc(AppState.negocioId)
-    .collection('caja').doc(AppState.cajaId)
-    .onSnapshot(snap => {
-      if (!snap.exists) return;
-      cajaData = snap.data();
-      actualizarStats();
-    });
-
-  db.collection('negocios').doc(AppState.negocioId)
-    .collection('caja').doc(AppState.cajaId)
-    .collection('transacciones')
-    .orderBy('hora', 'desc')
-    .onSnapshot(snap => {
-      renderTransacciones(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-
-  // Resumen ventas del día
-  cargarResumenVentas();
-}
-
-function actualizarStats() {
-  if (!cajaData) return;
-  const ingresos = cajaData.totalIngresos || 0;
-  const egresos = cajaData.totalEgresos || 0;
-  document.getElementById('stat-fondo').textContent = formatoMoneda(cajaData.fondoInicial || 0);
-  document.getElementById('stat-ingresos').textContent = formatoMoneda(ingresos);
-  document.getElementById('stat-egresos').textContent = formatoMoneda(egresos);
-  document.getElementById('stat-balance').textContent = formatoMoneda(ingresos - egresos);
-}
-
-function renderTransacciones(lista) {
-  const el = document.getElementById('transacciones-list');
-  if (!lista.length) {
-    el.innerHTML = '<div class="empty-state"><div class="es-icon">📊</div><h3>Sin movimientos</h3></div>';
-    return;
-  }
-  el.innerHTML = lista.map(t => {
-    const hora = t.hora?.toDate?.()?.toLocaleTimeString('es-DO', {
-      timeZone: 'America/Santo_Domingo', hour: '2-digit', minute: '2-digit'
-    }) || '--:--';
-    return `
-      <div class="transaccion-item">
-        <span class="trans-icon">${t.tipo === 'ingreso' ? '📈' : '📉'}</span>
-        <div class="trans-info">
-          <div class="trans-concepto">${t.concepto}</div>
-          <div class="trans-hora">${hora}</div>
+    
+    <!-- Modal para ingresar efectivo -->
+    <div class="modal caja-modal" id="incomeModal">
+        <div class="modal-content">
+            <div class="Modal-Title">
+                <h3><i class="fas fa-plus-circle"></i> Ingresar Efectivo</h3>
+                <button class="close-modal-btn" onclick="closeModal('incomeModal')">×</button>
+            </div>
+            
+            <div class="Modal-Body">
+                <div class="input-group">
+                    <label><i class="fas fa-money-bill-wave"></i> Cantidad:</label>
+                    <input type="number" id="incomeAmount" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-tag"></i> Concepto:</label>
+                    <input type="text" id="incomeConcept" placeholder="Descripción del ingreso">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-sticky-note"></i> Observaciones:</label>
+                    <textarea id="incomeNotes" rows="3" placeholder="Observaciones (opcional)"></textarea>
+                </div>
+            </div>
+            
+            <div class="Modal-Footer">
+                <div class="modal-buttons">
+                    <button class="btn-secondary" onclick="closeModal('incomeModal')">Cancelar</button>
+                    <button class="btn-primary" onclick="addIncome()">Registrar Ingreso</button>
+                </div>
+            </div>
         </div>
-        <span class="trans-monto ${t.tipo === 'ingreso' ? 'trans-ingreso' : 'trans-egreso'}">
-          ${t.tipo === 'ingreso' ? '+' : '-'}${formatoMoneda(t.monto)}
-        </span>
-      </div>
-    `;
-  }).join('');
-}
+    </div>
+    
+    <!-- Modal para retirar efectivo -->
+    <div class="modal caja-modal" id="expenseModal">
+        <div class="modal-content">
+            <div class="Modal-Title">
+                <h3><i class="fas fa-minus-circle"></i> Retirar Efectivo</h3>
+                <button class="close-modal-btn" onclick="closeModal('expenseModal')">×</button>
+            </div>
+            
+            <div class="Modal-Body">
+                <div class="input-group">
+                    <label><i class="fas fa-money-bill-wave"></i> Cantidad:</label>
+                    <input type="number" id="expenseAmount" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-tag"></i> Concepto:</label>
+                    <input type="text" id="expenseConcept" placeholder="Descripción del retiro">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-sticky-note"></i> Observaciones:</label>
+                    <textarea id="expenseNotes" rows="3" placeholder="Observaciones (opcional)"></textarea>
+                </div>
+            </div>
+            
+            <div class="Modal-Footer">
+                <div class="modal-buttons">
+                    <button class="btn-secondary" onclick="closeModal('expenseModal')">Cancelar</button>
+                    <button class="btn-primary" onclick="addExpense()">Registrar Retiro</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para cerrar caja -->
+    <div class="modal caja-modal" id="closeCajaModal">
+        <div class="modal-content">
+            <div class="Modal-Title">
+                <h3><i class="fas fa-lock"></i> Cerrar Caja</h3>
+                <button class="close-modal-btn" onclick="closeModal('closeCajaModal')">×</button>
+            </div>
+            
+            <div class="Modal-Body">
+                <div class="cash-info">
+                    <p>Efectivo esperado en caja: <span class="highlight" id="expectedCashDisplay">RD$0.00</span></p>
+                    <p>Cuente el efectivo físico e ingrese el monto real encontrado.</p>
+                </div>
+                
+                <div class="input-group">
+                    <label><i class="fas fa-money-bill-wave"></i> Efectivo en Caja:</label>
+                    <input type="number" id="closeAmount" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-calculator"></i> Diferencia:</label>
+                    <input type="number" id="differenceAmount" placeholder="0.00" step="0.01" readonly>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-user"></i> Responsable:</label>
+                    <input type="text" id="closedBy" placeholder="Nombre del responsable">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-sticky-note"></i> Observaciones:</label>
+                    <textarea id="closeNotes" rows="3" placeholder="Observaciones (opcional)"></textarea>
+                </div>
+            </div>
+            
+            <div class="Modal-Footer">
+                <div class="modal-buttons">
+                    <button class="btn-secondary" onclick="closeModal('closeCajaModal')">Cancelar</button>
+                    <button class="btn-primary" onclick="confirmCloseCaja()">Cerrar Caja</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para ver detalles de factura -->
+    <div class="modal caja-modal" id="invoiceModal">
+        <div class="modal-content large">
+            <div class="Modal-Title">
+                <h3><i class="fas fa-file-invoice"></i> Detalles de Factura</h3>
+                <button class="close-modal-btn" onclick="closeModal('invoiceModal')">×</button>
+            </div>
+            
+            <div class="Modal-Body">
+                <div id="invoiceDetails">
+                    <!-- Los detalles de la factura se mostrarán aquí -->
+                </div>
+            </div>
+            
+            <div class="Modal-Footer">
+                <div class="modal-buttons">
+                    <button class="btn-secondary" onclick="closeModal('invoiceModal')">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para ver detalles de cierre -->
+    <div class="modal caja-modal" id="detailsModal">
+        <div class="modal-content large">
+            <div class="Modal-Title">
+                <h3><i class="fas fa-archive"></i> Detalles de Cierre</h3>
+                <button class="close-modal-btn" onclick="closeModal('detailsModal')">×</button>
+            </div>
+            
+            <div class="Modal-Body">
+                <div id="closureDetails">
+                    <!-- Los detalles se mostrarán aquí -->
+                </div>
+            </div>
+            
+            <div class="Modal-Footer">
+                <div class="modal-buttons">
+                    <button class="btn-secondary" onclick="closeModal('detailsModal')">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+    
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCa3ntHg9DqV3JefcvFP9cg8xCmwm0wlLo",
+            authDomain: "facturacion-drink.firebaseapp.com",
+            projectId: "facturacion-drink",
+            storageBucket: "facturacion-drink.appspot.com",
+            messagingSenderId: "1093109447685",
+            appId: "1:1093109447685:web:a3015f3494f757a625b06c"
+        };
 
-async function cargarResumenVentas() {
-  try {
-    const snap = await db.collection('negocios').doc(AppState.negocioId)
-      .collection('facturas')
-      .where('fecha', '==', fechaHoy())
-      .where('estado', '==', 'pagada')
-      .get();
-    const facturas = snap.docs.map(d => d.data());
-    const total = facturas.reduce((s, f) => s + (f.total || 0), 0);
-    document.getElementById('resumen-ventas').innerHTML = `
-      <div class="summary-row"><span>Facturas Pagadas</span><span>${facturas.length}</span></div>
-      <div class="summary-row"><span>Total Ventas</span><span style="font-family:var(--font-mono); color:var(--c-primary)">${formatoMoneda(total)}</span></div>
-      <div class="summary-row"><span>ITBIS Recaudado</span><span style="font-family:var(--font-mono)">${formatoMoneda(facturas.reduce((s,f) => s+(f.itbis||0),0))}</span></div>
-    `;
-  } catch(e) {}
-}
+        // Inicializar Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        
+        // Estado de la aplicación
+        let currentCaja = null;
+        let cajaStatus = 'closed';
+        let transactions = [];
+        let invoices = [];
+        let cajaHistory = [];
+        let currentCashAmount = 0;
+        
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCajaApp();
+        });
+        
+        async function initializeCajaApp() {
+            try {
+                // Obtener el monto actual en caja desde config
+                currentCashAmount = await getCurrentCash();
+                document.getElementById('currentCashAmount').textContent = `RD$${formatNumber(currentCashAmount)}`;
+                
+                // Verificar si hay una caja abierta
+                await checkOpenCaja();
+                
+                // Cargar transacciones e historial
+                await loadTransactions();
+                await loadInvoices();
+                await loadCajaHistory();
+                
+                // Configurar eventos
+                setupEventListeners();
+                
+                showNotification('Sistema de caja listo', 'success');
+            } catch (error) {
+                console.error('Error al inicializar:', error);
+                showNotification('Error al inicializar el sistema de caja', 'error');
+            }
+        }
 
-async function registrarTransaccion() {
-  const tipo = document.getElementById('tipo-trans').value;
-  const concepto = document.getElementById('trans-concepto').value.trim();
-  const monto = parseFloat(document.getElementById('trans-monto').value);
-  if (!concepto || !monto || monto <= 0) { toast('Completa todos los campos', 'error'); return; }
-  if (!AppState.cajaId) { toast('No hay caja abierta', 'error'); return; }
-  try {
-    const batch = db.batch();
-    const transRef = db.collection('negocios').doc(AppState.negocioId)
-      .collection('caja').doc(AppState.cajaId)
-      .collection('transacciones').doc();
-    batch.set(transRef, {
-      tipo, concepto, monto,
-      notas: document.getElementById('trans-notas').value,
-      hora: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    const cajaRef = db.collection('negocios').doc(AppState.negocioId)
-      .collection('caja').doc(AppState.cajaId);
-    if (tipo === 'ingreso') {
-      batch.update(cajaRef, { totalIngresos: firebase.firestore.FieldValue.increment(monto) });
-    } else {
-      batch.update(cajaRef, { totalEgresos: firebase.firestore.FieldValue.increment(monto) });
-    }
-    await batch.commit();
-    cerrarModal('modal-transaccion');
-    document.getElementById('trans-concepto').value = '';
-    document.getElementById('trans-monto').value = '';
-    toast('Movimiento registrado', 'success');
-  } catch(e) {
-    toast('Error: ' + e.message, 'error');
-  }
-}
+        // Función para obtener el monto actual de caja desde config
+        async function getCurrentCash() {
+            try {
+                const doc = await db.collection('config').doc('caja').get();
+                if (doc.exists) {
+                    return doc.data().caja || 0;
+                }
+                return 0;
+            } catch (error) {
+                console.error('Error al obtener monto de caja:', error);
+                return 0;
+            }
+        }
 
-function selTipo(tipo) {
-  document.getElementById('tipo-trans').value = tipo;
-  document.getElementById('tipo-ingreso').className = tipo === 'ingreso' ? 'btn btn-primary' : 'btn btn-ghost';
-  document.getElementById('tipo-egreso').className = tipo === 'egreso' ? 'btn btn-danger' : 'btn btn-ghost';
-}
+        // Función para actualizar el monto en la colección config
+        async function updateConfigCash(amount) {
+            try {
+                await db.collection('config').doc('caja').set({
+                    caja: amount
+                }, { merge: true });
+            } catch (error) {
+                console.error('Error al actualizar el monto en config:', error);
+                throw error;
+            }
+        }
+        
+        function setupEventListeners() {
+            const openCajaBtn = document.getElementById('openCajaBtn');
+            const addIncomeBtn = document.getElementById('addIncomeBtn');
+            const addExpenseBtn = document.getElementById('addExpenseBtn');
+            const closeCajaBtn = document.getElementById('closeCajaBtn');
+            const partialBtn = document.getElementById('partialClosureBtn');
+            
+            if (openCajaBtn) {
+                openCajaBtn.addEventListener('click', async () => {
+                    // Obtener el monto actual de caja al abrir el modal
+                    currentCashAmount = await getCurrentCash();
+                    document.getElementById('currentCashAmount').textContent = `RD$${formatNumber(currentCashAmount)}`;
+                    document.getElementById('initialAmount').value = currentCashAmount.toFixed(2);
+                    document.getElementById('openCajaModal').classList.add('active');
+                    
+                    // Resetear validación
+                    document.getElementById('confirmCash').checked = false;
+                    toggleConfirmButton();
+                    resetValidation();
+                });
+            }
+            
+            if (addIncomeBtn) {
+                addIncomeBtn.addEventListener('click', () => {
+                    document.getElementById('incomeModal').classList.add('active');
+                });
+            }
+            
+            if (addExpenseBtn) {
+                addExpenseBtn.addEventListener('click', () => {
+                    document.getElementById('expenseModal').classList.add('active');
+                });
+            }
+            
+            if (closeCajaBtn) {
+                closeCajaBtn.addEventListener('click', () => {
+                    prepareCloseCaja();
+                });
+            }
+            
+            if (partialBtn) {
+                partialBtn.addEventListener('click', () => {
+                    showNotification('Función de corte parcial en desarrollo', 'warning');
+                });
+            }
+            
+            document.getElementById('applyFilters').addEventListener('click', () => {
+                filterHistory();
+            });
+            
+            // Calcular diferencia al cerrar caja
+            document.getElementById('closeAmount').addEventListener('input', calculateDifference);
+            
+            const modals = ['openCajaModal', 'incomeModal', 'expenseModal', 'closeCajaModal', 'invoiceModal', 'detailsModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    const closeBtn = modal.querySelector('.close-modal-btn');
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', () => closeModal(modalId));
+                    }
+                }
+            });
+        }
+        
+        // Validar que el monto inicial coincida con el efectivo en caja
+        function validateInitialAmount() {
+            const initialAmount = parseFloat(document.getElementById('initialAmount').value) || 0;
+            const inputElement = document.getElementById('initialAmount');
+            const errorElement = document.getElementById('amountError');
+            
+            if (Math.abs(initialAmount - currentCashAmount) > 0.01) {
+                inputElement.classList.add('input-error');
+                errorElement.style.display = 'block';
+                return false;
+            } else {
+                inputElement.classList.remove('input-error');
+                errorElement.style.display = 'none';
+                return true;
+            }
+        }
+        
+        // Habilitar o deshabilitar el botón de confirmación
+        function toggleConfirmButton() {
+            const confirmCheck = document.getElementById('confirmCash').checked;
+            const amountValid = validateInitialAmount();
+            const userValid = document.getElementById('openedBy').value.trim() !== '';
+            
+            document.getElementById('confirmOpenBtn').disabled = !(confirmCheck && amountValid && userValid);
+        }
+        
+        // Resetear validación al cerrar el modal
+        function resetValidation() {
+            document.getElementById('initialAmount').classList.remove('input-error');
+            document.getElementById('amountError').style.display = 'none';
+            document.getElementById('userError').style.display = 'none';
+        }
+        
+        // Calcular diferencia al cerrar caja
+        function calculateDifference() {
+            if (!currentCaja) return;
+            
+            const closeAmount = parseFloat(document.getElementById('closeAmount').value) || 0;
+            const expectedCash = currentCaja.initialCash + currentCaja.totalSales + currentCaja.totalIncome - currentCaja.totalExpenses;
+            const difference = closeAmount - expectedCash;
+            
+            document.getElementById('differenceAmount').value = difference.toFixed(2);
+            
+            // Colorear según si hay diferencia positiva o negativa
+            if (difference < 0) {
+                document.getElementById('differenceAmount').style.color = 'var(--danger)';
+            } else if (difference > 0) {
+                document.getElementById('differenceAmount').style.color = 'var(--success)';
+            } else {
+                document.getElementById('differenceAmount').style.color = 'inherit';
+            }
+        }
+        
+        async function checkOpenCaja() {
+            try {
+                const snapshot = await db.collection('cajas')
+                    .where('status', '==', 'open')
+                    .orderBy('openedAt', 'desc')
+                    .limit(1)
+                    .get();
+                
+                if (!snapshot.empty) {
+                    const doc = snapshot.docs[0];
+                    const data = doc.data();
+                    
+                    currentCaja = {
+                        id: doc.id,
+                        ...data,
+                        openedAt: data.openedAt.toDate(),
+                        ...(data.closedAt && { closedAt: data.closedAt.toDate() })
+                    };
+                    
+                    cajaStatus = 'open';
+                    updateCajaStatus();
+                    updateCajaSummary();
+                } else {
+                    cajaStatus = 'closed';
+                    updateCajaStatus();
+                }
+            } catch (error) {
+                console.error('Error al verificar caja abierta:', error);
+                showNotification('Error al verificar estado de caja', 'error');
+            }
+        }
+        
+        async function openCaja() {
+            const initialAmount = parseFloat(document.getElementById('initialAmount').value) || 0;
+            const openedBy = document.getElementById('openedBy').value.trim();
+            const notes = document.getElementById('openNotes').value.trim();
+            
+            if (!validateInitialAmount()) {
+                showNotification('El monto debe coincidir con el efectivo en caja', 'error');
+                return;
+            }
+            
+            if (!openedBy) {
+                document.getElementById('userError').style.display = 'block';
+                showNotification('Debe indicar el responsable', 'error');
+                return;
+            }
+            
+            if (!document.getElementById('confirmCash').checked) {
+                showNotification('Debe confirmar que ha verificado el efectivo físico', 'error');
+                return;
+            }
+            
+            try {
+                const cajaData = {
+                    initialCash: initialAmount,
+                    currentCash: initialAmount,
+                    openedBy: openedBy,
+                    openedAt: new Date(),
+                    status: 'open',
+                    notes: notes,
+                    transactions: [],
+                    invoices: [],
+                    totalSales: 0,
+                    totalIncome: 0,
+                    totalExpenses: 0
+                };
+                
+                const docRef = await db.collection('cajas').add(cajaData);
+                currentCaja = {
+                    id: docRef.id,
+                    ...cajaData
+                };
+                
+                cajaStatus = 'open';
+                updateCajaStatus();
+                closeModal('openCajaModal');
+                
+                // Registrar la transacción de apertura
+                await addTransaction('open', 'Apertura de caja', initialAmount, 'Efectivo inicial', openedBy);
+                
+                showNotification('Caja abierta correctamente', 'success');
+            } catch (error) {
+                console.error('Error al abrir caja:', error);
+                showNotification('Error al abrir caja', 'error');
+            }
+        }
+        
+        async function prepareCloseCaja() {
+            if (!currentCaja) return;
+            
+            const expectedCash = currentCaja.initialCash + currentCaja.totalSales + currentCaja.totalIncome - currentCaja.totalExpenses;
+            
+            document.getElementById('closeAmount').value = currentCaja.currentCash.toFixed(2);
+            document.getElementById('expectedCashDisplay').textContent = `RD$${formatNumber(expectedCash)}`;
+            
+            // Calcular diferencia inicial
+            calculateDifference();
+            
+            document.getElementById('closeCajaModal').classList.add('active');
+        }
+        
+        async function confirmCloseCaja() {
+            const closedBy = document.getElementById('closedBy').value.trim();
+            const notes = document.getElementById('closeNotes').value.trim();
+            const closeAmount = parseFloat(document.getElementById('closeAmount').value) || 0;
+            const difference = parseFloat(document.getElementById('differenceAmount').value) || 0;
+            
+            if (!closedBy) {
+                showNotification('Debe indicar el responsable', 'error');
+                return;
+            }
+            
+            try {
+                const cierreData = {
+                    status: 'closed',
+                    closedBy: closedBy,
+                    closedAt: new Date(),
+                    closeAmount: closeAmount,
+                    difference: difference,
+                    closeNotes: notes
+                };
+                
+                await db.collection('cajas').doc(currentCaja.id).update(cierreData);
+                
+                // Actualizar el monto en config a 0 al cerrar
+                await updateConfigCash(0);
+                
+                currentCaja = {
+                    ...currentCaja,
+                    ...cierreData
+                };
+                
+                cajaStatus = 'closed';
+                updateCajaStatus();
+                closeModal('closeCajaModal');
+                
+                await addTransaction('close', 'Cierre de caja', closeAmount, 'Efectivo al cierre', closedBy);
+                
+                showNotification('Caja cerrada correctamente', 'success');
+                await loadCajaHistory();
+            } catch (error) {
+                console.error('Error al cerrar caja:', error);
+                showNotification('Error al cerrar caja', 'error');
+            }
+        }
+        
+        async function addIncome() {
+            const amount = parseFloat(document.getElementById('incomeAmount').value) || 0;
+            const concept = document.getElementById('incomeConcept').value.trim();
+            const notes = document.getElementById('incomeNotes').value.trim();
+            
+            if (amount <= 0) {
+                showNotification('La cantidad debe ser mayor a 0', 'error');
+                return;
+            }
+            
+            if (!concept) {
+                showNotification('Debe indicar el concepto', 'error');
+                return;
+            }
+            
+            try {
+                await addTransaction('income', concept, amount, notes, currentCaja.openedBy);
+                
+                const newCash = currentCaja.currentCash + amount;
+                const newIncome = currentCaja.totalIncome + amount;
+                
+                await db.collection('cajas').doc(currentCaja.id).update({
+                    currentCash: newCash,
+                    totalIncome: newIncome
+                });
+                
+                // Actualizar el monto en config
+                await updateConfigCash(newCash);
+                
+                currentCaja.currentCash = newCash;
+                currentCaja.totalIncome = newIncome;
+                
+                updateCajaSummary();
+                closeModal('incomeModal');
+                
+                // Limpiar formulario
+                document.getElementById('incomeAmount').value = '';
+                document.getElementById('incomeConcept').value = '';
+                document.getElementById('incomeNotes').value = '';
+                
+                showNotification('Ingreso registrado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al registrar ingreso:', error);
+                showNotification('Error al registrar ingreso', 'error');
+            }
+        }
+        
+        async function addExpense() {
+            const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+            const concept = document.getElementById('expenseConcept').value.trim();
+            const notes = document.getElementById('expenseNotes').value.trim();
+            
+            if (amount <= 0) {
+                showNotification('La cantidad debe ser mayor a 0', 'error');
+                return;
+            }
+            
+            if (!concept) {
+                showNotification('Debe indicar el concepto', 'error');
+                return;
+            }
+            
+            if (amount > currentCaja.currentCash) {
+                showNotification('No hay suficiente efectivo en caja', 'error');
+                return;
+            }
+            
+            try {
+                await addTransaction('expense', concept, -amount, notes, currentCaja.openedBy);
+                
+                const newCash = currentCaja.currentCash - amount;
+                const newExpenses = currentCaja.totalExpenses + amount;
+                
+                await db.collection('cajas').doc(currentCaja.id).update({
+                    currentCash: newCash,
+                    totalExpenses: newExpenses
+                });
+                
+                // Actualizar el monto en config
+                await updateConfigCash(newCash);
+                
+                currentCaja.currentCash = newCash;
+                currentCaja.totalExpenses = newExpenses;
+                
+                updateCajaSummary();
+                closeModal('expenseModal');
+                
+                // Limpiar formulario
+                document.getElementById('expenseAmount').value = '';
+                document.getElementById('expenseConcept').value = '';
+                document.getElementById('expenseNotes').value = '';
+                
+                showNotification('Retiro registrado correctamente', 'success');
+            } catch (error) {
+                console.error('Error al registrar retiro:', error);
+                showNotification('Error al registrar retiro', 'error');
+            }
+        }
+        
+        async function addTransaction(type, concept, amount, notes, createdBy) {
+            try {
+                const transaction = {
+                    type: type,
+                    concept: concept,
+                    amount: amount,
+                    notes: notes,
+                    createdAt: new Date(),
+                    createdBy: createdBy || currentCaja.openedBy
+                };
+                
+                await db.collection('cajas').doc(currentCaja.id).update({
+                    transactions: firebase.firestore.FieldValue.arrayUnion(transaction)
+                });
+                
+                transactions.unshift(transaction);
+                renderTransactions();
+            } catch (error) {
+                console.error('Error al agregar transacción:', error);
+                throw error;
+            }
+        }
+        
+        async function loadTransactions() {
+            if (!currentCaja) return;
+            
+            try {
+                const doc = await db.collection('cajas').doc(currentCaja.id).get();
+                if (doc.exists) {
+                    transactions = doc.data().transactions || [];
+                    transactions.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+                    renderTransactions();
+                }
+            } catch (error) {
+                console.error('Error al cargar transacciones:', error);
+                showNotification('Error al cargar transacciones', 'error');
+            }
+        }
+        
+        async function loadInvoices() {
+            if (!currentCaja) return;
+            
+            try {
+                const startDate = currentCaja.openedAt;
+                const endDate = currentCaja.status === 'closed' ? currentCaja.closedAt : new Date();
+                
+                const snapshot = await db.collection('invoices')
+                    .where('timestamp', '>=', startDate)
+                    .where('timestamp', '<=', endDate)
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                invoices = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp.toDate()
+                }));
+                
+                const totalSales = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
+                
+                if (cajaStatus === 'open') {
+                    const newCash = currentCaja.initialCash + totalSales + currentCaja.totalIncome - currentCaja.totalExpenses;
+                    
+                    await db.collection('cajas').doc(currentCaja.id).update({
+                        invoices: invoices,
+                        totalSales: totalSales,
+                        currentCash: newCash
+                    });
+                    
+                    // Actualizar el monto en config
+                    await updateConfigCash(newCash);
+                    
+                    currentCaja.invoices = invoices;
+                    currentCaja.totalSales = totalSales;
+                    currentCaja.currentCash = newCash;
+                }
+                
+                renderInvoices();
+                updateCajaSummary();
+            } catch (error) {
+                console.error('Error al cargar facturas:', error);
+                showNotification('Error al cargar facturas', 'error');
+            }
+        }
 
-async function cargarHistorial() {
-  try {
-    const snap = await db.collection('negocios').doc(AppState.negocioId)
-      .collection('caja')
-      .orderBy('abiertaEn', 'desc')
-      .limit(10)
-      .get();
-    const cajas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const el = document.getElementById('historial-cajas');
-    if (!cajas.length) {
-      el.innerHTML = '<p style="color:var(--c-muted); font-size:.85rem; padding:.5rem 0;">Sin historial</p>';
-      return;
-    }
-    el.innerHTML = `<table>
-      <thead><tr><th>Fecha</th><th>Ventas</th><th>Balance</th><th>Estado</th></tr></thead>
-      <tbody>
-        ${cajas.map(c => `
-          <tr>
-            <td style="font-size:.8rem;">${c.fecha || '--'}</td>
-            <td style="font-family:var(--font-mono); font-size:.8rem;">${formatoMoneda(c.totalVentas || 0)}</td>
-            <td style="font-family:var(--font-mono); font-size:.8rem;">${formatoMoneda((c.totalIngresos||0)-(c.totalEgresos||0))}</td>
-            <td><span class="badge ${c.estado === 'abierta' ? 'badge-green' : 'badge-gray'}">${c.estado}</span></td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>`;
-  } catch(e) {}
-}
-
-// Parche para campo de fecha en modal que se olvidó agregar
-document.addEventListener('DOMContentLoaded', () => {
-  const ap = document.getElementById('modal-apertura');
-  if (ap && !document.getElementById('apertura-fecha')) {
-    const inp = document.createElement('input');
-    inp.id = 'apertura-fecha';
-    inp.type = 'hidden';
-  }
-});
-
-function abrirModalCaja() {
-  const elResp = document.getElementById('apertura-responsable');
-  if (elResp) elResp.value = AppState.user?.email || '';
-  const elFecha = document.getElementById('apertura-fecha');
-  if (elFecha) elFecha.value = fechaHoy();
-  mostrarModal('modal-apertura');
-}
-</script>
+        async function loadCajaHistory() {
+            try {
+                const snapshot = await db.collection('cajas')
+                    .orderBy('openedAt', 'desc')
+                    .limit(50)
+                    .get();
+                
+                cajaHistory = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        openedAt: data.openedAt.toDate(),
+                        ...(data.closedAt && { closedAt: data.closedAt.toDate() })
+                    };
+                });
+                
+                renderCajaHistory();
+            } catch (error) {
+                console.error('Error al cargar historial:', error);
+                showNotification('Error al cargar historial de cajas', 'error');
+            }
+        }
+        
+        function filterHistory() {
+            const dateFilter = document.getElementById('dateFilter').value;
+            const userFilter = document.getElementById('userFilter').value.toLowerCase();
+            
+            let filteredHistory = cajaHistory;
+            
+            // Filtrar por fecha
+            if (dateFilter !== 'all') {
+                const now = new Date();
+                let startDate;
+                
+                switch(dateFilter) {
+                    case 'today':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        break;
+                    case 'week':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+                        break;
+                    case 'month':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                        break;
+                }
+                
+                filteredHistory = filteredHistory.filter(caja => caja.openedAt >= startDate);
+            }
+            
+            // Filtrar por usuario
+            if (userFilter) {
+                filteredHistory = filteredHistory.filter(caja => 
+                    caja.openedBy.toLowerCase().includes(userFilter) || 
+                    (caja.closedBy && caja.closedBy.toLowerCase().includes(userFilter))
+                );
+            }
+            
+            renderFilteredHistory(filteredHistory);
+        }
+        
+        function renderFilteredHistory(filteredHistory) {
+            const container = document.getElementById('historyList');
+            
+            if (filteredHistory.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #a0aec0; padding: 20px;"><i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No se encontraron resultados</p></div>';
+                return;
+            }
+            
+            container.innerHTML = filteredHistory.map(caja => `
+                <div class="history-item" onclick="showCajaDetails('${caja.id}')">
+                    <div class="history-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        ${formatDate(caja.openedAt)} - ${caja.status === 'closed' ? formatDate(caja.closedAt) : 'Abierta'}
+                    </div>
+                    <div class="history-amount">
+                        <span><i class="fas fa-user"></i> ${caja.openedBy}</span>
+                        <span>RD$${formatNumber(caja.totalSales || 0)}</span>
+                    </div>
+                    <div class="history-details">
+                        ${caja.status === 'closed' ? `<i class="fas fa-check-circle"></i> Cerrada por ${caja.closedBy}` : '<i class="fas fa-lock-open"></i> Caja abierta'}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateCajaStatus() {
+            const statusCard = document.getElementById('statusCard');
+            const statusText = document.getElementById('statusText');
+            const statusTime = document.getElementById('statusTime');
+            const statusActions = document.getElementById('statusActions');
+            const openBtn = document.getElementById('openCajaBtn');
+            const incomeBtn = document.getElementById('addIncomeBtn');
+            const expenseBtn = document.getElementById('addExpenseBtn');
+            const closeBtn = document.getElementById('closeCajaBtn');
+            const partialBtn = document.getElementById('partialClosureBtn');
+            
+            if (cajaStatus === 'open' && currentCaja) {
+                statusCard.className = 'status-card active';
+                statusText.textContent = 'Abierta';
+                statusTime.innerHTML = `<span><i class="fas fa-clock"></i> ${formatDate(currentCaja.openedAt)}</span><span><i class="fas fa-user"></i> ${currentCaja.openedBy}</span>`;
+                
+                statusActions.innerHTML = '';
+                incomeBtn.disabled = false;
+                expenseBtn.disabled = false;
+                closeBtn.disabled = false;
+                partialBtn.disabled = false;
+            } else {
+                statusCard.className = 'status-card closed';
+                statusText.textContent = 'Cerrada';
+                statusTime.innerHTML = currentCaja 
+                    ? `<span><i class="fas fa-clock"></i> ${formatDate(currentCaja.closedAt)}</span><span><i class="fas fa-user"></i> ${currentCaja.closedBy}</span>`
+                    : '<span><i class="fas fa-clock"></i> --:--</span><span><i class="fas fa-user"></i> -----</span>';
+                
+                statusActions.innerHTML = '<button id="openCajaBtn" class="action-btn success"><i class="fas fa-lock-open"></i> Abrir Caja</button>';
+                document.getElementById('openCajaBtn').addEventListener('click', () => {
+                    document.getElementById('openCajaModal').classList.add('active');
+                });
+                
+                incomeBtn.disabled = true;
+                expenseBtn.disabled = true;
+                closeBtn.disabled = true;
+                partialBtn.disabled = true;
+            }
+        }
+        
+        function updateCajaSummary() {
+            if (!currentCaja) return;
+            
+            document.getElementById('initialCash').textContent = `RD$${formatNumber(currentCaja.initialCash)}`;
+            document.getElementById('totalSales').textContent = `RD$${formatNumber(currentCaja.totalSales)}`;
+            document.getElementById('totalIncome').textContent = `RD$${formatNumber(currentCaja.totalIncome)}`;
+            document.getElementById('totalExpenses').textContent = `RD$${formatNumber(currentCaja.totalExpenses)}`;
+            
+            const expectedCash = currentCaja.initialCash + currentCaja.totalSales + currentCaja.totalIncome - currentCaja.totalExpenses;
+            document.getElementById('expectedCash').textContent = `RD$${formatNumber(expectedCash)}`;
+            document.getElementById('currentCash').textContent = `RD$${formatNumber(currentCaja.currentCash)}`;
+        }
+        
+        function renderTransactions() {
+            const container = document.getElementById('transactionsList');
+            
+            if (transactions.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #a0aec0; padding: 20px;"><i class="fas fa-receipt" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No hay transacciones registradas</p></div>';
+                return;
+            }
+            
+            container.innerHTML = transactions.map(trans => `
+                <div class="transaction-item">
+                    <div>
+                        <div class="transaction-type ${trans.type === 'income' ? 'income' : 'expense'}">
+                            <i class="fas fa-${trans.type === 'income' ? 'plus-circle' : 'minus-circle'}"></i>
+                            ${trans.concept}
+                        </div>
+                        <div class="transaction-details">
+                            ${formatDate(trans.createdAt)} - ${trans.createdBy}
+                            ${trans.notes ? `<br>${trans.notes}` : ''}
+                        </div>
+                    </div>
+                    <div class="transaction-amount ${trans.amount > 0 ? 'income' : 'expense'}">
+                        ${trans.amount > 0 ? '+' : ''}RD$${formatNumber(Math.abs(trans.amount))}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderInvoices() {
+            const container = document.getElementById('invoicesList');
+            
+            if (invoices.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #a0aec0; padding: 20px;"><i class="fas fa-file-alt" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No hay facturas registradas</p></div>';
+                return;
+            }
+            
+            container.innerHTML = invoices.map(inv => `
+                <div class="transaction-item" onclick="showInvoiceDetails('${inv.id}')">
+                    <div>
+                        <div class="transaction-type">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            ${inv.mesa} - ${inv.paymentMethod.toUpperCase()}
+                        </div>
+                        <div class="transaction-details">
+                            ${formatDate(inv.timestamp)} - ${inv.id}
+                        </div>
+                    </div>
+                    <div class="transaction-amount income">
+                        RD$${formatNumber(inv.total)}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderCajaHistory() {
+            const container = document.getElementById('historyList');
+            
+            if (cajaHistory.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #a0aec0; padding: 20px;"><i class="fas fa-history" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No hay historial de cajas</p></div>';
+                return;
+            }
+            
+            container.innerHTML = cajaHistory.map(caja => `
+                <div class="history-item" onclick="showCajaDetails('${caja.id}')">
+                    <div class="history-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        ${formatDate(caja.openedAt)} - ${caja.status === 'closed' ? formatDate(caja.closedAt) : 'Abierta'}
+                    </div>
+                    <div class="history-amount">
+                        <span><i class="fas fa-user"></i> ${caja.openedBy}</span>
+                        <span>RD$${formatNumber(caja.totalSales || 0)}</span>
+                    </div>
+                    <div class="history-details">
+                        ${caja.status === 'closed' ? `<i class="fas fa-check-circle"></i> Cerrada por ${caja.closedBy}` : '<i class="fas fa-lock-open"></i> Caja abierta'}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function showInvoiceDetails(invoiceId) {
+            try {
+                // En una implementación real, obtendríamos los detalles de la factura desde Firestore
+                // Por ahora, usaremos datos de ejemplo
+                const invoiceDetails = {
+                    id: invoiceId,
+                    fecha: new Date().toLocaleDateString('es-ES'),
+                    hora: new Date().toLocaleTimeString('es-ES'),
+                    mesa: 'Mesa 5',
+                    cliente: 'Cliente General',
+                    items: [
+                        { nombre: 'Pizza Grande', cantidad: 1, precio: 650, total: 650 },
+                        { nombre: 'Refresco', cantidad: 2, precio: 75, total: 150 },
+                        { nombre: 'Postre', cantidad: 1, precio: 250, total: 250 }
+                    ],
+                    subtotal: 1050,
+                    impuesto: 168,
+                    total: 1218,
+                    metodoPago: 'Efectivo',
+                    cajero: 'María Rodríguez'
+                };
+                
+                let detailsHTML = `
+                    <div class="invoice-details">
+                        <div class="invoice-header">
+                            <div>
+                                <strong>Factura:</strong> ${invoiceDetails.id}<br>
+                                <strong>Fecha:</strong> ${invoiceDetails.fecha}<br>
+                                <strong>Hora:</strong> ${invoiceDetails.hora}
+                            </div>
+                            <div>
+                                <strong>Mesa:</strong> ${invoiceDetails.mesa}<br>
+                                <strong>Cliente:</strong> ${invoiceDetails.cliente}<br>
+                                <strong>Cajero:</strong> ${invoiceDetails.cajero}
+                            </div>
+                        </div>
+                        
+                        <table class="invoice-items">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                invoiceDetails.items.forEach(item => {
+                    detailsHTML += `
+                        <tr>
+                            <td>${item.nombre}</td>
+                            <td>${item.cantidad}</td>
+                            <td>RD$${formatNumber(item.precio)}</td>
+                            <td>RD$${formatNumber(item.total)}</td>
+                        </tr>
+                    `;
+                });
+                
+                detailsHTML += `
+                            </tbody>
+                        </table>
+                        
+                        <table class="invoice-totals">
+                            <tr>
+                                <td width="80%">Subtotal:</td>
+                                <td>RD$${formatNumber(invoiceDetails.subtotal)}</td>
+                            </tr>
+                            <tr>
+                                <td>Impuesto (16%):</td>
+                                <td>RD$${formatNumber(invoiceDetails.impuesto)}</td>
+                            </tr>
+                            <tr class="total">
+                                <td>Total:</td>
+                                <td>RD$${formatNumber(invoiceDetails.total)}</td>
+                            </tr>
+                            <tr>
+                                <td>Método de Pago:</td>
+                                <td>${invoiceDetails.metodoPago}</td>
+                            </tr>
+                        </table>
+                    </div>
+                `;
+                
+                document.getElementById('invoiceDetails').innerHTML = detailsHTML;
+                document.getElementById('invoiceModal').classList.add('active');
+            } catch (error) {
+                console.error('Error al mostrar detalles de factura:', error);
+                showNotification('Error al cargar detalles de factura', 'error');
+            }
+        }
+        
+        async function showCajaDetails(cajaId) {
+            try {
+                const doc = await db.collection('cajas').doc(cajaId).get();
+                if (!doc.exists) return;
+                
+                const caja = {
+                    id: doc.id,
+                    ...doc.data(),
+                    openedAt: doc.data().openedAt.toDate(),
+                    ...(doc.data().closedAt && { closedAt: doc.data().closedAt.toDate() })
+                };
+                
+                let detailsHTML = `
+                    <div style="margin-bottom: 15px;">
+                        <strong>Fecha Apertura:</strong> ${formatDateTime(caja.openedAt)}<br>
+                        <strong>Responsable:</strong> ${caja.openedBy}<br>
+                        <strong>Efectivo Inicial:</strong> RD$${formatNumber(caja.initialCash)}<br>
+                        ${caja.status === 'closed' ? `
+                            <strong>Fecha Cierre:</strong> ${formatDateTime(caja.closedAt)}<br>
+                            <strong>Responsable:</strong> ${caja.closedBy}<br>
+                            <strong>Efectivo al Cierre:</strong> RD$${formatNumber(caja.closeAmount)}<br>
+                            <strong>Diferencia:</strong> RD$${formatNumber(caja.difference)}<br>
+                        ` : ''}
+                        <strong>Total Ventas:</strong> RD$${formatNumber(caja.totalSales)}<br>
+                        <strong>Total Ingresos:</strong> RD$${formatNumber(caja.totalIncome)}<br>
+                        <strong>Total Retiros:</strong> RD$${formatNumber(caja.totalExpenses)}<br>
+                        <strong>Efectivo Esperado:</strong> RD$${formatNumber(caja.initialCash + caja.totalSales + caja.totalIncome - caja.totalExpenses)}<br>
+                        ${caja.notes ? `<strong>Notas Apertura:</strong> ${caja.notes}<br>` : ''}
+                        ${caja.closeNotes ? `<strong>Notas Cierre:</strong> ${caja.closeNotes}<br>` : ''}
+                    </div>
+                `;
+                
+                document.getElementById('closureDetails').innerHTML = detailsHTML;
+                document.getElementById('detailsModal').classList.add('active');
+            } catch (error) {
+                console.error('Error al mostrar detalles:', error);
+                showNotification('Error al cargar detalles de caja', 'error');
+            }
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        function formatNumber(amount) {
+            return amount.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+        
+        function formatDate(date) {
+            if (!date) return '';
+            
+            const jsDate = date.toDate ? date.toDate() : new Date(date);
+            
+            return jsDate.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+        
+        function formatDateTime(date) {
+            if (!date) return '';
+            
+            const jsDate = date.toDate ? date.toDate() : new Date(date);
+            
+            return jsDate.toLocaleString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Cargar datos de demostración
+        async function loadDemoData() {
+            // Simular facturas
+            invoices = [
+                {
+                    id: 'INV-00125',
+                    mesa: 'Mesa 5',
+                    paymentMethod: 'efectivo',
+                    total: 2450,
+                    timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000)
+                },
+                {
+                    id: 'INV-00124',
+                    mesa: 'Mesa 2',
+                    paymentMethod: 'tarjeta',
+                    total: 1850,
+                    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000)
+                },
+                {
+                    id: 'INV-00123',
+                    mesa: 'Mesa 8',
+                    paymentMethod: 'efectivo',
+                    total: 3200,
+                    timestamp: new Date(Date.now() - 7 * 60 * 60 * 1000)
+                }
+            ];
+            
+            // Simular transacciones
+            transactions = [
+                {
+                    type: 'income',
+                    concept: 'Venta adicional',
+                    amount: 1500,
+                    notes: 'Pago de cliente pendiente',
+                    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+                    createdBy: 'María Rodríguez'
+                },
+                {
+                    type: 'expense',
+                    concept: 'Compra de suministros',
+                    amount: -750,
+                    notes: 'Papelería y materiales',
+                    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
+                    createdBy: 'María Rodríguez'
+                }
+            ];
+            
+            // Simular historial
+            cajaHistory = [
+                {
+                    id: '1',
+                    initialCash: 5000,
+                    totalSales: 12450,
+                    totalIncome: 1500,
+                    totalExpenses: 750,
+                    openedBy: 'Carlos López',
+                    openedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                    closedBy: 'Carlos López',
+                    closedAt: new Date(Date.now() - 22 * 60 * 60 * 1000),
+                    status: 'closed'
+                },
+                {
+                    id: '2',
+                    initialCash: 4500,
+                    totalSales: 9800,
+                    totalIncome: 1200,
+                    totalExpenses: 600,
+                    openedBy: 'Ana Martínez',
+                    openedAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
+                    closedBy: 'Ana Martínez',
+                    closedAt: new Date(Date.now() - 46 * 60 * 60 * 1000),
+                    status: 'closed'
+                }
+            ];
+            
+            renderTransactions();
+            renderInvoices();
+            renderCajaHistory();
+        }
+        
+        // Cargar datos de demostración
+        loadDemoData();
+    </script>
 </body>
 </html>

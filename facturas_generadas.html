@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bebidapp - Facturas Generadas</title>
+    <link rel="icon" href="./img/icon 512x512.png" type="image/png" sizes="any">
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="./js/header-component.js"></script>
+    <style>
+        /* Estilos específicos para la página de facturas */
+        .invoices-container {
+            max-width: 1200px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+        }
+
+        .invoices-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .invoices-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .invoices-table th,
+        .invoices-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .invoices-table th {
+            background-color: #f7fafc;
+            font-weight: bold;
+            color: #4a5568;
+            position: sticky;
+            top: 0;
+        }
+
+        .invoices-table tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .invoices-table tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .invoice-id {
+            font-family: monospace;
+            color: #4a5568;
+        }
+
+        .invoice-amount {
+            font-weight: bold;
+            color: #38a169;
+        }
+
+        .payment-method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .payment-efectivo {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+
+        .payment-tarjeta {
+            background-color: #bee3f8;
+            color: #2c5282;
+        }
+
+        .payment-transferencia {
+            background-color: #e9d8fd;
+            color: #553c9a;
+        }
+
+        .load-more-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn-load-more {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-load-more:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .no-more-records {
+            text-align: center;
+            padding: 20px;
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        /* Estilos para el modal de detalle de factura */
+        .invoice-detail-modal .modal-content {
+            max-width: 800px;
+        }
+
+        .invoice-detail-header {
+            background: #f7fafc;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .invoice-detail-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .invoice-detail-items {
+            margin-bottom: 20px;
+        }
+
+        .invoice-detail-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .invoice-detail-totals {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .invoice-detail-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+
+        .invoice-detail-total-label {
+            font-weight: bold;
+        }
+
+        .invoice-detail-total-amount {
+            font-weight: bold;
+            color: #38a169;
+        }
+
+        .invoice-detail-payment-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header-component></header-component>
+
+    <div class="container">
+        <div class="invoices-container">
+            <div class="invoices-header">
+                <h1>📄 Facturas Generadas</h1>
+            </div>
+
+            <table class="invoices-table">
+                <thead>
+                    <tr>
+                        <th>ID Factura</th>
+                        <th>Monto</th>
+                        <th>Método de Pago</th>
+                        <th>Mesa</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                    <tr>
+                        <td colspan="5" class="loading-spinner">Cargando facturas...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="load-more-container" id="loadMoreContainer">
+                <button class="btn-load-more" onclick="loadMoreInvoices()">Cargar más facturas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver detalles de factura -->
+    <div class="modal invoice-detail-modal" id="invoiceDetailModal">
+        <div class="modal-content">
+            <div class="Modal-Title">
+                <h3>Detalles de Factura</h3>
+                <button class="close-modal-btn" onclick="closeInvoiceDetailModal()">×</button>
+            </div>
+
+            <div class="Modal-Body" id="invoiceDetailBody">
+                <!-- Los detalles de la factura se mostrarán aquí -->
+            </div>
+
+            <div class="Modal-Footer">
+                <button class="btn-secondary" onclick="closeInvoiceDetailModal()">Cerrar</button>
+                <button class="btn-primary" onclick="printInvoiceDetail()">🖨️ Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+
+    <script>
+        // Configuración de Firebase (usando la misma que en index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCa3ntHg9DqV3JefcvFP9cg8xCmwm0wlLo",
+            authDomain: "facturacion-drink.firebaseapp.com",
+            projectId: "facturacion-drink",
+            storageBucket: "facturacion-drink.firebasestorage.app",
+            messagingSenderId: "1093109447685",
+            appId: "1:1093109447685:web:a3015f3494f757a625b06c"
+        };
+
+        // Inicializar Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // Variables de estado
+        let invoices = [];
+        let lastVisible = null;
+        let hasMoreInvoices = true;
+        const INVOICES_PER_PAGE = 20;
+
+        // Inicializar la aplicación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInvoices();
+        });
+
+        // Función para cargar facturas
+        async function loadInvoices() {
+            try {
+                document.getElementById('invoicesTableBody').innerHTML = '<tr><td colspan="5" class="loading-spinner">Cargando facturas...</td></tr>';
+                
+                let query = db.collection('invoices')
+                    .orderBy('timestamp', 'desc')
+                    .limit(INVOICES_PER_PAGE);
+
+                const snapshot = await query.get();
+                
+                if (snapshot.empty) {
+                    document.getElementById('invoicesTableBody').innerHTML = '<tr><td colspan="5" class="no-products">No hay facturas registradas</td></tr>';
+                    document.getElementById('loadMoreContainer').style.display = 'none';
+                    return;
+                }
+
+                // Guardar el último documento para la paginación
+                lastVisible = snapshot.docs[snapshot.docs.length-1];
+                
+                invoices = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        timestamp: data.timestamp?.toDate() || new Date()
+                    };
+                });
+
+                renderInvoices();
+                
+                // Verificar si hay más facturas para cargar
+                checkIfHasMoreInvoices();
+                
+            } catch (error) {
+                console.error('Error al cargar facturas:', error);
+                showNotification('Error al cargar las facturas', 'error');
+                document.getElementById('invoicesTableBody').innerHTML = '<tr><td colspan="5" class="no-products">Error al cargar facturas</td></tr>';
+            }
+        }
+
+        // Función para cargar más facturas
+        async function loadMoreInvoices() {
+            if (!hasMoreInvoices) return;
+            
+            try {
+                document.getElementById('loadMoreContainer').innerHTML = '<div class="loading-spinner">Cargando...</div>';
+                
+                let query = db.collection('invoices')
+                    .orderBy('timestamp', 'desc')
+                    .startAfter(lastVisible)
+                    .limit(INVOICES_PER_PAGE);
+
+                const snapshot = await query.get();
+                
+                if (snapshot.empty) {
+                    hasMoreInvoices = false;
+                    document.getElementById('loadMoreContainer').innerHTML = '<div class="no-more-records">Ya no hay más registros</div>';
+                    return;
+                }
+
+                // Actualizar el último documento para la paginación
+                lastVisible = snapshot.docs[snapshot.docs.length-1];
+                
+                const newInvoices = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        timestamp: data.timestamp?.toDate() || new Date()
+                    };
+                });
+
+                invoices = [...invoices, ...newInvoices];
+                renderInvoices();
+                
+                // Verificar si hay más facturas para cargar
+                checkIfHasMoreInvoices();
+                
+            } catch (error) {
+                console.error('Error al cargar más facturas:', error);
+                showNotification('Error al cargar más facturas', 'error');
+                document.getElementById('loadMoreContainer').innerHTML = '<button class="btn-load-more" onclick="loadMoreInvoices()">Intentar nuevamente</button>';
+            }
+        }
+
+        // Función para verificar si hay más facturas
+        async function checkIfHasMoreInvoices() {
+            try {
+                const nextQuery = db.collection('invoices')
+                    .orderBy('timestamp', 'desc')
+                    .startAfter(lastVisible)
+                    .limit(1);
+
+                const nextSnapshot = await nextQuery.get();
+                hasMoreInvoices = !nextSnapshot.empty;
+                
+                if (!hasMoreInvoices) {
+                    document.getElementById('loadMoreContainer').innerHTML = '<div class="no-more-records">Ya no hay más registros</div>';
+                } else {
+                    document.getElementById('loadMoreContainer').innerHTML = '<button class="btn-load-more" onclick="loadMoreInvoices()">Cargar más facturas</button>';
+                }
+            } catch (error) {
+                console.error('Error al verificar más facturas:', error);
+                hasMoreInvoices = false;
+            }
+        }
+
+        // Función para renderizar facturas en la tabla
+        function renderInvoices() {
+            const container = document.getElementById('invoicesTableBody');
+            
+            if (invoices.length === 0) {
+                container.innerHTML = '<tr><td colspan="5" class="no-products">No hay facturas registradas</td></tr>';
+                return;
+            }
+
+            container.innerHTML = invoices.map(invoice => {
+                const paymentMethodClass = `payment-${invoice.paymentMethod || 'efectivo'}`;
+                const paymentMethodText = (invoice.paymentMethod || 'efectivo').charAt(0).toUpperCase() + 
+                                         (invoice.paymentMethod || 'efectivo').slice(1);
+                
+                return `
+                    <tr onclick="showInvoiceDetail('${invoice.id}')">
+                        <td class="invoice-id">${invoice.id}</td>
+                        <td class="invoice-amount">RD$${formatNumber(invoice.total || 0)}</td>
+                        <td><span class="payment-method ${paymentMethodClass}">${paymentMethodText}</span></td>
+                        <td>${invoice.mesa || 'Factura Rápida'}</td>
+                        <td>${formatDate(invoice.timestamp)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Función para formatear números
+        function formatNumber(amount) {
+            return amount.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
+
+        // Función para formatear fechas
+        function formatDate(date) {
+            if (!date) return 'Fecha no disponible';
+            
+            return new Date(date).toLocaleString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Función para mostrar detalles de una factura
+        async function showInvoiceDetail(invoiceId) {
+            try {
+                const invoice = invoices.find(inv => inv.id === invoiceId);
+                if (!invoice) {
+                    // Si no está en caché, cargarla desde Firestore
+                    const doc = await db.collection('invoices').doc(invoiceId).get();
+                    if (!doc.exists) {
+                        showNotification('Factura no encontrada', 'error');
+                        return;
+                    }
+                    invoice = { id: doc.id, ...doc.data() };
+                }
+
+                const detailBody = document.getElementById('invoiceDetailBody');
+                
+                // Construir el HTML para los detalles
+                let detailHTML = `
+                    <div class="invoice-detail-header">
+                        <h3>Factura: ${invoice.id}</h3>
+                        <p>Mesa: ${invoice.mesa || 'Factura Rápida'}</p>
+                        <p>Fecha: ${formatDate(invoice.timestamp)}</p>
+                        <p>Método de pago: ${(invoice.paymentMethod || 'efectivo').toUpperCase()}</p>
+                    </div>
+                    
+                    <div class="invoice-detail-items">
+                        <h4>Productos:</h4>
+                `;
+
+                if (invoice.items && invoice.items.length > 0) {
+                    invoice.items.forEach(item => {
+                        detailHTML += `
+                            <div class="invoice-detail-item">
+                                <div>${item.name}</div>
+                                <div>RD$${formatNumber(item.price || 0)}</div>
+                                <div>x${item.quantity || 1}</div>
+                                <div>RD$${formatNumber(item.subtotal || 0)}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    detailHTML += '<p>No hay productos en esta factura</p>';
+                }
+
+                detailHTML += `
+                    </div>
+                    
+                    <div class="invoice-detail-totals">
+                        <div class="invoice-detail-total-row">
+                            <span class="invoice-detail-total-label">Subtotal:</span>
+                            <span class="invoice-detail-total-amount">RD$${formatNumber(invoice.subtotal || invoice.total || 0)}</span>
+                        </div>
+                        <div class="invoice-detail-total-row">
+                            <span class="invoice-detail-total-label">Impuestos:</span>
+                            <span class="invoice-detail-total-amount">RD$${formatNumber(invoice.tax || 0)}</span>
+                        </div>
+                        <div class="invoice-detail-total-row">
+                            <span class="invoice-detail-total-label">Total:</span>
+                            <span class="invoice-detail-total-amount">RD$${formatNumber(invoice.total || 0)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="invoice-detail-payment-info">
+                        <h4>Información de Pago:</h4>
+                        <p>Método: ${(invoice.paymentMethod || 'efectivo').toUpperCase()}</p>
+                `;
+
+                if (invoice.paymentMethod === 'efectivo') {
+                    detailHTML += `
+                        <p>Recibido: RD$${formatNumber(invoice.receivedAmount || 0)}</p>
+                        <p>Cambio: RD$${formatNumber(invoice.changeAmount || 0)}</p>
+                    `;
+                }
+
+                detailHTML += `</div>`;
+
+                detailBody.innerHTML = detailHTML;
+                document.getElementById('invoiceDetailModal').classList.add('active');
+                
+            } catch (error) {
+                console.error('Error al cargar detalles de factura:', error);
+                showNotification('Error al cargar los detalles de la factura', 'error');
+            }
+        }
+
+        // Función para cerrar el modal de detalles
+        function closeInvoiceDetailModal() {
+            document.getElementById('invoiceDetailModal').classList.remove('active');
+        }
+
+        // Función para imprimir los detalles de la factura
+        function printInvoiceDetail() {
+            const printContent = document.getElementById('invoiceDetailBody').innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = `
+                <div class="factura-modern">
+                    ${printContent}
+                </div>
+            `;
+            
+            window.print();
+            document.body.innerHTML = originalContent;
+            // Recargar la página para restaurar la funcionalidad
+            window.location.reload();
+        }
+
+        // Función para mostrar notificaciones
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+
+
+<script>
+    // Verificar autenticación en cada página
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuración mínima de Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp({
+                apiKey: "AIzaSyCa3ntHg9DqV3JefcvFP9cg8xCmwm0wlLo",
+                authDomain: "facturacion-drink.firebaseapp.com",
+                projectId: "facturacion-drink"
+            });
+        }
+
+        // Verificar si el usuario está autenticado
+        firebase.auth().onAuthStateChanged((user) => {
+            if (!user && !window.location.pathname.endsWith('login.html')) {
+                window.location.href = 'login.html';
+            }
+        });
+    });
+</script>
+
+
+</body>
+</html>

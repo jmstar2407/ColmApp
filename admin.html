@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bebidapp - Administración de Usuarios</title>
+    <link rel="icon" href="./img/icon 512x512.png" type="image/png" sizes="any">
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="./js/header-component.js"></script>
+    <style>
+        /* Tus estilos CSS existentes */
+        .admin-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .users-table th {
+            background-color: #f7fafc;
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        .users-table tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .role-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .role-administrador {
+            background-color: #f56565;
+            color: white;
+        }
+
+        .role-cajero {
+            background-color: #4299e1;
+            color: white;
+        }
+
+        .role-mesero {
+            background-color: #48bb78;
+            color: white;
+        }
+
+        .role-otro {
+            background-color: #a0aec0;
+            color: white;
+        }
+
+        .status-active {
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        .status-inactive {
+            color: #f56565;
+            font-weight: bold;
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn {
+            background-color: #3182ce;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #e53e3e;
+            color: white;
+        }
+
+        .reset-btn {
+            background-color: #ed8936;
+            color: white;
+        }
+
+        .action-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        /* Modal de usuario */
+        .user-modal-content {
+            max-width: 500px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .password-field {
+            position: relative;
+            display: inline-flex;
+            width: 100%;
+        }
+
+        .toggle-password {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #718096;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header-component></header-component>
+
+    <div class="container">
+        <div class="admin-container">
+            <div class="admin-header">
+                <h1>👥 Administración de Usuarios</h1>
+                <div class="admin-actions">
+                    <button class="btn-primary" onclick="openAddUserModal()">➕ Nuevo Usuario</button>
+                </div>
+            </div>
+
+            <div class="search-section">
+                <input type="text" class="search-box" id="usersSearch" placeholder="🔍 Buscar usuarios...">
+            </div>
+
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Fecha Creación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="6" class="loading-spinner">Cargando usuarios...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar usuario -->
+    <div class="modal" id="userModal">
+        <div class="modal-content user-modal-content">
+            <div class="Modal-Title">
+                <h3 id="userModalTitle">Agregar Nuevo Usuario</h3>
+            </div>
+
+            <div class="Modal-Body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userName">Nombre Completo</label>
+                        <input type="text" id="userName" placeholder="Ej: María García">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userEmail">Correo Electrónico</label>
+                        <input type="email" id="userEmail" placeholder="Ej: usuario@ejemplo.com">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userRole">Rol</label>
+                        <select id="userRole">
+                            <option value="mesero">Mesero</option>
+                            <option value="cajero">Cajero</option>
+                            <option value="administrador">Administrador</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userStatus">Estado</label>
+                        <select id="userStatus">
+                            <option value="active">Activo</option>
+                            <option value="inactive">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row" id="passwordRow">
+                    <div class="form-group">
+                        <label for="userPassword">Contraseña</label>
+                        <div class="password-field">
+                            <input type="password" id="userPassword" placeholder="Mínimo 6 caracteres">
+                            <button type="button" class="toggle-password"
+                                onclick="togglePasswordVisibility()">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userConfirmPassword">Confirmar Contraseña</label>
+                        <input type="password" id="userConfirmPassword" placeholder="Repetir contraseña">
+                    </div>
+                </div>
+            </div>
+
+            <div class="Modal-Footer">
+                <div class="modal-buttons">
+                    <button class="btn-secondary" onclick="closeUserModal()">Cancelar</button>
+                    <button class="btn-primary" id="saveUserBtn" onclick="saveUser()">Guardar Usuario</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para restablecer contraseña -->
+    <div class="modal" id="resetPasswordModal">
+        <div class="modal-content">
+            <div class="Modal-Title">
+                
+                <h3>Restablecer Contraseña</h3>
+
+            </div>
+
+            <div class="Modal-Body">
+                <div class="input-group">
+                    <label for="newPassword">Nueva Contraseña</label>
+                    <div class="password-field">
+                        <input type="password" id="newPassword" placeholder="Mínimo 6 caracteres">
+                        <button type="button" class="toggle-password"
+                            onclick="toggleNewPasswordVisibility()">👁️</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="confirmNewPassword">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="confirmNewPassword" placeholder="Repetir contraseña">
+                </div>
+            </div>
+
+            <div class="Modal-Footer">
+                <div class="modal-buttons">
+                    <button class="btn-secondary" onclick="closeResetPasswordModal()">Cancelar</button>
+                    <button class="btn-primary" onclick="resetPassword()">Restablecer Contraseña</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-auth-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+    <!-- SDK de Firebase Functions AGREGADO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-functions-compat.min.js"></script>
+
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCa3ntHg9DqV3JefcvFP9cg8xCmwm0wlLo",
+            authDomain: "facturacion-drink.firebaseapp.com",
+            projectId: "facturacion-drink",
+            storageBucket: "facturacion-drink.firebasestorage.app",
+            messagingSenderId: "1093109447685",
+            appId: "1:1093109447685:web:a3015f3494f757a625b06c"
+        };
+
+        // Inicializar Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const functions = firebase.functions(); // Inicializar Functions
+
+        // Variables de estado
+        let users = [];
+        let currentEditingUser = null;
+        let currentResettingUser = null;
+
+        // Inicializar la aplicación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeAdmin();
+        });
+
+        function initializeAdmin() {
+            try {
+                // Verificar si el usuario actual es administrador
+                checkAdminPermissions();
+
+                // Cargar usuarios
+                loadUsers();
+
+                // Configurar eventos
+                setupEventListeners();
+            } catch (error) {
+                console.error('Error al inicializar panel de administración:', error);
+                showNotification('Error al cargar el panel de administración', 'error');
+            }
+        }
+
+        async function checkAdminPermissions() {
+            const user = auth.currentUser;
+            if (!user) {
+                return;
+            }
+
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (!userDoc.exists || userDoc.data().role !== 'administrador') {
+                    showNotification('No tienes permisos para acceder a esta página', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('Error al verificar permisos:', error);
+                showNotification('Error al verificar permisos', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }
+        }
+
+        function setupEventListeners() {
+            // Búsqueda de usuarios
+            document.getElementById('usersSearch').addEventListener('input', function (e) {
+                const searchTerm = e.target.value.toLowerCase();
+                renderUsers(searchTerm);
+            });
+        }
+
+        async function loadUsers() {
+            try {
+                const snapshot = await db.collection('users').get();
+                users = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        name: data.name || '',
+                        email: data.email || '',
+                        role: data.role || 'mesero',
+                        disabled: data.disabled || false,
+                        createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+                        updatedAt: data.updatedAt ? data.updatedAt.toDate() : new Date()
+                    };
+                });
+
+                renderUsers();
+            } catch (error) {
+                console.error('Error al cargar usuarios:', error);
+                showNotification('Error al cargar usuarios', 'error');
+            }
+        }
+
+        function renderUsers(searchTerm = '') {
+            const container = document.getElementById('usersTableBody');
+
+            const filteredUsers = searchTerm ?
+                users.filter(u =>
+                    u.name.toLowerCase().includes(searchTerm) ||
+                    u.email.toLowerCase().includes(searchTerm) ||
+                    u.role.toLowerCase().includes(searchTerm)
+                ) :
+                users;
+
+            if (filteredUsers.length === 0) {
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-products">No se encontraron usuarios</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredUsers.map(user => {
+                const createdAt = user.createdAt.toLocaleDateString('es-ES');
+
+                return `
+                    <tr>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td><span class="role-tag role-${user.role}">${user.role}</span></td>
+                        <td class="${user.disabled ? 'status-inactive' : 'status-active'}">
+                            ${user.disabled ? 'Inactivo' : 'Activo'}
+                        </td>
+                        <td>${createdAt}</td>
+                        <td>
+                            <button class="action-btn edit-btn" onclick="editUser('${user.id}')">Editar</button>
+                            <button class="action-btn reset-btn" onclick="openResetPasswordModal('${user.id}')">Contraseña</button>
+                            <button class="action-btn delete-btn" onclick="deleteUser('${user.id}')">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openAddUserModal() {
+            currentEditingUser = null;
+            document.getElementById('userModalTitle').textContent = 'Agregar Nuevo Usuario';
+            document.getElementById('saveUserBtn').textContent = 'Crear Usuario';
+            document.getElementById('passwordRow').style.display = 'flex';
+
+            // Limpiar formulario
+            document.getElementById('userName').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userRole').value = 'mesero';
+            document.getElementById('userStatus').value = 'active';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userConfirmPassword').value = '';
+
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        async function editUser(userId) {
+            try {
+                // Obtener los datos actualizados directamente de Firestore
+                const userDoc = await db.collection('users').doc(userId).get();
+                
+                if (!userDoc.exists) {
+                    showNotification('Usuario no encontrado', 'error');
+                    return;
+                }
+
+                const user = userDoc.data();
+                currentEditingUser = userId;
+                
+                document.getElementById('userModalTitle').textContent = 'Editar Usuario';
+                document.getElementById('saveUserBtn').textContent = 'Actualizar Usuario';
+                document.getElementById('passwordRow').style.display = 'none';
+
+                // Llenar formulario con los datos actuales
+                document.getElementById('userName').value = user.name || '';
+                document.getElementById('userEmail').value = user.email || '';
+                document.getElementById('userRole').value = user.role || 'mesero';
+                document.getElementById('userStatus').value = user.disabled ? 'inactive' : 'active';
+
+                document.getElementById('userModal').classList.add('active');
+            } catch (error) {
+                console.error('Error al cargar datos del usuario:', error);
+                showNotification('Error al cargar datos del usuario', 'error');
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        async function saveUser() {
+            // Obtener referencias a los elementos del formulario de manera más robusta
+            const nameInput = document.getElementById('userName');
+            const emailInput = document.getElementById('userEmail');
+            const roleSelect = document.getElementById('userRole');
+            const statusSelect = document.getElementById('userStatus');
+            
+            const name = nameInput ? nameInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
+            const role = roleSelect ? roleSelect.value : 'mesero';
+            const status = statusSelect ? statusSelect.value : 'active';
+
+            let password = '';
+            let confirmPassword = '';
+
+            if (!currentEditingUser) {
+                const passwordInput = document.getElementById('userPassword');
+                const confirmPasswordInput = document.getElementById('userConfirmPassword');
+                password = passwordInput ? passwordInput.value : '';
+                confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
+            }
+
+            console.log('Datos del formulario:', { name, email, role, status, password, confirmPassword }); // Para debug
+
+            // Validaciones
+            if (!name) {
+                showNotification('El nombre es requerido', 'error');
+                if (nameInput) nameInput.focus();
+                return;
+            }
+
+            if (!email) {
+                showNotification('El correo electrónico es requerido', 'error');
+                if (emailInput) emailInput.focus();
+                return;
+            }
+
+            if (!currentEditingUser && !password) {
+                showNotification('La contraseña es requerida', 'error');
+                const passwordInput = document.getElementById('userPassword');
+                if (passwordInput) passwordInput.focus();
+                return;
+            }
+
+            if (!currentEditingUser && password !== confirmPassword) {
+                showNotification('Las contraseñas no coinciden', 'error');
+                const confirmPasswordInput = document.getElementById('userConfirmPassword');
+                if (confirmPasswordInput) confirmPasswordInput.focus();
+                return;
+            }
+
+            if (!currentEditingUser && password.length < 6) {
+                showNotification('La contraseña debe tener al menos 6 caracteres', 'error');
+                const passwordInput = document.getElementById('userPassword');
+                if (passwordInput) passwordInput.focus();
+                return;
+            }
+
+            try {
+                if (currentEditingUser) {
+                    // Actualizar usuario existente
+                    await db.collection('users').doc(currentEditingUser).update({
+                        name: name,
+                        email: email,
+                        role: role,
+                        disabled: status === 'inactive',
+                        updatedAt: new Date()
+                    });
+
+                    showNotification('Usuario actualizado correctamente', 'success');
+                } else {
+                    // Crear nuevo usuario usando Cloud Functions
+                    const createUserFunction = functions.httpsCallable('createUser');
+                    
+                    const result = await createUserFunction({
+                        email: email,
+                        password: password,
+                        name: name,
+                        role: role,
+                        status: status
+                    });
+                    
+                    showNotification('Usuario creado correctamente', 'success');
+                }
+
+                // Recargar usuarios y cerrar modal
+                closeUserModal();
+                loadUsers();
+            } catch (error) {
+                console.error('Error al guardar usuario:', error);
+
+                // Manejo de errores mejorado para Cloud Functions
+                if (error.code === 'already-exists' || error.code === 'auth/email-already-in-use') {
+                    showNotification('El correo electrónico ya está en uso', 'error');
+                } else if (error.code === 'permission-denied') {
+                    showNotification('No tienes permisos para crear usuarios', 'error');
+                } else if (error.code === 'auth/invalid-email') {
+                    showNotification('El formato del correo electrónico no es válido', 'error');
+                } else if (error.code === 'invalid-argument') {
+                    showNotification('Datos inválidos: ' + error.message, 'error');
+                } else {
+                    showNotification('Error al guardar el usuario: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function openResetPasswordModal(userId) {
+            currentResettingUser = userId;
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            document.getElementById('resetPasswordModal').classList.add('active');
+        }
+
+        function closeResetPasswordModal() {
+            document.getElementById('resetPasswordModal').classList.remove('active');
+        }
+
+        async function resetPassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+            if (!newPassword) {
+                showNotification('La nueva contraseña es requerida', 'error');
+                return;
+            }
+
+            if (newPassword !== confirmNewPassword) {
+                showNotification('Las contraseñas no coinciden', 'error');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showNotification('La contraseña debe tener al menos 6 caracteres', 'error');
+                return;
+            }
+
+            try {
+                // Obtener el email del usuario
+                const user = users.find(u => u.id === currentResettingUser);
+                if (!user) {
+                    showNotification('Usuario no encontrado', 'error');
+                    return;
+                }
+
+                // Para restablecer contraseña, puedes usar sendPasswordResetEmail
+                await auth.sendPasswordResetEmail(user.email);
+                showNotification('Se ha enviado un correo para restablecer la contraseña', 'success');
+
+                closeResetPasswordModal();
+            } catch (error) {
+                console.error('Error al restablecer contraseña:', error);
+                showNotification('Error al enviar el correo de restablecimiento', 'error');
+            }
+        }
+
+        async function deleteUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            if (!confirm(`¿Estás seguro de que quieres eliminar al usuario "${user.name}"? Esta acción no se puede deshacer.`)) return;
+
+            try {
+                // Usar Cloud Functions para eliminar usuario
+                const deleteUserFunction = functions.httpsCallable('deleteUser');
+                await deleteUserFunction({ userId: userId });
+                
+                showNotification('Usuario eliminado exitosamente', 'success');
+                loadUsers();
+            } catch (error) {
+                console.error('Error al eliminar usuario:', error);
+                showNotification('Error al eliminar el usuario: ' + error.message, 'error');
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const passwordField = document.getElementById('userPassword');
+            if (passwordField) {
+                const type = passwordField.type === 'password' ? 'text' : 'password';
+                passwordField.type = type;
+            }
+        }
+
+        function toggleNewPasswordVisibility() {
+            const passwordField = document.getElementById('newPassword');
+            if (passwordField) {
+                const type = passwordField.type === 'password' ? 'text' : 'password';
+                passwordField.type = type;
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('sh----------ow');
+            }, 3000);
+        }
+
+    </script>
+</body>
+
+</html>
