@@ -1,1183 +1,195 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colmapp - Sistema de Facturación</title>
-    <link rel="icon" href="./img/icon 512x512.png" type="image/png" sizes="any">
-    <link rel="stylesheet" href="./css/style.css">
-    <script src="./js/header-component.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>miColmApp - POS para Colmados RD</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f2f5; }
+        /* Login */
+        .login-container { max-width: 400px; margin: 80px auto; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .login-container h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        .login-container input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+        .login-container button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        /* App layout */
+        .app { display: none; }
+        .top-bar { background: #1e2a3a; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .company-name { font-size: 1.4rem; font-weight: bold; }
+        .menu-buttons { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .menu-buttons button { background: #2c3e50; border: none; color: white; padding: 8px 14px; border-radius: 30px; cursor: pointer; font-weight: 500; transition: 0.2s; }
+        .menu-buttons button:hover { background: #27ae60; }
+        .datetime { font-size: 0.85rem; background: #00000040; padding: 6px 12px; border-radius: 20px; }
+        .logout-btn { background: #c0392b !important; }
+        .main-panel { padding: 20px; display: none; }
+        .active-panel { display: block; }
+        /* POS Grid */
+        .pos-container { display: flex; flex-wrap: wrap; gap: 20px; }
+        .products-area { flex: 2; min-width: 260px; background: white; border-radius: 16px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .cart-area { flex: 1.2; min-width: 280px; background: white; border-radius: 16px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .search-bar { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .search-bar input { flex: 2; padding: 10px; border-radius: 30px; border: 1px solid #ccc; }
+        .search-bar select, .search-bar button { padding: 8px 12px; border-radius: 30px; border: 1px solid #ccc; background: #ecf0f1; cursor: pointer; }
+        .category-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 10px; }
+        .category-card { text-align: center; width: 100px; cursor: pointer; padding: 10px; border-radius: 16px; background: #f8f9fa; transition: 0.2s; }
+        .category-card:hover { background: #e9ecef; transform: scale(0.98); }
+        .category-card img { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; background: #ddd; }
+        .products-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; max-height: 500px; overflow-y: auto; }
+        .product-card { width: 110px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 8px; text-align: center; cursor: pointer; transition: 0.1s; }
+        .product-card:hover { background: #f1f9ff; border-color: #27ae60; }
+        .product-card img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding: 8px 0; }
+        .total-row { font-weight: bold; font-size: 1.3rem; margin: 15px 0; }
+        .btn-primary { background: #27ae60; color: white; border: none; padding: 12px; width: 100%; border-radius: 40px; font-weight: bold; cursor: pointer; }
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; border-radius: 20px; padding: 20px; width: 90%; max-width: 500px; max-height: 80vh; overflow: auto; }
+        .btn-secondary { background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+        .flex-between { display: flex; justify-content: space-between; }
+        .numeric-pad { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 10px 0; }
+        .numeric-pad button { padding: 12px; font-size: 1.2rem; background: #f1f1f1; border: none; border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
+        .badge { background: #e67e22; color: white; padding: 4px 8px; border-radius: 20px; font-size: 0.7rem; }
+        @media (max-width: 800px) { .pos-container { flex-direction: column; } }
+    </style>
 </head>
-
 <body>
+<div id="loginView" class="login-container">
+    <h2><i class="fas fa-store"></i> miColmApp</h2>
+    <input type="email" id="loginEmail" placeholder="Correo electrónico">
+    <input type="password" id="loginPassword" placeholder="Contraseña">
+    <button id="loginBtn">Iniciar Sesión</button>
+    <p style="margin-top:15px; text-align:center">¿Nuevo negocio? <button id="showRegisterBtn" style="background:none; border:none; color:#27ae60; cursor:pointer">Registrar Colmado</button></p>
+</div>
+<div id="registerView" style="display:none" class="login-container">
+    <h2>Registrar Colmado</h2>
+    <input type="text" id="regNegocio" placeholder="Nombre del Colmado">
+    <input type="text" id="regRNC" placeholder="RNC">
+    <input type="text" id="regDir" placeholder="Dirección">
+    <input type="text" id="regTel" placeholder="Teléfono">
+    <input type="email" id="regEmail" placeholder="Email Admin">
+    <input type="password" id="regPassword" placeholder="Contraseña">
+    <button id="registerBusinessBtn">Crear Negocio</button>
+    <button id="backToLoginBtn" style="background:gray">Volver</button>
+</div>
 
-    <header-component></header-component>
-
-    <div class="container">
-
-        <div class="main-layout">
-            <div class="left-panel">
-                <div class="search-section">
-                    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Buscar productos...">
-                    <select class="category-filter" id="categoryFilter">
-                        <option value="">Todas las categorías</option>
-                        <!-- Las categorías se llenarán dinámicamente -->
-                    </select>
-                    <div class="view-toggle">
-                        <button class="view-btn active" id="gridViewBtn" onclick="toggleViewMode('grid')"><img
-                                src="./img/icons/grid.png"></button>
-                        <button class="view-btn" id="listViewBtn" onclick="toggleViewMode('list')"><img
-                                src="./img/icons/list.png"></button>
-                    </div>
-                </div>
-
-                <div class="products-grid">
-                    <div class="products-container" id="productsContainer">
-                        <div class="loading-spinner">Cargando productos...</div>
-                    </div>
-                </div>
-
-                <div class="mesas-section">
-                    <div class="mesas-grid" id="mesasGrid" style="display: none;">
-                        <!-- Las cajas se generarán aquí -->
-                    </div>
-                    <button class="quick-sale-btn" onclick="selectQuickSale()">⚡ Factura Rápida</button>
-                </div>
-            </div>
-
-            <div class="right-panel">
-                <div class="current-order">
-                    <div class="order-header">
-                        <h3 id="orderTitle">⚡ Factura Rápida</h3>
-                    </div>
-
-                    <div class="order-items" id="orderItems">
-                        <!-- Los items del pedido se mostrarán aquí -->
-                    </div>
-
-                    <div class="order-footer">
-                        <div class="order-total">
-                            <div class="total-label">Total:</div>
-                            <div class="total-amount" id="totalAmount">$0.00</div>
-                        </div>
-
-                        <div class="payment-section">
-                            <button class="btn-facturar" onclick="processPayment()">Facturar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>Copyright 2026 - Developed By José Polanco</p>
+<div id="app" class="app">
+    <div class="top-bar">
+        <div class="company-name" id="companyNameDisplay">miColmApp</div>
+        <div class="menu-buttons" id="menuButtons"></div>
+        <div style="display: flex; gap:12px; align-items:center">
+            <span id="datetimeRD" class="datetime"></span>
+            <button id="logoutAppBtn" class="logout-btn">Cerrar Sesión</button>
         </div>
     </div>
-
-    <!-- Modal para procesar pago -->
-    <div class="modal" id="paymentModal">
-        <div class="modal-content">
-            <div class="Modal-Title">
-                <h3>Procesar Factura</h3>
-                <button class="close-modal-btn" onclick="closePaymentModal()">×</button>
-            </div>
-
-            <div class="Modal-Body" id="bodyfactura">
-                <div class="payment-modal-layout">
-                    <div class="payment-left-section">
-                        <div class="payment-summary" id="paymentSummary">
-                            <!-- Resumen de productos se mostrará aquí -->
-                        </div>
-
-                        <div class="input-group"
-                            style="background: #ffffff;display: inline-flex;flex-direction: column;align-items: center;border-radius: 7px;">
-                            <label>Método de Pago:</label>
-                            <div class="payment-methods">
-                                <button class="payment-btn payment-efectivo active"
-                                    onclick="selectPaymentMethod('efectivo')">Efectivo</button>
-                                <!-- <button class="payment-btn payment-tarjeta"
-                                onclick="selectPaymentMethod('tarjeta')">Tarjeta</button> -->
-                                <!--  <button class="payment-btn payment-transferencia"
-                                onclick="selectPaymentMethod('transferencia')">Transferencia</button> -->
-                            </div>
-                            <input type="hidden" id="paymentMethod" value="efectivo">
-                        </div>
-                    </div>
-
-                    <div class="payment-right-section">
-                        <div class="input-group" id="receivedGroup">
-                            <label>Dinero Recibido:</label>
-                            <input type="number" id="receivedAmount" placeholder="0" step="0.01">
-                        </div>
-
-                        <div class="input-group" id="changeGroup">
-                            <label>Cambio:</label>
-                            <input type="text" id="changeAmount" readonly>
-                        </div>
-
-                        <div class="numeric-keyboard">
-                            <button class="numeric-key" onclick="appendToAmount('7')">7</button>
-                            <button class="numeric-key" onclick="appendToAmount('8')">8</button>
-                            <button class="numeric-key" onclick="appendToAmount('9')">9</button>
-                            <button class="numeric-key" onclick="appendToAmount('4')">4</button>
-                            <button class="numeric-key" onclick="appendToAmount('5')">5</button>
-                            <button class="numeric-key" onclick="appendToAmount('6')">6</button>
-                            <button class="numeric-key" onclick="appendToAmount('1')">1</button>
-                            <button class="numeric-key" onclick="appendToAmount('2')">2</button>
-                            <button class="numeric-key" onclick="appendToAmount('3')">3</button>
-                            <button class="numeric-key" onclick="removeLastDigit()" id="clearBtn"><span><img
-                                        src="./img/icons/borrar_1.png"></span></button>
-                            <button class="numeric-key" onclick="appendToAmount('0')">0</button>
-                            <button class="numeric-key" onclick="clearAmount()" id="clearBtn"><img
-                                    src="./img/icons/borrar_2.png"></button>
-                        </div>
-                    </div>
+    <div id="panelFacturacion" class="main-panel active-panel">
+        <div class="pos-container">
+            <div class="products-area">
+                <div class="search-bar">
+                    <input type="text" id="searchProductInput" placeholder="Buscar por nombre/código">
+                    <select id="categoryFilterSelect"><option value="">Todas las categorías</option></select>
+                    <button id="toggleGridViewBtn"><i class="fas fa-th-large"></i></button>
+                    <button id="scanBarcodeBtn"><i class="fas fa-barcode"></i> Escanear</button>
                 </div>
+                <div id="categoriesContainer" class="category-grid"></div>
+                <div id="productsContainer" class="products-grid" style="display:none"></div>
+                <button id="backToCategoriesBtn" style="display:none; margin-top:10px"><i class="fas fa-arrow-left"></i> Volver a Categorías</button>
             </div>
-
-            <div class="Modal-Footer">
-                <div class="modal-buttons">
-                    <!-- Botón para imprimir sin confirmar pago -->
-                    <button class="btn-secondary" onclick="printInvoiceWithoutPayment()">🖨️ Imprimir Factura</button>
-                    <button class="btn-primary" onclick="confirmPayment()">Confirmar Pago <img
-                            src="./img/icons/check_1.png"></button>
-                </div>
+            <div class="cart-area">
+                <h3>Carrito de Ventas</h3>
+                <div id="cartList"></div>
+                <div class="total-row">Subtotal: RD$ <span id="subtotal">0.00</span><br>ITBIS: RD$ <span id="taxAmount">0.00</span><br><strong>Total: RD$ <span id="totalAmount">0.00</span></strong></div>
+                <button id="checkoutBtn" class="btn-primary"><i class="fas fa-receipt"></i> Facturar</button>
             </div>
         </div>
     </div>
-
-
-
-    <!-- Modal para vista previa de factura -->
-    <div class="modal" id="invoiceModal">
-        <div class="modal-content">
-
-            <div class="Modal-Title">
-                <h3>📄 Vista Previa Factura</h3>
-            </div>
-
-            <div class="Modal-Body" id="bodyfactura">
-                <div class="invoice-preview" id="invoicePreview">
-                    <!-- Contenido de la factura se generará aquí -->
-                </div>
-            </div>
-
-            <div class="Modal-Footer">
-                <div class="modal-buttons">
-                    <button class="btn-cancel" onclick="closeInvoiceModal()">Cancelar</button>
-                    <button class="btn-primary" onclick="printInvoice()">🖨️ Imprimir Factura</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notification -->
-    <div class="notification" id="notification"></div>
-
-    <!-- Firebase SDK -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-auth-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
-
-    <script>
-
-        // Configuración de Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCa3ntHg9DqV3JefcvFP9cg8xCmwm0wlLo",
-            authDomain: "facturacion-drink.firebaseapp.com",
-            projectId: "facturacion-drink",
-            storageBucket: "facturacion-drink.appspot.com",
-            messagingSenderId: "1093109447685",
-            appId: "1:1093109447685:web:a3015f3494f757a625b06c"
-        };
-
-        // Inicializar Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const auth = firebase.auth();   // 👈 agregado
-        const db = firebase.firestore();
-
-        // Verificar autenticación antes de cargar la app
-        auth.onAuthStateChanged((user) => {
-            if (!user) {
-                // Si no hay sesión activa, redirigir al login
-                window.location.href = 'login.html';
-            } else {
-                // Si hay sesión, cargar la app
-                initializeApp();
-            }
-        });
-
-        // Estado de la aplicación
-        let currentMesa = 'mesa1';
-        let isQuickSale = false;
-        let productos = [];
-        let mesas = {};
-        let currentEditingMesa = null;
-        let viewMode = localStorage.getItem('productViewMode') || 'grid';
-
-
-        // Productos de ejemplo (solo como respaldo si Firestore falla)
-        const sampleProducts = [
-            { id: 'prod1', name: 'Arroz Blanco (lb)', price: 12.00, stock: 100, image: '🌾', description: '' },
-            { id: 'prod2', name: 'Habichuela Roja (lb)', price: 25.00, stock: 50, image: '🫘', description: '' },
-            { id: 'prod3', name: 'Aceite Vegetal (lt)', price: 85.00, stock: 30, image: '🫙', description: '' },
-            { id: 'prod4', name: 'Pollo Entero (lb)', price: 55.00, stock: 20, image: '🍗', description: '' },
-            { id: 'prod5', name: 'Salami Induveca', price: 45.00, stock: 25, image: '🥩', description: '' },
-            { id: 'prod6', name: 'Plátano Verde (unid)', price: 8.00, stock: 80, image: '🍌', description: '' },
-            { id: 'prod7', name: 'Pan de Agua', price: 5.00, stock: 60, image: '🍞', description: '' },
-            { id: 'prod8', name: 'Leche Completa (lt)', price: 95.00, stock: 40, image: '🥛', description: '' }
-        ];
-
-        // Función para configurar el listener de cajas
-        function setupMesasListener() {
-            db.collection('mesas').onSnapshot((snapshot) => {
-                mesas = {};
-                snapshot.forEach((doc) => {
-                    const mesaData = doc.data();
-                    mesas[doc.id] = {
-                        name: mesaData.name || `Caja ${doc.id}`,
-                        items: mesaData.items || [],
-                        total: mesaData.total || 0
-                    };
-                });
-
-                // Si no hay cajas, crea algunas por defecto
-                if (Object.keys(mesas).length === 0) {
-                    createDefaultMesas();
-                }
-
-                renderMesas();
-
-                // Si la caja actual fue eliminada, selecciona la primera disponible
-                if (currentMesa && !mesas[currentMesa]) {
-                    const firstMesaId = Object.keys(mesas)[0];
-                    if (firstMesaId) {
-                        selectMesa(firstMesaId);
-                    } else {
-                        currentMesa = null;
-                        updateOrderDisplay();
-                    }
-                }
-            }, (error) => {
-                console.error('Error en listener de mesas:', error);
-                showNotification('Error al cargar cajas', 'error');
-            });
-        }
-
-        // Función para crear cajas por defecto si no hay ninguna
-        async function createDefaultMesas() {
-            const defaultMesas = {
-                mesa1: { name: 'Caja 1', items: [], total: 0 },
-                mesa2: { name: 'Caja 2', items: [], total: 0 },
-                mesa3: { name: 'Caja 3', items: [], total: 0 },
-                mesa4: { name: 'Caja 4', items: [], total: 0 }
-            };
-
-            const batch = db.batch();
-
-            for (const [id, mesa] of Object.entries(defaultMesas)) {
-                const mesaRef = db.collection('mesas').doc(id);
-                batch.set(mesaRef, mesa);
-            }
-
-            try {
-                await batch.commit();
-            } catch (error) {
-                console.error('Error al crear mesas por defecto:', error);
-            }
-        }
-
-        // Inicializar aplicación
-        document.addEventListener('DOMContentLoaded', function () {
-            initializeApp();
-        });
-
-        async function initializeApp() {
-            try {
-                // Mostrar spinner de carga
-                document.getElementById('productsContainer').innerHTML = '<div class="loading-spinner">Cargando productos...</div>';
-                document.getElementById('gridViewBtn').classList.toggle('active', viewMode === 'grid');
-                document.getElementById('listViewBtn').classList.toggle('active', viewMode === 'list');
-
-                // Cargar productos desde Firestore
-                await loadProductsFromFirestore();
-
-                // Configurar listener en tiempo real para cajas
-                await setupMesasListener();
-
-                // Renderizar interfaz
-                renderProducts();
-
-                // Seleccionar factura rápida al iniciar
-                selectQuickSale();
-
-                // Configurar eventos
-                setupEventListeners();
-
-
-            } catch (error) {
-                console.error('Error al inicializar:', error);
-                showNotification('Error al inicializar el sistema', 'error');
-            }
-        }
-
-
-        function setupEventListeners() {
-            // Búsqueda de productos
-            document.getElementById('searchBox').addEventListener('input', function (e) {
-                const searchTerm = e.target.value.toLowerCase();
-                renderProducts(searchTerm);
-            });
-
-            // Eventos del modal de pago
-            document.getElementById('paymentMethod').addEventListener('change', function (e) {
-                const isEfectivo = e.target.value === 'efectivo';
-                document.getElementById('receivedGroup').style.display = isEfectivo ? 'block' : 'none';
-                document.getElementById('changeGroup').style.display = isEfectivo ? 'block' : 'none';
-            });
-
-            document.getElementById('receivedAmount').addEventListener('input', function (e) {
-                const received = parseFloat(e.target.value) || 0;
-                const total = parseFloat(document.getElementById('paymentAmount').value) || 0;
-                const change = received - total;
-                document.getElementById('changeAmount').value = change >= 0 ? change.toFixed(0) : '0';
-            });
-
-            // Cerrar modales al hacer clic fuera
-            /*
-            document.addEventListener('click', function (e) {
-                if (e.target.classList.contains('modal')) {
-                    e.target.classList.remove('active');
-                }
-            });
-            */
-        }
-
-        // Función para cargar productos desde Firestore
-        async function loadProductsFromFirestore() {
-            try {
-                // Cargar categorías primero
-                const categoriesSnapshot = await db.collection('categories').get();
-                const categories = categoriesSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    name: doc.data().name
-                }));
-
-                // Cargar productos
-                const snapshot = await db.collection('products').get();
-                productos = snapshot.docs.map(doc => {
-                    const data = doc.data();
-                    const category = categories.find(cat => cat.id === data.category);
-                    return {
-                        id: doc.id,
-                        name: data.name,
-                        price: Number(data.price),
-                        stock: Number(data.stock),
-                        image: data.icon || '🛒',
-                        description: data.description || '',
-                        category: category ? category.name : 'Sin categoría',
-                        categoryId: data.category || ''
-                    };
-                });
-
-                // Actualizar selector de categorías
-                updateCategoryFilter(categories);
-
-                if (productos.length === 0) {
-                    console.warn('No hay productos en Firestore, usando datos de muestra');
-                    productos = sampleProducts;
-                }
-            } catch (error) {
-                console.error('Error al cargar productos:', error);
-                showNotification('Error al cargar productos', 'error');
-                productos = sampleProducts;
-            }
-        }
-
-        function updateCategoryFilter(categories) {
-            const filter = document.getElementById('categoryFilter');
-            filter.innerHTML = '<option value="">Todas las categorías</option>';
-
-            categories.forEach(category => {
-                filter.innerHTML += `<option value="${category.id}">${category.name}</option>`;
-            });
-
-            // Añadir evento para filtrar
-            filter.addEventListener('change', function () {
-                renderProducts();
-            });
-        }
-
-        // Agrega esta función para cambiar entre vistas
-        function toggleViewMode(mode) {
-            viewMode = mode;
-            localStorage.setItem('productViewMode', mode);
-
-            // Actualizar botones activos
-            document.getElementById('gridViewBtn').classList.toggle('active', mode === 'grid');
-            document.getElementById('listViewBtn').classList.toggle('active', mode === 'list');
-
-            renderProducts();
-        }
-
-
-        function renderProducts(searchTerm = '') {
-            const container = document.getElementById('productsContainer');
-            const categoryFilter = document.getElementById('categoryFilter').value;
-
-            const filteredProducts = productos.filter(product => {
-                const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesCategory = !categoryFilter || product.categoryId === categoryFilter;
-                return matchesSearch && matchesCategory;
-            });
-
-            if (filteredProducts.length === 0) {
-                container.innerHTML = '<div class="no-products">No se encontraron productos</div>';
-                return;
-            }
-
-            // Aplicar clase según el modo de vista
-            container.className = 'products-container';
-            if (viewMode === 'list') {
-                container.classList.add('list-view');
-            }
-
-            container.innerHTML = filteredProducts.map(product => {
-                let imageContent;
-                if (product.image.startsWith('http') || product.image.startsWith('data:image')) {
-                    imageContent = `<img src="${product.image}" alt="${product.name}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
-                } else {
-                    imageContent = `<div style="font-size:48px;">${product.image}</div>`;
-                }
-
-                return `
-        <div class="product-card ${viewMode === 'list' ? 'list-view' : ''}" onclick="addProductToOrder('${product.id}')">
-            <div class="product-image">${imageContent}</div>
-            <div id="divlistview">
-            <div class="product-name">${product.name}</div>
-            <!-- ${viewMode === 'grid' ? `<div class="product-category">${product.category}</div>` : ''} -->
-            <div class="product-category">${product.category}</div>
-            <div class="product-price">RD$${formatNumber(product.price)}</div>
-            <!-- ${viewMode === 'grid' ? `<div class="product-stock">Stock: ${product.stock}</div>` : ''} -->
-            <div class="product-stock">Stock: ${product.stock}</div>
-            </div>
-        </div>
-        `;
-            }).join('');
-        }
-
-        function renderMesas() {
-            const container = document.getElementById('mesasGrid');
-
-            // Ordenar cajas por nombre
-            const sortedMesas = Object.entries(mesas)
-                .sort((a, b) => a[1].name.localeCompare(b[1].name));
-
-            container.innerHTML = sortedMesas.map(([mesaId, mesa]) => {
-                const hasItems = mesa.items.length > 0;
-                const isActive = currentMesa === mesaId && !isQuickSale;
-
-                return `
-            <button class="mesa-btn ${isActive ? 'active' : ''} ${hasItems ? 'has-items' : ''}" 
-                    onclick="selectMesa('${mesaId}')">
-                ${mesa.name}
-                ${hasItems ? `<br><small>$${mesa.total.toFixed(0)}</small>` : ''}
-            </button>
-        `;
-            }).join('');
-        }
-
-        function selectMesa(mesaId) {
-            if (mesas[mesaId]) {
-                currentMesa = mesaId;
-                isQuickSale = false;
-                updateOrderDisplay();
-                renderMesas();
-                // Remover clase active del botón de factura rápida
-                document.querySelector('.quick-sale-btn').classList.remove('active');
-            } else {
-                showNotification('Caja no encontrada', 'error');
-            }
-        }
-
-        function selectQuickSale() {
-            isQuickSale = true;
-            currentMesa = null;
-            updateOrderDisplay();
-            renderMesas();
-            // Agregar clase active al botón de factura rápida
-            document.querySelector('.quick-sale-btn').classList.add('active');
-        }
-
-
-        async function addProductToOrder(productId) {
-            const product = productos.find(p => p.id === productId);
-            if (!product) return;
-
-            if (product.stock <= 0) {
-                showNotification('Producto sin stock', 'error');
-                return;
-            }
-
-            let targetOrder;
-            if (isQuickSale) {
-                if (!window.quickOrder) {
-                    window.quickOrder = { items: [], total: 0 };
-                }
-                targetOrder = window.quickOrder;
-            } else {
-                if (!currentMesa || !mesas[currentMesa]) {
-                    showNotification('Selecciona una caja primero', 'error');
-                    return;
-                }
-                targetOrder = mesas[currentMesa];
-            }
-
-            const existingItem = targetOrder.items.find(item => item.id === productId);
-
-            if (existingItem) {
-                existingItem.quantity += 1;
-                existingItem.subtotal = existingItem.quantity * existingItem.price;
-            } else {
-                targetOrder.items.push({
-                    id: productId,
-                    name: product.name,
-                    price: product.price,
-                    quantity: 1,
-                    subtotal: product.price
-                });
-            }
-
-            targetOrder.total = targetOrder.items.reduce((sum, item) => sum + item.subtotal, 0);
-
-            // Actualizar Firebase si no es quick sale
-            if (!isQuickSale) {
-                try {
-                    await db.collection('mesas').doc(currentMesa).update({
-                        items: targetOrder.items,
-                        total: targetOrder.total
-                    });
-                } catch (error) {
-                    console.error('Error al actualizar mesa:', error);
-                    showNotification('Error al actualizar caja', 'error');
-                    return;
-                }
-            }
-
-            updateOrderDisplay();
-            renderMesas();
-            showNotification(`${product.name} agregado`, 'success');
-        }
-
-        function updateOrderDisplay() {
-            let currentOrder;
-            let orderTitle;
-
-            if (isQuickSale) {
-                currentOrder = window.quickOrder || { items: [], total: 0 };
-                orderTitle = '⚡ Factura Rápida';
-            } else {
-                if (!mesas || !mesas[currentMesa]) {
-                    currentOrder = { items: [], total: 0 };
-                    orderTitle = 'Seleccione una caja';
-                } else {
-                    currentOrder = mesas[currentMesa];
-                    orderTitle = mesas[currentMesa].name;
-                }
-            }
-
-            document.getElementById('orderTitle').textContent = orderTitle;
-
-            const itemsContainer = document.getElementById('orderItems');
-            if (currentOrder.items.length === 0) {
-                itemsContainer.innerHTML = `
-                <div style="text-align: center; color: #a0aec0; padding: 40px;">
-                    <div style="font-size: 48px; margin-bottom: 10px;">🛒</div>
-                    <div>No hay productos en el pedido</div>
-                </div>
-            `;
-            } else {
-                itemsContainer.innerHTML = currentOrder.items.map(item => {
-                    const product = productos.find(p => p.id === item.id);
-                    let iconContent;
-
-                    if (product) {
-                        if (product.image.startsWith('http') || product.image.startsWith('data:image')) {
-                            iconContent = `<img src="${product.image}" alt="${product.name}" class="order-item-image">`;
-                        } else {
-                            iconContent = `<div class="order-item-emoji">${product.image}</div>`;
-                        }
-                    } else {
-                        iconContent = '<div class="order-item-emoji">🛒</div>';
-                    }
-
-                    return `
-                    <div class="order-item">
-                        <div class="item-icon">${iconContent}</div>
-                        <div class="item-info">
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-price">RD$${formatNumber(item.price)} c/u</div>
-                        </div>
-                        <div class="item-controls">
-                            <button class="qty-btn" onclick="updateQuantity('${item.id}', -1)">-</button>
-                            <div class="qty-display">${item.quantity}</div>
-                            <button class="qty-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
-                            <button class="remove-btn" onclick="confirmRemoveItem('${item.id}')"><img src="./img/icons/papelera_1.png" style="height: 100%;"></button>
-                        </div>
-                    </div>
-                `;
-                }).join('');
-            }
-
-            document.getElementById('totalAmount').textContent = `RD$${formatNumber(currentOrder.total, true)}`;
-        }
-
-
-        // Añadir esta función para formatear números:
-        function formatNumber(amount, removeDecimals = false) {
-            let formatted;
-            if (removeDecimals) {
-                formatted = Math.round(amount).toLocaleString('en-US');
-            } else {
-                formatted = amount.toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            }
-            return formatted;
-        }
-
-
-        function confirmRemoveItem(productId) {
-            const product = productos.find(p => p.id === productId);
-            const productName = product ? product.name : 'este artículo';
-
-            if (confirm(`¿Estás seguro de que quieres eliminar ${productName} del pedido?`)) {
-                removeItem(productId);
-            }
-        }
-
-        async function updateQuantity(productId, change) {
-            let targetOrder;
-            if (isQuickSale) {
-                targetOrder = window.quickOrder;
-            } else {
-                targetOrder = mesas[currentMesa];
-            }
-
-            const item = targetOrder.items.find(item => item.id === productId);
-            if (!item) return;
-
-            const newQuantity = item.quantity + change;
-
-            if (newQuantity <= 0) {
-                const product = productos.find(p => p.id === productId);
-                const productName = product ? product.name : 'este artículo';
-
-                if (confirm(`¿Estás seguro de que quieres eliminar ${productName} del pedido?`)) {
-                    await removeItem(productId);
-                }
-                return;
-            }
-
-            const product = productos.find(p => p.id === productId);
-            if (newQuantity > product.stock) {
-                showNotification('No hay suficiente stock', 'error');
-                return;
-            }
-
-            item.quantity = newQuantity;
-            item.subtotal = item.quantity * item.price;
-            targetOrder.total = targetOrder.items.reduce((sum, item) => sum + item.subtotal, 0);
-
-            // Actualizar Firebase si no es quick sale
-            if (!isQuickSale) {
-                try {
-                    await db.collection('mesas').doc(currentMesa).update({
-                        items: targetOrder.items,
-                        total: targetOrder.total
-                    });
-                } catch (error) {
-                    console.error('Error al actualizar mesa:', error);
-                    showNotification('Error al actualizar caja', 'error');
-                    return;
-                }
-            }
-
-            updateOrderDisplay();
-            renderMesas();
-        }
-
-        async function removeItem(productId) {
-            let targetOrder;
-            if (isQuickSale) {
-                targetOrder = window.quickOrder;
-            } else {
-                targetOrder = mesas[currentMesa];
-            }
-
-            const itemIndex = targetOrder.items.findIndex(item => item.id === productId);
-            if (itemIndex > -1) {
-                targetOrder.items.splice(itemIndex, 1);
-                targetOrder.total = targetOrder.items.reduce((sum, item) => sum + item.subtotal, 0);
-
-                // Actualizar Firebase si no es quick sale
-                if (!isQuickSale) {
-                    try {
-                        await db.collection('mesas').doc(currentMesa).update({
-                            items: targetOrder.items,
-                            total: targetOrder.total
-                        });
-                    } catch (error) {
-                        console.error('Error al actualizar mesa:', error);
-                        showNotification('Error al actualizar caja', 'error');
-                        return;
-                    }
-                }
-
-                updateOrderDisplay();
-                renderMesas();
-                showNotification('Producto eliminado', 'success');
-            }
-        }
-
-        function removeLastDigit() {
-            const input = document.getElementById('receivedAmount');
-            let currentValue = input.value;
-
-            if (currentValue.length > 0) {
-                // Eliminar el último carácter
-                input.value = currentValue.slice(0, -1);
-
-                // Si queda vacío, poner "0"
-                if (input.value === '') {
-                    input.value = '0';
-                }
-
-                // Disparar el evento input para actualizar el cambio
-                const event = new Event('input');
-                input.dispatchEvent(event);
-            }
-        }
-
-        function selectPaymentMethod(method) {
-            // Quitar clase active de todos los botones
-            document.querySelectorAll('.payment-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Añadir clase active al botón seleccionado
-            document.querySelector(`.payment-${method}`).classList.add('active');
-
-            // Actualizar el valor del método de pago
-            document.getElementById('paymentMethod').value = method;
-
-            // Mostrar/ocultar campos según el método
-            const isEfectivo = method === 'efectivo';
-            document.getElementById('receivedGroup').style.display = isEfectivo ? 'block' : 'none';
-            document.getElementById('changeGroup').style.display = isEfectivo ? 'block' : 'none';
-        }
-
-        function processPayment() {
-            let currentOrder;
-            if (isQuickSale) {
-                currentOrder = window.quickOrder || { items: [], total: 0 };
-            } else {
-                currentOrder = mesas[currentMesa];
-            }
-
-            if (currentOrder.items.length === 0) {
-                showNotification('No hay productos para facturar', 'error');
-                return;
-            }
-
-            //document.getElementById('paymentMethod').value = 'efectivo';
-            document.getElementById('receivedAmount').value = '';
-            document.getElementById('changeAmount').value = '0';
-
-            if (!document.getElementById('paymentAmount')) {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.id = 'paymentAmount';
-                input.value = currentOrder.total.toFixed(0);
-                document.getElementById('paymentModal').querySelector('.modal-content').appendChild(input);
-            } else {
-                document.getElementById('paymentAmount').value = currentOrder.total.toFixed(0);
-            }
-
-            document.getElementById('receivedGroup').style.display = 'block';
-            document.getElementById('changeGroup').style.display = 'block';
-
-            updatePaymentSummary(currentOrder);
-
-            document.getElementById('receivedAmount').addEventListener('input', function (e) {
-                const received = parseFloat(e.target.value) || 0;
-                const total = parseFloat(document.getElementById('paymentAmount').value) || 0;
-                const change = received - total;
-
-                const changeInput = document.getElementById('changeAmount');
-                if (change >= 0) {
-                    changeInput.value = change.toFixed(0);
-                    changeInput.style.color = '#38a169';
-                } else {
-                    changeInput.value = Math.abs(change).toFixed(0);
-                    changeInput.style.color = '#e53e3e';
-                }
-            });
-
-            document.getElementById('paymentModal').classList.add('active');
-        }
-
-        function updatePaymentSummary(order) {
-            const summaryContainer = document.getElementById('paymentSummary');
-
-            let summaryHTML = `
-            <p>Factura<p>
-        <div class="payment-summary-header">
-            <span>Productos</span>
-            <span>Precio</span>
-            <span>Cant.</span>
-            <span>Subtotal</span>
-        </div>
-    `;
-
-            summaryHTML += order.items.map(item => `
-        <div class="payment-summary-item">
-            <span>${item.name}</span>
-            <span>RD$${item.price.toFixed(0)}</span>
-            <span>x${item.quantity}</span>
-            <span>RD$${item.subtotal.toFixed(0)}</span>
-        </div>
-    `).join('');
-
-            summaryHTML += `
-        <div class="payment-summary-total">
-            <span colspan="3">Total:</span>
-            <span>RD$${order.total.toFixed(0)}</span>
-        </div>
-    `;
-
-            summaryContainer.innerHTML = summaryHTML;
-        }
-
-        function closePaymentModal() {
-            document.getElementById('paymentModal').classList.remove('active');
-        }
-
-        function appendToAmount(value) {
-            const input = document.getElementById('receivedAmount');
-            const currentValue = input.value;
-
-            if (currentValue === '0' && value !== '00') {
-                input.value = value;
-            } else if (currentValue.includes('.') && currentValue.split('.')[1].length >= 2) {
-                return;
-            } else if (value === '00' && currentValue === '') {
-                input.value = '0';
-            } else {
-                input.value += value;
-            }
-
-            const event = new Event('input');
-            input.dispatchEvent(event);
-        }
-
-        function clearAmount() {
-            document.getElementById('receivedAmount').value = '';
-            document.getElementById('changeAmount').value = '0.00';
-        }
-
-        async function confirmPayment() {
-    const paymentMethod = document.getElementById('paymentMethod').value;
-    const receivedAmount = parseFloat(document.getElementById('receivedAmount').value) || 0;
-    const changeAmount = parseFloat(document.getElementById('changeAmount').value) || 0;
-
-    let currentOrder;
-    if (isQuickSale) {
-        currentOrder = window.quickOrder || { items: [], total: 0 };
-    } else {
-        currentOrder = mesas[currentMesa];
+    <div id="panelCaja" class="main-panel"><h2>Gestión de Caja</h2><div id="cajaContent"></div></div>
+    <div id="panelFacturas" class="main-panel"><h2>Facturas Generadas</h2><div id="facturasList"></div></div>
+    <div id="panelInventario" class="main-panel"><h2>Inventario</h2><div id="inventarioContent"></div></div>
+    <div id="panelConfiguracion" class="main-panel"><h2>Configuración</h2><div id="configContent"></div></div>
+    <div id="panelEstadisticas" class="main-panel"><h2>Estadísticas y Contabilidad</h2><canvas id="ventasChart" width="400" height="200"></canvas><div id="balanceGeneral"></div></div>
+</div>
+
+<!-- Modal Factura -->
+<div id="facturaModal" class="modal"><div class="modal-content"><h3>Procesar Factura</h3><div id="modalCartItems"></div><p><strong>Total: RD$ <span id="modalTotal">0</span></strong></p><label>Método de Pago:</label><select id="pagoMetodo"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="tarjeta">Tarjeta de Crédito</option></select><div id="efectivoDiv"><label>Recibido:</label><div class="numeric-pad" id="numericPad"></div><input type="number" id="recibidoInput" placeholder="0.00"><p>Cambio: RD$ <span id="cambioDisplay">0.00</span></p></div><label>Empleado:</label><select id="empleadoSelect"></select><label>Estado:</label><select id="facturaEstado"><option value="pagada">Confirmar Pago</option><option value="pendiente">Pago Pendiente</option></select><button id="confirmarFacturaBtn" class="btn-primary">Guardar Factura</button><button id="closeModalBtn">Cancelar</button></div></div>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyB7cX3O8Nkhg5XYsuH1UIn0ZDyxoxLzTB4", authDomain: "colmapp-4aaa4.firebaseapp.com", projectId: "colmapp-4aaa4", storageBucket: "colmapp-4aaa4.firebasestorage.app", messagingSenderId: "767529335752", appId: "1:767529335752:web:5967b10a0e0da050f91efd", measurementId: "G-22YKHGWTMH" };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth(), db = firebase.firestore(), storage = firebase.storage();
+
+    let currentUser = null, currentNegocioId = null, currentNegocioData = null, currentUserRole = 'empleado'; // admin por defecto al registrar
+    let cart = [], productosCache = [], categoriasCache = [], cajaActual = null, itbisPorcentaje = 18, itbisAsumeCliente = true;
+    let activeCategoryId = null;
+
+    // Helper tiempo RD
+    function updateDateTime() { const d = new Date(); d.setHours(d.getUTCHours() - 4); document.getElementById('datetimeRD').innerText = d.toLocaleString('es-DO'); }
+    setInterval(updateDateTime, 1000); updateDateTime();
+
+    // UI Menu por rol
+    function renderMenu() {
+        const menuDiv = document.getElementById('menuButtons');
+        const panels = ['facturacion', 'caja', 'facturas'];
+        if(currentUserRole === 'admin') panels.push('inventario', 'configuracion', 'estadisticas');
+        menuDiv.innerHTML = panels.map(p => `<button data-panel="${p}">${p==='facturacion'?'Facturación':p==='caja'?'Caja':p==='facturas'?'Facturas':p==='inventario'?'Inventario':p==='configuracion'?'Configuración':'Estadísticas'}</button>`).join('');
+        document.querySelectorAll('[data-panel]').forEach(btn => btn.addEventListener('click', (e) => { document.querySelectorAll('.main-panel').forEach(p => p.classList.remove('active-panel')); document.getElementById(`panel${btn.dataset.panel.charAt(0).toUpperCase()+btn.dataset.panel.slice(1)}`).classList.add('active-panel'); loadPanelData(btn.dataset.panel); }));
     }
 
-    const subtotal = currentOrder.total;
-    const taxRate = 0.18; // 18% de ITBIS
-    const taxAmount = subtotal * taxRate;
-    const totalAmount = subtotal + taxAmount;
+    async function loadPanelData(panel) { if(panel==='caja') await loadCajaUI(); if(panel==='facturas') await loadFacturas(); if(panel==='inventario' && currentUserRole==='admin') await loadInventarioUI(); if(panel==='configuracion') await loadConfigUI(); if(panel==='estadisticas') await loadEstadisticas(); }
 
-    if (paymentMethod === 'efectivo' && receivedAmount < totalAmount) {
-        showNotification('El dinero recibido es insuficiente', 'error');
-        return;
-    }
+    // Verificar caja abierta
+    async function checkCajaAbierta() { if(!currentNegocioId) return false; const snap = await db.collection('negocios').doc(currentNegocioId).collection('caja').where('estado','==','abierta').get(); if(snap.empty) { alert('⚠️ Caja cerrada. No se pueden realizar ventas.'); return false; } cajaActual = snap.docs[0]; return true; }
 
-    if (currentOrder.items.length === 0) {
-        showNotification('No hay productos para facturar', 'error');
-        return;
-    }
+    // Cargar productos y categorías
+    async function loadCategoriasYProductos() { if(!currentNegocioId) return; const catsSnap = await db.collection('negocios').doc(currentNegocioId).collection('inventario').doc('categorias').collection('lista').get(); categoriasCache = catsSnap.docs.map(d=>({id:d.id,...d.data()})); const filterSelect = document.getElementById('categoryFilterSelect'); filterSelect.innerHTML = '<option value="">Todas las categorías</option>' + categoriasCache.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join(''); showCategoriesGrid(); }
 
-    try {
-        // Obtener información del usuario actual
-        const user = auth.currentUser;
-        let employeeInfo = {
-            id: user.uid,
-            name: 'Usuario',
-            email: user.email
-        };
-        
-        // Intentar obtener información adicional del empleado desde Firestore
-        try {
-            const userDoc = await db.collection('users').doc(user.uid).get();
-            if (userDoc.exists) {
-                const userData = userDoc.data();
-                employeeInfo.name = userData.name || userData.displayName || user.email.split('@')[0];
-            }
-        } catch (error) {
-            console.error('Error al obtener información del usuario:', error);
-        }
+    function showCategoriesGrid() { const container = document.getElementById('categoriesContainer'); container.style.display='flex'; document.getElementById('productsContainer').style.display='none'; document.getElementById('backToCategoriesBtn').style.display='none'; container.innerHTML = categoriasCache.map(cat=>`<div class="category-card" data-catid="${cat.id}"><img src="${cat.imagenUrl || 'https://via.placeholder.com/60'}" onerror="this.src='https://via.placeholder.com/60'"><div>${cat.nombre}</div></div>`).join(''); document.querySelectorAll('.category-card').forEach(el=>el.addEventListener('click',async()=>{ await showProductsByCategory(el.dataset.catid); })); }
 
-        const invoice = {
-            id: generateInvoiceId(),
-            timestamp: new Date(),
-            mesa: isQuickSale ? 'Factura Rápida' : mesas[currentMesa].name,
-            items: [...currentOrder.items],
-            subtotal: subtotal,
-            tax: taxAmount, // Guardar el monto del ITBIS
-            total: totalAmount, // Guardar el total con ITBIS
-            paymentMethod: paymentMethod,
-            receivedAmount: paymentMethod === 'efectivo' ? receivedAmount : totalAmount,
-            changeAmount: paymentMethod === 'efectivo' ? changeAmount : 0,
-            status: 'paid',
-            employee: employeeInfo // Añadir información del empleado
-        };
+    async function showProductsByCategory(catId) { activeCategoryId = catId; const prodsSnap = await db.collection('negocios').doc(currentNegocioId).collection('inventario').doc('productos').collection(catId).get(); const prods = prodsSnap.docs.map(d=>({id:d.id, ...d.data(), categoriaId:catId})); productosCache = prods; const container = document.getElementById('productsContainer'); container.style.display='flex'; document.getElementById('categoriesContainer').style.display='none'; document.getElementById('backToCategoriesBtn').style.display='block'; container.innerHTML = prods.map(p=>`<div class="product-card" data-prodid="${p.id}" data-catid="${catId}"><img src="${p.imagenUrl || 'https://via.placeholder.com/60'}"><div>${p.nombre}</div><div>RD$${p.precio}</div><div>Stock:${p.stock}</div></div>`).join(''); document.querySelectorAll('.product-card').forEach(el=>el.addEventListener('click',()=>{ const id=el.dataset.prodid, cat=el.dataset.catid; const prod=productosCache.find(p=>p.id===id); if(prod) addToCart(prod); })); }
 
-        await db.collection('invoices').doc(invoice.id).set(invoice);
+    document.getElementById('backToCategoriesBtn')?.addEventListener('click',()=>{ showCategoriesGrid(); });
 
-        await updateProductStock(currentOrder.items);
+    function addToCart(product) { const exist = cart.find(i=>i.id===product.id); if(exist) exist.cantidad++; else cart.push({...product, cantidad:1}); renderCart(); }
 
-        if (!isQuickSale) {
-            await db.collection('mesas').doc(currentMesa).update({
-                items: [],
-                total: 0
-            });
-        } else {
-            window.quickOrder = { items: [], total: 0 };
-        }
+    function renderCart() { let subtotal=0; const cartDiv=document.getElementById('cartList'); cartDiv.innerHTML=cart.map((item,idx)=>`<div class="cart-item"><span>${item.nombre} x${item.cantidad}</span><span>RD$${(item.precio*item.cantidad).toFixed(2)}</span><button class="remove-item" data-idx="${idx}">🗑️</button></div>`).join(''); cart.forEach(i=>subtotal+=i.precio*i.cantidad); const itbis=itbisAsumeCliente?subtotal*itbisPorcentaje/100:0; const total=itbisAsumeCliente?subtotal+itbis:subtotal; document.getElementById('subtotal').innerText=subtotal.toFixed(2); document.getElementById('taxAmount').innerText=itbis.toFixed(2); document.getElementById('totalAmount').innerText=total.toFixed(2); document.querySelectorAll('.remove-item').forEach(btn=>btn.addEventListener('click',(e)=>{ const idx=parseInt(btn.dataset.idx); cart.splice(idx,1); renderCart(); })); }
 
-        closePaymentModal();
-        updateOrderDisplay();
-        renderMesas();
-        showPaymentSummary(invoice);
-        showNotification('Factura procesada correctamente', 'success');
-
-    } catch (error) {
-        console.error('Error al procesar pago:', error);
-        showNotification('Error al procesar el pago', 'error');
-    }
-}
-
-        function generateInvoiceId() {
-            const timestamp = Date.now();
-            const random = Math.floor(Math.random() * 1000);
-            return `INV-${timestamp}-${random}`;
-        }
-
-        async function updateProductStock(items) {
-            try {
-                const batch = db.batch();
-
-                items.forEach(item => {
-                    const productRef = db.collection('products').doc(item.id);
-                    const product = productos.find(p => p.id === item.id);
-
-                    if (product) {
-                        const newStock = product.stock - item.quantity;
-                        batch.update(productRef, { stock: newStock });
-                        product.stock = newStock;
-                    }
-                });
-
-                await batch.commit();
-                renderProducts();
-            } catch (error) {
-                console.error('Error al actualizar stock:', error);
-                showNotification('Error al actualizar stock', 'error');
-            }
-        }
-
-function showPaymentSummary(invoice) {
-    const itemsHTML = invoice.items.map(item => `
-        <tr>
-            <td>${item.name}</td>
-            <td>${formatCurrency(item.price)}</td>
-            <td>x${item.quantity}</td>
-            <td>${formatCurrency(item.subtotal)}</td>
-        </tr>
-    `).join('');
-
-    // Obtener fecha y hora en formato 12h AM/PM
-    const now = new Date();
-    const options = { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true 
+    // Checkout y modal
+    document.getElementById('checkoutBtn').onclick=async()=>{ if(!await checkCajaAbierta()) return; if(cart.length===0) return alert('Carrito vacío'); const total=parseFloat(document.getElementById('totalAmount').innerText); document.getElementById('modalTotal').innerText=total; document.getElementById('modalCartItems').innerHTML=cart.map(i=>`<div>${i.nombre} x${i.cantidad} = RD$${(i.precio*i.cantidad).toFixed(2)}</div>`).join(''); // cargar empleados
+        const empleadosSnap = await db.collection('negocios').doc(currentNegocioId).collection('empleados').get();
+        const empleadosOpts = `<option value="${currentUser.uid}">${currentUser.email}</option>`+empleadosSnap.docs.map(d=>`<option value="${d.id}">${d.data().nombre}</option>`).join('');
+        document.getElementById('empleadoSelect').innerHTML=empleadosOpts;
+        document.getElementById('facturaModal').style.display='flex';
     };
-    const formattedDate = now.toLocaleString('es-ES', options);
+    document.getElementById('closeModalBtn').onclick=()=>document.getElementById('facturaModal').style.display='none';
+    document.getElementById('confirmarFacturaBtn').onclick=async()=>{ const metodo=document.getElementById('pagoMetodo').value; let recibido=0; if(metodo==='efectivo') recibido=parseFloat(document.getElementById('recibidoInput').value||0); const estadoFactura=document.getElementById('facturaEstado').value; const empleadoId=document.getElementById('empleadoSelect').value; const totalFactura=parseFloat(document.getElementById('modalTotal').innerText); const ncf=`B${Math.floor(Math.random()*1000000)}`; const facturaData={ fecha:new Date(), items:cart.map(i=>({id:i.id,nombre:i.nombre,cantidad:i.cantidad,precio:i.precio})), subtotal:parseFloat(document.getElementById('subtotal').innerText), itbis:parseFloat(document.getElementById('taxAmount').innerText), total:totalFactura, metodoPago:metodo, estado:estadoFactura, empleadoId, ncf, negocioId:currentNegocioId }; await db.collection('negocios').doc(currentNegocioId).collection('facturas').add(facturaData); for(const item of cart){ const prodRef = db.collection('negocios').doc(currentNegocioId).collection('inventario').doc('productos').collection(item.categoriaId).doc(item.id); await prodRef.update({stock: firebase.firestore.FieldValue.increment(-item.cantidad)}); } await db.collection('negocios').doc(currentNegocioId).collection('caja').doc(cajaActual.id).update({ingresos: firebase.firestore.FieldValue.increment(totalFactura), montoFinal: firebase.firestore.FieldValue.increment(totalFactura)}); cart=[]; renderCart(); document.getElementById('facturaModal').style.display='none'; alert('Factura guardada'); loadFacturas(); };
+    // Numpad efectivo
+    const padDiv=document.getElementById('numericPad'); if(padDiv){ for(let i=1;i<=9;i++){let b=document.createElement('button');b.innerText=i;b.onclick=()=>{let inp=document.getElementById('recibidoInput');inp.value=parseFloat(inp.value||0)*10+i;calcularCambio();};padDiv.appendChild(b);} let b0=document.createElement('button');b0.innerText='0';b0.onclick=()=>{let inp=document.getElementById('recibidoInput');inp.value=(inp.value||0)*10;calcularCambio();};padDiv.appendChild(b0); let bc=document.createElement('button');bc.innerText='C';bc.onclick=()=>{document.getElementById('recibidoInput').value='';calcularCambio();};padDiv.appendChild(bc);}
+    function calcularCambio(){ let recib=parseFloat(document.getElementById('recibidoInput').value)||0; let total=parseFloat(document.getElementById('modalTotal').innerText); document.getElementById('cambioDisplay').innerText=(recib-total).toFixed(2); }
+    document.getElementById('pagoMetodo')?.addEventListener('change',e=>{document.getElementById('efectivoDiv').style.display=e.target.value==='efectivo'?'block':'none';});
+    // Caja UI
+    async function loadCajaUI(){ if(!currentNegocioId) return; const cajaSnap=await db.collection('negocios').doc(currentNegocioId).collection('caja').where('estado','==','abierta').get(); const cajaCerradas=await db.collection('negocios').doc(currentNegocioId).collection('caja').where('estado','==','cerrada').orderBy('fechaCierre','desc').limit(10).get(); let html=''; if(cajaSnap.empty) html+=`<button id="abrirCajaBtn">Abrir Caja</button>`; else{ const caja=cajaSnap.docs[0].data(); html+=`<div>Caja Abierta desde: ${caja.fechaApertura?.toDate()} | Monto Inicial: RD$${caja.montoInicial} | Actual: RD$${caja.montoFinal}<button id="cerrarCajaBtn">Cerrar Caja</button><button id="registrarGastoBtn">Registrar Gasto</button></div>`; } html+=`<h3>Historial Cierres</h3><ul>${cajaCerradas.docs.map(d=>`<li>Cerrada: ${d.data().fechaCierre?.toDate()} - Final: ${d.data().montoFinal}</li>`).join('')}</ul>`; document.getElementById('cajaContent').innerHTML=html; document.getElementById('abrirCajaBtn')?.addEventListener('click',async()=>{ let monto=prompt('Monto inicial'); if(monto){ await db.collection('negocios').doc(currentNegocioId).collection('caja').add({montoInicial:parseFloat(monto),montoFinal:parseFloat(monto),fechaApertura:new Date(),estado:'abierta',ingresos:0,gastos:0}); loadCajaUI(); } }); document.getElementById('cerrarCajaBtn')?.addEventListener('click',async()=>{ let montoFinal=prompt('Monto final para cuadre'); await db.collection('negocios').doc(currentNegocioId).collection('caja').doc(cajaSnap.docs[0].id).update({estado:'cerrada',fechaCierre:new Date(),montoFinal:parseFloat(montoFinal)}); loadCajaUI(); }); document.getElementById('registrarGastoBtn')?.addEventListener('click',async()=>{ let desc=prompt('Concepto'), monto=prompt('Monto'); await db.collection('negocios').doc(currentNegocioId).collection('caja').doc(cajaSnap.docs[0].id).update({gastos:firebase.firestore.FieldValue.increment(parseFloat(monto)),montoFinal:firebase.firestore.FieldValue.increment(-parseFloat(monto))}); loadCajaUI(); }); }
+    async function loadFacturas(){ const facturas=await db.collection('negocios').doc(currentNegocioId).collection('facturas').orderBy('fecha','desc').get(); let html='<table><tr><th>NCF</th><th>Total</th><th>Estado</th><th>Acción</th></tr>'; facturas.forEach(doc=>{ const f=doc.data(); html+=`<tr><td>${f.ncf}</td><td>RD$${f.total}</td><td>${f.estado}</td><td>${f.estado==='pendiente'?`<button onclick="marcarPagada('${doc.id}')">Marcar Pagada</button>`:'Pagada'}</td></tr>`; }); html+='</table>'; document.getElementById('facturasList').innerHTML=html; window.marcarPagada=async(id)=>{ await db.collection('negocios').doc(currentNegocioId).collection('facturas').doc(id).update({estado:'pagada'}); loadFacturas(); }; }
+    async function loadInventarioUI(){ let html=`<button id="addProductBtn">+ Nuevo Producto</button><div id="productListAdmin"></div>`; document.getElementById('inventarioContent').innerHTML=html; document.getElementById('addProductBtn')?.addEventListener('click',()=>alert('Formulario extenso, implementar modal completo para agregar producto con imagen y código')); await loadCategoriasYProductos(); }
+    async function loadConfigUI(){ const negDoc=await db.collection('negocios').doc(currentNegocioId).get(); const data=negDoc.data(); let html=`<label>Nombre Colmado:</label><input id="confNombre" value="${data.nombre}"><label>ITBIS %:</label><input id="confItbis" value="${itbisPorcentaje}"><label>Impuesto lo asume:</label><select id="confAsume"><option ${itbisAsumeCliente?'selected':''} value="cliente">Cliente</option><option ${!itbisAsumeCliente?'selected':''} value="empresa">Empresa</option></select><button id="saveConfigBtn">Guardar</button><hr><h3>Empleados</h3><button id="addEmpleadoBtn">Agregar Empleado</button><div id="empleadosList"></div>`; document.getElementById('configContent').innerHTML=html; const empleados=await db.collection('negocios').doc(currentNegocioId).collection('empleados').get(); document.getElementById('empleadosList').innerHTML=empleados.docs.map(e=>`<div>${e.data().nombre} - ${e.data().rol}</div>`).join(''); document.getElementById('saveConfigBtn')?.addEventListener('click',async()=>{ itbisPorcentaje=parseFloat(document.getElementById('confItbis').value); itbisAsumeCliente=document.getElementById('confAsume').value==='cliente'; await db.collection('negocios').doc(currentNegocioId).update({nombre:document.getElementById('confNombre').value}); alert('Config guardada'); }); document.getElementById('addEmpleadoBtn')?.addEventListener('click',async()=>{ let email=prompt('Email empleado'), nombre=prompt('Nombre'), rol=prompt('Rol (admin/empleado)'); const userAuth=await auth.createUserWithEmailAndPassword(email,'temporal123'); await db.collection('negocios').doc(currentNegocioId).collection('empleados').doc(userAuth.user.uid).set({nombre,rol,email}); alert('Empleado agregado'); loadConfigUI(); }); }
+    async function loadEstadisticas(){ const ventasSnap=await db.collection('negocios').doc(currentNegocioId).collection('facturas').get(); const totalVentas=ventasSnap.docs.reduce((acc,d)=>acc+d.data().total,0); document.getElementById('balanceGeneral').innerHTML=`<p>Ingresos Totales: RD$${totalVentas}</p><p>Egresos: -</p><p>Ganancia Neta: RD$${totalVentas}</p>`; new Chart(document.getElementById('ventasChart'),{type:'bar',data:{labels:['Ventas'],datasets:[{label:'Total RD$',data:[totalVentas]}]}}); }
 
-    // Mostrar información de pago en efectivo si aplica
-    const efectivoHTML = invoice.paymentMethod === 'efectivo' ? `
-        <tr class="efectivo-info">
-            <td colspan="3">Monto Recibido:</td>
-            <td>${formatCurrency(invoice.receivedAmount)}</td>
-        </tr>
-        <tr class="efectivo-info">
-            <td colspan="3">Cambio:</td>
-            <td>${formatCurrency(invoice.changeAmount)}</td>
-        </tr>
-    ` : '';
+    // Auth & multi tenant
+    auth.onAuthStateChanged(async(user)=>{ if(user){ currentUser=user; const userDoc=await db.collection('negocios').doc(user.uid).get(); if(userDoc.exists){ currentNegocioId=userDoc.data().negocioId; currentUserRole=userDoc.data().rol||'empleado'; }else{ const negocioQuery=await db.collection('negocios').where('propietarioUid','==',user.uid).get(); if(!negocioQuery.empty){ currentNegocioId=negocioQuery.docs[0].id; currentUserRole='admin'; await db.collection('negocios').doc(currentNegocioId).collection('empleados').doc(user.uid).set({rol:'admin',nombre:user.email,email:user.email}); }else{ alert('No pertenece a negocio'); auth.signOut(); return; } } const negDoc=await db.collection('negocios').doc(currentNegocioId).get(); currentNegocioData=negDoc.data(); document.getElementById('companyNameDisplay').innerHTML=currentNegocioData.nombre; document.getElementById('app').style.display='block'; document.getElementById('loginView').style.display='none'; renderMenu(); await loadCategoriasYProductos(); await loadCajaUI(); }else{ document.getElementById('app').style.display='none'; document.getElementById('loginView').style.display='block'; document.getElementById('registerView').style.display='none'; } });
 
-    // Añadir información del empleado
-    const employeeHTML = invoice.employee ? `
-        <tr>
-            <td colspan="3"><strong>Empleado:</strong></td>
-            <td>${invoice.employee.name}</td>
-        </tr>
-    ` : '';
-
-    const html = `
-        <div class="factura-modern">
-            <h2 class="titulo">FACTURA</h2>
-            <p>MI COLMADO</p>
-            <p>${formattedDate}</p>
-            <hr>
-            <p><strong>ID:</strong> ${invoice.id}</p>
-            <p><strong>Caja:</strong> ${invoice.mesa}</p>
-            <p><strong>Método:</strong> ${invoice.paymentMethod.toUpperCase()}</p>
-            <table class="factura-tabla">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Precio</th>
-                        <th>Cant.</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsHTML}
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">Subtotal:</td>
-                        <td>${formatCurrency(invoice.subtotal)}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">ITBIS (18%):</td>
-                        <td>${formatCurrency(invoice.tax)}</td>
-                    </tr>
-                    <tr class="total-row">
-                        <td colspan="3"><strong>Total:</strong></td>
-                        <td><strong>${formatCurrency(invoice.total)}</strong></td>
-                    </tr>
-                    ${efectivoHTML}
-                    <tr>
-                        <td colspan="3"><strong>Método de pago:</strong></td>
-                        <td>${invoice.paymentMethod.toUpperCase()}</td>
-                    </tr>
-                    ${employeeHTML}
-                </tfoot>
-            </table>
-            <hr>
-            <p class="gracias">¡GRACIAS POR SU COMPRA!</p>
-            <p class="gracias">¡Que le aproveche!</p>
-        </div>
-    `;
-
-    document.getElementById('invoicePreview').innerHTML = html;
-    document.getElementById('invoiceModal').classList.add('active');
-}
-
-
-
-        function closeInvoiceModal() {
-            document.getElementById('invoiceModal').classList.remove('active');
-        }
-
-        function printInvoice() {
-            window.print();
-            closeInvoiceModal();
-        }
-
-        function centerText(text, width) {
-            const pad = Math.max(0, width - text.length);
-            const leftPad = Math.floor(pad / 2);
-            const rightPad = pad - leftPad;
-            return ' '.repeat(leftPad) + text + ' '.repeat(rightPad);
-        }
-
-        function formatCurrency(amount) {
-            return '$' + amount.toFixed(0);
-        }
-
-        function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.classList.add('show');
-
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-
-
-        // Función para imprimir factura sin procesar el pago
-function printInvoiceWithoutPayment() {
-    let currentOrder;
-    if (isQuickSale) {
-        currentOrder = window.quickOrder || { items: [], total: 0 };
-    } else {
-        currentOrder = mesas[currentMesa];
-    }
-
-    if (currentOrder.items.length === 0) {
-        showNotification('No hay productos para facturar', 'error');
-        return;
-    }
-
-    const subtotal = currentOrder.total;
-    const taxRate = 0.18; // 18% de ITBIS
-    const taxAmount = subtotal * taxRate;
-    const totalAmount = subtotal + taxAmount;
-
-    // Crear objeto de factura temporal
-    const tempInvoice = {
-        id: 'TEMP-' + Date.now(),
-        timestamp: new Date(),
-        mesa: isQuickSale ? 'Factura Rápida' : mesas[currentMesa].name,
-        items: [...currentOrder.items],
-        subtotal: subtotal,
-        tax: taxAmount,
-        total: totalAmount,
-        paymentMethod: 'pendiente',
-        receivedAmount: 0,
-        changeAmount: 0,
-        status: 'pending'
-    };
-
-    // Mostrar vista previa
-    showPaymentSummary(tempInvoice);
-
-    // Cerrar modal de pago
-    closePaymentModal();
-}
-    </script>
+    document.getElementById('loginBtn').onclick=async()=>{ const email=document.getElementById('loginEmail').value, pass=document.getElementById('loginPassword').value; await auth.signInWithEmailAndPassword(email,pass); };
+    document.getElementById('showRegisterBtn').onclick=()=>{document.getElementById('loginView').style.display='none';document.getElementById('registerView').style.display='block';};
+    document.getElementById('backToLoginBtn').onclick=()=>{document.getElementById('registerView').style.display='none';document.getElementById('loginView').style.display='block';};
+    document.getElementById('registerBusinessBtn').onclick=async()=>{ const nom=document.getElementById('regNegocio').value, rnc=document.getElementById('regRNC').value, dir=document.getElementById('regDir').value, tel=document.getElementById('regTel').value, email=document.getElementById('regEmail').value, pass=document.getElementById('regPassword').value; const cred=await auth.createUserWithEmailAndPassword(email,pass); const negocioRef=await db.collection('negocios').add({nombre:nom,RNC:rnc,direccion:dir,telefono:tel,propietarioUid:cred.user.uid,plan:'basico',creadoEn:new Date()}); await db.collection('negocios').doc(negocioRef.id).collection('empleados').doc(cred.user.uid).set({rol:'admin',nombre:email,email}); await db.collection('negocios').doc(cred.user.uid).set({negocioId:negocioRef.id,rol:'admin'}); alert('Negocio registrado! Inicie sesión'); window.location.reload(); };
+    document.getElementById('logoutAppBtn').onclick=()=>auth.signOut();
+</script>
 </body>
-
 </html>
-
-<!-- 1 -->
