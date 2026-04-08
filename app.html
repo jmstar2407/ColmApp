@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="es-DO">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>miColmApp - Sistema de Facturación</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container" id="appContainer">
+        <!-- Header Superior -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="business-logo">
+                    <i class="ri-store-2-fill"></i>
+                </div>
+                <div class="business-info">
+                    <span class="business-name" id="businessName">Mi Colmado</span>
+                    <span class="business-status" id="cajaStatus">
+                        <span class="status-dot"></span>
+                        <span id="cajaStatusText">Cargando...</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <button class="btn btn-primary btn-sm" id="quickSaleBtn" onclick="showPage('pos')">
+                    <i class="ri-flashlight-line"></i>
+                    Nueva Venta
+                </button>
+            </div>
+
+            <div class="header-right">
+                <div class="datetime-display">
+                    <span class="current-date" id="currentDate">--/--/----</span>
+                    <span class="current-time" id="currentTime">--:--:--</span>
+                </div>
+                <div class="user-menu" id="userMenu">
+                    <div class="user-avatar" id="userAvatar">--</div>
+                    <div class="user-info">
+                        <span class="user-name" id="userName">Usuario</span>
+                        <span class="user-role" id="userRole">Rol</span>
+                    </div>
+                    <i class="ri-arrow-down-s-line"></i>
+                </div>
+                <button class="btn btn-ghost btn-icon" onclick="logout()" title="Cerrar Sesión">
+                    <i class="ri-logout-box-r-line"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Barra de Navegación -->
+        <nav class="nav-bar">
+            <button class="nav-btn active" data-page="pos" onclick="showPage('pos')">
+                <i class="ri-shopping-cart-2-line"></i>
+                <span>Facturación</span>
+            </button>
+            <button class="nav-btn" data-page="caja" onclick="showPage('caja')">
+                <i class="ri-wallet-3-line"></i>
+                <span>Caja</span>
+            </button>
+            <button class="nav-btn" data-page="invoices" onclick="showPage('invoices')">
+                <i class="ri-file-list-3-line"></i>
+                <span>Facturas</span>
+            </button>
+            <button class="nav-btn admin-only" data-page="inventory" onclick="showPage('inventory')">
+                <i class="ri-archive-line"></i>
+                <span>Inventario</span>
+            </button>
+            <button class="nav-btn admin-only" data-page="reports" onclick="showPage('reports')">
+                <i class="ri-bar-chart-box-line"></i>
+                <span>Estadísticas</span>
+            </button>
+            <button class="nav-btn admin-only" data-page="config" onclick="showPage('config')">
+                <i class="ri-settings-3-line"></i>
+                <span>Configuración</span>
+            </button>
+        </nav>
+
+        <!-- Área Principal -->
+        <main class="main-content">
+            <!-- Página POS -->
+            <div class="page active" id="page-pos">
+                <div class="pos-container">
+                    <!-- Panel de Productos -->
+                    <div class="pos-products">
+                        <!-- Barra de Búsqueda -->
+                        <div class="search-bar">
+                            <div class="search-input-wrapper">
+                                <i class="ri-search-line"></i>
+                                <input type="text" class="search-input" id="searchProducts" placeholder="Buscar productos por nombre o código...">
+                            </div>
+                            <select class="category-select" id="categoryFilter">
+                                <option value="">Todas las categorías</option>
+                            </select>
+                            <div class="view-toggle">
+                                <button class="active" data-view="large" onclick="setProductView('large')">
+                                    <i class="ri-grid-fill"></i>
+                                </button>
+                                <button data-view="small" onclick="setProductView('small')">
+                                    <i class="ri-list-check"></i>
+                                </button>
+                            </div>
+                            <button class="barcode-btn" onclick="openBarcodeScanner()" title="Escanear código de barras">
+                                <i class="ri-barcode-box-line"></i>
+                            </button>
+                        </div>
+
+                        <!-- Navegación de Categorías -->
+                        <div class="categories-nav" id="categoriesNav">
+                            <!-- Categorías se cargan dinámicamente -->
+                        </div>
+
+                        <!-- Grid de Categorías -->
+                        <div class="categories-grid" id="categoriesGrid">
+                            <!-- Categorías se cargan dinámicamente -->
+                        </div>
+
+                        <!-- Grid de Productos -->
+                        <div class="products-grid grid-large" id="productsGrid">
+                            <!-- Productos se cargan dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Panel del Carrito -->
+                    <div class="cart-panel" id="cartPanel">
+                        <div class="cart-header" onclick="toggleCart()">
+                            <div class="cart-title">
+                                <i class="ri-shopping-cart-2-fill"></i>
+                                Carrito de Venta
+                                <span class="cart-count" id="cartCount">0</span>
+                            </div>
+                            <i class="ri-arrow-up-s-line" id="cartToggleIcon"></i>
+                        </div>
+                        <div class="cart-items" id="cartItems">
+                            <div class="cart-empty">
+                                <i class="ri-shopping-cart-line"></i>
+                                <p>El carrito está vacío</p>
+                                <small>Agrega productos para comenzar</small>
+                            </div>
+                        </div>
+                        <div class="cart-summary">
+                            <div class="cart-totals">
+                                <div class="cart-row">
+                                    <span>Subtotal</span>
+                                    <span id="cartSubtotal">RD$ 0.00</span>
+                                </div>
+                                <div class="cart-row">
+                                    <span>ITBIS (18%)</span>
+                                    <span id="cartItbis">RD$ 0.00</span>
+                                </div>
+                                <div class="cart-row total">
+                                    <span>Total</span>
+                                    <span id="cartTotal">RD$ 0.00</span>
+                                </div>
+                            </div>
+                            <div class="cart-actions">
+                                <button class="btn btn-secondary btn-block" onclick="clearCart()">
+                                    <i class="ri-delete-bin-line"></i>
+                                    Limpiar
+                                </button>
+                                <button class="btn btn-primary btn-block btn-lg" onclick="openInvoiceModal()" id="facturarBtn" disabled>
+                                    <i class="ri-receipt-line"></i>
+                                    Procesar Factura
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Página de Caja -->
+            <div class="page" id="page-caja">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="ri-wallet-3-line"></i>
+                        Gestión de Caja
+                    </h1>
+                </div>
+                <div class="caja-container">
+                    <!-- Estado de Caja -->
+                    <div class="caja-status-card" id="cajaStatusCard">
+                        <i class="ri-wallet-3-line caja-status-icon"></i>
+                        <h2 class="caja-status-title" id="cajaStatusTitle">Caja Cerrada</h2>
+                        <p class="caja-status-subtitle" id="cajaStatusSubtitle">Abre la caja para comenzar a vender</p>
+                    </div>
+
+                    <!-- Formulario de Apertura/Cierre -->
+                    <div class="card" id="cajaFormCard">
+                        <div class="card-body">
+                            <form id="cajaForm" class="caja-form">
+                                <div class="form-row">
+                                    <div class="form-group" id="montoGroup">
+                                        <label for="cajaMonto">
+                                            <i class="ri-money-dollar-circle-line"></i>
+                                            Monto Inicial/Final
+                                        </label>
+                                        <input type="number" id="cajaMonto" step="0.01" min="0" placeholder="0.00">
+                                    </div>
+                                    <div class="form-group" id="descripcionGroup" style="display: none;">
+                                        <label for="cajaDescripcion">
+                                            <i class="ri-file-text-line"></i>
+                                            Descripción
+                                        </label>
+                                        <input type="text" id="cajaDescripcion" placeholder="Descripción del movimiento">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <button type="submit" class="btn btn-success btn-lg" id="cajaMainBtn">
+                                        <i class="ri-lock-unlock-line"></i>
+                                        <span id="cajaMainBtnText">Abrir Caja</span>
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-lg" onclick="openIngresoModal()" id="ingresoBtn" disabled>
+                                        <i class="ri-add-circle-line"></i>
+                                        Ingreso
+                                    </button>
+                                    <button type="button" class="btn btn-warning btn-lg" onclick="openGastoModal()" id="gastoBtn" disabled>
+                                        <i class="ri-subtract-circle-line"></i>
+                                        Gasto
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-lg" onclick="openCierreModal()" id="cierreBtn" style="display: none;">
+                                        <i class="ri-lock-line"></i>
+                                        Cerrar Caja
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Historial de Caja -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="ri-history-line"></i>
+                                Historial de Caja
+                            </h3>
+                        </div>
+                        <div class="card-body caja-historial" id="cajaHistorial">
+                            <p class="text-center text-muted">Cargando historial...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Página de Facturas -->
+            <div class="page" id="page-invoices">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="ri-file-list-3-line"></i>
+                        Facturas Generadas
+                    </h1>
+                </div>
+                <div class="invoices-container">
+                    <div class="invoices-tabs">
+                        <button class="invoice-tab active" data-status="all" onclick="filterInvoices('all')">
+                            <i class="ri-file-list-line"></i>
+                            Todas
+                        </button>
+                        <button class="invoice-tab" data-status="pagada" onclick="filterInvoices('pagada')">
+                            <i class="ri-checkbox-circle-line"></i>
+                            Pagadas
+                        </button>
+                        <button class="invoice-tab" data-status="pendiente" onclick="filterInvoices('pendiente')">
+                            <i class="ri-time-line"></i>
+                            Pendientes
+                        </button>
+                    </div>
+                    <div class="invoices-grid" id="invoicesGrid">
+                        <p class="text-center text-muted">Cargando facturas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Página de Inventario -->
+            <div class="page" id="page-inventory">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="ri-archive-line"></i>
+                        Inventario
+                    </h1>
+                    <div class="page-actions">
+                        <button class="btn btn-primary" onclick="openProductModal()">
+                            <i class="ri-add-line"></i>
+                            Nuevo Producto
+                        </button>
+                    </div>
+                </div>
+                <div class="inventory-container">
+                    <div class="inventory-toolbar">
+                        <div class="inventory-search">
+                            <i class="ri-search-line"></i>
+                            <input type="text" id="searchInventory" placeholder="Buscar productos...">
+                        </div>
+                        <select class="category-select" id="inventoryCategoryFilter">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="openCategoryModal()">
+                            <i class="ri-folder-add-line"></i>
+                            Categorías
+                        </button>
+                    </div>
+                    <div class="inventory-table-container">
+                        <table class="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Precio Venta</th>
+                                    <th>Costo</th>
+                                    <th>Stock</th>
+                                    <th>Código</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">Cargando inventario...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Página de Estadísticas -->
+            <div class="page" id="page-reports">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="ri-bar-chart-box-line"></i>
+                        Estadísticas y Contabilidad
+                    </h1>
+                    <div class="page-actions">
+                        <input type="date" id="reportDateStart">
+                        <input type="date" id="reportDateEnd">
+                        <button class="btn btn-primary" onclick="loadReportData()">
+                            <i class="ri-filter-line"></i>
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+                <div class="stats-container">
+                    <!-- Cards de Estadísticas -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon sales">
+                                <i class="ri-shopping-bag-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Ventas del Período</div>
+                                <div class="stat-value" id="statVentas">RD$ 0.00</div>
+                                <div class="stat-change" id="statVentasCount">
+                                    <span>0 transacciones</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon revenue">
+                                <i class="ri-money-dollar-circle-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Ingresos Totales</div>
+                                <div class="stat-value" id="statIngresos">RD$ 0.00</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon expenses">
+                                <i class="ri-arrow-down-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Egresos Totales</div>
+                                <div class="stat-value" id="statEgresos">RD$ 0.00</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon profit">
+                                <i class="ri-trending-up-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Ganancia Neta</div>
+                                <div class="stat-value" id="statGanancia">RD$ 0.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráficos -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Productos Más Vendidos</h3>
+                            </div>
+                            <div class="chart-body">
+                                <div class="top-products-list" id="topProductsList">
+                                    <p class="text-center text-muted">No hay datos disponibles</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Resumen del Período</h3>
+                            </div>
+                            <div class="chart-body">
+                                <div class="chart-placeholder">
+                                    <i class="ri-bar-chart-2-line"></i>
+                                    <p>Gráfico de ventas</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Productos Más Vendidos Detallado -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="ri-trophy-line"></i>
+                                Top Productos Vendidos
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="inventory-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Producto</th>
+                                        <th>Cantidad Vendida</th>
+                                        <th>Ingresos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topProductsTable">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">Cargando datos...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Página de Configuración -->
+            <div class="page" id="page-config">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="ri-settings-3-line"></i>
+                        Configuración
+                    </h1>
+                </div>
+                <div class="config-container">
+                    <div class="config-sidebar">
+                        <nav class="config-nav">
+                            <button class="config-nav-item active" data-section="business" onclick="showConfigSection('business')">
+                                <i class="ri-store-2-line"></i>
+                                Datos del Negocio
+                            </button>
+                            <button class="config-nav-item" data-section="tax" onclick="showConfigSection('tax')">
+                                <i class="ri-percent-line"></i>
+                                Configuración de Impuestos
+                            </button>
+                            <button class="config-nav-item" data-section="ncf" onclick="showConfigSection('ncf')">
+                                <i class="ri-file-list-3-line"></i>
+                                Configuración de NCF
+                            </button>
+                            <button class="config-nav-item" data-section="employees" onclick="showConfigSection('employees')">
+                                <i class="ri-team-line"></i>
+                                Empleados
+                            </button>
+                        </nav>
+                    </div>
+                    <div class="config-content">
+                        <!-- Sección: Datos del Negocio -->
+                        <div class="config-section active" id="config-business">
+                            <h2 class="config-section-title">
+                                <i class="ri-store-2-line"></i>
+                                Datos del Negocio
+                            </h2>
+                            <form class="config-form" id="businessForm">
+                                <div class="config-form-group">
+                                    <label>Nombre del Colmado</label>
+                                    <input type="text" id="configBusinessName">
+                                </div>
+                                <div class="config-form-group">
+                                    <label>RNC / Cédula</label>
+                                    <input type="text" id="configBusinessRNC">
+                                </div>
+                                <div class="config-form-group">
+                                    <label>Teléfono</label>
+                                    <input type="tel" id="configBusinessPhone">
+                                </div>
+                                <div class="config-form-group">
+                                    <label>Dirección</label>
+                                    <input type="text" id="configBusinessAddress">
+                                </div>
+                                <div class="config-form-group">
+                                    <label>Correo del Propietario</label>
+                                    <input type="email" id="configBusinessEmail" readonly>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ri-save-line"></i>
+                                    Guardar Cambios
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Sección: Impuestos -->
+                        <div class="config-section" id="config-tax">
+                            <h2 class="config-section-title">
+                                <i class="ri-percent-line"></i>
+                                Configuración de Impuestos
+                            </h2>
+                            <form class="config-form" id="taxForm">
+                                <div class="config-form-group">
+                                    <label>Porcentaje de ITBIS (%)</label>
+                                    <input type="number" id="configItbisPorcentaje" value="18" min="0" max="100" step="0.01">
+                                </div>
+                                <div class="toggle-group">
+                                    <span class="toggle-label">¿El ITBIS lo asume el cliente?</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="configItbisCliente">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                <p class="text-muted" style="font-size: 0.875rem;">
+                                    Si está desactivado, el ITBIS se descuenta del precio del producto (asumido por la empresa).
+                                </p>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ri-save-line"></i>
+                                    Guardar Cambios
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Sección: NCF -->
+                        <div class="config-section" id="config-ncf">
+                            <h2 class="config-section-title">
+                                <i class="ri-file-list-3-line"></i>
+                                Configuración de NCF
+                            </h2>
+                            <form class="config-form" id="ncfForm">
+                                <div class="config-form-group">
+                                    <label>Prefijo NCF</label>
+                                    <input type="text" id="configNcfPrefijo" placeholder="E31">
+                                </div>
+                                <div class="config-form-group">
+                                    <label>Número Actual de NCF</label>
+                                    <input type="number" id="configNcfActual" min="1">
+                                </div>
+                                <p class="text-muted" style="font-size: 0.875rem;">
+                                    El NCF se incrementará automáticamente con cada factura.
+                                </p>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ri-save-line"></i>
+                                    Guardar Cambios
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Sección: Empleados -->
+                        <div class="config-section" id="config-employees">
+                            <h2 class="config-section-title">
+                                <i class="ri-team-line"></i>
+                                Gestión de Empleados
+                            </h2>
+                            <div class="mb-lg">
+                                <button class="btn btn-primary" onclick="openEmployeeModal()">
+                                    <i class="ri-user-add-line"></i>
+                                    Agregar Empleado
+                                </button>
+                            </div>
+                            <div class="employees-list" id="employeesList">
+                                <p class="text-center text-muted">Cargando empleados...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Facturación -->
+    <div class="modal-backdrop" id="invoiceModal">
+        <div class="modal invoice-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="ri-receipt-line"></i>
+                    Procesar Factura
+                </h3>
+                <button class="modal-close" onclick="closeModal('invoiceModal')">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Lista de Productos -->
+                <div class="invoice-products-list" id="invoiceProductsList">
+                    <!-- Productos se agregan dinámicamente -->
+                </div>
+
+                <!-- Totales -->
+                <div class="invoice-totals">
+                    <div class="cart-row">
+                        <span>Subtotal</span>
+                        <span id="invoiceSubtotal">RD$ 0.00</span>
+                    </div>
+                    <div class="cart-row">
+                        <span>ITBIS</span>
+                        <span id="invoiceItbis">RD$ 0.00</span>
+                    </div>
+                    <div class="cart-row total">
+                        <span>Total</span>
+                        <span id="invoiceTotal">RD$ 0.00</span>
+                    </div>
+                </div>
+
+                <!-- Método de Pago -->
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <div class="payment-methods">
+                        <button type="button" class="payment-method-btn selected" data-method="efectivo" onclick="selectPaymentMethod('efectivo')">
+                            <i class="ri-money-dollar-circle-line"></i>
+                            <span>Efectivo</span>
+                        </button>
+                        <button type="button" class="payment-method-btn" data-method="transferencia" onclick="selectPaymentMethod('transferencia')">
+                            <i class="ri-bank-card-line"></i>
+                            <span>Transferencia</span>
+                        </button>
+                        <button type="button" class="payment-method-btn" data-method="tarjeta" onclick="selectPaymentMethod('tarjeta')">
+                            <i class="ri-credit-card-line"></i>
+                            <span>Tarjeta</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Monto Recibido (solo efectivo) -->
+                <div class="payment-input-group" id="montoRecibidoGroup">
+                    <label>Monto Recibido (RD$)</label>
+                    <input type="number" id="montoRecibido" step="0.01" min="0" placeholder="0.00" oninput="calculateChange()">
+                    <div class="numpad" id="numpad">
+                        <button type="button" class="numpad-btn" onclick="appendNumber('1')">1</button>
+                        <button type="button" class="numpad-btn" onclick="appendNumber('2')">2</button>
+                        <button type="button" class="numpad-btn" onclick="appendNumber('3')">3</button>
+                        <button type="button" class="numpad-btn" onclick="appendNumber('4')">4</button>
+                        <button type="button" class="numpad-btn" onclick="appendNumber('5')">5</button>
+                        <button type="button" class="numpad-btn" onclick="appendNumber('6')">6</button>
+                        <button type="button" class="numpad-btn" onclick="appendNumber('7')">7</button>
+                        <button type="button" class="numpad-btn" onclick="appendNumber('8')">8</button>
+                        <button type="button" class="numpad-btn" onclick="appendNumber('9')">9</button>
+                        <button type="button" class="numpad-btn clear" onclick="clearNumber()">C</button>
+                        <button type="button" class="numpad-btn" onclick="appendNumber('0')">0</button>
+                        <button type="button" class="numpad-btn backspace" onclick="backspaceNumber()">
+                            <i class="ri-backspace-line"></i>
+                        </button>
+                    </div>
+                    <div class="change-display" id="changeDisplay" style="display: none;">
+                        <div class="label">Cambio a devolver</div>
+                        <div class="amount" id="changeAmount">RD$ 0.00</div>
+                    </div>
+                </div>
+
+                <!-- Empleado -->
+                <div class="payment-input-group">
+                    <label>Empleado que procesa</label>
+                    <select id="invoiceEmpleado">
+                        <option value="">Seleccionar empleado</option>
+                    </select>
+                </div>
+
+                <!-- Estado de Factura -->
+                <div class="form-group">
+                    <label>Estado de Factura</label>
+                    <select id="invoiceStatus">
+                        <option value="pagada">Confirmar Pago (Pagada)</option>
+                        <option value="pendiente">Pago Pendiente</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('invoiceModal')">
+                    Cancelar
+                </button>
+                <button class="btn btn-primary btn-lg" onclick="processInvoice()">
+                    <i class="ri-check-line"></i>
+                    Generar Factura
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Producto -->
+    <div class="modal-backdrop" id="productModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="productModalTitle">
+                    <i class="ri-add-line"></i>
+                    Nuevo Producto
+                </h3>
+                <button class="modal-close" onclick="closeModal('productModal')">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="product-form" id="productForm">
+                    <input type="hidden" id="productId">
+                    <div class="image-upload" id="imageUpload" onclick="document.getElementById('productImageFile').click()">
+                        <i class="ri-image-add-line"></i>
+                        <span>Click para subir imagen</span>
+                        <div class="image-preview" id="imagePreview" style="display: none;">
+                            <img id="imagePreviewImg" src="" alt="Preview">
+                        </div>
+                    </div>
+                    <input type="file" id="productImageFile" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                    <input type="hidden" id="productImageUrl">
+                    <div class="form-group">
+                        <label>Nombre del Producto *</label>
+                        <input type="text" id="productName" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Precio de Venta (RD$) *</label>
+                            <input type="number" id="productPrice" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio de Costo (RD$)</label>
+                            <input type="number" id="productCost" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Stock Inicial</label>
+                            <input type="number" id="productStock" min="0" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Stock Mínimo (Alerta)</label>
+                            <input type="number" id="productStockMin" min="0" value="5">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="productCategory">
+                            <option value="">Seleccionar categoría</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Código de Barras</label>
+                        <input type="text" id="productBarcode" placeholder="Opcional">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('productModal')">
+                    Cancelar
+                </button>
+                <button class="btn btn-primary" onclick="saveProduct()">
+                    <i class="ri-save-line"></i>
+                    Guardar Producto
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Empleado -->
+    <div class="modal-backdrop" id="employeeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="ri-user-add-line"></i>
+                    Agregar Empleado
+                </h3>
+                <button class="modal-close" onclick="closeModal('employeeModal')">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="config-form" id="employeeForm">
+                    <div class="config-form-group">
+                        <label>Nombre Completo *</label>
+                        <input type="text" id="employeeName" required>
+                    </div>
+                    <div class="config-form-group">
+                        <label>Correo Electrónico *</label>
+                        <input type="email" id="employeeEmail" required>
+                    </div>
+                    <div class="config-form-group">
+                        <label>Rol</label>
+                        <select id="employeeRole">
+                            <option value="empleado">Empleado</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="config-form-group">
+                        <label>Contraseña Temporal</label>
+                        <input type="password" id="employeePassword" placeholder="Mínimo 6 caracteres">
+                        <small class="text-muted">Se enviará un correo para cambiarla</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('employeeModal')">
+                    Cancelar
+                </button>
+                <button class="btn btn-primary" onclick="saveEmployee()">
+                    <i class="ri-save-line"></i>
+                    Agregar Empleado
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Categoría -->
+    <div class="modal-backdrop" id="categoryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="ri-folder-add-line"></i>
+                    Gestión de Categorías
+                </h3>
+                <button class="modal-close" onclick="closeModal('categoryModal')">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="config-form mb-lg">
+                    <div class="form-group">
+                        <label>Nueva Categoría</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="newCategoryName" placeholder="Nombre de la categoría">
+                            <button type="button" class="btn btn-primary" onclick="addCategory()">
+                                <i class="ri-add-line"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div class="employees-list" id="categoriesList">
+                    <p class="text-center text-muted">Cargando categorías...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ingreso/Gasto -->
+    <div class="modal-backdrop" id="movimientoModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="movimientoTitle">
+                    <i class="ri-add-circle-line"></i>
+                    Registrar Ingreso
+                </h3>
+                <button class="modal-close" onclick="closeModal('movimientoModal')">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="config-form" id="movimientoForm">
+                    <div class="config-form-group">
+                        <label>Monto (RD$)</label>
+                        <input type="number" id="movimientoMonto" step="0.01" min="0" required>
+                    </div>
+                    <div class="config-form-group">
+                        <label>Descripción</label>
+                        <input type="text" id="movimientoDescripcion" placeholder="Descripción del movimiento">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('movimientoModal')">
+                    Cancelar
+                </button>
+                <button class="btn btn-primary" id="movimientoSubmitBtn" onclick="submitMovimiento()">
+                    <i class="ri-check-line"></i>
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cierre de Caja -->
+    <div class="modal-backdrop" id="cierreModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="ri-lock-line"></i>
+                    Cerrar Caja
+                </h3>
+                <button class="modal-close" onclick="closeModal('cierreModal')">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-md">¿Estás seguro de que deseas cerrar la caja?</p>
+                <div class="invoice-totals">
+                    <div class="cart-row">
+                        <span>Monto Inicial</span>
+                        <span id="cierreMontoInicial">RD$ 0.00</span>
+                    </div>
+                    <div class="cart-row">
+                        <span>Ventas del Día</span>
+                        <span id="cierreVentas">RD$ 0.00</span>
+                    </div>
+                    <div class="cart-row total">
+                        <span>Monto Final</span>
+                        <span id="cierreMontoFinal">RD$ 0.00</span>
+                    </div>
+                </div>
+                <div class="config-form-group">
+                    <label>Monto Final en Caja (RD$)</label>
+                    <input type="number" id="cierreMontoInput" step="0.01" min="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('cierreModal')">
+                    Cancelar
+                </button>
+                <button class="btn btn-danger" onclick="confirmCierreCaja()">
+                    <i class="ri-lock-line"></i>
+                    Confirmar Cierre
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Scanner de Barras -->
+    <div class="modal-backdrop" id="barcodeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="ri-barcode-box-line"></i>
+                    Escanear Código de Barras
+                </h3>
+                <button class="modal-close" onclick="closeModal('barcodeModal')">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Código de Barras</label>
+                    <input type="text" id="barcodeInput" placeholder="Escanea o escribe el código" autofocus>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('barcodeModal')">
+                    Cancelar
+                </button>
+                <button class="btn btn-primary" onclick="searchByBarcode()">
+                    <i class="ri-search-line"></i>
+                    Buscar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="ri-loader-4-line"></i>
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

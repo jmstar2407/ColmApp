@@ -1,195 +1,658 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-DO">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>miColmApp - POS para Colmados RD</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-    <!-- Chart.js para gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
-        body { background: #f0f2f5; }
-        /* Login */
-        .login-container { max-width: 400px; margin: 80px auto; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .login-container h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
-        .login-container input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
-        .login-container button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        /* App layout */
-        .app { display: none; }
-        .top-bar { background: #1e2a3a; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .company-name { font-size: 1.4rem; font-weight: bold; }
-        .menu-buttons { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-        .menu-buttons button { background: #2c3e50; border: none; color: white; padding: 8px 14px; border-radius: 30px; cursor: pointer; font-weight: 500; transition: 0.2s; }
-        .menu-buttons button:hover { background: #27ae60; }
-        .datetime { font-size: 0.85rem; background: #00000040; padding: 6px 12px; border-radius: 20px; }
-        .logout-btn { background: #c0392b !important; }
-        .main-panel { padding: 20px; display: none; }
-        .active-panel { display: block; }
-        /* POS Grid */
-        .pos-container { display: flex; flex-wrap: wrap; gap: 20px; }
-        .products-area { flex: 2; min-width: 260px; background: white; border-radius: 16px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .cart-area { flex: 1.2; min-width: 280px; background: white; border-radius: 16px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .search-bar { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
-        .search-bar input { flex: 2; padding: 10px; border-radius: 30px; border: 1px solid #ccc; }
-        .search-bar select, .search-bar button { padding: 8px 12px; border-radius: 30px; border: 1px solid #ccc; background: #ecf0f1; cursor: pointer; }
-        .category-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 10px; }
-        .category-card { text-align: center; width: 100px; cursor: pointer; padding: 10px; border-radius: 16px; background: #f8f9fa; transition: 0.2s; }
-        .category-card:hover { background: #e9ecef; transform: scale(0.98); }
-        .category-card img { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; background: #ddd; }
-        .products-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; max-height: 500px; overflow-y: auto; }
-        .product-card { width: 110px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 8px; text-align: center; cursor: pointer; transition: 0.1s; }
-        .product-card:hover { background: #f1f9ff; border-color: #27ae60; }
-        .product-card img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
-        .cart-item { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding: 8px 0; }
-        .total-row { font-weight: bold; font-size: 1.3rem; margin: 15px 0; }
-        .btn-primary { background: #27ae60; color: white; border: none; padding: 12px; width: 100%; border-radius: 40px; font-weight: bold; cursor: pointer; }
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; border-radius: 20px; padding: 20px; width: 90%; max-width: 500px; max-height: 80vh; overflow: auto; }
-        .btn-secondary { background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
-        .flex-between { display: flex; justify-content: space-between; }
-        .numeric-pad { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 10px 0; }
-        .numeric-pad button { padding: 12px; font-size: 1.2rem; background: #f1f1f1; border: none; border-radius: 12px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
-        .badge { background: #e67e22; color: white; padding: 4px 8px; border-radius: 20px; font-size: 0.7rem; }
-        @media (max-width: 800px) { .pos-container { flex-direction: column; } }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>miColmApp - Sistema de Facturación para Colmados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-<div id="loginView" class="login-container">
-    <h2><i class="fas fa-store"></i> miColmApp</h2>
-    <input type="email" id="loginEmail" placeholder="Correo electrónico">
-    <input type="password" id="loginPassword" placeholder="Contraseña">
-    <button id="loginBtn">Iniciar Sesión</button>
-    <p style="margin-top:15px; text-align:center">¿Nuevo negocio? <button id="showRegisterBtn" style="background:none; border:none; color:#27ae60; cursor:pointer">Registrar Colmado</button></p>
-</div>
-<div id="registerView" style="display:none" class="login-container">
-    <h2>Registrar Colmado</h2>
-    <input type="text" id="regNegocio" placeholder="Nombre del Colmado">
-    <input type="text" id="regRNC" placeholder="RNC">
-    <input type="text" id="regDir" placeholder="Dirección">
-    <input type="text" id="regTel" placeholder="Teléfono">
-    <input type="email" id="regEmail" placeholder="Email Admin">
-    <input type="password" id="regPassword" placeholder="Contraseña">
-    <button id="registerBusinessBtn">Crear Negocio</button>
-    <button id="backToLoginBtn" style="background:gray">Volver</button>
-</div>
-
-<div id="app" class="app">
-    <div class="top-bar">
-        <div class="company-name" id="companyNameDisplay">miColmApp</div>
-        <div class="menu-buttons" id="menuButtons"></div>
-        <div style="display: flex; gap:12px; align-items:center">
-            <span id="datetimeRD" class="datetime"></span>
-            <button id="logoutAppBtn" class="logout-btn">Cerrar Sesión</button>
-        </div>
-    </div>
-    <div id="panelFacturacion" class="main-panel active-panel">
-        <div class="pos-container">
-            <div class="products-area">
-                <div class="search-bar">
-                    <input type="text" id="searchProductInput" placeholder="Buscar por nombre/código">
-                    <select id="categoryFilterSelect"><option value="">Todas las categorías</option></select>
-                    <button id="toggleGridViewBtn"><i class="fas fa-th-large"></i></button>
-                    <button id="scanBarcodeBtn"><i class="fas fa-barcode"></i> Escanear</button>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-container">
+                    <i class="ri-store-2-fill logo-icon"></i>
                 </div>
-                <div id="categoriesContainer" class="category-grid"></div>
-                <div id="productsContainer" class="products-grid" style="display:none"></div>
-                <button id="backToCategoriesBtn" style="display:none; margin-top:10px"><i class="fas fa-arrow-left"></i> Volver a Categorías</button>
+                <h1 class="app-title">miColmApp</h1>
+                <p class="app-subtitle">Sistema de Facturación Electrónica para Colmados</p>
             </div>
-            <div class="cart-area">
-                <h3>Carrito de Ventas</h3>
-                <div id="cartList"></div>
-                <div class="total-row">Subtotal: RD$ <span id="subtotal">0.00</span><br>ITBIS: RD$ <span id="taxAmount">0.00</span><br><strong>Total: RD$ <span id="totalAmount">0.00</span></strong></div>
-                <button id="checkoutBtn" class="btn-primary"><i class="fas fa-receipt"></i> Facturar</button>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">
+                    <i class="ri-login-box-line"></i>
+                    Iniciar Sesión
+                </button>
+                <button class="auth-tab" data-tab="register">
+                    <i class="ri-user-add-line"></i>
+                    Registrar Colmado
+                </button>
+            </div>
+
+            <!-- Formulario de Login -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginEmail">
+                        <i class="ri-mail-line"></i>
+                        Correo Electrónico
+                    </label>
+                    <input type="email" id="loginEmail" placeholder="correo@ejemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">
+                        <i class="ri-lock-line"></i>
+                        Contraseña
+                    </label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="loginPassword" placeholder="Tu contraseña" required>
+                        <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
+                            <i class="ri-eye-off-line"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="loginError" class="error-message" style="display: none;"></div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="ri-login-box-line"></i>
+                    Ingresar
+                </button>
+            </form>
+
+            <!-- Formulario de Registro -->
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="businessName">
+                        <i class="ri-store-2-line"></i>
+                        Nombre del Colmado
+                    </label>
+                    <input type="text" id="businessName" placeholder="Ej: Colmado Don Juan" required>
+                </div>
+                <div class="form-group">
+                    <label for="businessRNC">
+                        <i class="ri-file-list-3-line"></i>
+                        RNC / Cédula
+                    </label>
+                    <input type="text" id="businessRNC" placeholder="Ej: 130XXXXXX" required maxlength="11">
+                </div>
+                <div class="form-group">
+                    <label for="businessPhone">
+                        <i class="ri-phone-line"></i>
+                        Teléfono
+                    </label>
+                    <input type="tel" id="businessPhone" placeholder="Ej: 809-555-1234" required>
+                </div>
+                <div class="form-group">
+                    <label for="businessAddress">
+                        <i class="ri-map-pin-line"></i>
+                        Dirección
+                    </label>
+                    <input type="text" id="businessAddress" placeholder="Dirección del colmado" required>
+                </div>
+                <div class="form-group">
+                    <label for="ownerEmail">
+                        <i class="ri-mail-line"></i>
+                        Correo del Propietario
+                    </label>
+                    <input type="email" id="ownerEmail" placeholder="correo@ejemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="ownerPassword">
+                        <i class="ri-lock-line"></i>
+                        Contraseña
+                    </label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="ownerPassword" placeholder="Mínimo 6 caracteres" required minlength="6">
+                        <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
+                            <i class="ri-eye-off-line"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">
+                        <i class="ri-lock-line"></i>
+                        Confirmar Contraseña
+                    </label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="confirmPassword" placeholder="Repite la contraseña" required>
+                        <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
+                            <i class="ri-eye-off-line"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="registerError" class="error-message" style="display: none;"></div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="ri-store-2-fill"></i>
+                    Crear Mi Colmado
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>¿Necesitas ayuda? <a href="#">Contactar Soporte</a></p>
+            </div>
+        </div>
+
+        <div class="auth-features">
+            <h2>Potencia tu Colmado</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <i class="ri-bill-line"></i>
+                    <div>
+                        <h3>Facturación Electrónica</h3>
+                        <p>Cumple con los requisitos de la DGII</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="ri-database-line"></i>
+                    <div>
+                        <h3>Control de Inventario</h3>
+                        <p>Gestiona tu stock en tiempo real</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="ri-line-chart-line"></i>
+                    <div>
+                        <h3>Estadísticas</h3>
+                        <p>Visualiza tus ventas y ganancias</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="ri-wallet-line"></i>
+                    <div>
+                        <h3>Control de Caja</h3>
+                        <p>Gestión completa de ingresos y gastos</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div id="panelCaja" class="main-panel"><h2>Gestión de Caja</h2><div id="cajaContent"></div></div>
-    <div id="panelFacturas" class="main-panel"><h2>Facturas Generadas</h2><div id="facturasList"></div></div>
-    <div id="panelInventario" class="main-panel"><h2>Inventario</h2><div id="inventarioContent"></div></div>
-    <div id="panelConfiguracion" class="main-panel"><h2>Configuración</h2><div id="configContent"></div></div>
-    <div id="panelEstadisticas" class="main-panel"><h2>Estadísticas y Contabilidad</h2><canvas id="ventasChart" width="400" height="200"></canvas><div id="balanceGeneral"></div></div>
-</div>
 
-<!-- Modal Factura -->
-<div id="facturaModal" class="modal"><div class="modal-content"><h3>Procesar Factura</h3><div id="modalCartItems"></div><p><strong>Total: RD$ <span id="modalTotal">0</span></strong></p><label>Método de Pago:</label><select id="pagoMetodo"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="tarjeta">Tarjeta de Crédito</option></select><div id="efectivoDiv"><label>Recibido:</label><div class="numeric-pad" id="numericPad"></div><input type="number" id="recibidoInput" placeholder="0.00"><p>Cambio: RD$ <span id="cambioDisplay">0.00</span></p></div><label>Empleado:</label><select id="empleadoSelect"></select><label>Estado:</label><select id="facturaEstado"><option value="pagada">Confirmar Pago</option><option value="pendiente">Pago Pendiente</option></select><button id="confirmarFacturaBtn" class="btn-primary">Guardar Factura</button><button id="closeModalBtn">Cancelar</button></div></div>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="ri-loader-4-line"></i>
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/auth.js"></script>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyB7cX3O8Nkhg5XYsuH1UIn0ZDyxoxLzTB4", authDomain: "colmapp-4aaa4.firebaseapp.com", projectId: "colmapp-4aaa4", storageBucket: "colmapp-4aaa4.firebasestorage.app", messagingSenderId: "767529335752", appId: "1:767529335752:web:5967b10a0e0da050f91efd", measurementId: "G-22YKHGWTMH" };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(), db = firebase.firestore(), storage = firebase.storage();
+/**
+ * Iframe 元素高亮注入脚本
+ * 需要在目标网站中引入此脚本来支持跨域 iframe 高亮功能
+ *
+ * 使用方法：
+ * 1. 将此脚本添加到目标网站的 HTML 中
+ * 2. 或通过浏览器扩展、用户脚本等方式注入
+ */
 
-    let currentUser = null, currentNegocioId = null, currentNegocioData = null, currentUserRole = 'empleado'; // admin por defecto al registrar
-    let cart = [], productosCache = [], categoriasCache = [], cajaActual = null, itbisPorcentaje = 18, itbisAsumeCliente = true;
-    let activeCategoryId = null;
+(function () {
+  "use strict";
 
-    // Helper tiempo RD
-    function updateDateTime() { const d = new Date(); d.setHours(d.getUTCHours() - 4); document.getElementById('datetimeRD').innerText = d.toLocaleString('es-DO'); }
-    setInterval(updateDateTime, 1000); updateDateTime();
+  // 检查是否在 iframe 中
+  if (window.self === window.top) {
+    return; // 不在 iframe 中，不执行
+  }
 
-    // UI Menu por rol
-    function renderMenu() {
-        const menuDiv = document.getElementById('menuButtons');
-        const panels = ['facturacion', 'caja', 'facturas'];
-        if(currentUserRole === 'admin') panels.push('inventario', 'configuracion', 'estadisticas');
-        menuDiv.innerHTML = panels.map(p => `<button data-panel="${p}">${p==='facturacion'?'Facturación':p==='caja'?'Caja':p==='facturas'?'Facturas':p==='inventario'?'Inventario':p==='configuracion'?'Configuración':'Estadísticas'}</button>`).join('');
-        document.querySelectorAll('[data-panel]').forEach(btn => btn.addEventListener('click', (e) => { document.querySelectorAll('.main-panel').forEach(p => p.classList.remove('active-panel')); document.getElementById(`panel${btn.dataset.panel.charAt(0).toUpperCase()+btn.dataset.panel.slice(1)}`).classList.add('active-panel'); loadPanelData(btn.dataset.panel); }));
+  // 检查是否已经初始化过
+  if (window.__iframeHighlightInitialized) {
+    return;
+  }
+  window.__iframeHighlightInitialized = true;
+  console.log("Iframe 高亮脚本已加载");
+
+  // 创建高亮覆盖层
+  var overlay = document.createElement("div");
+  overlay.id = "iframe-highlight-overlay";
+  overlay.style.cssText = "\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100vw;\n    height: 100vh;\n    pointer-events: none;\n    z-index: 999999;\n    overflow: hidden;\n  ";
+
+  // 创建悬停高亮框（虚线边框）
+  var highlightBox = document.createElement("div");
+  highlightBox.id = "iframe-highlight-box";
+  highlightBox.style.cssText = "\n    position: absolute;\n    border: 2px dashed #007AFF;\n    background: rgba(0, 122, 255, 0.08);\n    pointer-events: none;\n    display: none;\n    transition: all 0.1s ease;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);\n    border-radius: 2px;\n  ";
+
+  // 创建选中节点的常驻高亮框（实线边框）
+  var selectedBox = document.createElement("div");
+  selectedBox.id = "iframe-selected-box";
+  selectedBox.style.cssText = "\n    position: absolute;\n    border: 2px solid #007AFF;\n    pointer-events: none;\n    display: none;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 107, 53, 0.4);\n    border-radius: 2px;\n    z-index: 1000000;\n  ";
+
+  // 创建悬停标签显示
+  var tagLabel = document.createElement("div");
+  tagLabel.id = "iframe-tag-label";
+  tagLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 2px 6px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 2px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000001;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\n    font-weight: 500;\n  ";
+
+  // 创建选中节点标签
+  var selectedLabel = document.createElement("div");
+  selectedLabel.id = "iframe-selected-label";
+  selectedLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 3px 8px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 3px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000002;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);\n    font-weight: 600;\n  ";
+  overlay.appendChild(highlightBox);
+  overlay.appendChild(selectedBox);
+  overlay.appendChild(tagLabel);
+  overlay.appendChild(selectedLabel);
+  document.body.appendChild(overlay);
+
+  // 存储当前选中的元素
+  var selectedElement = null;
+  var highlightEnabled = false;
+
+  // 更新选中元素的高亮显示
+  function updateSelectedHighlight(element) {
+    console.log("updateSelectedHighlight called with:", element);
+    if (!element) {
+      selectedBox.style.display = "none";
+      selectedLabel.style.display = "none";
+      selectedElement = null;
+      console.log("Cleared selected highlight");
+      return;
+    }
+    selectedElement = element;
+    var rect = element.getBoundingClientRect();
+    console.log("Selected element rect:", rect);
+
+    // 更新选中高亮框位置
+    selectedBox.style.display = "block";
+    selectedBox.style.left = "".concat(rect.left - 2, "px");
+    selectedBox.style.top = "".concat(rect.top - 2, "px");
+    selectedBox.style.width = "".concat(rect.width + 4, "px");
+    selectedBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新选中标签位置和内容
+    selectedLabel.style.display = "block";
+    selectedLabel.textContent = "\u2713 <".concat(element.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 28;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 5) {
+      labelTop = rect.bottom + 5;
     }
 
-    async function loadPanelData(panel) { if(panel==='caja') await loadCajaUI(); if(panel==='facturas') await loadFacturas(); if(panel==='inventario' && currentUserRole==='admin') await loadInventarioUI(); if(panel==='configuracion') await loadConfigUI(); if(panel==='estadisticas') await loadEstadisticas(); }
+    // 如果标签会超出右侧，向左调整
+    var labelWidth = selectedLabel.offsetWidth || 100; // 预估宽度
+    if (labelLeft + labelWidth > window.innerWidth - 10) {
+      labelLeft = window.innerWidth - labelWidth - 10;
+    }
+    selectedLabel.style.left = "".concat(Math.max(5, labelLeft), "px");
+    selectedLabel.style.top = "".concat(labelTop, "px");
+    console.log("Selected highlight positioned at:", {
+      left: selectedBox.style.left,
+      top: selectedBox.style.top,
+      width: selectedBox.style.width,
+      height: selectedBox.style.height
+    });
+  }
+  function getElementSelector(element) {
+    if (!(element instanceof Element)) throw new Error('Argument must be a DOM element');
+    var segments = [];
+    var current = element;
+    while (current !== document.documentElement) {
+      var selector = '';
+      // 优先检查唯一ID
+      if (current.id && document.querySelectorAll("#".concat(current.id)).length === 1) {
+        segments.unshift("#".concat(current.id));
+        break; // ID唯一，无需继续向上
+      }
 
-    // Verificar caja abierta
-    async function checkCajaAbierta() { if(!currentNegocioId) return false; const snap = await db.collection('negocios').doc(currentNegocioId).collection('caja').where('estado','==','abierta').get(); if(snap.empty) { alert('⚠️ Caja cerrada. No se pueden realizar ventas.'); return false; } cajaActual = snap.docs[0]; return true; }
+      // 生成类名选择器（取第一个有效类名）
+      var classes = Array.from(current.classList).filter(function (c) {
+        return !c.startsWith('js-');
+      });
+      var className = classes.length > 0 ? ".".concat(classes[0]) : '';
 
-    // Cargar productos y categorías
-    async function loadCategoriasYProductos() { if(!currentNegocioId) return; const catsSnap = await db.collection('negocios').doc(currentNegocioId).collection('inventario').doc('categorias').collection('lista').get(); categoriasCache = catsSnap.docs.map(d=>({id:d.id,...d.data()})); const filterSelect = document.getElementById('categoryFilterSelect'); filterSelect.innerHTML = '<option value="">Todas las categorías</option>' + categoriasCache.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join(''); showCategoriesGrid(); }
+      // 生成位置索引（nth-child）
+      var tag = current.tagName.toLowerCase();
+      if (!className) {
+        var siblings = Array.from(current.parentNode.children);
+        var index = siblings.findIndex(function (el) {
+          return el === current;
+        }) + 1;
+        selector = "".concat(tag, ":nth-child(").concat(index, ")");
+      } else {
+        selector = className;
+      }
+      segments.unshift(selector);
+      current = current.parentElement;
+    }
 
-    function showCategoriesGrid() { const container = document.getElementById('categoriesContainer'); container.style.display='flex'; document.getElementById('productsContainer').style.display='none'; document.getElementById('backToCategoriesBtn').style.display='none'; container.innerHTML = categoriasCache.map(cat=>`<div class="category-card" data-catid="${cat.id}"><img src="${cat.imagenUrl || 'https://via.placeholder.com/60'}" onerror="this.src='https://via.placeholder.com/60'"><div>${cat.nombre}</div></div>`).join(''); document.querySelectorAll('.category-card').forEach(el=>el.addEventListener('click',async()=>{ await showProductsByCategory(el.dataset.catid); })); }
+    // 处理根元素
+    if (current === document.documentElement) {
+      segments.unshift('html');
+    }
+    return segments.join(' > ');
+  }
 
-    async function showProductsByCategory(catId) { activeCategoryId = catId; const prodsSnap = await db.collection('negocios').doc(currentNegocioId).collection('inventario').doc('productos').collection(catId).get(); const prods = prodsSnap.docs.map(d=>({id:d.id, ...d.data(), categoriaId:catId})); productosCache = prods; const container = document.getElementById('productsContainer'); container.style.display='flex'; document.getElementById('categoriesContainer').style.display='none'; document.getElementById('backToCategoriesBtn').style.display='block'; container.innerHTML = prods.map(p=>`<div class="product-card" data-prodid="${p.id}" data-catid="${catId}"><img src="${p.imagenUrl || 'https://via.placeholder.com/60'}"><div>${p.nombre}</div><div>RD$${p.precio}</div><div>Stock:${p.stock}</div></div>`).join(''); document.querySelectorAll('.product-card').forEach(el=>el.addEventListener('click',()=>{ const id=el.dataset.prodid, cat=el.dataset.catid; const prod=productosCache.find(p=>p.id===id); if(prod) addToCart(prod); })); }
+  // 获取元素文本内容
+  function getElementText(element) {
+    var _element$textContent;
+    if (element.tagName === "INPUT") {
+      return element.value || element.placeholder || "";
+    }
+    if (element.tagName === "TEXTAREA") {
+      return element.value || element.placeholder || "";
+    }
+    var text = ((_element$textContent = element.textContent) === null || _element$textContent === void 0 ? void 0 : _element$textContent.trim()) || "";
+    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+  }
 
-    document.getElementById('backToCategoriesBtn')?.addEventListener('click',()=>{ showCategoriesGrid(); });
+  // 获取元素属性信息
+  function getElementAttributes(element) {
+    var attrs = {};
+    for (var i = 0; i < element.attributes.length; i++) {
+      var attr = element.attributes[i];
+      attrs[attr.name] = attr.value;
+    }
+    return attrs;
+  }
 
-    function addToCart(product) { const exist = cart.find(i=>i.id===product.id); if(exist) exist.cantidad++; else cart.push({...product, cantidad:1}); renderCart(); }
+  // 鼠标悬停事件处理
+  function handleMouseOver(e) {
+    if (!highlightEnabled) return;
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
 
-    function renderCart() { let subtotal=0; const cartDiv=document.getElementById('cartList'); cartDiv.innerHTML=cart.map((item,idx)=>`<div class="cart-item"><span>${item.nombre} x${item.cantidad}</span><span>RD$${(item.precio*item.cantidad).toFixed(2)}</span><button class="remove-item" data-idx="${idx}">🗑️</button></div>`).join(''); cart.forEach(i=>subtotal+=i.precio*i.cantidad); const itbis=itbisAsumeCliente?subtotal*itbisPorcentaje/100:0; const total=itbisAsumeCliente?subtotal+itbis:subtotal; document.getElementById('subtotal').innerText=subtotal.toFixed(2); document.getElementById('taxAmount').innerText=itbis.toFixed(2); document.getElementById('totalAmount').innerText=total.toFixed(2); document.querySelectorAll('.remove-item').forEach(btn=>btn.addEventListener('click',(e)=>{ const idx=parseInt(btn.dataset.idx); cart.splice(idx,1); renderCart(); })); }
+    // 避免高亮 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
 
-    // Checkout y modal
-    document.getElementById('checkoutBtn').onclick=async()=>{ if(!await checkCajaAbierta()) return; if(cart.length===0) return alert('Carrito vacío'); const total=parseFloat(document.getElementById('totalAmount').innerText); document.getElementById('modalTotal').innerText=total; document.getElementById('modalCartItems').innerHTML=cart.map(i=>`<div>${i.nombre} x${i.cantidad} = RD$${(i.precio*i.cantidad).toFixed(2)}</div>`).join(''); // cargar empleados
-        const empleadosSnap = await db.collection('negocios').doc(currentNegocioId).collection('empleados').get();
-        const empleadosOpts = `<option value="${currentUser.uid}">${currentUser.email}</option>`+empleadosSnap.docs.map(d=>`<option value="${d.id}">${d.data().nombre}</option>`).join('');
-        document.getElementById('empleadoSelect').innerHTML=empleadosOpts;
-        document.getElementById('facturaModal').style.display='flex';
+    // 如果是已选中的元素，不显示悬停高亮
+    if (target === selectedElement) {
+      highlightBox.style.display = "none";
+      tagLabel.style.display = "none";
+      return;
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+
+    // 更新悬停高亮框位置
+    highlightBox.style.display = "block";
+    highlightBox.style.left = "".concat(rect.left - 2, "px");
+    highlightBox.style.top = "".concat(rect.top - 2, "px");
+    highlightBox.style.width = "".concat(rect.width + 4, "px");
+    highlightBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新标签位置和内容
+    tagLabel.style.display = "block";
+    tagLabel.textContent = "<".concat(target.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 22;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 0) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    if (labelLeft + tagLabel.offsetWidth > window.innerWidth) {
+      labelLeft = window.innerWidth - tagLabel.offsetWidth - 5;
+    }
+    tagLabel.style.left = "".concat(Math.max(0, labelLeft), "px");
+    tagLabel.style.top = "".concat(labelTop, "px");
+
+    // 发送消息到父窗口
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
     };
-    document.getElementById('closeModalBtn').onclick=()=>document.getElementById('facturaModal').style.display='none';
-    document.getElementById('confirmarFacturaBtn').onclick=async()=>{ const metodo=document.getElementById('pagoMetodo').value; let recibido=0; if(metodo==='efectivo') recibido=parseFloat(document.getElementById('recibidoInput').value||0); const estadoFactura=document.getElementById('facturaEstado').value; const empleadoId=document.getElementById('empleadoSelect').value; const totalFactura=parseFloat(document.getElementById('modalTotal').innerText); const ncf=`B${Math.floor(Math.random()*1000000)}`; const facturaData={ fecha:new Date(), items:cart.map(i=>({id:i.id,nombre:i.nombre,cantidad:i.cantidad,precio:i.precio})), subtotal:parseFloat(document.getElementById('subtotal').innerText), itbis:parseFloat(document.getElementById('taxAmount').innerText), total:totalFactura, metodoPago:metodo, estado:estadoFactura, empleadoId, ncf, negocioId:currentNegocioId }; await db.collection('negocios').doc(currentNegocioId).collection('facturas').add(facturaData); for(const item of cart){ const prodRef = db.collection('negocios').doc(currentNegocioId).collection('inventario').doc('productos').collection(item.categoriaId).doc(item.id); await prodRef.update({stock: firebase.firestore.FieldValue.increment(-item.cantidad)}); } await db.collection('negocios').doc(currentNegocioId).collection('caja').doc(cajaActual.id).update({ingresos: firebase.firestore.FieldValue.increment(totalFactura), montoFinal: firebase.firestore.FieldValue.increment(totalFactura)}); cart=[]; renderCart(); document.getElementById('facturaModal').style.display='none'; alert('Factura guardada'); loadFacturas(); };
-    // Numpad efectivo
-    const padDiv=document.getElementById('numericPad'); if(padDiv){ for(let i=1;i<=9;i++){let b=document.createElement('button');b.innerText=i;b.onclick=()=>{let inp=document.getElementById('recibidoInput');inp.value=parseFloat(inp.value||0)*10+i;calcularCambio();};padDiv.appendChild(b);} let b0=document.createElement('button');b0.innerText='0';b0.onclick=()=>{let inp=document.getElementById('recibidoInput');inp.value=(inp.value||0)*10;calcularCambio();};padDiv.appendChild(b0); let bc=document.createElement('button');bc.innerText='C';bc.onclick=()=>{document.getElementById('recibidoInput').value='';calcularCambio();};padDiv.appendChild(bc);}
-    function calcularCambio(){ let recib=parseFloat(document.getElementById('recibidoInput').value)||0; let total=parseFloat(document.getElementById('modalTotal').innerText); document.getElementById('cambioDisplay').innerText=(recib-total).toFixed(2); }
-    document.getElementById('pagoMetodo')?.addEventListener('change',e=>{document.getElementById('efectivoDiv').style.display=e.target.value==='efectivo'?'block':'none';});
-    // Caja UI
-    async function loadCajaUI(){ if(!currentNegocioId) return; const cajaSnap=await db.collection('negocios').doc(currentNegocioId).collection('caja').where('estado','==','abierta').get(); const cajaCerradas=await db.collection('negocios').doc(currentNegocioId).collection('caja').where('estado','==','cerrada').orderBy('fechaCierre','desc').limit(10).get(); let html=''; if(cajaSnap.empty) html+=`<button id="abrirCajaBtn">Abrir Caja</button>`; else{ const caja=cajaSnap.docs[0].data(); html+=`<div>Caja Abierta desde: ${caja.fechaApertura?.toDate()} | Monto Inicial: RD$${caja.montoInicial} | Actual: RD$${caja.montoFinal}<button id="cerrarCajaBtn">Cerrar Caja</button><button id="registrarGastoBtn">Registrar Gasto</button></div>`; } html+=`<h3>Historial Cierres</h3><ul>${cajaCerradas.docs.map(d=>`<li>Cerrada: ${d.data().fechaCierre?.toDate()} - Final: ${d.data().montoFinal}</li>`).join('')}</ul>`; document.getElementById('cajaContent').innerHTML=html; document.getElementById('abrirCajaBtn')?.addEventListener('click',async()=>{ let monto=prompt('Monto inicial'); if(monto){ await db.collection('negocios').doc(currentNegocioId).collection('caja').add({montoInicial:parseFloat(monto),montoFinal:parseFloat(monto),fechaApertura:new Date(),estado:'abierta',ingresos:0,gastos:0}); loadCajaUI(); } }); document.getElementById('cerrarCajaBtn')?.addEventListener('click',async()=>{ let montoFinal=prompt('Monto final para cuadre'); await db.collection('negocios').doc(currentNegocioId).collection('caja').doc(cajaSnap.docs[0].id).update({estado:'cerrada',fechaCierre:new Date(),montoFinal:parseFloat(montoFinal)}); loadCajaUI(); }); document.getElementById('registrarGastoBtn')?.addEventListener('click',async()=>{ let desc=prompt('Concepto'), monto=prompt('Monto'); await db.collection('negocios').doc(currentNegocioId).collection('caja').doc(cajaSnap.docs[0].id).update({gastos:firebase.firestore.FieldValue.increment(parseFloat(monto)),montoFinal:firebase.firestore.FieldValue.increment(-parseFloat(monto))}); loadCajaUI(); }); }
-    async function loadFacturas(){ const facturas=await db.collection('negocios').doc(currentNegocioId).collection('facturas').orderBy('fecha','desc').get(); let html='<table><tr><th>NCF</th><th>Total</th><th>Estado</th><th>Acción</th></tr>'; facturas.forEach(doc=>{ const f=doc.data(); html+=`<tr><td>${f.ncf}</td><td>RD$${f.total}</td><td>${f.estado}</td><td>${f.estado==='pendiente'?`<button onclick="marcarPagada('${doc.id}')">Marcar Pagada</button>`:'Pagada'}</td></tr>`; }); html+='</table>'; document.getElementById('facturasList').innerHTML=html; window.marcarPagada=async(id)=>{ await db.collection('negocios').doc(currentNegocioId).collection('facturas').doc(id).update({estado:'pagada'}); loadFacturas(); }; }
-    async function loadInventarioUI(){ let html=`<button id="addProductBtn">+ Nuevo Producto</button><div id="productListAdmin"></div>`; document.getElementById('inventarioContent').innerHTML=html; document.getElementById('addProductBtn')?.addEventListener('click',()=>alert('Formulario extenso, implementar modal completo para agregar producto con imagen y código')); await loadCategoriasYProductos(); }
-    async function loadConfigUI(){ const negDoc=await db.collection('negocios').doc(currentNegocioId).get(); const data=negDoc.data(); let html=`<label>Nombre Colmado:</label><input id="confNombre" value="${data.nombre}"><label>ITBIS %:</label><input id="confItbis" value="${itbisPorcentaje}"><label>Impuesto lo asume:</label><select id="confAsume"><option ${itbisAsumeCliente?'selected':''} value="cliente">Cliente</option><option ${!itbisAsumeCliente?'selected':''} value="empresa">Empresa</option></select><button id="saveConfigBtn">Guardar</button><hr><h3>Empleados</h3><button id="addEmpleadoBtn">Agregar Empleado</button><div id="empleadosList"></div>`; document.getElementById('configContent').innerHTML=html; const empleados=await db.collection('negocios').doc(currentNegocioId).collection('empleados').get(); document.getElementById('empleadosList').innerHTML=empleados.docs.map(e=>`<div>${e.data().nombre} - ${e.data().rol}</div>`).join(''); document.getElementById('saveConfigBtn')?.addEventListener('click',async()=>{ itbisPorcentaje=parseFloat(document.getElementById('confItbis').value); itbisAsumeCliente=document.getElementById('confAsume').value==='cliente'; await db.collection('negocios').doc(currentNegocioId).update({nombre:document.getElementById('confNombre').value}); alert('Config guardada'); }); document.getElementById('addEmpleadoBtn')?.addEventListener('click',async()=>{ let email=prompt('Email empleado'), nombre=prompt('Nombre'), rol=prompt('Rol (admin/empleado)'); const userAuth=await auth.createUserWithEmailAndPassword(email,'temporal123'); await db.collection('negocios').doc(currentNegocioId).collection('empleados').doc(userAuth.user.uid).set({nombre,rol,email}); alert('Empleado agregado'); loadConfigUI(); }); }
-    async function loadEstadisticas(){ const ventasSnap=await db.collection('negocios').doc(currentNegocioId).collection('facturas').get(); const totalVentas=ventasSnap.docs.reduce((acc,d)=>acc+d.data().total,0); document.getElementById('balanceGeneral').innerHTML=`<p>Ingresos Totales: RD$${totalVentas}</p><p>Egresos: -</p><p>Ganancia Neta: RD$${totalVentas}</p>`; new Chart(document.getElementById('ventasChart'),{type:'bar',data:{labels:['Ventas'],datasets:[{label:'Total RD$',data:[totalVentas]}]}}); }
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
 
-    // Auth & multi tenant
-    auth.onAuthStateChanged(async(user)=>{ if(user){ currentUser=user; const userDoc=await db.collection('negocios').doc(user.uid).get(); if(userDoc.exists){ currentNegocioId=userDoc.data().negocioId; currentUserRole=userDoc.data().rol||'empleado'; }else{ const negocioQuery=await db.collection('negocios').where('propietarioUid','==',user.uid).get(); if(!negocioQuery.empty){ currentNegocioId=negocioQuery.docs[0].id; currentUserRole='admin'; await db.collection('negocios').doc(currentNegocioId).collection('empleados').doc(user.uid).set({rol:'admin',nombre:user.email,email:user.email}); }else{ alert('No pertenece a negocio'); auth.signOut(); return; } } const negDoc=await db.collection('negocios').doc(currentNegocioId).get(); currentNegocioData=negDoc.data(); document.getElementById('companyNameDisplay').innerHTML=currentNegocioData.nombre; document.getElementById('app').style.display='block'; document.getElementById('loginView').style.display='none'; renderMenu(); await loadCategoriasYProductos(); await loadCajaUI(); }else{ document.getElementById('app').style.display='none'; document.getElementById('loginView').style.display='block'; document.getElementById('registerView').style.display='none'; } });
+  // 鼠标离开事件处理
+  function handleMouseOut(e) {
+    if (!highlightEnabled) return;
+    var relatedTarget = e.relatedTarget;
 
-    document.getElementById('loginBtn').onclick=async()=>{ const email=document.getElementById('loginEmail').value, pass=document.getElementById('loginPassword').value; await auth.signInWithEmailAndPassword(email,pass); };
-    document.getElementById('showRegisterBtn').onclick=()=>{document.getElementById('loginView').style.display='none';document.getElementById('registerView').style.display='block';};
-    document.getElementById('backToLoginBtn').onclick=()=>{document.getElementById('registerView').style.display='none';document.getElementById('loginView').style.display='block';};
-    document.getElementById('registerBusinessBtn').onclick=async()=>{ const nom=document.getElementById('regNegocio').value, rnc=document.getElementById('regRNC').value, dir=document.getElementById('regDir').value, tel=document.getElementById('regTel').value, email=document.getElementById('regEmail').value, pass=document.getElementById('regPassword').value; const cred=await auth.createUserWithEmailAndPassword(email,pass); const negocioRef=await db.collection('negocios').add({nombre:nom,RNC:rnc,direccion:dir,telefono:tel,propietarioUid:cred.user.uid,plan:'basico',creadoEn:new Date()}); await db.collection('negocios').doc(negocioRef.id).collection('empleados').doc(cred.user.uid).set({rol:'admin',nombre:email,email}); await db.collection('negocios').doc(cred.user.uid).set({negocioId:negocioRef.id,rol:'admin'}); alert('Negocio registrado! Inicie sesión'); window.location.reload(); };
-    document.getElementById('logoutAppBtn').onclick=()=>auth.signOut();
+    // 如果鼠标移动到高亮相关元素上，不隐藏高亮
+    if (relatedTarget && (relatedTarget === highlightBox || relatedTarget === tagLabel || relatedTarget === overlay || relatedTarget === selectedBox || relatedTarget === selectedLabel)) {
+      return;
+    }
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: null,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 点击事件处理
+  function handleClick(e) {
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免处理 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 检查是否是交互元素，这些元素需要保留默认行为
+    var isInteractiveElement = ['input', 'textarea', 'select', 'button', 'a'].includes(target.tagName.toLowerCase());
+
+    // 如果高亮功能启用，对于非交互元素阻止默认行为和事件传播
+    if (highlightEnabled) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+    console.log("Element clicked:", {
+      tagName: target.tagName,
+      selector: selector,
+      rect: rect
+    });
+
+    // 立即更新选中高亮
+    updateSelectedHighlight(target);
+
+    // 隐藏悬停高亮，因为现在是选中状态
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-click",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 监听来自父窗口的消息
+  function handleParentMessage(event) {
+    console.log("Received message from parent:", event.data);
+    if (event.data.type === "iframe-highlight-toggle") {
+      var enabled = event.data.enabled;
+      console.log("Highlight toggle:", enabled);
+      if (enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "enable-iframe-highlight") {
+      console.log("Enable iframe highlight");
+      enableHighlight();
+    } else if (event.data.type === "disable-iframe-highlight") {
+      console.log("Disable iframe highlight");
+      disableHighlight();
+    } else if (event.data.type === "toggle-iframe-highlight") {
+      var _enabled = event.data.enabled !== undefined ? event.data.enabled : !highlightEnabled;
+      console.log("Toggle iframe highlight to:", _enabled);
+      if (_enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "update-selected-element") {
+      var selector = event.data.selector;
+      console.log("Update selected element with selector:", selector);
+      if (selector) {
+        try {
+          var element = document.querySelector(selector);
+          console.log("Found element by selector:", element);
+          updateSelectedHighlight(element);
+        } catch (error) {
+          console.warn("Failed to select element:", error);
+          updateSelectedHighlight(null);
+        }
+      } else {
+        updateSelectedHighlight(null);
+      }
+    } else if (event.data.type === "clear-selected-element") {
+      console.log("Clear selected element");
+      updateSelectedHighlight(null);
+    }
+  }
+
+  // 启用高亮功能
+  function enableHighlight() {
+    console.log("Enabling highlight");
+    document.addEventListener("mouseover", handleMouseOver, true);
+    document.addEventListener("mouseout", handleMouseOut, true);
+    document.addEventListener("click", handleClick, true);
+    highlightEnabled = true;
+    overlay.style.display = "block";
+  }
+
+  // 禁用高亮功能
+  function disableHighlight() {
+    console.log("Disabling highlight");
+    highlightEnabled = false;
+    // 保持事件监听器，但通过 highlightEnabled 变量控制行为
+    // 这样可以保留选中状态的显示
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    // 不隐藏 selectedBox 和 selectedLabel，保留选中状态
+  }
+
+  // 完全禁用高亮功能（移除所有监听器）
+  function fullyDisableHighlight() {
+    console.log("Fully disabling highlight");
+    highlightEnabled = false;
+    document.removeEventListener("mouseover", handleMouseOver, true);
+    document.removeEventListener("mouseout", handleMouseOut, true);
+    document.removeEventListener("click", handleClick, true);
+    overlay.style.display = "none";
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    selectedBox.style.display = "none";
+    selectedLabel.style.display = "none";
+  }
+
+  // 添加事件监听
+  enableHighlight();
+  window.addEventListener("message", handleParentMessage);
+
+  // 暴露全局函数供外部调用
+  window.__iframeHighlightControl = {
+    enable: enableHighlight,
+    disable: disableHighlight,
+    fullyDisable: fullyDisableHighlight,
+    isEnabled: function isEnabled() {
+      return highlightEnabled;
+    },
+    getSelectedElement: function getSelectedElement() {
+      return selectedElement;
+    },
+    updateSelected: updateSelectedHighlight,
+    // 通过消息发送开关控制
+    sendToggleMessage: function sendToggleMessage(enabled) {
+      window.parent.postMessage({
+        type: 'iframe-highlight-status',
+        enabled: enabled || highlightEnabled,
+        source: 'iframe-highlight-injector'
+      }, '*');
+    }
+  };
+
+  // 通知父窗口脚本已加载
+  try {
+    window.parent.postMessage({
+      type: "iframe-highlight-ready",
+      data: {
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: Date.now()
+      },
+      source: "iframe-highlight-injector"
+    }, "*");
+  } catch (error) {
+    console.warn("无法发送就绪消息到父窗口:", error);
+  }
+
+  // 清理函数
+  window.__iframeHighlightCleanup = function () {
+    fullyDisableHighlight();
+    window.removeEventListener("message", handleParentMessage);
+    if (overlay.parentElement) {
+      overlay.parentElement.removeChild(overlay);
+    }
+    delete window.__iframeHighlightInitialized;
+    delete window.__iframeHighlightCleanup;
+  };
+})();
+
 </script>
 </body>
 </html>
