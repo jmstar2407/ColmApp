@@ -14,6 +14,148 @@
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
   <link rel="stylesheet" href="./css/styles.css" />
   <style>
+    /* ===== MODO ORDENAR — INVENTARIO ===== */
+    .categorias-grid-inv {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+      border-radius: 12px;
+      transition: background 0.25s, padding 0.25s;
+    }
+    .categorias-grid-inv.modo-orden {
+      background: #eef4ff;
+      padding: 14px;
+      border: 2px dashed #1971c2;
+    }
+
+    .productos-grid-inv {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      border-radius: 12px;
+      transition: background 0.25s, padding 0.25s;
+    }
+    .productos-grid-inv.modo-orden {
+      background: #f0faf3;
+      padding: 14px;
+      border: 2px dashed #00b341;
+    }
+
+    .cat-card-inv {
+      user-select: none;
+      position: relative;
+      transition: box-shadow 0.2s, opacity 0.2s, transform 0.2s;
+      will-change: transform, opacity;
+      cursor: default;
+    }
+    .modo-orden .cat-card-inv {
+      cursor: grab;
+    }
+    .modo-orden .cat-card-inv:active { cursor: grabbing; }
+    .cat-card-inv.dragging { opacity: 0.3; transform: scale(0.93); }
+    .cat-card-inv.drag-over {
+      box-shadow: 0 0 0 3px #1971c2, 0 8px 24px rgba(25,113,194,0.22);
+      transform: scale(1.05);
+      z-index: 5;
+    }
+
+    .prod-card-inv {
+      user-select: none;
+      position: relative;
+      transition: box-shadow 0.2s, opacity 0.2s, transform 0.2s;
+      will-change: transform, opacity;
+      cursor: default;
+    }
+    .modo-orden .prod-card-inv { cursor: grab; }
+    .modo-orden .prod-card-inv:active { cursor: grabbing; }
+    .prod-card-inv.dragging { opacity: 0.3; transform: scale(0.92); }
+    .prod-card-inv.drag-over {
+      box-shadow: 0 0 0 3px #00b341, 0 8px 24px rgba(0,179,65,0.20);
+      transform: scale(1.04);
+      z-index: 5;
+    }
+
+    /* Orden badge — solo visible en modo ordenar */
+    .orden-badge {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: #1971c2;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .modo-orden .orden-badge {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Grip icon overlay — solo en modo ordenar */
+    .drag-grip-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(25,113,194,0.12);
+      border-radius: inherit;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      font-size: 22px;
+      color: #1971c2;
+      z-index: 3;
+    }
+    .productos-grid-inv .drag-grip-overlay { background: rgba(0,179,65,0.10); color: #00b341; }
+    .modo-orden .cat-card-inv:hover .drag-grip-overlay,
+    .modo-orden .prod-card-inv:hover .drag-grip-overlay { opacity: 1; }
+
+    /* Botón Ordenar */
+    .btn-ordenar {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 2px solid #1971c2;
+      background: white;
+      color: #1971c2;
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    }
+    .btn-ordenar.activo {
+      background: #1971c2;
+      color: white;
+      box-shadow: 0 2px 12px rgba(25,113,194,0.25);
+    }
+
+    .guardando-orden {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #1971c2;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s;
+      margin-left: 8px;
+    }
+    .guardando-orden.visible { opacity: 1; }
+
     /* Estilos adicionales para el área de dibujo dentro del carrito-footer */
     .dibujo-container {
       margin-top: 12px;
@@ -24,15 +166,18 @@
       flex-direction: column;
       overflow: hidden;
     }
+
     .dibujo-container.visible {
       display: flex;
     }
+
     .dibujo-canvas-wrapper {
       background: white;
       width: 100%;
       height: 300px;
       position: relative;
     }
+
     .dibujo-canvas {
       width: 100%;
       height: 100%;
@@ -41,6 +186,7 @@
       cursor: crosshair;
       touch-action: none;
     }
+
     .dibujo-toolbar {
       display: flex;
       gap: 8px;
@@ -49,6 +195,7 @@
       border-top: 1px solid var(--gris-borde);
       justify-content: flex-end;
     }
+
     .btn-dibujo-sm {
       background: white;
       border: 1px solid var(--gris-borde);
@@ -58,16 +205,19 @@
       cursor: pointer;
       font-weight: 600;
     }
+
     .btn-dibujo-sm.verde {
       background: var(--verde);
       color: white;
       border: none;
     }
+
     .btn-dibujo-sm.rojo {
       background: var(--rojo);
       color: white;
       border: none;
     }
+
     .btn-dibujo-principal {
       width: 100%;
       padding: 12px;
@@ -194,19 +344,24 @@
             <div class="totales-row"><span id="cart-itbis-label">ITBIS (18%)</span><span id="cart-itbis">RD$ 0.00</span>
             </div>
             <div class="totales-row total"><span>Total</span><span id="cart-total">RD$ 0.00</span></div>
-            <button class="btn-facturar" onclick="abrirModalFacturar()"><i class="fas fa-receipt"></i> Facturar</button>
-            
+            <div style="display:flex;gap:8px;">
+              <button class="btn-facturar" style="background:var(--rojo);flex:0 0 auto;padding:0 18px;width: 120px;" onclick="abrirModalVaciarCarrito()"><i class="fas fa-trash"></i> Vaciar</button>
+              <button class="btn-facturar" style="flex:1;" onclick="abrirModalFacturar()"><i class="fas fa-receipt"></i> Facturar</button>
+
+            </div>
+
             <!-- NUEVO BOTÓN CON FLECHA PARA DIBUJO (reemplaza al botón Limpiar) -->
-            <button class="btn-dibujo-principal" onclick="toggleDibujo()"><i class="fas fa-arrow-up"></i> Agregar Nota / Dibujo</button>
-            
+            <button class="btn-dibujo-principal" id="btn-toggle-dibujo" onclick="toggleDibujo()"><i id="icon-toggle-dibujo" class="fas fa-arrow-up"></i> Agregar Nota /
+              Dibujo</button>
+
             <!-- CONTENEDOR DEL CUADRO BLANCO PARA DIBUJAR (300px de alto) -->
             <div class="dibujo-container" id="dibujo-container">
               <div class="dibujo-canvas-wrapper">
-                <canvas id="firmaCanvas" class="dibujo-canvas" width="600" height="300"></canvas>
+                <canvas id="firmaCanvas" class="dibujo-canvas"></canvas>
               </div>
               <div class="dibujo-toolbar">
-                <button class="btn-dibujo-sm rojo" onclick="limpiarDibujo()"><i class="fas fa-trash-alt"></i> Limpiar</button>
-                <button class="btn-dibujo-sm verde" onclick="guardarDibujo()"><i class="fas fa-save"></i> Guardar Nota</button>
+                <button class="btn-dibujo-sm rojo" onclick="limpiarDibujo()"><i class="fas fa-trash-alt"></i>
+                  Limpiar</button>
               </div>
             </div>
           </div>
@@ -326,13 +481,15 @@
               <div class="page-title">Inventario</div>
               <div class="page-subtitle">Gestión de productos y categorías</div>
             </div>
-            <div style="display:flex;gap:8px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn-ordenar" id="btn-modo-ordenar" onclick="toggleModoOrden()"><i class="fas fa-arrows-alt"></i> Ordenar</button>
+              <span class="guardando-orden" id="guardando-orden-indicator"><i class="fas fa-circle-notch fa-spin"></i> Guardando...</span>
               <button class="btn-sm verde" onclick="abrirModalCategoria()"><i class="fas fa-folder-plus"></i>
                 Categoría</button>
               <button class="btn-sm verde" onclick="abrirModalProducto()"><i class="fas fa-plus"></i> Producto</button>
             </div>
           </div>
-          <div class="inv-controles" style="margin-bottom:16px;display:flex;gap:12px;">
+          <div class="inv-controles" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;">
             <input type="text" id="inv-buscar" placeholder="Buscar productos..."
               oninput="filtrarInventarioBusqueda(this.value)" style="flex:1;min-width:200px;">
             <button class="btn-sm gris" id="btn-volver-cats" onclick="volverCategoriasInventario()"
@@ -761,6 +918,23 @@
     </div>
   </div>
 
+  <!-- MODAL VACIAR CARRITO -->
+  <div class="modal-overlay" id="modal-vaciar-carrito">
+    <div class="modal" style="max-width:360px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-trash" style="color:var(--rojo);"></i> Vaciar Carrito</h3>
+        <button class="modal-close" onclick="cerrarModal('modal-vaciar-carrito')">✕</button>
+      </div>
+      <div class="modal-body" style="text-align:center;padding:24px 20px;">
+        <p style="font-size:15px;color:#444;">¿Deseas vaciar el carrito?<br><span style="color:#888;font-size:13px;">Esta acción eliminará todos los productos agregados.</span></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm gris" onclick="cerrarModal('modal-vaciar-carrito')">Cancelar</button>
+        <button class="btn-sm rojo" onclick="confirmarVaciarCarrito()"><i class="fas fa-trash"></i> Vaciar</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -939,10 +1113,10 @@
       suscribirCaja();
       suscribirInventario();
       await loadEmpleados();
-      
+
       // Inicializar Signature Pad en el canvas de dibujo
       inicializarSignaturePad();
-      
+
       showScreen('app');
       showPage('pos');
     }
@@ -988,6 +1162,13 @@
       const catsRef = collection(db, 'negocios', negocioId, 'categorias');
       unsubCategorias = onSnapshot(catsRef, async (snap) => {
         categorias = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Ordenar por campo 'orden' (si existe), luego por nombre como fallback
+        categorias.sort((a, b) => {
+          const oa = a.orden ?? 9999;
+          const ob = b.orden ?? 9999;
+          if (oa !== ob) return oa - ob;
+          return (a.nombre || '').localeCompare(b.nombre || '');
+        });
         localStorage.setItem(`cats_${negocioId}`, JSON.stringify(categorias));
         renderCategoriasPos();
         populateCatSelects();
@@ -1003,6 +1184,11 @@
         snap.docs.forEach(d => { nuevosProductos.push({ id: d.id, categoriaId: cat.id, categoriaNombre: cat.nombre, ...d.data() }); });
       }
       productos = nuevosProductos;
+      // Sort products by orden within each category
+      productos.sort((a, b) => {
+        if (a.categoriaId !== b.categoriaId) return 0;
+        return (a.orden ?? 9999) - (b.orden ?? 9999);
+      });
       localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos));
       if (categoriaActual) { renderProductosCategoria(categoriaActual); }
       else { renderCategoriasPos(); }
@@ -1226,26 +1412,96 @@
     }
 
     // ==================== DIBUJO ====================
+    // ==================== DIBUJO CON COORDENADAS CORREGIDAS ====================
     function inicializarSignaturePad() {
       const canvas = document.getElementById('firmaCanvas');
       if (!canvas) return;
-      // Ajustar dimensiones del canvas para evitar distorsión
-      const wrapper = canvas.parentElement;
-      canvas.width = 600;
-      canvas.height = 300;
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-      signaturePad = new SignaturePad(canvas, {
-        backgroundColor: 'white',
-        penColor: 'black',
-        minWidth: 2,
-        maxWidth: 4,
-        throttle: 16
-      });
-      // Cargar dibujo previo si existe
-      if (dibujoDataURL) {
-        signaturePad.fromDataURL(dibujoDataURL);
+
+      // Función para ajustar el tamaño del canvas correctamente
+      function resizeCanvas() {
+        const container = canvas.parentElement;
+        const rect = container.getBoundingClientRect();
+        const width = rect.width;
+        const height = 300; // Altura fija de 300px como pediste
+
+        // Establecer dimensiones reales del canvas (no solo CSS)
+        canvas.width = width;
+        canvas.height = height;
+
+        // Estilo CSS para que se vea bien
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+
+        // Re-inicializar signature pad con las nuevas dimensiones
+        if (signaturePad) {
+          const oldData = signaturePad.isEmpty() ? null : signaturePad.toDataURL();
+          signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'white',
+            penColor: 'black',
+            minWidth: 2,
+            maxWidth: 4,
+            throttle: 16
+          });
+          if (oldData) {
+            signaturePad.fromDataURL(oldData);
+          }
+        } else {
+          signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'white',
+            penColor: 'black',
+            minWidth: 2,
+            maxWidth: 4,
+            throttle: 16
+          });
+        }
+
+        // Cargar dibujo previo si existe
+        if (dibujoDataURL && signaturePad.isEmpty()) {
+          signaturePad.fromDataURL(dibujoDataURL);
+        }
       }
+
+      // Escuchar cambios de tamaño (por si el contenedor cambia)
+      window.addEventListener('resize', () => {
+        if (document.getElementById('dibujo-container')?.classList.contains('visible')) {
+          resizeCanvas();
+        }
+      });
+
+      // Usar ResizeObserver para detectar cuando el contenedor cambia de tamaño
+      if (window.ResizeObserver) {
+        const resizeObserver = new ResizeObserver(() => {
+          if (document.getElementById('dibujo-container')?.classList.contains('visible')) {
+            resizeCanvas();
+          }
+        });
+        resizeObserver.observe(canvas.parentElement);
+      }
+
+      // Al abrir el contenedor, ajustar tamaño
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            const container = document.getElementById('dibujo-container');
+            if (container && container.classList.contains('visible')) {
+              setTimeout(resizeCanvas, 50); // Pequeño delay para que el DOM se actualice
+            }
+          }
+        });
+      });
+      observer.observe(document.getElementById('dibujo-container'), { attributes: true });
+
+      // Inicializar por primera vez
+      setTimeout(resizeCanvas, 100);
+    }
+
+    // Actualiza el ícono de la flecha y guarda el estado en localStorage
+    function actualizarEstadoDibujo(abierto) {
+      const icon = document.getElementById('icon-toggle-dibujo');
+      if (icon) {
+        icon.className = abierto ? 'fas fa-arrow-down' : 'fas fa-arrow-up';
+      }
+      localStorage.setItem('dibujo_abierto', abierto ? '1' : '0');
     }
 
     window.toggleDibujo = () => {
@@ -1253,15 +1509,55 @@
       if (!container) return;
       if (container.classList.contains('visible')) {
         container.classList.remove('visible');
+        actualizarEstadoDibujo(false);
       } else {
         container.classList.add('visible');
-        // Re-inicializar el signature pad por si acaso
-        if (signaturePad) {
-          signaturePad.clear();
-          if (dibujoDataURL) signaturePad.fromDataURL(dibujoDataURL);
-        }
+        actualizarEstadoDibujo(true);
+        // Re-calibrar el canvas cuando se abre
+        setTimeout(() => {
+          if (signaturePad) {
+            const canvas = document.getElementById('firmaCanvas');
+            const wrapper = canvas.parentElement;
+            const rect = wrapper.getBoundingClientRect();
+            const width = rect.width;
+            canvas.width = width;
+            canvas.height = 300;
+            canvas.style.width = width + 'px';
+            canvas.style.height = '300px';
+
+            // Preservar datos existentes
+            const oldData = dibujoDataURL;
+            signaturePad.clear();
+            signaturePad = new SignaturePad(canvas, {
+              backgroundColor: 'white',
+              penColor: 'black',
+              minWidth: 2,
+              maxWidth: 4,
+              throttle: 16
+            });
+            if (oldData) {
+              signaturePad.fromDataURL(oldData);
+            }
+          }
+        }, 50);
       }
     };
+
+    // Restaurar estado del área de dibujo al cargar la página
+    function restaurarEstadoDibujo() {
+      const abierto = localStorage.getItem('dibujo_abierto') === '1';
+      if (abierto) {
+        const container = document.getElementById('dibujo-container');
+        if (container) {
+          container.classList.add('visible');
+          actualizarEstadoDibujo(true);
+        }
+      } else {
+        actualizarEstadoDibujo(false);
+      }
+    }
+    // Llamar la restauración una vez que el DOM esté listo
+    document.addEventListener('DOMContentLoaded', restaurarEstadoDibujo);
 
     window.limpiarDibujo = () => {
       if (signaturePad) {
@@ -1330,10 +1626,11 @@
         const ncfSeq = config.ncfSeq || 1;
         const ncf = `${config.ncfPrefijo || 'B01'}${String(ncfSeq).padStart(8, '0')}`;
         const numFactura = `F-${Date.now()}`;
-        
-        // Guardar el dibujo actual en la factura (si existe)
-        const notaDibujo = dibujoDataURL || null;
-        
+
+        // Capturar el dibujo directamente del canvas en el momento de facturar
+        // Si no hay nada dibujado, notaDibujo será null y no aparecerá en la factura
+        const notaDibujo = (signaturePad && !signaturePad.isEmpty()) ? signaturePad.toDataURL() : null;
+
         const facturaData = { numero: numFactura, ncf, fecha: serverTimestamp(), items: carrito.map(i => ({ id: i.id, nombre: i.nombre, precio: i.precio, qty: i.qty, subtotal: i.precio * i.qty })), subtotal, itbis, itbisPct, total, metodoPago: metodoPagoSeleccionado, montoRecibido: parseFloat(document.getElementById('monto-recibido').value) || total, estado: estadoFacturaSeleccionado, empleadoId: empId, empleadoNombre: empNombre, cajaId: cajaActual.id, uid: currentUser.uid, dibujoNota: notaDibujo };
         const factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaData);
         if (estadoFacturaSeleccionado === 'pagada') {
@@ -1354,12 +1651,15 @@
         cerrarModal('modal-facturar');
         facturaActualParaImprimir = { ...facturaData, id: factRef.id };
         mostrarTicket(facturaActualParaImprimir);
-        
-        // Limpiar el dibujo después de facturar (opcional)
+
+        // Limpiar carrito
+        carrito = [];
+        renderCarrito();
+
+        // Limpiar el canvas pero mantener el panel abierto si estaba abierto
         if (signaturePad) signaturePad.clear();
         dibujoDataURL = null;
-        document.getElementById('dibujo-container').classList.remove('visible');
-        
+
         toast('Factura generada exitosamente ✅', 'success');
       } catch (e) { toast('Error al procesar: ' + e.message, 'error'); console.error(e); }
       btn.innerHTML = '<i class="fas fa-check"></i> Confirmar Factura';
@@ -1368,8 +1668,8 @@
 
     function mostrarTicket(factura) { const body = document.getElementById('modal-ticket-body'); body.innerHTML = generarHTMLTicket(factura); abrirModal('modal-ticket'); }
 
-    function generarHTMLTicket(factura) { 
-      const fecha = factura.fecha?.toDate ? factura.fecha.toDate() : new Date(); 
+    function generarHTMLTicket(factura) {
+      const fecha = factura.fecha?.toDate ? factura.fecha.toDate() : new Date();
       let dibujoHtml = '';
       if (factura.dibujoNota) {
         dibujoHtml = `<div style="margin-top:12px; border-top:1px dashed #ccc; padding-top:8px;"><strong>📝 Nota / Dibujo:</strong><br><img src="${factura.dibujoNota}" style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:8px; margin-top:6px;"></div>`;
@@ -1382,6 +1682,9 @@
     window.imprimirFacturaActual = () => { const content = document.getElementById('modal-ver-factura-body').innerHTML; const w = window.open('', '_blank'); w.document.write(`<html><head><title>Factura</title><style>body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;}.ticket-row{display:flex;justify-content:space-between;margin-bottom:4px;}.ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}.ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}</style></head><body>${content}<script>window.print();window.close();<\/script></body></html>`); w.document.close(); };
 
     window.nuevaVenta = () => { carrito = []; renderCarrito(); cerrarModal('modal-ticket'); categoriaActual = null; renderCategoriasPos(); };
+
+    window.abrirModalVaciarCarrito = () => { if (!carrito.length) { toast('El carrito ya está vacío', 'info'); return; } abrirModal('modal-vaciar-carrito'); };
+    window.confirmarVaciarCarrito = () => { carrito = []; renderCarrito(); cerrarModal('modal-vaciar-carrito'); toast('Carrito vaciado', 'info'); };
 
     // ==================== FACTURAS PAGE ====================
     async function cargarFacturas() { const q = query(collection(db, 'negocios', negocioId, 'facturas'), orderBy('fecha', 'desc'), limit(100)); const snap = await getDocs(q); facturasCache = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaFacturas(facturasCache); }
@@ -1407,6 +1710,24 @@
       }
     }
 
+    window._modoOrden = false;
+    window.toggleModoOrden = () => {
+      window._modoOrden = !window._modoOrden;
+      const btn = document.getElementById('btn-modo-ordenar');
+      if (btn) {
+        btn.classList.toggle('activo', window._modoOrden);
+        btn.innerHTML = window._modoOrden
+          ? '<i class="fas fa-check"></i> Listo'
+          : '<i class="fas fa-arrows-alt"></i> Ordenar';
+      }
+      // Toggle modo-orden class on whichever grid is visible
+      document.querySelectorAll('.categorias-grid-inv, .productos-grid-inv').forEach(g => {
+        g.classList.toggle('modo-orden', window._modoOrden);
+        // Enable/disable draggable on cards
+        g.querySelectorAll('[draggable]').forEach(c => c.draggable = window._modoOrden);
+      });
+    };
+
     function renderCategoriasInventario() {
       const area = document.getElementById('inv-contenido');
       if (!area) return;
@@ -1414,26 +1735,236 @@
         area.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>No hay categorías creadas.<br>Haz clic en "Categoría" para agregar.</p></div>`;
         return;
       }
-      area.innerHTML = `<div class="categorias-grid-inv">${categorias.map(cat => `<div class="cat-card-inv" onclick="verProductosPorCategoriaInventario('${cat.id}')">${cat.imagen ? `<img src="${cat.imagen}" alt="${cat.nombre}" onerror="this.style.display='none';this.outerHTML='<span class=&quot;cat-emoji-inv&quot;>${cat.emoji || '📦'}</span>'">` : `<span class="cat-emoji-inv">${cat.emoji || '📦'}</span>`}<div class="cat-info-inv"><div class="cat-nombre-inv">${cat.nombre}</div><div class="cat-stats-inv">${productos.filter(p => p.categoriaId === cat.id).length} productos</div></div><div class="cat-actions-inv"><button class="icon-btn-sm" onclick="event.stopPropagation();editarCategoria('${cat.id}')" title="Editar"><i class="fas fa-edit"></i></button><button class="icon-btn-sm" onclick="event.stopPropagation();eliminarCategoria('${cat.id}')" title="Eliminar"><i class="fas fa-trash"></i></button></div></div>`).join('')}</div>`;
+
+      // Smart update: if grid already matches, just refresh badges + draggable state
+      const existingGrid = area.querySelector('.categorias-grid-inv');
+      const needsFull = !existingGrid || existingGrid.children.length !== categorias.length ||
+        [...existingGrid.children].some((c, i) => c.dataset.id !== categorias[i].id);
+
+      if (!needsFull) {
+        [...existingGrid.children].forEach((c, i) => {
+          const badge = c.querySelector('.orden-badge');
+          if (badge) badge.textContent = i + 1;
+          c.draggable = window._modoOrden;
+        });
+        existingGrid.classList.toggle('modo-orden', window._modoOrden);
+        return;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'categorias-grid-inv' + (window._modoOrden ? ' modo-orden' : '');
+
+      const attachCatDrag = (card, catId) => {
+        card.addEventListener('dragstart', (e) => {
+          if (!window._modoOrden) { e.preventDefault(); return; }
+          requestAnimationFrame(() => card.classList.add('dragging'));
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', catId);
+          window._dragSrcEl = card;
+          window._dragSrcId = catId;
+          window._dragType = 'cat';
+        });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
+        });
+        card.addEventListener('dragover', (e) => {
+          if (!window._modoOrden || window._dragType !== 'cat') return;
+          e.preventDefault();
+          if (card !== window._dragSrcEl) {
+            grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
+            card.classList.add('drag-over');
+          }
+        });
+        card.addEventListener('dragleave', (e) => {
+          if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over');
+        });
+        card.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+          if (!window._modoOrden || window._dragType !== 'cat') return;
+          const srcEl = window._dragSrcEl;
+          const srcId = window._dragSrcId;
+          if (!srcEl || srcId === catId) return;
+          const allCards = [...grid.children];
+          const srcIdx = allCards.indexOf(srcEl);
+          const dstIdx = allCards.indexOf(card);
+          if (srcIdx < dstIdx) grid.insertBefore(srcEl, card.nextSibling);
+          else grid.insertBefore(srcEl, card);
+          const newOrder = [...grid.children].map(c => c.dataset.id);
+          categorias.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+          [...grid.children].forEach((c, i) => {
+            const badge = c.querySelector('.orden-badge');
+            if (badge) badge.textContent = i + 1;
+          });
+          renderCategoriasPos();
+          populateCatSelects();
+          await guardarOrdenCategorias();
+        });
+      };
+
+      categorias.forEach((cat, index) => {
+        const card = document.createElement('div');
+        card.className = 'cat-card-inv';
+        card.draggable = window._modoOrden;
+        card.dataset.id = cat.id;
+
+        const imgHtml = cat.imagen
+          ? `<img src="${cat.imagen}" alt="${cat.nombre}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px 10px 0 0;display:block;" onerror="this.style.display='none'">`
+          : `<span class="cat-emoji-inv">${cat.emoji || '📦'}</span>`;
+
+        card.innerHTML = `
+          <span class="orden-badge">${index + 1}</span>
+          <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
+          ${imgHtml}
+          <div class="cat-info-inv" onclick="if(!window._modoOrden)verProductosPorCategoriaInventario('${cat.id}')">
+            <div class="cat-nombre-inv">${cat.nombre}</div>
+            <div class="cat-stats-inv">${productos.filter(p => p.categoriaId === cat.id).length} productos</div>
+          </div>
+          <div class="cat-actions-inv">
+            <button class="icon-btn-sm" onclick="event.stopPropagation();editarCategoria('${cat.id}')" title="Editar"><i class="fas fa-edit"></i></button>
+            <button class="icon-btn-sm" onclick="event.stopPropagation();eliminarCategoria('${cat.id}')" title="Eliminar"><i class="fas fa-trash"></i></button>
+          </div>`;
+
+        attachCatDrag(card, cat.id);
+        grid.appendChild(card);
+      });
+
+      area.innerHTML = '';
+      area.appendChild(grid);
+    }
+
+    async function guardarOrdenCategorias() {
+      const indicator = document.getElementById('guardando-orden-indicator');
+      if (indicator) indicator.classList.add('visible');
+      try {
+        const batch = writeBatch(db);
+        categorias.forEach((cat, i) => {
+          batch.update(doc(db, 'negocios', negocioId, 'categorias', cat.id), { orden: i + 1 });
+          cat.orden = i + 1;
+        });
+        await batch.commit();
+      } catch (e) {
+        toast('Error guardando orden: ' + e.message, 'error');
+      } finally {
+        if (indicator) setTimeout(() => indicator.classList.remove('visible'), 1400);
+      }
     }
 
     function renderProductosInventario(categoriaId, busqueda = '') {
       const area = document.getElementById('inv-contenido');
       const categoria = categorias.find(c => c.id === categoriaId);
       let prods = productos.filter(p => p.categoriaId === categoriaId);
-      if (busqueda) { prods = prods.filter(p => p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigoBarras || '').includes(busqueda)); }
+      if (busqueda) prods = prods.filter(p => p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigoBarras || '').includes(busqueda));
       if (!area) return;
-      if (prods.length === 0) {
-        area.innerHTML = `<div class="productos-header-inv"><button class="back-btn" onclick="volverCategoriasInventario()"><i class="fas fa-arrow-left"></i> Categorías</button><strong>${categoria?.nombre || 'Productos'}</strong><button class="btn-sm verde" onclick="abrirModalProducto()" style="margin-left:auto;"><i class="fas fa-plus"></i> Producto</button></div><div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos en esta categoría</p></div>`;
+
+      const header = `<div class="productos-header-inv"><button class="back-btn" onclick="volverCategoriasInventario()"><i class="fas fa-arrow-left"></i> Categorías</button><strong>${categoria?.nombre || 'Productos'}</strong><button class="btn-sm verde" onclick="abrirModalProducto()" style="margin-left:auto;"><i class="fas fa-plus"></i> Producto</button></div>`;
+
+      if (!prods.length) {
+        area.innerHTML = header + `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos en esta categoría</p></div>`;
         return;
       }
-      area.innerHTML = `<div class="productos-header-inv"><button class="back-btn" onclick="volverCategoriasInventario()"><i class="fas fa-arrow-left"></i> Categorías</button><strong>${categoria?.nombre || 'Productos'}</strong><button class="btn-sm verde" onclick="abrirModalProducto()" style="margin-left:auto;"><i class="fas fa-plus"></i> Producto</button></div><div class="productos-grid-inv">${prods.map(p => renderProductoCardInventario(p)).join('')}</div>`;
+
+      prods.sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
+
+      const grid = document.createElement('div');
+      grid.className = 'productos-grid-inv' + (window._modoOrden ? ' modo-orden' : '');
+      grid.id = 'prod-drag-grid';
+
+      const attachProdDrag = (card, prod) => {
+        card.addEventListener('dragstart', (e) => {
+          if (!window._modoOrden) { e.preventDefault(); return; }
+          requestAnimationFrame(() => card.classList.add('dragging'));
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', prod.id);
+          window._dragSrcEl = card;
+          window._dragSrcId = prod.id;
+          window._dragType = 'prod';
+        });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
+        });
+        card.addEventListener('dragover', (e) => {
+          if (!window._modoOrden || window._dragType !== 'prod') return;
+          e.preventDefault();
+          if (card !== window._dragSrcEl) {
+            grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
+            card.classList.add('drag-over');
+          }
+        });
+        card.addEventListener('dragleave', (e) => {
+          if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over');
+        });
+        card.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+          if (!window._modoOrden || window._dragType !== 'prod') return;
+          const srcEl = window._dragSrcEl;
+          const srcId = window._dragSrcId;
+          if (!srcEl || srcId === prod.id) return;
+          const allCards = [...grid.children];
+          const srcIdx = allCards.indexOf(srcEl);
+          const dstIdx = allCards.indexOf(card);
+          if (srcIdx < dstIdx) grid.insertBefore(srcEl, card.nextSibling);
+          else grid.insertBefore(srcEl, card);
+          const newOrder = [...grid.children].map(c => c.dataset.id);
+          newOrder.forEach((id, i) => { const p = productos.find(x => x.id === id); if (p) p.orden = i + 1; });
+          [...grid.children].forEach((c, i) => {
+            const badge = c.querySelector('.orden-badge');
+            if (badge) badge.textContent = i + 1;
+          });
+          await guardarOrdenProductos(newOrder, categoriaId);
+        });
+      };
+
+      prods.forEach((p, index) => {
+        const sinStock = p.stock <= 0;
+        const bajoStock = p.stock > 0 && p.stock <= (p.stockMin || 5);
+        const card = document.createElement('div');
+        card.className = `prod-card-inv${sinStock ? ' sin-stock' : ''}`;
+        card.draggable = window._modoOrden;
+        card.dataset.id = p.id;
+
+        card.innerHTML = `
+          <span class="orden-badge" style="background:#00b341;">${index + 1}</span>
+          <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
+          ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'">` : `<div class="prod-emoji-inv">📦</div>`}
+          ${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${p.stock}</div>` : ''}
+          ${sinStock ? `<div class="stock-badge-inv danger">Sin stock</div>` : ''}
+          <div class="prod-info-inv">
+            <div class="prod-nombre-inv">${p.nombre}</div>
+            ${p.codigoBarras ? `<div class="prod-codigo-inv">${p.codigoBarras}</div>` : ''}
+            <div class="prod-precios-inv"><span class="precio-venta">${fmt(p.precio)}</span>${p.costo ? `<span class="precio-costo">Costo: ${fmt(p.costo)}</span>` : ''}</div>
+            <div class="prod-stock-inv ${bajoStock ? 'bajo' : ''} ${sinStock ? 'sin' : ''}">Stock: ${p.stock || 0} ${p.unidad || ''}</div>
+            <div class="prod-actions-inv">
+              <button class="btn-sm gris" onclick="editarProducto('${p.id}')"><i class="fas fa-edit"></i> Editar</button>
+              <button class="btn-sm rojo" onclick="eliminarProducto('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+          </div>`;
+
+        attachProdDrag(card, p);
+        grid.appendChild(card);
+      });
+
+      area.innerHTML = header;
+      area.appendChild(grid);
     }
 
-    function renderProductoCardInventario(p) {
-      const sinStock = p.stock <= 0;
-      const bajoStock = p.stock > 0 && p.stock <= (p.stockMin || 5);
-      return `<div class="prod-card-inv ${sinStock ? 'sin-stock' : ''}">${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'">` : `<div class="prod-emoji-inv">📦</div>`}${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${p.stock}</div>` : ''}${sinStock ? `<div class="stock-badge-inv danger">Sin stock</div>` : ''}<div class="prod-info-inv"><div class="prod-nombre-inv">${p.nombre}</div>${p.codigoBarras ? `<div class="prod-codigo-inv">${p.codigoBarras}</div>` : ''}<div class="prod-precios-inv"><span class="precio-venta">${fmt(p.precio)}</span>${p.costo ? `<span class="precio-costo">Costo: ${fmt(p.costo)}</span>` : ''}</div><div class="prod-stock-inv ${bajoStock ? 'bajo' : ''} ${sinStock ? 'sin' : ''}">Stock: ${p.stock || 0} ${p.unidad || ''}</div><div class="prod-actions-inv"><button class="btn-sm gris" onclick="editarProducto('${p.id}')"><i class="fas fa-edit"></i> Editar</button><button class="btn-sm rojo" onclick="eliminarProducto('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button></div></div></div>`;
+    async function guardarOrdenProductos(newOrder, categoriaId) {
+      const indicator = document.getElementById('guardando-orden-indicator');
+      if (indicator) indicator.classList.add('visible');
+      try {
+        const batch = writeBatch(db);
+        newOrder.forEach((id, i) => {
+          batch.update(doc(db, 'negocios', negocioId, 'categorias', categoriaId, 'productos', id), { orden: i + 1 });
+        });
+        await batch.commit();
+      } catch (e) {
+        toast('Error guardando orden: ' + e.message, 'error');
+      } finally {
+        if (indicator) setTimeout(() => indicator.classList.remove('visible'), 1400);
+      }
     }
 
     window.verProductosPorCategoriaInventario = (catId) => { inventarioCategoriaActual = catId; inventarioBusquedaActual = ''; document.getElementById('inv-buscar').value = ''; renderInventario(); };
@@ -1465,7 +1996,8 @@
           toast('Categoría actualizada', 'success');
           delete window.categoriaEditandoId;
         } else {
-          await addDoc(collection(db, 'negocios', negocioId, 'categorias'), { nombre, emoji, imagen, creadoEn: serverTimestamp() });
+          const nextOrden = categorias.length + 1;
+          await addDoc(collection(db, 'negocios', negocioId, 'categorias'), { nombre, emoji, imagen, orden: nextOrden, creadoEn: serverTimestamp() });
           toast('Categoría creada', 'success');
         }
         cerrarModal('modal-categoria');
