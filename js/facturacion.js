@@ -6,31 +6,31 @@ import {
   collection, doc, addDoc, updateDoc, serverTimestamp, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ── Exponer funciones globales (al final del hoisting ya existen) ──
 export function initFacturacion() {
-  // Exponer funciones globales
-  window.agregarAlCarrito  = agregarAlCarrito;
-  window.cambiarQty        = cambiarQty;
-  window.limpiarCarrito    = limpiarCarrito;
-  window.abrirModalFacturar = abrirModalFacturar;
-  window.seleccionarMetodo = seleccionarMetodo;
-  window.setEstadoFactura  = setEstadoFactura;
-  window.calcularCambio    = calcularCambio;
-  window.tecNumero         = tecNumero;
-  window.confirmarFactura  = confirmarFactura;
-  window.imprimirTicket    = imprimirTicket;
+  window.agregarAlCarrito      = agregarAlCarrito;
+  window.cambiarQty            = cambiarQty;
+  window.limpiarCarrito        = limpiarCarrito;
+  window.abrirModalFacturar    = abrirModalFacturar;
+  window.seleccionarMetodo     = seleccionarMetodo;
+  window.setEstadoFactura      = setEstadoFactura;
+  window.calcularCambio        = calcularCambio;
+  window.tecNumero             = tecNumero;
+  window.confirmarFactura      = confirmarFactura;
+  window.imprimirTicket        = imprimirTicket;
   window.imprimirFacturaActual = imprimirFacturaActual;
-  window.nuevaVenta        = nuevaVenta;
+  window.nuevaVenta            = nuevaVenta;
 }
 initFacturacion();
 
 // ── Carrito ───────────────────────────────────────────────
-window.agregarAlCarrito = function agregarAlCarrito(prodId) {
+function agregarAlCarrito(prodId) {
   if (!state.cajaActual) { toast('⚠️ La caja no está abierta', 'error'); return; }
   const prod = state.productos.find(p => p.id === prodId);
   if (!prod) return;
   if (prod.stock <= 0) { toast('Sin stock disponible', 'error'); return; }
   agregarAlCarritoObj(prod);
-};
+}
 
 export function agregarAlCarritoObj(prod) {
   const idx = state.carrito.findIndex(i => i.id === prod.id);
@@ -44,22 +44,22 @@ export function agregarAlCarritoObj(prod) {
   toast(`"${prod.nombre}" agregado`, 'success');
 }
 
-window.cambiarQty = function cambiarQty(prodId, delta) {
+function cambiarQty(prodId, delta) {
   const idx = state.carrito.findIndex(i => i.id === prodId);
   if (idx < 0) return;
   state.carrito[idx].qty += delta;
   if (state.carrito[idx].qty <= 0) state.carrito.splice(idx, 1);
   renderCarrito();
-};
+}
 
-window.limpiarCarrito = function limpiarCarrito() {
+function limpiarCarrito() {
   state.carrito = [];
   renderCarrito();
-};
+}
 
 function renderCarrito() {
-  const items   = document.getElementById('carrito-items');
-  const count   = document.getElementById('carrito-count');
+  const items    = document.getElementById('carrito-items');
+  const count    = document.getElementById('carrito-count');
   const totalQty = state.carrito.reduce((s, i) => s + i.qty, 0);
   count.textContent = totalQty;
 
@@ -92,9 +92,9 @@ function renderCarrito() {
 }
 
 // ── Modal Facturar ────────────────────────────────────────
-window.abrirModalFacturar = function abrirModalFacturar() {
-  if (!state.carrito.length)  { toast('El carrito está vacío', 'error');     return; }
-  if (!state.cajaActual)      { toast('La caja no está abierta', 'error');   return; }
+function abrirModalFacturar() {
+  if (!state.carrito.length) { toast('El carrito está vacío', 'error');   return; }
+  if (!state.cajaActual)     { toast('La caja no está abierta', 'error'); return; }
 
   const subtotal     = state.carrito.reduce((s, i) => s + i.precio * i.qty, 0);
   const itbisPct     = state.config.itbisPct || 18;
@@ -108,14 +108,14 @@ window.abrirModalFacturar = function abrirModalFacturar() {
       <span class="fi-precio">${fmt(item.precio * item.qty)}</span>
     </div>`).join('');
 
-  document.getElementById('mfact-subtotal').textContent       = fmt(subtotal);
-  document.getElementById('mfact-itbis-lbl').textContent      = `ITBIS (${itbisPct}%)${!itbisCliente ? ' (asumido)' : ''}`;
-  document.getElementById('mfact-itbis').textContent          = fmt(itbis);
-  document.getElementById('mfact-total').textContent          = fmt(subtotal + itbis);
-  document.getElementById('monto-recibido').value             = '';
-  document.getElementById('cambio-display').style.display     = 'none';
+  document.getElementById('mfact-subtotal').textContent   = fmt(subtotal);
+  document.getElementById('mfact-itbis-lbl').textContent  = `ITBIS (${itbisPct}%)${!itbisCliente ? ' (asumido)' : ''}`;
+  document.getElementById('mfact-itbis').textContent      = fmt(itbis);
+  document.getElementById('mfact-total').textContent      = fmt(subtotal + itbis);
+  document.getElementById('monto-recibido').value         = '';
+  document.getElementById('cambio-display').style.display = 'none';
 
-  const sel   = document.getElementById('fact-empleado');
+  const sel = document.getElementById('fact-empleado');
   sel.innerHTML = state.empleadosCache.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
   const myEmp = state.empleadosCache.find(e => e.uid === state.currentUser.uid);
   if (myEmp) sel.value = myEmp.id;
@@ -123,22 +123,22 @@ window.abrirModalFacturar = function abrirModalFacturar() {
   seleccionarMetodo('efectivo');
   setEstadoFactura('pagada');
   abrirModal('modal-facturar');
-};
+}
 
-window.seleccionarMetodo = function seleccionarMetodo(metodo) {
+function seleccionarMetodo(metodo) {
   state.metodoPagoSeleccionado = metodo;
   const metodos = ['efectivo', 'transferencia', 'tarjeta'];
   document.querySelectorAll('.mpago-btn').forEach((b, i) => b.classList.toggle('selected', metodos[i] === metodo));
   document.getElementById('efectivo-section').classList.toggle('visible', metodo === 'efectivo');
-};
+}
 
-window.setEstadoFactura = function setEstadoFactura(estado) {
+function setEstadoFactura(estado) {
   state.estadoFacturaSeleccionado = estado;
   document.getElementById('btn-estado-pagada').classList.toggle('selected', estado === 'pagada');
   document.getElementById('btn-estado-pendiente').classList.toggle('selected', estado === 'pendiente');
-};
+}
 
-window.calcularCambio = function calcularCambio() {
+function calcularCambio() {
   const subtotal     = state.carrito.reduce((s, i) => s + i.precio * i.qty, 0);
   const itbisPct     = state.config.itbisPct || 18;
   const itbisCliente = state.config.itbisCliente !== false;
@@ -147,25 +147,25 @@ window.calcularCambio = function calcularCambio() {
   const cambio       = recibido - total;
   const disp         = document.getElementById('cambio-display');
   if (recibido > 0) {
-    disp.style.display    = 'flex';
+    disp.style.display = 'flex';
     document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio));
     disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da';
   } else {
     disp.style.display = 'none';
   }
-};
+}
 
-window.tecNumero = function tecNumero(val) {
+function tecNumero(val) {
   const inp = document.getElementById('monto-recibido');
   if      (val === 'C')  inp.value = '';
   else if (val === '⌫') inp.value = inp.value.slice(0, -1);
   else if (val === 'OK') { calcularCambio(); return; }
   else                   inp.value += val;
   calcularCambio();
-};
+}
 
 // ── Confirmar factura ─────────────────────────────────────
-window.confirmarFactura = async function confirmarFactura() {
+async function confirmarFactura() {
   const btn = document.getElementById('btn-confirmar-factura');
   btn.innerHTML = '<span class="loader"></span> Procesando...';
   btn.disabled  = true;
@@ -177,10 +177,10 @@ window.confirmarFactura = async function confirmarFactura() {
     const itbis        = itbisCliente ? subtotal * (itbisPct / 100) : 0;
     const total        = subtotal + itbis;
 
-    const empId      = document.getElementById('fact-empleado').value;
-    const empNombre  = state.empleadosCache.find(e => e.id === empId)?.nombre || await getEmpNombre();
-    const ncfSeq     = state.config.ncfSeq || 1;
-    const ncf        = `${state.config.ncfPrefijo || 'B01'}${String(ncfSeq).padStart(8, '0')}`;
+    const empId     = document.getElementById('fact-empleado').value;
+    const empNombre = state.empleadosCache.find(e => e.id === empId)?.nombre || await getEmpNombre();
+    const ncfSeq    = state.config.ncfSeq || 1;
+    const ncf       = `${state.config.ncfPrefijo || 'B01'}${String(ncfSeq).padStart(8, '0')}`;
     const numFactura = `F-${Date.now()}`;
 
     const facturaData = {
@@ -232,7 +232,7 @@ window.confirmarFactura = async function confirmarFactura() {
 
   btn.innerHTML = '<i class="fas fa-check"></i> Confirmar Factura';
   btn.disabled  = false;
-};
+}
 
 // ── Ticket ────────────────────────────────────────────────
 function mostrarTicket(factura) {
@@ -280,24 +280,24 @@ const printStyle = `body{font-family:monospace;font-size:12px;max-width:300px;ma
   .ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}
   .ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}`;
 
-window.imprimirTicket = function imprimirTicket() {
+function imprimirTicket() {
   const content = document.getElementById('modal-ticket-body').innerHTML;
   const w = window.open('', '_blank');
   w.document.write(`<html><head><title>Ticket</title><style>${printStyle}</style></head><body>${content}<script>window.print();window.close();<\/script></body></html>`);
   w.document.close();
-};
+}
 
-window.imprimirFacturaActual = function imprimirFacturaActual() {
+function imprimirFacturaActual() {
   const content = document.getElementById('modal-ver-factura-body').innerHTML;
   const w = window.open('', '_blank');
   w.document.write(`<html><head><title>Factura</title><style>${printStyle}</style></head><body>${content}<script>window.print();window.close();<\/script></body></html>`);
   w.document.close();
-};
+}
 
-window.nuevaVenta = function nuevaVenta() {
+function nuevaVenta() {
   state.carrito = [];
   renderCarrito();
   cerrarModal('modal-ticket');
   state.categoriaActual = null;
   import('./inventario.js').then(m => m.renderCategoriasPos());
-};
+}
