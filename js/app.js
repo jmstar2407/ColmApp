@@ -9,13 +9,8 @@ import { getFirestore, doc, getDoc, collection, getDocs }
 import { getStorage }              from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 import { initLogin }               from "./login.js";
-import { initCaja, suscribirCaja } from "./caja.js";
-import { initInventario, suscribirInventario, cargarTodosProductos, populateCatSelects }
-                                   from "./inventario.js";
-import { initFacturacion }         from "./facturacion.js";
-import { initFacturas }            from "./facturas.js";
-import { initEstadisticas }        from "./estadisticas.js";
-import { initConfig }              from "./configuracion.js";
+import { suscribirCaja }           from "./caja.js";
+import { suscribirInventario }     from "./inventario.js";
 
 // ── Firebase ──────────────────────────────────────────────
 const firebaseConfig = {
