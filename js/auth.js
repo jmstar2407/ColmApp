@@ -1,207 +1,134 @@
-// ========================================
-// miColmApp - Módulo de Autenticación
-// ========================================
+import { auth, db } from './firebase-config.js';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { AppState, toast, emit, on } from './utils/helpers.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Elementos del DOM
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const loginError = document.getElementById('loginError');
-    const registerError = document.getElementById('registerError');
-    const loadingOverlay = document.getElementById('loadingOverlay');
+let authInitialized = false;
 
-    // Tabs de autenticación
-    const authTabs = document.querySelectorAll('.auth-tab');
-    authTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabName = tab.dataset.tab;
-            switchAuthTab(tabName);
-        });
+export function initAuth() {
+  if (authInitialized) return;
+  authInitialized = true;
+  
+  // Login button
+  document.getElementById('btn-login')?.addEventListener('click', login);
+  document.getElementById('btn-registro')?.addEventListener('click', registrar);
+  document.getElementById('btn-logout')?.addEventListener('click', logout);
+  
+  // Tabs
+  document.querySelectorAll('.auth-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.getElementById('auth-login').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('auth-registro').style.display = tab === 'registro' ? 'block' : 'none';
+      document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
     });
-
-    // Función para cambiar tabs
-    function switchAuthTab(tabName) {
-        authTabs.forEach(t => t.classList.remove('active'));
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
-        if (tabName === 'login') {
-            loginForm.classList.add('active');
-            registerForm.classList.remove('active');
-        } else {
-            loginForm.classList.remove('active');
-            registerForm.classList.add('active');
-        }
+  });
+  
+  // Auth state
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      AppState.currentUser = user;
+      await loadNegocio(user);
+    } else {
+      AppState.currentUser = null;
+      AppState.negocioId = null;
+      AppState.negocioData = null;
+      showScreen('auth');
     }
-
-    // Toggle password visibility
-    document.querySelectorAll('.toggle-password').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const input = btn.parentElement.querySelector('input');
-            const icon = btn.querySelector('i');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'ri-eye-line';
-            } else {
-                input.type = 'password';
-                icon.className = 'ri-eye-off-line';
-            }
-        });
-    });
-
-    // Manejar formulario de login
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        showLoading();
-
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-
-        const result = await authService.login(email, password);
-
-        hideLoading();
-
-        if (result.success) {
-            // Guardar en localStorage para persistencia
-            localStorage.setItem('colmapp_user', result.user.uid);
-            // Redirigir a la aplicación
-            window.location.href = 'app.html';
-        } else {
-            showError(loginError, result.error);
-        }
-    });
-
-    // Manejar formulario de registro
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        showLoading();
-
-        const businessData = {
-            nombre: document.getElementById('businessName').value,
-            RNC: document.getElementById('businessRNC').value,
-            telefono: document.getElementById('businessPhone').value,
-            direccion: document.getElementById('businessAddress').value
-        };
-
-        const email = document.getElementById('ownerEmail').value;
-        const password = document.getElementById('ownerPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-
-        // Validaciones
-        if (password !== confirmPassword) {
-            hideLoading();
-            showError(registerError, 'Las contraseñas no coinciden');
-            return;
-        }
-
-        if (password.length < 6) {
-            hideLoading();
-            showError(registerError, 'La contraseña debe tener al menos 6 caracteres');
-            return;
-        }
-
-        const result = await authService.registerBusiness(businessData, email, password);
-
-        hideLoading();
-
-        if (result.success) {
-            showToast('success', '¡Éxito!', 'Tu colmado ha sido creado correctamente');
-            localStorage.setItem('colmapp_user', result.user.uid);
-            // Redirigir a la aplicación
-            setTimeout(() => {
-                window.location.href = 'app.html';
-            }, 1500);
-        } else {
-            showError(registerError, result.error);
-        }
-    });
-
-    // Verificar si ya hay sesión activa
-    checkExistingSession();
-
-    // Funciones de ayuda
-    function showLoading() {
-        loadingOverlay.classList.remove('hidden');
-    }
-
-    function hideLoading() {
-        loadingOverlay.classList.add('hidden');
-    }
-
-    function showError(element, message) {
-        element.textContent = message;
-        element.style.display = 'flex';
-        setTimeout(() => {
-            element.style.display = 'none';
-        }, 5000);
-    }
-
-    async function checkExistingSession() {
-        const userId = localStorage.getItem('colmapp_user');
-
-        if (userId) {
-            showLoading();
-            // Verificar si el usuario sigue siendo válido
-            auth.onAuthStateChanged((user) => {
-                hideLoading();
-                if (user) {
-                    window.location.href = 'app.html';
-                } else {
-                    localStorage.removeItem('colmapp_user');
-                }
-            });
-        }
-    }
-});
-
-// Función global para mostrar toasts
-function showToast(type, title, message) {
-    const container = document.getElementById('toastContainer') || createToastContainer();
-
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <div class="toast-icon">
-            <i class="ri-${type === 'success' ? 'check-line' : type === 'error' ? 'close-line' : type === 'warning' ? 'alert-line' : 'information-line'}"></i>
-        </div>
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-message">${message}</div>
-        </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">
-            <i class="ri-close-line"></i>
-        </button>
-    `;
-
-    container.appendChild(toast);
-
-    // Auto-remover después de 5 segundos
-    setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease forwards';
-        setTimeout(() => toast.remove(), 300);
-    }, 5000);
+  });
 }
 
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-    return container;
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!email || !pass) { toast('Completa todos los campos', 'error'); return; }
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    toast('Bienvenido', 'success');
+  } catch (e) {
+    toast('Credenciales incorrectas', 'error');
+  }
 }
 
-// Agregar estilos de animación para toast
-const toastStyles = document.createElement('style');
-toastStyles.textContent = `
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
+async function registrar() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const rnc = document.getElementById('reg-rnc').value.trim();
+  const direccion = document.getElementById('reg-direccion').value.trim();
+  const telefono = document.getElementById('reg-telefono').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  if (!nombre || !email || !pass || pass.length < 6) {
+    toast('Complete todos los campos (contraseña mínimo 6 caracteres)', 'error');
+    return;
+  }
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    const uid = cred.user.uid;
+    await setDoc(doc(db, 'negocios', uid), {
+      nombre, rnc, direccion, telefono, propietarioUid: uid, plan: 'basico', creadoEn: serverTimestamp()
+    });
+    await setDoc(doc(db, 'negocios', uid, 'configuraciones', 'general'), {
+      itbisPct: 18, itbisCliente: true, ncfPrefijo: 'B01', ncfSeq: 1
+    });
+    await setDoc(doc(db, 'negocios', uid, 'empleados', uid), {
+      nombre: 'Administrador', email, rol: 'admin', uid, activo: true, creadoEn: serverTimestamp()
+    });
+    toast('Negocio registrado exitosamente', 'success');
+  } catch (e) {
+    toast('Error al registrar: ' + e.message, 'error');
+  }
+}
+
+async function loadNegocio(user) {
+  try {
+    let negRef = doc(db, 'negocios', user.uid);
+    let negSnap = await getDoc(negRef);
+    if (negSnap.exists()) {
+      AppState.negocioId = user.uid;
+    } else {
+      const cached = localStorage.getItem(`negocio_${user.uid}`);
+      if (cached) {
+        AppState.negocioId = cached;
+        negRef = doc(db, 'negocios', cached);
+        negSnap = await getDoc(negRef);
+        if (!negSnap.exists()) throw new Error('Negocio no encontrado');
+      } else {
+        throw new Error('No perteneces a ningún negocio');
+      }
     }
-`;
-document.head.appendChild(toastStyles);
+    AppState.negocioData = negSnap.data();
+    localStorage.setItem(`negocio_${user.uid}`, AppState.negocioId);
+    
+    const empSnap = await getDoc(doc(db, 'negocios', AppState.negocioId, 'empleados', user.uid));
+    AppState.userRole = empSnap.exists() ? empSnap.data().rol : 'admin';
+    
+    emit('auth:ready', AppState);
+    showScreen('app');
+  } catch (e) {
+    console.error(e);
+    toast('Error al cargar negocio', 'error');
+    await signOut(auth);
+    showScreen('auth');
+  }
+}
+
+async function logout() {
+  await signOut(auth);
+  AppState.carrito = [];
+  AppState.cajaActual = null;
+  toast('Sesión cerrada', 'info');
+}
+
+function showScreen(screen) {
+  document.getElementById('loading-screen').style.display = screen === 'loading' ? 'flex' : 'none';
+  document.getElementById('auth-screen').style.display = screen === 'auth' ? 'flex' : 'none';
+  document.getElementById('app').style.display = screen === 'app' ? 'flex' : 'none';
+}
+
+// Ocultar loading después de 2.5s
+setTimeout(() => {
+  if (document.getElementById('loading-screen').style.display !== 'none' && !auth.currentUser) {
+    showScreen('auth');
+  }
+}, 2500);

@@ -1,658 +1,167 @@
 <!DOCTYPE html>
-<html lang="es-DO">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>miColmApp - Sistema de Facturación para Colmados</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>miColmApp – POS Colmados RD</title>
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Main Styles -->
+  <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="auth-page">
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <div class="logo-container">
-                    <i class="ri-store-2-fill logo-icon"></i>
-                </div>
-                <h1 class="app-title">miColmApp</h1>
-                <p class="app-subtitle">Sistema de Facturación Electrónica para Colmados</p>
-            </div>
+<body>
 
-            <div class="auth-tabs">
-                <button class="auth-tab active" data-tab="login">
-                    <i class="ri-login-box-line"></i>
-                    Iniciar Sesión
-                </button>
-                <button class="auth-tab" data-tab="register">
-                    <i class="ri-user-add-line"></i>
-                    Registrar Colmado
-                </button>
-            </div>
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="ls-icon">🏪</div>
+  <h2>miColmApp</h2>
+  <p>Cargando sistema...</p>
+  <div class="progress-bar"><div class="progress-fill"></div></div>
+</div>
 
-            <!-- Formulario de Login -->
-            <form id="loginForm" class="auth-form active">
-                <div class="form-group">
-                    <label for="loginEmail">
-                        <i class="ri-mail-line"></i>
-                        Correo Electrónico
-                    </label>
-                    <input type="email" id="loginEmail" placeholder="correo@ejemplo.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="loginPassword">
-                        <i class="ri-lock-line"></i>
-                        Contraseña
-                    </label>
-                    <div class="password-input-wrapper">
-                        <input type="password" id="loginPassword" placeholder="Tu contraseña" required>
-                        <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
-                            <i class="ri-eye-off-line"></i>
-                        </button>
-                    </div>
-                </div>
-                <div id="loginError" class="error-message" style="display: none;"></div>
-                <button type="submit" class="btn btn-primary btn-block">
-                    <i class="ri-login-box-line"></i>
-                    Ingresar
-                </button>
-            </form>
+<!-- AUTH SCREEN -->
+<div id="auth-screen" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">🏪</div>
+      <h1>miColmApp</h1>
+      <p>Sistema POS para Colmados RD</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Iniciar Sesión</button>
+      <button class="auth-tab" data-tab="registro">Registrar Colmado</button>
+    </div>
+    <div id="auth-login">
+      <div class="form-group"><label>Correo Electrónico</label><input type="email" id="login-email" placeholder="admin@micolmado.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••"></div>
+      <button class="btn-primary" id="btn-login"><i class="fas fa-sign-in-alt"></i> Entrar al Sistema</button>
+    </div>
+    <div id="auth-registro" style="display:none;">
+      <div class="form-group"><label>Nombre del Colmado</label><input type="text" id="reg-nombre" placeholder="Colmado El Buen Precio"></div>
+      <div class="form-group"><label>RNC (opcional)</label><input type="text" id="reg-rnc" placeholder="101-12345-6"></div>
+      <div class="form-group"><label>Dirección</label><input type="text" id="reg-direccion" placeholder="Calle Duarte #5, Santo Domingo"></div>
+      <div class="form-group"><label>Teléfono</label><input type="text" id="reg-telefono" placeholder="809-555-0000"></div>
+      <div class="form-group"><label>Correo Admin</label><input type="email" id="reg-email" placeholder="admin@tucolmado.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres"></div>
+      <button class="btn-primary" id="btn-registro"><i class="fas fa-store"></i> Registrar Colmado</button>
+    </div>
+    <div id="auth-msg"></div>
+  </div>
+</div>
 
-            <!-- Formulario de Registro -->
-            <form id="registerForm" class="auth-form">
-                <div class="form-group">
-                    <label for="businessName">
-                        <i class="ri-store-2-line"></i>
-                        Nombre del Colmado
-                    </label>
-                    <input type="text" id="businessName" placeholder="Ej: Colmado Don Juan" required>
-                </div>
-                <div class="form-group">
-                    <label for="businessRNC">
-                        <i class="ri-file-list-3-line"></i>
-                        RNC / Cédula
-                    </label>
-                    <input type="text" id="businessRNC" placeholder="Ej: 130XXXXXX" required maxlength="11">
-                </div>
-                <div class="form-group">
-                    <label for="businessPhone">
-                        <i class="ri-phone-line"></i>
-                        Teléfono
-                    </label>
-                    <input type="tel" id="businessPhone" placeholder="Ej: 809-555-1234" required>
-                </div>
-                <div class="form-group">
-                    <label for="businessAddress">
-                        <i class="ri-map-pin-line"></i>
-                        Dirección
-                    </label>
-                    <input type="text" id="businessAddress" placeholder="Dirección del colmado" required>
-                </div>
-                <div class="form-group">
-                    <label for="ownerEmail">
-                        <i class="ri-mail-line"></i>
-                        Correo del Propietario
-                    </label>
-                    <input type="email" id="ownerEmail" placeholder="correo@ejemplo.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="ownerPassword">
-                        <i class="ri-lock-line"></i>
-                        Contraseña
-                    </label>
-                    <div class="password-input-wrapper">
-                        <input type="password" id="ownerPassword" placeholder="Mínimo 6 caracteres" required minlength="6">
-                        <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
-                            <i class="ri-eye-off-line"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword">
-                        <i class="ri-lock-line"></i>
-                        Confirmar Contraseña
-                    </label>
-                    <div class="password-input-wrapper">
-                        <input type="password" id="confirmPassword" placeholder="Repite la contraseña" required>
-                        <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
-                            <i class="ri-eye-off-line"></i>
-                        </button>
-                    </div>
-                </div>
-                <div id="registerError" class="error-message" style="display: none;"></div>
-                <button type="submit" class="btn btn-primary btn-block">
-                    <i class="ri-store-2-fill"></i>
-                    Crear Mi Colmado
-                </button>
-            </form>
+<!-- MAIN APP -->
+<div id="app" style="display:none;">
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="brand-icon">🏪</div>
+      <div>
+        <span>miColmApp</span>
+        <div class="negocio-nombre" id="nav-negocio-nombre">Cargando...</div>
+      </div>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-datetime" id="nav-datetime"></div>
+    <div class="nav-buttons" id="nav-buttons"></div>
+    <button class="nav-btn logout" id="btn-logout"><i class="fas fa-sign-out-alt"></i> Salir</button>
+  </nav>
 
-            <div class="auth-footer">
-                <p>¿Necesitas ayuda? <a href="#">Contactar Soporte</a></p>
-            </div>
+  <!-- CAJA PENDIENTE BANNER -->
+  <div id="caja-pendiente-banner">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span>⚠️ La caja no está abierta. No se pueden realizar ventas.</span>
+    <button id="btn-ir-caja">Ir a Caja</button>
+  </div>
+
+  <div class="content">
+    <!-- POS PAGE -->
+    <div class="page" id="page-pos">
+      <div class="pos-left">
+        <div class="pos-search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" id="pos-buscar" placeholder="Buscar productos...">
+          <select id="pos-categoria-filtro"><option value="">Todas las categorías</option></select>
+          <button class="icon-btn grid-btn active" data-grid="grande"><i class="fas fa-th-large"></i></button>
+          <button class="icon-btn grid-btn" data-grid="pequena"><i class="fas fa-th"></i></button>
+          <button class="icon-btn scan-btn" id="btn-scanner"><i class="fas fa-barcode"></i></button>
         </div>
-
-        <div class="auth-features">
-            <h2>Potencia tu Colmado</h2>
-            <div class="feature-list">
-                <div class="feature-item">
-                    <i class="ri-bill-line"></i>
-                    <div>
-                        <h3>Facturación Electrónica</h3>
-                        <p>Cumple con los requisitos de la DGII</p>
-                    </div>
-                </div>
-                <div class="feature-item">
-                    <i class="ri-database-line"></i>
-                    <div>
-                        <h3>Control de Inventario</h3>
-                        <p>Gestiona tu stock en tiempo real</p>
-                    </div>
-                </div>
-                <div class="feature-item">
-                    <i class="ri-line-chart-line"></i>
-                    <div>
-                        <h3>Estadísticas</h3>
-                        <p>Visualiza tus ventas y ganancias</p>
-                    </div>
-                </div>
-                <div class="feature-item">
-                    <i class="ri-wallet-line"></i>
-                    <div>
-                        <h3>Control de Caja</h3>
-                        <p>Gestión completa de ingresos y gastos</p>
-                    </div>
-                </div>
-            </div>
+        <div class="pos-productos-area" id="pos-productos-area"></div>
+      </div>
+      <div class="pos-right">
+        <div class="carrito-header">
+          <h3><i class="fas fa-shopping-cart"></i> Carrito</h3>
+          <span class="carrito-count" id="carrito-count">0</span>
         </div>
+        <div class="carrito-items" id="carrito-items"></div>
+        <div class="carrito-footer">
+          <div class="totales-row"><span>Subtotal</span><span id="cart-subtotal">RD$ 0.00</span></div>
+          <div class="totales-row"><span id="cart-itbis-label">ITBIS (18%)</span><span id="cart-itbis">RD$ 0.00</span></div>
+          <div class="totales-row total"><span>Total</span><span id="cart-total">RD$ 0.00</span></div>
+          <button class="btn-facturar" id="btn-facturar"><i class="fas fa-receipt"></i> Facturar</button>
+          <button class="btn-limpiar" id="btn-limpiar-carrito"><i class="fas fa-trash"></i> Limpiar</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="loading-spinner">
-            <i class="ri-loader-4-line"></i>
-            <p>Cargando...</p>
+    <!-- CAJA PAGE -->
+    <div class="page" id="page-caja">
+      <div style="max-width:900px;width:100%;">
+        <div class="caja-estado-card" id="caja-estado-card"></div>
+        <div class="caja-movimientos">
+          <div class="section-header"><h3><i class="fas fa-list"></i> Movimientos de Hoy</h3><button class="btn-sm verde" id="btn-exportar-movimientos"><i class="fas fa-download"></i> Exportar</button></div>
+          <div class="full-table-wrap"><table class="tabla-movimientos"><thead><tr><th>Hora</th><th>Tipo</th><th>Descripción</th><th>Empleado</th><th>Monto</th></tr></thead><tbody id="tbody-movimientos"></tbody></table></div>
         </div>
+        <div class="caja-movimientos"><div class="section-header"><h3><i class="fas fa-history"></i> Historial de Cajas</h3></div><div class="full-table-wrap"><table class="historial-caja-tabla"><thead><tr><th>Apertura</th><th>Cierre</th><th>Empleado</th><th>Monto Inicial</th><th>Monto Final</th><th>Estado</th></tr></thead><tbody id="tbody-historial-caja"></tbody></table></div></div>
+      </div>
     </div>
 
-    <script type="module" src="js/firebase-config.js"></script>
-    <script type="module" src="js/auth.js"></script>
+    <!-- FACTURAS PAGE -->
+    <div class="page" id="page-facturas">
+      <div class="facturas-filtros"><input type="text" id="fact-buscar" placeholder="Buscar por # o cliente..."><input type="date" id="fact-fecha-ini"><input type="date" id="fact-fecha-fin"><select id="fact-estado"><option value="">Todos</option><option value="pagada">Pagadas</option><option value="pendiente">Pendientes</option></select><select id="fact-metodo"><option value="">Todos</option><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="tarjeta">Tarjeta</option></select><button class="btn-sm gris" id="btn-limpiar-filtros"><i class="fas fa-times"></i> Limpiar</button></div>
+      <div class="full-table-wrap"><table class="facturas-tabla"><thead><tr><th># Factura</th><th>NCF</th><th>Fecha</th><th>Empleado</th><th>Método</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tbody-facturas"></tbody></table></div>
+    </div>
 
-<script>
-/**
- * Iframe 元素高亮注入脚本
- * 需要在目标网站中引入此脚本来支持跨域 iframe 高亮功能
- *
- * 使用方法：
- * 1. 将此脚本添加到目标网站的 HTML 中
- * 2. 或通过浏览器扩展、用户脚本等方式注入
- */
+    <!-- INVENTARIO PAGE -->
+    <div class="page" id="page-inventario">
+      <div class="inv-header"><button class="btn-sm verde" id="btn-nueva-categoria"><i class="fas fa-folder-plus"></i> Categoría</button><button class="btn-sm verde" id="btn-nuevo-producto"><i class="fas fa-plus"></i> Producto</button></div>
+      <div class="inv-controles"><input type="text" id="inv-buscar" placeholder="Buscar..."><select id="inv-cat-filtro"><option value="">Todas las categorías</option></select><button class="btn-sm gris" id="btn-toggle-view"><i class="fas fa-list"></i> Lista</button></div>
+      <div id="inv-contenido"></div>
+    </div>
 
-(function () {
-  "use strict";
+    <!-- ESTADISTICAS PAGE -->
+    <div class="page" id="page-estadisticas">
+      <div class="stats-filtros"><input type="date" id="stats-fecha-ini"><input type="date" id="stats-fecha-fin"><button class="btn-sm verde" id="btn-calcular-stats"><i class="fas fa-chart-bar"></i> Calcular</button><button class="btn-sm gris" id="btn-stats-hoy">Hoy</button></div>
+      <div class="stats-cards" id="stats-cards"></div>
+      <div class="charts-grid"><div class="chart-card"><h4>Ventas por Día</h4><canvas id="chart-ventas"></canvas></div><div class="chart-card"><h4>Más Vendidos</h4><canvas id="chart-productos"></canvas></div></div>
+      <div class="contab-grid" id="contab-grid"></div>
+      <div class="chart-card"><h4>Métodos de Pago</h4><canvas id="chart-metodos"></canvas></div>
+    </div>
 
-  // 检查是否在 iframe 中
-  if (window.self === window.top) {
-    return; // 不在 iframe 中，不执行
-  }
+    <!-- CONFIG PAGE -->
+    <div class="page" id="page-config">
+      <div class="config-section"><div class="section-header"><h3>Datos del Negocio</h3></div><div class="config-grid"><input type="text" id="cfg-nombre" placeholder="Nombre"><input type="text" id="cfg-rnc" placeholder="RNC"><input type="text" id="cfg-direccion" placeholder="Dirección"><input type="text" id="cfg-telefono" placeholder="Teléfono"><input type="text" id="cfg-ncf-prefijo" placeholder="Prefijo NCF"><input type="number" id="cfg-ncf-seq" placeholder="Secuencia"></div><button class="btn-sm verde" id="btn-guardar-config"><i class="fas fa-save"></i> Guardar</button></div>
+      <div class="config-section"><div class="section-header"><h3>ITBIS</h3></div><div class="config-grid"><input type="number" id="cfg-itbis-pct" placeholder="%" value="18"></div><div class="toggle-row"><div><label>Cliente paga ITBIS</label></div><label class="toggle"><input type="checkbox" id="cfg-itbis-cliente" checked><span class="toggle-slider"></span></label></div><button class="btn-sm verde" id="btn-guardar-itbis"><i class="fas fa-save"></i> Guardar</button></div>
+      <div class="config-section"><div class="section-header"><h3>Empleados</h3><button class="btn-sm verde" id="btn-agregar-empleado"><i class="fas fa-user-plus"></i> Agregar</button></div><div class="empleados-lista" id="empleados-lista"></div></div>
+    </div>
+  </div>
+</div>
 
-  // 检查是否已经初始化过
-  if (window.__iframeHighlightInitialized) {
-    return;
-  }
-  window.__iframeHighlightInitialized = true;
-  console.log("Iframe 高亮脚本已加载");
+<!-- MODALES (simplificadas) -->
+<div id="modal-overlay" class="modal-overlay"><div class="modal"><div class="modal-header"><h3 id="modal-title"></h3><button class="modal-close">&times;</button></div><div class="modal-body" id="modal-body"></div><div class="modal-footer" id="modal-footer"></div></div></div>
+<div id="toast-container"></div>
 
-  // 创建高亮覆盖层
-  var overlay = document.createElement("div");
-  overlay.id = "iframe-highlight-overlay";
-  overlay.style.cssText = "\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100vw;\n    height: 100vh;\n    pointer-events: none;\n    z-index: 999999;\n    overflow: hidden;\n  ";
-
-  // 创建悬停高亮框（虚线边框）
-  var highlightBox = document.createElement("div");
-  highlightBox.id = "iframe-highlight-box";
-  highlightBox.style.cssText = "\n    position: absolute;\n    border: 2px dashed #007AFF;\n    background: rgba(0, 122, 255, 0.08);\n    pointer-events: none;\n    display: none;\n    transition: all 0.1s ease;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);\n    border-radius: 2px;\n  ";
-
-  // 创建选中节点的常驻高亮框（实线边框）
-  var selectedBox = document.createElement("div");
-  selectedBox.id = "iframe-selected-box";
-  selectedBox.style.cssText = "\n    position: absolute;\n    border: 2px solid #007AFF;\n    pointer-events: none;\n    display: none;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 107, 53, 0.4);\n    border-radius: 2px;\n    z-index: 1000000;\n  ";
-
-  // 创建悬停标签显示
-  var tagLabel = document.createElement("div");
-  tagLabel.id = "iframe-tag-label";
-  tagLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 2px 6px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 2px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000001;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\n    font-weight: 500;\n  ";
-
-  // 创建选中节点标签
-  var selectedLabel = document.createElement("div");
-  selectedLabel.id = "iframe-selected-label";
-  selectedLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 3px 8px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 3px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000002;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);\n    font-weight: 600;\n  ";
-  overlay.appendChild(highlightBox);
-  overlay.appendChild(selectedBox);
-  overlay.appendChild(tagLabel);
-  overlay.appendChild(selectedLabel);
-  document.body.appendChild(overlay);
-
-  // 存储当前选中的元素
-  var selectedElement = null;
-  var highlightEnabled = false;
-
-  // 更新选中元素的高亮显示
-  function updateSelectedHighlight(element) {
-    console.log("updateSelectedHighlight called with:", element);
-    if (!element) {
-      selectedBox.style.display = "none";
-      selectedLabel.style.display = "none";
-      selectedElement = null;
-      console.log("Cleared selected highlight");
-      return;
-    }
-    selectedElement = element;
-    var rect = element.getBoundingClientRect();
-    console.log("Selected element rect:", rect);
-
-    // 更新选中高亮框位置
-    selectedBox.style.display = "block";
-    selectedBox.style.left = "".concat(rect.left - 2, "px");
-    selectedBox.style.top = "".concat(rect.top - 2, "px");
-    selectedBox.style.width = "".concat(rect.width + 4, "px");
-    selectedBox.style.height = "".concat(rect.height + 4, "px");
-
-    // 更新选中标签位置和内容
-    selectedLabel.style.display = "block";
-    selectedLabel.textContent = "\u2713 <".concat(element.tagName.toLowerCase(), ">");
-
-    // 计算标签位置，确保不超出视窗
-    var labelTop = rect.top - 28;
-    var labelLeft = rect.left;
-
-    // 如果标签会超出顶部，显示在元素下方
-    if (labelTop < 5) {
-      labelTop = rect.bottom + 5;
-    }
-
-    // 如果标签会超出右侧，向左调整
-    var labelWidth = selectedLabel.offsetWidth || 100; // 预估宽度
-    if (labelLeft + labelWidth > window.innerWidth - 10) {
-      labelLeft = window.innerWidth - labelWidth - 10;
-    }
-    selectedLabel.style.left = "".concat(Math.max(5, labelLeft), "px");
-    selectedLabel.style.top = "".concat(labelTop, "px");
-    console.log("Selected highlight positioned at:", {
-      left: selectedBox.style.left,
-      top: selectedBox.style.top,
-      width: selectedBox.style.width,
-      height: selectedBox.style.height
-    });
-  }
-  function getElementSelector(element) {
-    if (!(element instanceof Element)) throw new Error('Argument must be a DOM element');
-    var segments = [];
-    var current = element;
-    while (current !== document.documentElement) {
-      var selector = '';
-      // 优先检查唯一ID
-      if (current.id && document.querySelectorAll("#".concat(current.id)).length === 1) {
-        segments.unshift("#".concat(current.id));
-        break; // ID唯一，无需继续向上
-      }
-
-      // 生成类名选择器（取第一个有效类名）
-      var classes = Array.from(current.classList).filter(function (c) {
-        return !c.startsWith('js-');
-      });
-      var className = classes.length > 0 ? ".".concat(classes[0]) : '';
-
-      // 生成位置索引（nth-child）
-      var tag = current.tagName.toLowerCase();
-      if (!className) {
-        var siblings = Array.from(current.parentNode.children);
-        var index = siblings.findIndex(function (el) {
-          return el === current;
-        }) + 1;
-        selector = "".concat(tag, ":nth-child(").concat(index, ")");
-      } else {
-        selector = className;
-      }
-      segments.unshift(selector);
-      current = current.parentElement;
-    }
-
-    // 处理根元素
-    if (current === document.documentElement) {
-      segments.unshift('html');
-    }
-    return segments.join(' > ');
-  }
-
-  // 获取元素文本内容
-  function getElementText(element) {
-    var _element$textContent;
-    if (element.tagName === "INPUT") {
-      return element.value || element.placeholder || "";
-    }
-    if (element.tagName === "TEXTAREA") {
-      return element.value || element.placeholder || "";
-    }
-    var text = ((_element$textContent = element.textContent) === null || _element$textContent === void 0 ? void 0 : _element$textContent.trim()) || "";
-    return text.length > 50 ? text.substring(0, 50) + "..." : text;
-  }
-
-  // 获取元素属性信息
-  function getElementAttributes(element) {
-    var attrs = {};
-    for (var i = 0; i < element.attributes.length; i++) {
-      var attr = element.attributes[i];
-      attrs[attr.name] = attr.value;
-    }
-    return attrs;
-  }
-
-  // 鼠标悬停事件处理
-  function handleMouseOver(e) {
-    if (!highlightEnabled) return;
-    var target = e.target;
-    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
-      return;
-    }
-
-    // 避免高亮 html 和 body 元素
-    if (target === document.documentElement || target === document.body) {
-      return;
-    }
-
-    // 如果是已选中的元素，不显示悬停高亮
-    if (target === selectedElement) {
-      highlightBox.style.display = "none";
-      tagLabel.style.display = "none";
-      return;
-    }
-    var rect = target.getBoundingClientRect();
-    var selector = getElementSelector(target);
-    var text = getElementText(target);
-    var attributes = getElementAttributes(target);
-
-    // 更新悬停高亮框位置
-    highlightBox.style.display = "block";
-    highlightBox.style.left = "".concat(rect.left - 2, "px");
-    highlightBox.style.top = "".concat(rect.top - 2, "px");
-    highlightBox.style.width = "".concat(rect.width + 4, "px");
-    highlightBox.style.height = "".concat(rect.height + 4, "px");
-
-    // 更新标签位置和内容
-    tagLabel.style.display = "block";
-    tagLabel.textContent = "<".concat(target.tagName.toLowerCase(), ">");
-
-    // 计算标签位置，确保不超出视窗
-    var labelTop = rect.top - 22;
-    var labelLeft = rect.left;
-
-    // 如果标签会超出顶部，显示在元素下方
-    if (labelTop < 0) {
-      labelTop = rect.bottom + 5;
-    }
-
-    // 如果标签会超出右侧，向左调整
-    if (labelLeft + tagLabel.offsetWidth > window.innerWidth) {
-      labelLeft = window.innerWidth - tagLabel.offsetWidth - 5;
-    }
-    tagLabel.style.left = "".concat(Math.max(0, labelLeft), "px");
-    tagLabel.style.top = "".concat(labelTop, "px");
-
-    // 发送消息到父窗口
-    var elementInfo = {
-      tagName: target.tagName.toLowerCase(),
-      rect: {
-        left: rect.left,
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
-        width: rect.width,
-        height: rect.height,
-        x: rect.x,
-        y: rect.y
-      },
-      selector: selector,
-      text: text,
-      attributes: attributes,
-      url: window.location.href,
-      path: window.location.pathname,
-      timestamp: Date.now()
-    };
-    try {
-      window.parent.postMessage({
-        type: "iframe-element-hover",
-        data: elementInfo,
-        source: "iframe-highlight-injector"
-      }, "*");
-    } catch (error) {
-      console.warn("无法发送消息到父窗口:", error);
-    }
-  }
-
-  // 鼠标离开事件处理
-  function handleMouseOut(e) {
-    if (!highlightEnabled) return;
-    var relatedTarget = e.relatedTarget;
-
-    // 如果鼠标移动到高亮相关元素上，不隐藏高亮
-    if (relatedTarget && (relatedTarget === highlightBox || relatedTarget === tagLabel || relatedTarget === overlay || relatedTarget === selectedBox || relatedTarget === selectedLabel)) {
-      return;
-    }
-    highlightBox.style.display = "none";
-    tagLabel.style.display = "none";
-    try {
-      window.parent.postMessage({
-        type: "iframe-element-hover",
-        data: null,
-        source: "iframe-highlight-injector"
-      }, "*");
-    } catch (error) {
-      console.warn("无法发送消息到父窗口:", error);
-    }
-  }
-
-  // 点击事件处理
-  function handleClick(e) {
-    var target = e.target;
-    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
-      return;
-    }
-
-    // 避免处理 html 和 body 元素
-    if (target === document.documentElement || target === document.body) {
-      return;
-    }
-
-    // 检查是否是交互元素，这些元素需要保留默认行为
-    var isInteractiveElement = ['input', 'textarea', 'select', 'button', 'a'].includes(target.tagName.toLowerCase());
-
-    // 如果高亮功能启用，对于非交互元素阻止默认行为和事件传播
-    if (highlightEnabled) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    var rect = target.getBoundingClientRect();
-    var selector = getElementSelector(target);
-    var text = getElementText(target);
-    var attributes = getElementAttributes(target);
-    console.log("Element clicked:", {
-      tagName: target.tagName,
-      selector: selector,
-      rect: rect
-    });
-
-    // 立即更新选中高亮
-    updateSelectedHighlight(target);
-
-    // 隐藏悬停高亮，因为现在是选中状态
-    highlightBox.style.display = "none";
-    tagLabel.style.display = "none";
-    var elementInfo = {
-      tagName: target.tagName.toLowerCase(),
-      rect: {
-        left: rect.left,
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
-        width: rect.width,
-        height: rect.height,
-        x: rect.x,
-        y: rect.y
-      },
-      selector: selector,
-      text: text,
-      attributes: attributes,
-      url: window.location.href,
-      path: window.location.pathname,
-      timestamp: Date.now()
-    };
-    try {
-      window.parent.postMessage({
-        type: "iframe-element-click",
-        data: elementInfo,
-        source: "iframe-highlight-injector"
-      }, "*");
-    } catch (error) {
-      console.warn("无法发送消息到父窗口:", error);
-    }
-  }
-
-  // 监听来自父窗口的消息
-  function handleParentMessage(event) {
-    console.log("Received message from parent:", event.data);
-    if (event.data.type === "iframe-highlight-toggle") {
-      var enabled = event.data.enabled;
-      console.log("Highlight toggle:", enabled);
-      if (enabled) {
-        enableHighlight();
-      } else {
-        disableHighlight();
-      }
-    } else if (event.data.type === "enable-iframe-highlight") {
-      console.log("Enable iframe highlight");
-      enableHighlight();
-    } else if (event.data.type === "disable-iframe-highlight") {
-      console.log("Disable iframe highlight");
-      disableHighlight();
-    } else if (event.data.type === "toggle-iframe-highlight") {
-      var _enabled = event.data.enabled !== undefined ? event.data.enabled : !highlightEnabled;
-      console.log("Toggle iframe highlight to:", _enabled);
-      if (_enabled) {
-        enableHighlight();
-      } else {
-        disableHighlight();
-      }
-    } else if (event.data.type === "update-selected-element") {
-      var selector = event.data.selector;
-      console.log("Update selected element with selector:", selector);
-      if (selector) {
-        try {
-          var element = document.querySelector(selector);
-          console.log("Found element by selector:", element);
-          updateSelectedHighlight(element);
-        } catch (error) {
-          console.warn("Failed to select element:", error);
-          updateSelectedHighlight(null);
-        }
-      } else {
-        updateSelectedHighlight(null);
-      }
-    } else if (event.data.type === "clear-selected-element") {
-      console.log("Clear selected element");
-      updateSelectedHighlight(null);
-    }
-  }
-
-  // 启用高亮功能
-  function enableHighlight() {
-    console.log("Enabling highlight");
-    document.addEventListener("mouseover", handleMouseOver, true);
-    document.addEventListener("mouseout", handleMouseOut, true);
-    document.addEventListener("click", handleClick, true);
-    highlightEnabled = true;
-    overlay.style.display = "block";
-  }
-
-  // 禁用高亮功能
-  function disableHighlight() {
-    console.log("Disabling highlight");
-    highlightEnabled = false;
-    // 保持事件监听器，但通过 highlightEnabled 变量控制行为
-    // 这样可以保留选中状态的显示
-    highlightBox.style.display = "none";
-    tagLabel.style.display = "none";
-    // 不隐藏 selectedBox 和 selectedLabel，保留选中状态
-  }
-
-  // 完全禁用高亮功能（移除所有监听器）
-  function fullyDisableHighlight() {
-    console.log("Fully disabling highlight");
-    highlightEnabled = false;
-    document.removeEventListener("mouseover", handleMouseOver, true);
-    document.removeEventListener("mouseout", handleMouseOut, true);
-    document.removeEventListener("click", handleClick, true);
-    overlay.style.display = "none";
-    highlightBox.style.display = "none";
-    tagLabel.style.display = "none";
-    selectedBox.style.display = "none";
-    selectedLabel.style.display = "none";
-  }
-
-  // 添加事件监听
-  enableHighlight();
-  window.addEventListener("message", handleParentMessage);
-
-  // 暴露全局函数供外部调用
-  window.__iframeHighlightControl = {
-    enable: enableHighlight,
-    disable: disableHighlight,
-    fullyDisable: fullyDisableHighlight,
-    isEnabled: function isEnabled() {
-      return highlightEnabled;
-    },
-    getSelectedElement: function getSelectedElement() {
-      return selectedElement;
-    },
-    updateSelected: updateSelectedHighlight,
-    // 通过消息发送开关控制
-    sendToggleMessage: function sendToggleMessage(enabled) {
-      window.parent.postMessage({
-        type: 'iframe-highlight-status',
-        enabled: enabled || highlightEnabled,
-        source: 'iframe-highlight-injector'
-      }, '*');
-    }
-  };
-
-  // 通知父窗口脚本已加载
-  try {
-    window.parent.postMessage({
-      type: "iframe-highlight-ready",
-      data: {
-        url: window.location.href,
-        userAgent: navigator.userAgent,
-        timestamp: Date.now()
-      },
-      source: "iframe-highlight-injector"
-    }, "*");
-  } catch (error) {
-    console.warn("无法发送就绪消息到父窗口:", error);
-  }
-
-  // 清理函数
-  window.__iframeHighlightCleanup = function () {
-    fullyDisableHighlight();
-    window.removeEventListener("message", handleParentMessage);
-    if (overlay.parentElement) {
-      overlay.parentElement.removeChild(overlay);
-    }
-    delete window.__iframeHighlightInitialized;
-    delete window.__iframeHighlightCleanup;
-  };
-})();
-
-</script>
+<!-- Firebase Modules -->
+<script type="module" src="js/firebase-config.js"></script>
+<script type="module" src="js/utils/helpers.js"></script>
+<script type="module" src="js/auth.js"></script>
+<script type="module" src="js/modules/pos.js"></script>
+<script type="module" src="js/modules/caja.js"></script>
+<script type="module" src="js/modules/facturas.js"></script>
+<script type="module" src="js/modules/inventario.js"></script>
+<script type="module" src="js/modules/estadisticas.js"></script>
+<script type="module" src="js/modules/configuracion.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
