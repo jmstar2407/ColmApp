@@ -1,299 +1,577 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>miColmApp – POS Colmados RD</title>
-  <!-- Fonts & Icons -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Nunito:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- Main Styles -->
-  <link rel="stylesheet" href="css/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>miColmApp – POS Colmados RD</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="./css/styles.css"/>
 </head>
-
 <body>
 
-  <!-- LOADING SCREEN -->
-  <div id="loading-screen">
-    <div class="ls-icon">🏪</div>
-    <h2>miColmApp</h2>
-    <p>Cargando sistema...</p>
-    <div class="progress-bar">
-      <div class="progress-fill"></div>
+<!-- ══════════════ LOADING ══════════════ -->
+<div id="loading-screen">
+  <div class="ls-icon">🏪</div>
+  <h2>miColmApp</h2>
+  <p>Cargando sistema...</p>
+  <div class="progress-bar"><div class="progress-fill"></div></div>
+</div>
+
+<!-- ══════════════ AUTH ══════════════ -->
+<div id="auth-screen" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">🏪</div>
+      <h1>miColmApp</h1>
+      <p>Sistema POS para Colmados RD</p>
     </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="authTab('login')">Iniciar Sesión</button>
+      <button class="auth-tab" onclick="authTab('registro')">Registrar Colmado</button>
+    </div>
+    <!-- Login -->
+    <div id="auth-login">
+      <div class="form-group"><label>Correo Electrónico</label><input type="email" id="login-email" placeholder="admin@micolmado.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••"></div>
+      <button class="btn-primary" onclick="login()"><i class="fas fa-sign-in-alt"></i> Entrar al Sistema</button>
+    </div>
+    <!-- Registro -->
+    <div id="auth-registro" style="display:none;">
+      <div class="form-group"><label>Nombre del Colmado</label><input type="text" id="reg-nombre" placeholder="Colmado El Buen Precio"></div>
+      <div class="form-group"><label>RNC (opcional)</label><input type="text" id="reg-rnc" placeholder="101-12345-6"></div>
+      <div class="form-group"><label>Dirección</label><input type="text" id="reg-direccion" placeholder="Calle Duarte #5, Santo Domingo"></div>
+      <div class="form-group"><label>Teléfono</label><input type="text" id="reg-telefono" placeholder="809-555-0000"></div>
+      <div class="form-group"><label>Correo Admin</label><input type="email" id="reg-email" placeholder="admin@tucolmado.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres"></div>
+      <button class="btn-primary" onclick="registrar()"><i class="fas fa-store"></i> Registrar Colmado</button>
+    </div>
+    <div id="auth-msg"></div>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="brand-icon">🏪</div>
+      <div>
+        <h1><span style="color:#4a5568">mi</span><span style="color:#1a2135">Colm</span><span style="color:#fc4f62;">app</span></h1>
+        <div class="negocio-nombre" id="nav-negocio-nombre">Cargando...</div>
+      </div>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-datetime" id="nav-datetime"></div>
+    <div class="nav-buttons" id="nav-buttons"></div>
+    <button class="nav-btn logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+  </nav>
+
+  <!-- Banner caja cerrada -->
+  <div id="caja-pendiente-banner">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span>⚠️ La caja no está abierta. No se pueden realizar ventas.</span>
+    <button onclick="showPage('caja')">Ir a Caja</button>
   </div>
 
-  <!-- AUTH SCREEN -->
-  <div id="auth-screen" style="display:none;">
-    <div class="auth-card">
-      <div class="auth-logo">
-        <div class="logo-icon">🏪</div>
-        <h1>miColmApp</h1>
-        <p>Sistema POS para Colmados RD</p>
-      </div>
-      <div class="auth-tabs">
-        <button class="auth-tab active" data-tab="login">Iniciar Sesión</button>
-        <button class="auth-tab" data-tab="registro">Registrar Colmado</button>
-      </div>
-      <div id="auth-login">
-        <div class="form-group"><label>Correo Electrónico</label><input type="email" id="login-email"
-            placeholder="admin@micolmado.com"></div>
-        <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••">
-        </div>
-        <button class="btn-primary" id="btn-login"><i class="fas fa-sign-in-alt"></i> Entrar al Sistema</button>
-      </div>
-      <div id="auth-registro" style="display:none;">
-        <div class="form-group"><label>Nombre del Colmado</label><input type="text" id="reg-nombre"
-            placeholder="Colmado El Buen Precio"></div>
-        <div class="form-group"><label>RNC (opcional)</label><input type="text" id="reg-rnc" placeholder="101-12345-6">
-        </div>
-        <div class="form-group"><label>Dirección</label><input type="text" id="reg-direccion"
-            placeholder="Calle Duarte #5, Santo Domingo"></div>
-        <div class="form-group"><label>Teléfono</label><input type="text" id="reg-telefono" placeholder="809-555-0000">
-        </div>
-        <div class="form-group"><label>Correo Admin</label><input type="email" id="reg-email"
-            placeholder="admin@tucolmado.com"></div>
-        <div class="form-group"><label>Contraseña</label><input type="password" id="reg-pass"
-            placeholder="Mínimo 6 caracteres"></div>
-        <button class="btn-primary" id="btn-registro"><i class="fas fa-store"></i> Registrar Colmado</button>
-      </div>
-      <div id="auth-msg"></div>
-    </div>
-  </div>
+  <div class="content">
 
-  <!-- MAIN APP -->
-  <div id="app" style="display:none;">
-    <!-- NAVBAR -->
-<nav class="navbar">
-  <div class="navbar-brand">
-    <div class="brand-icon">🏪</div>
-    <div>
-      <span>miColmApp</span>
-      <div class="negocio-nombre" id="nav-negocio-nombre">Cargando...</div>
-    </div>
-  </div>
-  <div class="nav-spacer"></div>
-  <div class="nav-datetime" id="nav-datetime"></div>
-  <div class="nav-buttons" id="nav-buttons">
-    <!-- Aquí se generarán dinámicamente los botones del menú -->
-  </div>
-  <button class="nav-btn logout" id="btn-logout">
-    <i class="fas fa-sign-out-alt"></i> Salir
-  </button>
-</nav>
-
-    <!-- CAJA PENDIENTE BANNER -->
-    <div id="caja-pendiente-banner">
-      <i class="fas fa-exclamation-triangle"></i>
-      <span>⚠️ La caja no está abierta. No se pueden realizar ventas.</span>
-      <button id="btn-ir-caja">Ir a Caja</button>
+    <!-- ── FACTURACIÓN / POS ── -->
+    <div class="page" id="page-pos">
+      <div class="pos-left">
+        <div class="pos-search-bar">
+          <i class="fas fa-search" style="color:var(--gris-suave);font-size:14px;"></i>
+          <input type="text" id="pos-buscar" placeholder="Buscar productos..." oninput="buscarProductos(this.value)">
+          <select id="pos-categoria-filtro" onchange="filtrarPorCategoria(this.value)">
+            <option value="">Todas las categorías</option>
+          </select>
+          <button class="icon-btn grid-btn active" id="btn-grid-grande" onclick="setGridSize('grande')" title="Vista grande"><i class="fas fa-th-large"></i></button>
+          <button class="icon-btn grid-btn" id="btn-grid-peq" onclick="setGridSize('pequena')" title="Vista pequeña"><i class="fas fa-th"></i></button>
+          <button class="icon-btn scan-btn" onclick="abrirScaner()" title="Escanear código de barras"><i class="fas fa-barcode"></i></button>
+        </div>
+        <div class="pos-productos-area" id="pos-productos-area"></div>
+      </div>
+      <div class="pos-right">
+        <div class="carrito-header">
+          <h3><i class="fas fa-shopping-cart" style="color:var(--verde);"></i> Carrito</h3>
+          <span class="carrito-count" id="carrito-count">0</span>
+        </div>
+        <div class="carrito-items" id="carrito-items">
+          <div class="carrito-empty"><i class="fas fa-shopping-cart"></i><p>Agrega productos al carrito</p></div>
+        </div>
+        <div class="carrito-footer">
+          <div class="totales-row"><span>Subtotal</span><span id="cart-subtotal">RD$ 0.00</span></div>
+          <div class="totales-row"><span id="cart-itbis-label">ITBIS (18%)</span><span id="cart-itbis">RD$ 0.00</span></div>
+          <div class="totales-row total"><span>Total</span><span id="cart-total">RD$ 0.00</span></div>
+          <button class="btn-facturar" onclick="abrirModalFacturar()"><i class="fas fa-receipt"></i> Facturar</button>
+          <button class="btn-limpiar" onclick="limpiarCarrito()"><i class="fas fa-trash"></i> Limpiar</button>
+        </div>
+      </div>
     </div>
 
-    <div class="content">
-      <!-- POS PAGE -->
-      <div class="page" id="page-pos">
-        <div class="pos-left">
-          <div class="pos-search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" id="pos-buscar" placeholder="Buscar productos...">
-            <select id="pos-categoria-filtro">
-              <option value="">Todas las categorías</option>
-            </select>
-            <button class="icon-btn grid-btn active" data-grid="grande"><i class="fas fa-th-large"></i></button>
-            <button class="icon-btn grid-btn" data-grid="pequena"><i class="fas fa-th"></i></button>
-            <button class="icon-btn scan-btn" id="btn-scanner"><i class="fas fa-barcode"></i></button>
-          </div>
-          <div class="pos-productos-area" id="pos-productos-area"></div>
+    <!-- ── CAJA ── -->
+    <div class="page" id="page-caja">
+      <div style="max-width:900px;width:100%;">
+        <div style="margin-bottom:20px;">
+          <div class="page-title">Sistema de Caja</div>
+          <div class="page-subtitle">Control de apertura, cierre y movimientos</div>
         </div>
-        <div class="pos-right">
-          <div class="carrito-header">
-            <h3><i class="fas fa-shopping-cart"></i> Carrito</h3>
-            <span class="carrito-count" id="carrito-count">0</span>
+        <div class="caja-estado-card" id="caja-estado-card"></div>
+        <div class="caja-movimientos" style="margin-top:20px;">
+          <div class="section-header">
+            <h3><i class="fas fa-list"></i> Movimientos de Hoy</h3>
+            <button class="btn-sm verde" onclick="exportarMovimientos()"><i class="fas fa-download"></i> Exportar</button>
           </div>
-          <div class="carrito-items" id="carrito-items"></div>
-          <div class="carrito-footer">
-            <div class="totales-row"><span>Subtotal</span><span id="cart-subtotal">RD$ 0.00</span></div>
-            <div class="totales-row"><span id="cart-itbis-label">ITBIS (18%)</span><span id="cart-itbis">RD$ 0.00</span>
-            </div>
-            <div class="totales-row total"><span>Total</span><span id="cart-total">RD$ 0.00</span></div>
-            <button class="btn-facturar" id="btn-facturar"><i class="fas fa-receipt"></i> Facturar</button>
-            <button class="btn-limpiar" id="btn-limpiar-carrito"><i class="fas fa-trash"></i> Limpiar</button>
+          <div class="full-table-wrap" style="padding:0;">
+            <table class="tabla-movimientos" id="tabla-movimientos">
+              <thead><tr><th>Hora</th><th>Tipo</th><th>Descripción</th><th>Empleado</th><th>Monto</th></tr></thead>
+              <tbody id="tbody-movimientos"><tr><td colspan="5" class="empty-state"><i class="fas fa-box-open"></i><p>Sin movimientos hoy</p></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="caja-movimientos" style="margin-top:20px;">
+          <div class="section-header"><h3><i class="fas fa-history"></i> Historial de Cajas</h3></div>
+          <div class="full-table-wrap">
+            <table class="historial-caja-tabla" id="tabla-historial-caja">
+              <thead><tr><th>Apertura</th><th>Cierre</th><th>Empleado</th><th>Monto Inicial</th><th>Monto Final</th><th>Estado</th></tr></thead>
+              <tbody id="tbody-historial-caja"></tbody>
+            </table>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- CAJA PAGE -->
-      <div class="page" id="page-caja">
-        <div style="max-width:900px;width:100%;">
-          <div class="caja-estado-card" id="caja-estado-card"></div>
-          <div class="caja-movimientos">
-            <div class="section-header">
-              <h3><i class="fas fa-list"></i> Movimientos de Hoy</h3><button class="btn-sm verde"
-                id="btn-exportar-movimientos"><i class="fas fa-download"></i> Exportar</button>
-            </div>
-            <div class="full-table-wrap">
-              <table class="tabla-movimientos">
-                <thead>
-                  <tr>
-                    <th>Hora</th>
-                    <th>Tipo</th>
-                    <th>Descripción</th>
-                    <th>Empleado</th>
-                    <th>Monto</th>
-                  </tr>
-                </thead>
-                <tbody id="tbody-movimientos"></tbody>
-              </table>
-            </div>
-          </div>
-          <div class="caja-movimientos">
-            <div class="section-header">
-              <h3><i class="fas fa-history"></i> Historial de Cajas</h3>
-            </div>
-            <div class="full-table-wrap">
-              <table class="historial-caja-tabla">
-                <thead>
-                  <tr>
-                    <th>Apertura</th>
-                    <th>Cierre</th>
-                    <th>Empleado</th>
-                    <th>Monto Inicial</th>
-                    <th>Monto Final</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody id="tbody-historial-caja"></tbody>
-              </table>
-            </div>
+    <!-- ── FACTURAS ── -->
+    <div class="page" id="page-facturas">
+      <div style="width:100%;">
+        <div style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div class="page-title">Facturas Generadas</div>
+            <div class="page-subtitle">Consulta y gestión de facturas</div>
           </div>
         </div>
-      </div>
-
-      <!-- FACTURAS PAGE -->
-      <div class="page" id="page-facturas">
-        <div class="facturas-filtros"><input type="text" id="fact-buscar" placeholder="Buscar por # o cliente..."><input
-            type="date" id="fact-fecha-ini"><input type="date" id="fact-fecha-fin"><select id="fact-estado">
-            <option value="">Todos</option>
+        <div class="facturas-filtros" style="margin-bottom:16px;">
+          <input type="text" id="fact-buscar" placeholder="Buscar por # o cliente..." oninput="filtrarFacturas()">
+          <input type="date" id="fact-fecha-ini" onchange="filtrarFacturas()">
+          <input type="date" id="fact-fecha-fin" onchange="filtrarFacturas()">
+          <select id="fact-estado" onchange="filtrarFacturas()">
+            <option value="">Todos los estados</option>
             <option value="pagada">Pagadas</option>
             <option value="pendiente">Pendientes</option>
-          </select><select id="fact-metodo">
-            <option value="">Todos</option>
+          </select>
+          <select id="fact-metodo" onchange="filtrarFacturas()">
+            <option value="">Todos los métodos</option>
             <option value="efectivo">Efectivo</option>
             <option value="transferencia">Transferencia</option>
             <option value="tarjeta">Tarjeta</option>
-          </select><button class="btn-sm gris" id="btn-limpiar-filtros"><i class="fas fa-times"></i> Limpiar</button>
+          </select>
+          <button class="btn-sm gris" onclick="limpiarFiltrosFacturas()"><i class="fas fa-times"></i> Limpiar</button>
         </div>
         <div class="full-table-wrap">
           <table class="facturas-tabla">
-            <thead>
-              <tr>
-                <th># Factura</th>
-                <th>NCF</th>
-                <th>Fecha</th>
-                <th>Empleado</th>
-                <th>Método</th>
-                <th>Total</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
+            <thead><tr><th># Factura</th><th>NCF</th><th>Fecha</th><th>Empleado</th><th>Método</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="tbody-facturas"></tbody>
           </table>
         </div>
       </div>
+    </div>
 
-      <!-- INVENTARIO PAGE -->
-      <div class="page" id="page-inventario">
-        <div class="inv-header"><button class="btn-sm verde" id="btn-nueva-categoria"><i class="fas fa-folder-plus"></i>
-            Categoría</button><button class="btn-sm verde" id="btn-nuevo-producto"><i class="fas fa-plus"></i>
-            Producto</button></div>
-        <div class="inv-controles"><input type="text" id="inv-buscar" placeholder="Buscar..."><select
-            id="inv-cat-filtro">
+    <!-- ── INVENTARIO ── -->
+    <div class="page" id="page-inventario">
+      <div style="width:100%;">
+        <div style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div class="page-title">Inventario</div>
+            <div class="page-subtitle">Gestión de productos y categorías</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-sm verde" onclick="abrirModalCategoria()"><i class="fas fa-folder-plus"></i> Categoría</button>
+            <button class="btn-sm verde" onclick="abrirModalProducto()"><i class="fas fa-plus"></i> Producto</button>
+          </div>
+        </div>
+        <div class="inv-controles" style="margin-bottom:16px;">
+          <input type="text" id="inv-buscar" placeholder="Buscar productos..." oninput="filtrarInventario(this.value)" style="flex:1;min-width:200px;">
+          <select id="inv-cat-filtro" onchange="filtrarInventario(document.getElementById('inv-buscar').value)">
             <option value="">Todas las categorías</option>
-          </select><button class="btn-sm gris" id="btn-toggle-view"><i class="fas fa-list"></i> Lista</button></div>
+          </select>
+          <button class="btn-sm gris" onclick="toggleInvView()" id="btn-inv-view"><i class="fas fa-list"></i> Lista</button>
+        </div>
         <div id="inv-contenido"></div>
       </div>
+    </div>
 
-      <!-- ESTADISTICAS PAGE -->
-      <div class="page" id="page-estadisticas">
-        <div class="stats-filtros"><input type="date" id="stats-fecha-ini"><input type="date"
-            id="stats-fecha-fin"><button class="btn-sm verde" id="btn-calcular-stats"><i class="fas fa-chart-bar"></i>
-            Calcular</button><button class="btn-sm gris" id="btn-stats-hoy">Hoy</button></div>
-        <div class="stats-cards" id="stats-cards"></div>
-        <div class="charts-grid">
-          <div class="chart-card">
-            <h4>Ventas por Día</h4><canvas id="chart-ventas"></canvas>
+    <!-- ── ESTADÍSTICAS ── -->
+    <div class="page" id="page-estadisticas">
+      <div style="width:100%;">
+        <div style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div class="page-title">Estadísticas &amp; Contabilidad</div>
+            <div class="page-subtitle">Análisis de ventas y balance financiero</div>
           </div>
-          <div class="chart-card">
-            <h4>Más Vendidos</h4><canvas id="chart-productos"></canvas>
+          <div class="stats-filtros">
+            <input type="date" id="stats-fecha-ini">
+            <input type="date" id="stats-fecha-fin">
+            <button class="btn-sm verde" onclick="calcularEstadisticas()"><i class="fas fa-chart-bar"></i> Calcular</button>
+            <button class="btn-sm gris" onclick="estadisticasHoy()">Hoy</button>
           </div>
         </div>
-        <div class="contab-grid" id="contab-grid"></div>
-        <div class="chart-card">
-          <h4>Métodos de Pago</h4><canvas id="chart-metodos"></canvas>
+        <div class="stats-cards" id="stats-cards">
+          <div class="stat-card verde"><div class="stat-icon">💰</div><div class="stat-valor" id="stat-ventas-total">RD$ 0</div><div class="stat-label">Ventas Totales</div></div>
+          <div class="stat-card azul"><div class="stat-icon">🧾</div><div class="stat-valor" id="stat-num-facturas">0</div><div class="stat-label">Facturas Emitidas</div></div>
+          <div class="stat-card amarillo"><div class="stat-icon">📦</div><div class="stat-valor" id="stat-prods-vendidos">0</div><div class="stat-label">Productos Vendidos</div></div>
+          <div class="stat-card rojo"><div class="stat-icon">📊</div><div class="stat-valor" id="stat-promedio">RD$ 0</div><div class="stat-label">Ticket Promedio</div></div>
+        </div>
+        <div class="charts-grid" style="margin-top:20px;">
+          <div class="chart-card"><h4>Ventas por Día</h4><div class="chart-wrapper"><canvas id="chart-ventas"></canvas></div></div>
+          <div class="chart-card"><h4>Productos Más Vendidos</h4><div class="chart-wrapper"><canvas id="chart-productos"></canvas></div></div>
+        </div>
+        <div style="margin-top:20px;">
+          <div class="page-title" style="font-size:18px;margin-bottom:12px;">📒 Contabilidad</div>
+          <div class="contab-grid">
+            <div class="contab-card ingreso"><h4>Ingresos (Ventas)</h4><div class="contab-val" id="contab-ingresos">RD$ 0.00</div></div>
+            <div class="contab-card egreso"><h4>Egresos (Gastos)</h4><div class="contab-val" id="contab-egresos">RD$ 0.00</div></div>
+            <div class="contab-card ganancia"><h4>Ganancia Neta</h4><div class="contab-val" id="contab-ganancia">RD$ 0.00</div></div>
+          </div>
+        </div>
+        <div class="chart-card" style="margin-top:20px;">
+          <h4>Métodos de Pago</h4>
+          <div style="max-width:320px;margin:0 auto;"><canvas id="chart-metodos"></canvas></div>
         </div>
       </div>
+    </div>
 
-      <!-- CONFIG PAGE -->
-      <div class="page" id="page-config">
-        <div class="config-section">
-          <div class="section-header">
-            <h3>Datos del Negocio</h3>
-          </div>
-          <div class="config-grid"><input type="text" id="cfg-nombre" placeholder="Nombre"><input type="text"
-              id="cfg-rnc" placeholder="RNC"><input type="text" id="cfg-direccion" placeholder="Dirección"><input
-              type="text" id="cfg-telefono" placeholder="Teléfono"><input type="text" id="cfg-ncf-prefijo"
-              placeholder="Prefijo NCF"><input type="number" id="cfg-ncf-seq" placeholder="Secuencia"></div><button
-            class="btn-sm verde" id="btn-guardar-config"><i class="fas fa-save"></i> Guardar</button>
+    <!-- ── CONFIGURACIÓN ── -->
+    <div class="page" id="page-config">
+      <div style="width:100%;max-width:900px;">
+        <div style="margin-bottom:20px;">
+          <div class="page-title">Configuración</div>
+          <div class="page-subtitle">Datos del negocio, impuestos y empleados</div>
         </div>
-        <div class="config-section">
-          <div class="section-header">
-            <h3>ITBIS</h3>
+        <div class="config-section" style="margin-bottom:20px;">
+          <div class="section-header"><h3><i class="fas fa-store"></i> Datos del Negocio</h3></div>
+          <div class="config-grid">
+            <div class="config-field"><label>Nombre del Colmado</label><input type="text" id="cfg-nombre"></div>
+            <div class="config-field"><label>RNC</label><input type="text" id="cfg-rnc"></div>
+            <div class="config-field"><label>Dirección</label><input type="text" id="cfg-direccion"></div>
+            <div class="config-field"><label>Teléfono</label><input type="text" id="cfg-telefono"></div>
+            <div class="config-field"><label>Prefijo NCF</label><input type="text" id="cfg-ncf-prefijo" placeholder="B01"></div>
+            <div class="config-field"><label>Secuencia NCF actual</label><input type="number" id="cfg-ncf-seq" placeholder="1"></div>
           </div>
-          <div class="config-grid"><input type="number" id="cfg-itbis-pct" placeholder="%" value="18"></div>
+          <div style="padding:0 20px 20px;"><button class="btn-sm verde" onclick="guardarConfig()"><i class="fas fa-save"></i> Guardar Configuración</button></div>
+        </div>
+        <div class="config-section" style="margin-bottom:20px;">
+          <div class="section-header"><h3><i class="fas fa-percent"></i> Configuración de Impuestos (ITBIS)</h3></div>
+          <div class="config-grid">
+            <div class="config-field"><label>Porcentaje ITBIS (%)</label><input type="number" id="cfg-itbis-pct" value="18" min="0" max="100"></div>
+          </div>
           <div class="toggle-row">
-            <div><label>Cliente paga ITBIS</label></div><label class="toggle"><input type="checkbox"
-                id="cfg-itbis-cliente" checked><span class="toggle-slider"></span></label>
-          </div><button class="btn-sm verde" id="btn-guardar-itbis"><i class="fas fa-save"></i> Guardar</button>
+            <div><label>El cliente paga el ITBIS</label><small>Si está activo, el ITBIS se suma al total del cliente</small></div>
+            <label class="toggle"><input type="checkbox" id="cfg-itbis-cliente" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div style="padding:0 20px 20px;"><button class="btn-sm verde" onclick="guardarConfig()"><i class="fas fa-save"></i> Guardar</button></div>
         </div>
         <div class="config-section">
           <div class="section-header">
-            <h3>Empleados</h3><button class="btn-sm verde" id="btn-agregar-empleado"><i class="fas fa-user-plus"></i>
-              Agregar</button>
+            <h3><i class="fas fa-users"></i> Empleados</h3>
+            <button class="btn-sm verde" onclick="abrirModalEmpleado()"><i class="fas fa-user-plus"></i> Agregar</button>
           </div>
           <div class="empleados-lista" id="empleados-lista"></div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- MODALES (simplificadas) -->
-  <div id="modal-overlay" class="modal-overlay">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-title"></h3><button class="modal-close">&times;</button>
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<!-- ══════════════ TOAST ══════════════ -->
+<div id="toast-container"></div>
+
+<!-- ══════════════ MODALES ══════════════ -->
+
+<!-- Modal: Facturar -->
+<div class="modal-overlay" id="modal-facturar">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-receipt" style="color:var(--verde);"></i> Procesar Factura</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-facturar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="factura-items-lista" id="factura-items-lista"></div>
+      <div style="background:var(--gris-bg);border-radius:var(--radio-sm);padding:12px 16px;margin-bottom:16px;">
+        <div class="totales-row"><span>Subtotal</span><span id="mfact-subtotal">RD$ 0.00</span></div>
+        <div class="totales-row"><span id="mfact-itbis-lbl">ITBIS (18%)</span><span id="mfact-itbis">RD$ 0.00</span></div>
+        <div class="totales-row total"><span>TOTAL</span><span id="mfact-total">RD$ 0.00</span></div>
       </div>
-      <div class="modal-body" id="modal-body"></div>
-      <div class="modal-footer" id="modal-footer"></div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:700;color:var(--gris-texto);display:block;margin-bottom:8px;">Método de Pago</label>
+        <div class="metodo-pago-btns">
+          <button class="mpago-btn selected" onclick="seleccionarMetodo('efectivo')"><i class="fas fa-money-bill-wave"></i> Efectivo</button>
+          <button class="mpago-btn" onclick="seleccionarMetodo('transferencia')"><i class="fas fa-exchange-alt"></i> Transferencia</button>
+          <button class="mpago-btn" onclick="seleccionarMetodo('tarjeta')"><i class="fas fa-credit-card"></i> Tarjeta</button>
+        </div>
+      </div>
+      <div class="efectivo-section visible" id="efectivo-section">
+        <label style="font-size:13px;font-weight:700;color:var(--gris-texto);display:block;margin-bottom:6px;">Dinero Recibido</label>
+        <input type="number" id="monto-recibido" style="width:100%;padding:12px 16px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:20px;font-family:var(--font-mono);outline:none;font-weight:700;" placeholder="0.00" oninput="calcularCambio()">
+        <div class="teclado-num">
+          <button class="tec-btn" onclick="tecNumero('1')">1</button><button class="tec-btn" onclick="tecNumero('2')">2</button><button class="tec-btn" onclick="tecNumero('3')">3</button><button class="tec-btn rojo" onclick="tecNumero('C')">C</button>
+          <button class="tec-btn" onclick="tecNumero('4')">4</button><button class="tec-btn" onclick="tecNumero('5')">5</button><button class="tec-btn" onclick="tecNumero('6')">6</button><button class="tec-btn rojo" onclick="tecNumero('⌫')">⌫</button>
+          <button class="tec-btn" onclick="tecNumero('7')">7</button><button class="tec-btn" onclick="tecNumero('8')">8</button><button class="tec-btn" onclick="tecNumero('9')">9</button><button class="tec-btn" onclick="tecNumero('00')">00</button>
+          <button class="tec-btn" onclick="tecNumero('.')">.</button><button class="tec-btn" onclick="tecNumero('0')">0</button><button class="tec-btn verde" style="grid-column:span 2;" onclick="tecNumero('OK')">✓ OK</button>
+        </div>
+        <div class="cambio-display" id="cambio-display" style="display:none;">
+          <span>💵 Cambio a entregar:</span><span id="cambio-valor">RD$ 0.00</span>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <label style="font-size:13px;font-weight:700;color:var(--gris-texto);display:block;margin-bottom:6px;">Empleado que procesa</label>
+        <select id="fact-empleado" style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;"></select>
+      </div>
+      <div style="margin-top:12px;">
+        <label style="font-size:13px;font-weight:700;color:var(--gris-texto);display:block;margin-bottom:6px;">Estado del Pago</label>
+        <div style="display:flex;gap:8px;">
+          <button class="mpago-btn selected" id="btn-estado-pagada" onclick="setEstadoFactura('pagada')" style="flex:1;"><i class="fas fa-check-circle" style="color:var(--verde);"></i> Pago Confirmado</button>
+          <button class="mpago-btn" id="btn-estado-pendiente" onclick="setEstadoFactura('pendiente')" style="flex:1;"><i class="fas fa-clock" style="color:var(--amarillo);"></i> Pago Pendiente</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm gris" onclick="cerrarModal('modal-facturar')">Cancelar</button>
+      <button class="btn-sm verde" onclick="confirmarFactura()" id="btn-confirmar-factura"><i class="fas fa-check"></i> Confirmar Factura</button>
     </div>
   </div>
-  <div id="toast-container"></div>
+</div>
 
-  <!-- Firebase Modules -->
-  <script type="module" src="js/firebase-config.js"></script>
-  <script type="module" src="js/utils/helpers.js"></script>
-  <script type="module" src="js/auth.js"></script>
-  <script type="module" src="js/modules/pos.js"></script>
-  <script type="module" src="js/modules/caja.js"></script>
-  <script type="module" src="js/modules/facturas.js"></script>
-  <script type="module" src="js/modules/inventario.js"></script>
-  <script type="module" src="js/modules/estadisticas.js"></script>
-  <script type="module" src="js/modules/configuracion.js"></script>
-  <script type="module" src="js/app.js"></script>
+<!-- Modal: Ticket -->
+<div class="modal-overlay" id="modal-ticket">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-print" style="color:var(--verde);"></i> Factura Generada</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-ticket')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-ticket-body"></div>
+    <div class="modal-footer">
+      <button class="btn-sm gris" onclick="cerrarModal('modal-ticket')">Cerrar</button>
+      <button class="btn-sm azul" onclick="imprimirTicket()"><i class="fas fa-print"></i> Imprimir</button>
+      <button class="btn-sm verde" onclick="nuevaVenta()"><i class="fas fa-plus"></i> Nueva Venta</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Abrir Caja -->
+<div class="modal-overlay" id="modal-abrir-caja">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-lock-open" style="color:var(--verde);"></i> Abrir Caja</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-abrir-caja')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Monto Inicial (RD$)</label><input type="number" id="caja-monto-inicial" placeholder="0.00" min="0"></div>
+      <div class="form-group"><label>Notas (opcional)</label><input type="text" id="caja-notas-apertura" placeholder="Observaciones..."></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm gris" onclick="cerrarModal('modal-abrir-caja')">Cancelar</button>
+      <button class="btn-sm verde" onclick="abrirCaja()"><i class="fas fa-lock-open"></i> Abrir Caja</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Cerrar Caja -->
+<div class="modal-overlay" id="modal-cerrar-caja">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-lock" style="color:var(--rojo);"></i> Cerrar Caja</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-cerrar-caja')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--gris-bg);border-radius:var(--radio-sm);padding:16px;margin-bottom:16px;">
+        <div class="totales-row"><span>Monto Inicial:</span><span id="cc-monto-inicial">RD$ 0.00</span></div>
+        <div class="totales-row"><span>Ingresos del día:</span><span id="cc-ingresos">RD$ 0.00</span></div>
+        <div class="totales-row"><span>Gastos del día:</span><span id="cc-gastos">RD$ 0.00</span></div>
+        <div class="totales-row total"><span>Total Esperado:</span><span id="cc-total">RD$ 0.00</span></div>
+      </div>
+      <div class="form-group"><label>Monto Final en Caja (RD$)</label><input type="number" id="caja-monto-final" placeholder="0.00" oninput="calcularDiferencia()"></div>
+      <div id="diferencia-caja" style="display:none;padding:10px;border-radius:var(--radio-sm);margin-bottom:12px;font-weight:700;font-size:14px;"></div>
+      <div class="form-group"><label>Notas de cierre</label><input type="text" id="caja-notas-cierre" placeholder="Observaciones..."></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm gris" onclick="cerrarModal('modal-cerrar-caja')">Cancelar</button>
+      <button class="btn-sm rojo" onclick="cerrarCaja()" style="background:var(--rojo);color:white;"><i class="fas fa-lock"></i> Cerrar Caja</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Gasto -->
+<div class="modal-overlay" id="modal-gasto">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-minus-circle" style="color:var(--rojo);"></i> Registrar Gasto</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-gasto')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Descripción</label><input type="text" id="gasto-desc" placeholder="Ej: Compra de mercancía"></div>
+      <div class="form-group"><label>Monto (RD$)</label><input type="number" id="gasto-monto" placeholder="0.00" min="0"></div>
+      <div class="form-group"><label>Categoría</label>
+        <select id="gasto-cat" style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
+          <option>Compra de mercancía</option><option>Servicios</option><option>Alquiler</option><option>Electricidad</option><option>Agua</option><option>Teléfono/Internet</option><option>Transporte</option><option>Salarios</option><option>Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm gris" onclick="cerrarModal('modal-gasto')">Cancelar</button>
+      <button class="btn-sm rojo" onclick="registrarGasto()" style="background:var(--rojo);color:white;"><i class="fas fa-minus-circle"></i> Registrar Gasto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Producto -->
+<div class="modal-overlay" id="modal-producto">
+  <div class="modal large">
+    <div class="modal-header">
+      <h3 id="modal-prod-titulo"><i class="fas fa-box" style="color:var(--verde);"></i> Nuevo Producto</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-producto')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="two-col">
+        <div>
+          <div class="form-group"><label>Nombre del Producto</label><input type="text" id="prod-nombre" placeholder="Ej: Arroz Superior 5lb"></div>
+          <div class="form-group"><label>Código de Barras</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="prod-barcode" placeholder="Escanear o escribir..." style="flex:1;">
+              <button class="icon-btn scan-btn" onclick="escanearBarcodeProducto()" title="Escanear"><i class="fas fa-barcode"></i></button>
+            </div>
+          </div>
+          <div class="form-group"><label>Categoría</label>
+            <select id="prod-categoria" style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
+              <option value="">Selecciona categoría...</option>
+            </select>
+          </div>
+          <div class="two-col">
+            <div class="form-group"><label>Precio Venta (RD$)</label><input type="number" id="prod-precio" placeholder="0.00" min="0" step="0.01"></div>
+            <div class="form-group"><label>Precio Costo (RD$)</label><input type="number" id="prod-costo" placeholder="0.00" min="0" step="0.01"></div>
+          </div>
+          <div class="two-col">
+            <div class="form-group"><label>Stock Actual</label><input type="number" id="prod-stock" placeholder="0" min="0"></div>
+            <div class="form-group"><label>Stock Mínimo</label><input type="number" id="prod-stock-min" placeholder="5" min="0"></div>
+          </div>
+          <div class="form-group"><label>Unidad</label>
+            <select id="prod-unidad" style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
+              <option>Unidad</option><option>Libra</option><option>Kilogramo</option><option>Litro</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>
+            </select>
+          </div>
+          <div class="form-group"><label>ITBIS aplica</label>
+            <select id="prod-itbis" style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
+              <option value="1">Sí, aplica ITBIS</option><option value="0">No aplica (exento)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <div class="form-group"><label>Imagen del Producto</label>
+            <div class="file-upload-area" id="prod-img-area" onclick="document.getElementById('prod-img-input').click()">
+              <img id="prod-img-preview" src="" style="display:none;">
+              <i class="fas fa-cloud-upload-alt" style="font-size:32px;color:var(--gris-suave);margin-bottom:8px;display:block;"></i>
+              <p style="font-size:13px;color:var(--gris-suave);">Clic para subir imagen</p>
+              <p style="font-size:11px;color:var(--gris-suave);">JPG, PNG hasta 2MB</p>
+            </div>
+            <input type="file" id="prod-img-input" accept="image/*" style="display:none;" onchange="previewImagen(this)">
+          </div>
+        </div>
+      </div>
+      <input type="hidden" id="prod-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm gris" onclick="cerrarModal('modal-producto')">Cancelar</button>
+      <button class="btn-sm verde" onclick="guardarProducto()"><i class="fas fa-save"></i> Guardar Producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Categoría -->
+<div class="modal-overlay" id="modal-categoria">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-folder-plus" style="color:var(--verde);"></i> Nueva Categoría</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-categoria')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre de la Categoría</label><input type="text" id="cat-nombre" placeholder="Ej: Bebidas, Lácteos, Frutas..."></div>
+      <div class="form-group"><label>Emoji / Ícono</label><input type="text" id="cat-emoji" placeholder="🥤" maxlength="2"></div>
+      <div class="form-group"><label>Imagen (URL o subir)</label>
+        <div class="file-upload-area" id="cat-img-area" onclick="document.getElementById('cat-img-input').click()">
+          <img id="cat-img-preview" src="" style="display:none;">
+          <i class="fas fa-image" style="font-size:28px;color:var(--gris-suave);margin-bottom:6px;display:block;"></i>
+          <p style="font-size:13px;color:var(--gris-suave);">Clic para subir imagen</p>
+        </div>
+        <input type="file" id="cat-img-input" accept="image/*" style="display:none;" onchange="previewCatImagen(this)">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm gris" onclick="cerrarModal('modal-categoria')">Cancelar</button>
+      <button class="btn-sm verde" onclick="guardarCategoria()"><i class="fas fa-save"></i> Guardar Categoría</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Empleado -->
+<div class="modal-overlay" id="modal-empleado">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-user-plus" style="color:var(--verde);"></i> Agregar Empleado</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-empleado')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre Completo</label><input type="text" id="emp-nombre" placeholder="Nombre del empleado"></div>
+      <div class="form-group"><label>Correo Electrónico</label><input type="email" id="emp-email" placeholder="empleado@colmado.com"></div>
+      <div class="form-group"><label>Contraseña Inicial</label><input type="password" id="emp-pass" placeholder="Mínimo 6 caracteres"></div>
+      <div class="form-group"><label>Rol</label>
+        <select id="emp-rol" style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
+          <option value="empleado">Empleado</option><option value="admin">Administrador</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm gris" onclick="cerrarModal('modal-empleado')">Cancelar</button>
+      <button class="btn-sm verde" onclick="guardarEmpleado()"><i class="fas fa-save"></i> Agregar Empleado</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Ver Factura -->
+<div class="modal-overlay" id="modal-ver-factura">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-file-invoice" style="color:var(--verde);"></i> Detalle de Factura</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-ver-factura')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-ver-factura-body"></div>
+    <div class="modal-footer">
+      <button class="btn-sm gris" onclick="cerrarModal('modal-ver-factura')">Cerrar</button>
+      <button class="btn-sm azul" onclick="imprimirFacturaActual()"><i class="fas fa-print"></i> Imprimir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Scanner -->
+<div class="modal-overlay" id="modal-scanner">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-barcode" style="color:var(--verde);"></i> Escanear Código de Barras</h3>
+      <button class="modal-close" onclick="cerrarModal('modal-scanner')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <p style="color:var(--gris-suave);font-size:14px;margin-bottom:16px;">Ingresa manualmente el código de barras:</p>
+      <input type="text" id="scanner-input" placeholder="Código de barras..."
+        style="width:100%;padding:14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:18px;font-family:var(--font-mono);outline:none;text-align:center;font-weight:700;"
+        onkeydown="if(event.key==='Enter')buscarPorBarcode()">
+      <button class="btn-primary" onclick="buscarPorBarcode()" style="margin-top:12px;">Buscar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ENTRY POINT — único script ══════════════ -->
+<script type="module" src="./js/app.js"></script>
+
 </body>
-
 </html>
