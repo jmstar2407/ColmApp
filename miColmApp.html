@@ -1210,30 +1210,154 @@
         else if (e.code === 'unimplemented') console.warn('[Offline] Navegador no soporta persistencia IndexedDB.');
       });
 
-    // ── Indicador de conexión en tiempo real ───────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════
+    // SISTEMA OFFLINE COMPLETO — Cola + Sincronización automática
+    // ══════════════════════════════════════════════════════════════════════
+
     let _online = navigator.onLine;
+
     function setOnlineBanner(online) {
       _online = online;
       let banner = document.getElementById('offline-banner');
       if (!banner) {
         banner = document.createElement('div');
         banner.id = 'offline-banner';
-        banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;padding:8px 16px;text-align:center;font-size:13px;font-weight:700;z-index:99999;transition:transform .3s;';
+        banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;padding:10px 16px;text-align:center;font-size:13px;font-weight:700;z-index:99999;transition:transform .35s ease;transform:translateY(100%);';
         document.body.appendChild(banner);
       }
       if (online) {
         banner.style.background = '#00b341'; banner.style.color = '#fff';
-        banner.textContent = '✅ Conexión restaurada — sincronizando...';
+        banner.textContent = '\u2705 Conexion restaurada — sincronizando datos...';
         banner.style.transform = 'translateY(0)';
-        setTimeout(() => { banner.style.transform = 'translateY(100%)'; }, 3000);
+        setTimeout(() => { banner.style.transform = 'translateY(100%)'; }, 4000);
+        setTimeout(() => sincronizarColaOffline(), 1200);
       } else {
         banner.style.background = '#e03131'; banner.style.color = '#fff';
-        banner.textContent = '⚠️ Sin conexión — modo offline activo. Los cambios se guardarán cuando vuelva internet.';
+        banner.textContent = '\uD83D\uDCF4 Sin conexion — Modo offline activo. Puedes seguir facturando normalmente.';
         banner.style.transform = 'translateY(0)';
       }
     }
     window.addEventListener('online',  () => setOnlineBanner(true));
     window.addEventListener('offline', () => setOnlineBanner(false));
+
+    // ── Cola de operaciones pendientes (localStorage) ──────────────────────
+    function colaKey() { return negocioId ? 'cola_offline_' + negocioId : 'cola_offline_tmp'; }
+    function getCola() { try { return JSON.parse(localStorage.getItem(colaKey()) || '[]'); } catch(_) { return []; } }
+    function saveCola(cola) { localStorage.setItem(colaKey(), JSON.stringify(cola)); _actualizarBadgeCola(cola.length); }
+    function encolarOp(op) {
+      const cola = getCola();
+      cola.push({ ...op, _id: 'op_' + Date.now() + '_' + Math.random().toString(36).slice(2) });
+      saveCola(cola);
+    }
+    function _actualizarBadgeCola(n) {
+      let badge = document.getElementById('badge-cola-offline');
+      if (!badge) {
+        badge = document.createElement('div');
+        badge.id = 'badge-cola-offline';
+        badge.style.cssText = 'position:fixed;top:60px;right:12px;background:#f59f00;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;z-index:9998;display:none;box-shadow:0 2px 8px rgba(0,0,0,.25);';
+        document.body.appendChild(badge);
+      }
+      if (n > 0) { badge.textContent = '\u23F3 ' + n + ' pendiente' + (n > 1 ? 's' : ''); badge.style.display = 'block'; }
+      else { badge.style.display = 'none'; }
+    }
+
+    // ── Sincronizar cola al recuperar conexion ─────────────────────────────
+    async function sincronizarColaOffline() {
+      if (!negocioId) return;
+      const cola = getCola();
+      if (!cola.length) { _actualizarBadgeCola(0); return; }
+      const fallidas = [];
+      for (const op of cola) {
+        try {
+          if (op.tipo === 'add') {
+            const parts = op.col.split('/');
+            await addDoc(collection(db, ...parts), _deserializarData(op.data));
+          } else if (op.tipo === 'set') {
+            const parts = op.path.split('/');
+            await setDoc(doc(db, ...parts), _deserializarData(op.data));
+          } else if (op.tipo === 'update') {
+            const parts = op.path.split('/');
+            await updateDoc(doc(db, ...parts), _deserializarData(op.data));
+          } else if (op.tipo === 'delete') {
+            const parts = op.path.split('/');
+            await deleteDoc(doc(db, ...parts));
+          } else if (op.tipo === 'batch_update') {
+            const batch = writeBatch(db);
+            for (const u of op.updates) { const p = u.path.split('/'); batch.update(doc(db, ...p), _deserializarData(u.data)); }
+            await batch.commit();
+          }
+        } catch (e) {
+          console.warn('[Sync]', op.tipo, e.message);
+          if (!navigator.onLine || e.code === 'unavailable') { fallidas.push(...cola.slice(cola.indexOf(op))); break; }
+          // Error no-red (conflicto, permisos): descartar y continuar
+        }
+      }
+      saveCola(fallidas);
+      if (!fallidas.length && cola.length) toast('Datos sincronizados con Firebase', 'success');
+    }
+
+    function _deserializarData(data) {
+      const out = {};
+      for (const [k, v] of Object.entries(data || {})) {
+        if (v && typeof v === 'object' && v.__st) out[k] = serverTimestamp();
+        else if (v && typeof v === 'object' && v.__ts) out[k] = Timestamp.fromMillis(v.__ts);
+        else out[k] = v;
+      }
+      return out;
+    }
+    function _ser(v) {
+      if (v === null || v === undefined) return v;
+      if (typeof v === 'object' && typeof v.isEqual === 'function') return { __st: true };
+      if (v instanceof Date) return { __ts: v.getTime() };
+      return v;
+    }
+    function _serData(data) {
+      const out = {};
+      for (const [k, v] of Object.entries(data || {})) out[k] = _ser(v);
+      return out;
+    }
+
+    // ── Wrappers de escritura que funcionan online Y offline ───────────────
+    // Devuelven un id local cuando estan offline (para construir el ticket, etc.)
+    async function dbAdd(colPath, data) {
+      const localId = 'loc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+      if (navigator.onLine) {
+        try {
+          const r = await addDoc(collection(db, ...colPath.split('/')), data);
+          return r.id;
+        } catch (e) {
+          if (e.code !== 'unavailable') throw e;
+          _online = false; setOnlineBanner(false);
+        }
+      }
+      encolarOp({ tipo: 'add', col: colPath, data: _serData(data) });
+      return localId;
+    }
+    async function dbUpdate(docPath, data) {
+      if (navigator.onLine) {
+        try { await updateDoc(doc(db, ...docPath.split('/')), data); return; }
+        catch (e) { if (e.code !== 'unavailable') throw e; _online = false; setOnlineBanner(false); }
+      }
+      encolarOp({ tipo: 'update', path: docPath, data: _serData(data) });
+    }
+    async function dbDelete(docPath) {
+      if (navigator.onLine) {
+        try { await deleteDoc(doc(db, ...docPath.split('/'))); return; }
+        catch (e) { if (e.code !== 'unavailable') throw e; _online = false; setOnlineBanner(false); }
+      }
+      encolarOp({ tipo: 'delete', path: docPath });
+    }
+
+    async function dbBatchUpdate(updates) {
+      if (navigator.onLine) {
+        try {
+          const batch = writeBatch(db);
+          for (const u of updates) { const p = u.path.split('/'); batch.update(doc(db, ...p), u.data); }
+          await batch.commit(); return;
+        } catch (e) { if (e.code !== 'unavailable') throw e; _online = false; setOnlineBanner(false); }
+      }
+      encolarOp({ tipo: 'batch_update', updates: updates.map(u => ({ path: u.path, data: _serData(u.data) })) });
+    }
 
     // ==================== STATE ====================
     let negocioId = null;
@@ -1444,6 +1568,11 @@
       inicializarSignaturePad();
       showScreen('app');
       showPage('pos');
+      // Restaurar carrito guardado (después de que productos estén en memoria)
+      setTimeout(() => restaurarCarritoLS(), 300);
+      // Mostrar badge + intentar sincronizar si hay conexion
+      _actualizarBadgeCola(getCola().length);
+      if (_online) setTimeout(() => sincronizarColaOffline(), 2000);
     }
 
     // ==================== SCREENS ====================
@@ -1621,11 +1750,27 @@
 
     // ==================== CAJA ====================
     function suscribirCaja() {
+      // Restaurar caja desde cache local primero (funciona offline)
+      try {
+        const cached = localStorage.getItem('caja_' + negocioId);
+        if (cached) { cajaActual = JSON.parse(cached); updateCajaBanner(); }
+      } catch(_) {}
+
       const cajaRef = collection(db, 'negocios', negocioId, 'caja');
       const q = query(cajaRef, where('estado', '==', 'abierta'), limit(1));
-      const unsub = onSnapshot(q, (snap) => {
-        if (!snap.empty) { cajaActual = { id: snap.docs[0].id, ...snap.docs[0].data() }; }
-        else { cajaActual = null; }
+      const unsub = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+        if (!snap.metadata.fromCache || !cajaActual) {
+          if (!snap.empty) {
+            cajaActual = { id: snap.docs[0].id, ...snap.docs[0].data() };
+            // Serializar para cache (Timestamps → ISO)
+            const cacheData = { ...cajaActual };
+            if (cacheData.fechaApertura?.toDate) cacheData.fechaApertura = { _ts: cacheData.fechaApertura.toDate().toISOString() };
+            localStorage.setItem('caja_' + negocioId, JSON.stringify(cacheData));
+          } else {
+            cajaActual = null;
+            localStorage.removeItem('caja_' + negocioId);
+          }
+        }
         updateCajaBanner();
         renderCaja();
       });
@@ -1649,7 +1794,12 @@
       const notas = document.getElementById('caja-notas-apertura').value;
       const empNombre = await getEmpNombre();
       try {
-        await addDoc(collection(db, 'negocios', negocioId, 'caja'), { estado: 'abierta', montoInicial: monto, fechaApertura: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, notas, ingresos: 0, gastos: 0 });
+        const cajaData = { estado: 'abierta', montoInicial: monto, fechaApertura: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, notas, ingresos: 0, gastos: 0 };
+        const cajaId = await dbAdd('negocios/' + negocioId + '/caja', cajaData);
+        // Actualizar local inmediatamente
+        cajaActual = { ...cajaData, id: cajaId, fechaApertura: { toDate: () => new Date() } };
+        localStorage.setItem('caja_' + negocioId, JSON.stringify({ ...cajaData, id: cajaId }));
+        updateCajaBanner(); renderCaja();
         cerrarModal('modal-abrir-caja');
         toast('Caja abierta exitosamente', 'success');
       } catch (e) { toast('Error al abrir caja: ' + e.message, 'error'); }
@@ -1695,7 +1845,10 @@
       const notas = document.getElementById('caja-notas-cierre').value;
       const empNombre = await getEmpNombre();
       try {
-        await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { estado: 'cerrada', montoFinal: final, fechaCierre: serverTimestamp(), notasCierre: notas, empleadoCierreNombre: empNombre });
+        await dbUpdate('negocios/' + negocioId + '/caja/' + cajaActual.id, { estado: 'cerrada', montoFinal: final, fechaCierre: serverTimestamp(), notasCierre: notas, empleadoCierreNombre: empNombre });
+        cajaActual = null;
+        localStorage.removeItem('caja_' + negocioId);
+        updateCajaBanner(); renderCaja();
         cerrarModal('modal-cerrar-caja');
         toast('Caja cerrada correctamente', 'success');
       } catch (e) { toast('Error: ' + e.message, 'error'); }
@@ -1715,20 +1868,32 @@
       if (!desc || isNaN(monto) || monto <= 0) { toast('Completa todos los campos', 'error'); return; }
       const empNombre = await getEmpNombre();
       try {
-        await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'gasto', descripcion: desc, categoria: cat, monto, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, cajaId: cajaActual.id });
-        await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { gastos: (cajaActual.gastos || 0) + monto });
+        const gastoData = { tipo: 'gasto', descripcion: desc, categoria: cat, monto, fecha: { toDate: () => new Date() }, uid: currentUser.uid, empleadoNombre: empNombre, cajaId: cajaActual.id };
+        await dbAdd('negocios/' + negocioId + '/movimientos', { ...gastoData, fecha: serverTimestamp() });
+        const nuevosGastos = (cajaActual.gastos || 0) + monto;
+        cajaActual = { ...cajaActual, gastos: nuevosGastos };
+        localStorage.setItem('caja_' + negocioId, JSON.stringify(cajaActual));
+        await dbUpdate('negocios/' + negocioId + '/caja/' + cajaActual.id, { gastos: nuevosGastos });
+        // Agregar al cache local de movimientos para renderizar sin red
+        movimientosCache.unshift({ id: 'loc_' + Date.now(), ...gastoData });
+        _saveMovimientosCache();
         cerrarModal('modal-gasto');
-        toast('Gasto registrado', 'success');
-        cargarMovimientosHoy();
+        toast('Gasto registrado' + (!_online ? ' (offline)' : ''), 'success');
+        renderMovimientos();
       } catch (e) { toast('Error: ' + e.message, 'error'); }
     };
 
     async function cargarMovimientosHoy() {
-      const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-      const q = query(collection(db, 'negocios', negocioId, 'movimientos'), where('fecha', '>=', Timestamp.fromDate(hoy)), orderBy('fecha', 'desc'));
-      const snap = await getDocs(q);
-      movimientosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Primero renderizar lo que hay en cache
       renderMovimientos();
+      if (!_online) return; // offline → quedarse con lo que hay en memoria
+      try {
+        const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+        const q = query(collection(db, 'negocios', negocioId, 'movimientos'), where('fecha', '>=', Timestamp.fromDate(hoy)), orderBy('fecha', 'desc'));
+        const snap = await getDocs(q);
+        movimientosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderMovimientos();
+      } catch (_) { /* sin red: mostrar cache en memoria */ }
     }
 
     function renderMovimientos() {
@@ -1739,23 +1904,29 @@
     }
 
     async function cargarHistorialCaja() {
-      const q = query(collection(db, 'negocios', negocioId, 'caja'), orderBy('fechaApertura', 'desc'), limit(20));
-      const snap = await getDocs(q);
       const tbody = document.getElementById('tbody-historial-caja');
       if (!tbody) return;
-      const rows = snap.docs.map(d => { const data = d.data(); const apertura = data.fechaApertura?.toDate ? data.fechaApertura.toDate().toLocaleString('es-DO') : '-'; const cierre = data.fechaCierre?.toDate ? data.fechaCierre.toDate().toLocaleString('es-DO') : '-'; return `<tr><td>${apertura}</td><td>${cierre}</td><td>${data.empleadoNombre || '-'}</td><td style="font-family:var(--font-mono);">${fmt(data.montoInicial || 0)}</td><td style="font-family:var(--font-mono);">${data.montoFinal !== undefined ? fmt(data.montoFinal) : '-'}</td><td><span class="badge ${data.estado}">${data.estado}</span></td></tr>`; });
-      tbody.innerHTML = rows.join('') || `<tr><td colspan="6" style="text-align:center;color:var(--gris-suave);">Sin registros</td></tr>`;
+      if (!_online) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--gris-suave);">Sin conexión — historial no disponible offline</td></tr>`; return; }
+      try {
+        const q = query(collection(db, 'negocios', negocioId, 'caja'), orderBy('fechaApertura', 'desc'), limit(20));
+        const snap = await getDocs(q);
+        const rows = snap.docs.map(d => { const data = d.data(); const apertura = data.fechaApertura?.toDate ? data.fechaApertura.toDate().toLocaleString('es-DO') : '-'; const cierre = data.fechaCierre?.toDate ? data.fechaCierre.toDate().toLocaleString('es-DO') : '-'; return `<tr><td>${apertura}</td><td>${cierre}</td><td>${data.empleadoNombre || '-'}</td><td style="font-family:var(--font-mono);">${fmt(data.montoInicial || 0)}</td><td style="font-family:var(--font-mono);">${data.montoFinal !== undefined ? fmt(data.montoFinal) : '-'}</td><td><span class="badge ${data.estado}">${data.estado}</span></td></tr>`; });
+        tbody.innerHTML = rows.join('') || `<tr><td colspan="6" style="text-align:center;color:var(--gris-suave);">Sin registros</td></tr>`;
+      } catch (_) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--gris-suave);">Sin conexión</td></tr>`; }
     }
 
     function renderCaja() {
       const card = document.getElementById('caja-estado-card');
       if (!card) return;
+      // Restaurar movimientos del día desde localStorage si el cache está vacío
+      if (!movimientosCache.length) _loadMovimientosCache();
       if (cajaActual) {
         const apertura = cajaActual.fechaApertura?.toDate ? cajaActual.fechaApertura.toDate().toLocaleString('es-DO') : 'Desconocida';
         const ingresos = cajaActual.ingresos || 0;
         const gastos = cajaActual.gastos || 0;
         const total = (cajaActual.montoInicial || 0) + ingresos - gastos;
-        card.innerHTML = `<div class="caja-estado-icon">🟢</div><h2>Caja Abierta</h2><p>Apertura: ${apertura} • Por: ${cajaActual.empleadoNombre || '-'}</p><div class="caja-info-grid"><div class="caja-info-item"><label>Monto Inicial</label><span>${fmt(cajaActual.montoInicial || 0)}</span></div><div class="caja-info-item"><label>Ingresos</label><span style="color:#00b341">+${fmt(ingresos)}</span></div><div class="caja-info-item"><label>Gastos</label><span style="color:#e03131">-${fmt(gastos)}</span></div><div class="caja-info-item"><label>Total Esperado</label><span>${fmt(total)}</span></div></div><div class="caja-btns"><button class="btn-caja gasto" onclick="abrirModalGasto()"><i class="fas fa-minus-circle"></i> Registrar Gasto</button><button class="btn-caja cerrar" onclick="abrirModalCerrarCaja()"><i class="fas fa-lock"></i> Cerrar Caja</button></div>`;
+        const offlineTag = !_online ? '<span style="background:#f59f00;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:6px;">📴 Offline</span>' : '';
+        card.innerHTML = `<div class="caja-estado-icon">🟢</div><h2>Caja Abierta ${offlineTag}</h2><p>Apertura: ${apertura} • Por: ${cajaActual.empleadoNombre || '-'}</p><div class="caja-info-grid"><div class="caja-info-item"><label>Monto Inicial</label><span>${fmt(cajaActual.montoInicial || 0)}</span></div><div class="caja-info-item"><label>Ingresos</label><span style="color:#00b341">+${fmt(ingresos)}</span></div><div class="caja-info-item"><label>Gastos</label><span style="color:#e03131">-${fmt(gastos)}</span></div><div class="caja-info-item"><label>Total Esperado</label><span>${fmt(total)}</span></div></div><div class="caja-btns"><button class="btn-caja gasto" onclick="abrirModalGasto()"><i class="fas fa-minus-circle"></i> Registrar Gasto</button><button class="btn-caja cerrar" onclick="abrirModalCerrarCaja()"><i class="fas fa-lock"></i> Cerrar Caja</button></div>`;
       } else {
         card.innerHTML = `<div class="caja-estado-icon">🔴</div><h2>Caja Cerrada</h2><p>No hay caja abierta. Debes abrir la caja para poder realizar ventas.</p><div class="caja-btns"><button class="btn-caja abrir" onclick="abrirModalAbrirCaja()"><i class="fas fa-lock-open"></i> Abrir Caja</button></div>`;
       }
@@ -2039,11 +2210,11 @@
     window.buscarPorBarcode = () => { const codigo = document.getElementById('scanner-input').value.trim(); if (!codigo) return; const prod = productos.find(p => p.codigoBarras === codigo); if (prod) { agregarAlCarritoObj(prod); cerrarModal('modal-scanner'); toast(`"${prod.nombre}" agregado`, 'success'); } else { toast('Producto no encontrado con ese código', 'error'); } };
 
     // ==================== CARRITO ====================
-    window.agregarAlCarrito = (prodId) => { if (!cajaActual) { toast('⚠️ La caja no está abierta', 'error'); return; } const prod = productos.find(p => p.id === prodId); if (!prod) return; if (prod.stock <= 0) { toast('Sin stock disponible', 'error'); return; } agregarAlCarritoObj(prod); };
+    window.agregarAlCarrito = (prodId) => { if (!cajaActual && _online) { toast('⚠️ La caja no está abierta', 'error'); return; } const prod = productos.find(p => p.id === prodId); if (!prod) return; if (prod.stock <= 0) { toast('Sin stock disponible', 'error'); return; } agregarAlCarritoObj(prod); };
 
-    function agregarAlCarritoObj(prod) { const idx = carrito.findIndex(i => i.id === prod.id); if (idx >= 0) { if (carrito[idx].qty >= prod.stock) { toast('No hay más stock disponible', 'error'); return; } carrito[idx].qty++; } else { carrito.push({ ...prod, qty: 1 }); } renderCarrito(); toast(`"${prod.nombre}" agregado`, 'success'); }
+    function agregarAlCarritoObj(prod) { const idx = carrito.findIndex(i => i.id === prod.id); if (idx >= 0) { if (carrito[idx].qty >= prod.stock) { toast('No hay más stock disponible', 'error'); return; } carrito[idx].qty++; } else { carrito.push({ ...prod, qty: 1 }); } renderCarrito(); guardarCarritoLS(); toast(`"${prod.nombre}" agregado`, 'success'); }
 
-    window.cambiarQty = (prodId, delta) => { const idx = carrito.findIndex(i => i.id === prodId); if (idx < 0) return; carrito[idx].qty += delta; if (carrito[idx].qty <= 0) carrito.splice(idx, 1); renderCarrito(); };
+    window.cambiarQty = (prodId, delta) => { const idx = carrito.findIndex(i => i.id === prodId); if (idx < 0) return; carrito[idx].qty += delta; if (carrito[idx].qty <= 0) carrito.splice(idx, 1); renderCarrito(); guardarCarritoLS(); };
 
     // NOTA: El botón "Limpiar" fue reemplazado. La función limpiarCarrito ya no se usa pero la dejamos por compatibilidad.
     window.limpiarCarrito = () => { carrito = []; renderCarrito(); };
@@ -2233,10 +2404,29 @@
       }
     };
 
-    // ==================== FACTURAR (MODIFICADA PARA INCLUIR DIBUJO) ====================
+    // ==================== FACTURAR ====================
+
+    // Persistir y restaurar carrito entre recargas
+    function guardarCarritoLS() {
+      if (negocioId) localStorage.setItem('carrito_' + negocioId, JSON.stringify(carrito));
+    }
+    function restaurarCarritoLS() {
+      if (!negocioId) return;
+      try {
+        const saved = JSON.parse(localStorage.getItem('carrito_' + negocioId) || '[]');
+        if (saved.length) {
+          // Validar que los productos siguen existiendo
+          carrito = saved.filter(item => productos.find(p => p.id === item.id));
+          renderCarrito();
+          if (carrito.length) toast('Carrito restaurado (' + carrito.length + ' producto' + (carrito.length > 1 ? 's' : '') + ')', 'info');
+        }
+      } catch (_) {}
+    }
+
     window.abrirModalFacturar = () => {
       if (!carrito.length) { toast('El carrito está vacío', 'error'); return; }
-      if (!cajaActual) { toast('La caja no está abierta', 'error'); return; }
+      // Offline: permitir facturar sin caja abierta (se asigna como "sin caja")
+      if (!cajaActual && _online) { toast('La caja no está abierta', 'error'); return; }
       const subtotal = carrito.reduce((s, i) => s + i.precio * i.qty, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente !== false;
@@ -2254,10 +2444,12 @@
       const myEmp = empleadosCache.find(e => e.uid === currentUser.uid);
       if (myEmp) sel.value = myEmp.id;
       seleccionarMetodo('efectivo');
-      // Dejar estado de pago sin seleccionar
       estadoFacturaSeleccionado = '';
       document.getElementById('btn-estado-pagada').classList.remove('selected');
       document.getElementById('btn-estado-pendiente').classList.remove('selected');
+      if (!cajaActual) {
+        toast('Modo offline: factura sin caja abierta', 'info', 4000);
+      }
       abrirModal('modal-facturar');
     };
 
@@ -2273,7 +2465,7 @@
       if (!estadoFacturaSeleccionado) { toast('Selecciona si el pago es Confirmado o Pendiente', 'error'); return; }
       if (estadoFacturaSeleccionado === 'pagada' && metodoPagoSeleccionado === 'efectivo') {
         const montoRec = parseFloat(document.getElementById('monto-recibido').value);
-        if (!montoRec || montoRec <= 0) { toast('Ingresa el monto recibido en efectivo para confirmar la factura', 'error'); return; }
+        if (!montoRec || montoRec <= 0) { toast('Ingresa el monto recibido en efectivo', 'error'); return; }
       }
       const btn = document.getElementById('btn-confirmar-factura');
       btn.innerHTML = '<span class="loader"></span> Procesando...';
@@ -2291,64 +2483,105 @@
         const numFactura = `F-${Date.now()}`;
         const notaDibujo = (signaturePad && !signaturePad.isEmpty()) ? signaturePad.toDataURL() : null;
         const direccionCliente = document.getElementById('pos-direccion-cliente')?.value.trim() || '';
+        const fechaLocal = new Date();
+        const cajaId = cajaActual?.id || 'sin-caja-offline';
 
         const facturaData = {
-          numero: numFactura, ncf, fecha: serverTimestamp(),
+          numero: numFactura, ncf,
+          fecha: serverTimestamp(),
+          fechaLocal: fechaLocal.toISOString(),
           items: carrito.map(i => ({ id: i.id, nombre: i.nombre, precio: i.precio, qty: i.qty, subtotal: i.precio * i.qty, categoriaId: i.categoriaId })),
           subtotal, itbis, itbisPct, total,
           metodoPago: metodoPagoSeleccionado,
           montoRecibido: parseFloat(document.getElementById('monto-recibido').value) || total,
           estado: estadoFacturaSeleccionado,
           empleadoId: empId, empleadoNombre: empNombre,
-          cajaId: cajaActual?.id || '', uid: currentUser.uid,
+          cajaId, uid: currentUser.uid,
+          offline: !_online,
           dibujoNota: notaDibujo,
           ...(direccionCliente ? { direccionCliente } : {})
         };
 
-        // ── Actualizar estado local INMEDIATAMENTE (optimistic update) ──────
-        // Así funciona offline sin esperar confirmación del servidor
+        // ── 1. Actualizar estado local INMEDIATAMENTE ─────────────────────
         config.ncfSeq = ncfSeq + 1;
         localStorage.setItem(`cfg_${negocioId}`, JSON.stringify(config));
 
-        for (const item of carrito) {
+        const carritoSnapshot = [...carrito]; // guardar copia antes de limpiar
+        for (const item of carritoSnapshot) {
           const pi = productos.findIndex(p => p.id === item.id);
-          if (pi >= 0) productos[pi] = { ...productos[pi], stock: (productos[pi].stock || 0) - item.qty };
+          if (pi >= 0) productos[pi] = { ...productos[pi], stock: Math.max(0, (productos[pi].stock || 0) - item.qty) };
         }
         localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos));
 
-        // ── Escribir en Firestore (encolado si está offline, sube al reconectar) ──
-        const factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaData);
-        if (estadoFacturaSeleccionado === 'pagada' && cajaActual) {
-          await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'ingreso', descripcion: `Venta ${numFactura}`, monto: total, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, facturaId: factRef.id, cajaId: cajaActual.id });
-          await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { ingresos: (cajaActual.ingresos || 0) + total });
-        }
-        await updateDoc(doc(db, 'negocios', negocioId, 'configuraciones', 'general'), { ncfSeq: ncfSeq + 1 });
-        const batch = writeBatch(db);
-        for (const item of carrito) {
-          const prodRef = doc(db, 'negocios', negocioId, 'categorias', item.categoriaId, 'productos', item.id);
-          const prod = productos.find(p => p.id === item.id);
-          batch.update(prodRef, { stock: prod ? prod.stock : 0 });
-        }
-        await batch.commit();
+        // Guardar en historial offline local siempre (por si acaso)
+        _guardarFacturaLocal(facturaData);
 
-        // ── Actualizar UI ──────────────────────────────────────────────────
+        // ── 2. Escribir en Firebase (online) o encolar (offline) ───────────
+        const colFacturas = `negocios/${negocioId}/facturas`;
+        const factId = await dbAdd(colFacturas, facturaData);
+
+        if (estadoFacturaSeleccionado === 'pagada' && cajaActual) {
+          const movData = { tipo: 'ingreso', descripcion: `Venta ${numFactura}`, monto: total, fecha: { toDate: () => fechaLocal }, uid: currentUser.uid, empleadoNombre: empNombre, facturaId: factId, cajaId: cajaActual.id };
+          await dbAdd(`negocios/${negocioId}/movimientos`, { ...movData, fecha: serverTimestamp() });
+          movimientosCache.unshift({ id: 'loc_' + Date.now(), ...movData });
+          _saveMovimientosCache();
+          // Actualizar caja local también
+          if (cajaActual) {
+            cajaActual = { ...cajaActual, ingresos: (cajaActual.ingresos || 0) + total };
+            await dbUpdate(`negocios/${negocioId}/caja/${cajaActual.id}`, { ingresos: cajaActual.ingresos });
+          }
+        }
+
+        await dbUpdate(`negocios/${negocioId}/configuraciones/general`, { ncfSeq: ncfSeq + 1 });
+
+        const stockUpdates = carritoSnapshot
+          .filter(item => item.categoriaId)
+          .map(item => {
+            const prod = productos.find(p => p.id === item.id);
+            return { path: `negocios/${negocioId}/categorias/${item.categoriaId}/productos/${item.id}`, data: { stock: prod ? prod.stock : 0 } };
+          });
+        if (stockUpdates.length) await dbBatchUpdate(stockUpdates);
+
+        // ── 3. Actualizar UI ───────────────────────────────────────────────
         cerrarModal('modal-facturar');
-        facturaActualParaImprimir = { ...facturaData, id: factRef.id, fecha: { toDate: () => new Date() } };
+        facturaActualParaImprimir = { ...facturaData, id: factId, fecha: { toDate: () => fechaLocal } };
         mostrarTicket(facturaActualParaImprimir);
+
+        // Limpiar carrito y persistir
         carrito = [];
+        guardarCarritoLS();
         renderCarrito();
-        // Actualizar cards de productos visibles sin destruir imágenes
+
+        // Invalidar paneles de las categorías afectadas
+        const catsAfectadas = new Set(carritoSnapshot.map(i => i.categoriaId).filter(Boolean));
+        catsAfectadas.forEach(catId => invalidarPanel(catId));
         if (categoriaActual) renderProductosCategoria(categoriaActual);
+
         const dirInput = document.getElementById('pos-direccion-cliente');
         if (dirInput) dirInput.value = '';
         if (signaturePad) signaturePad.clear();
         dibujoDataURL = null;
-        toast(_online ? 'Factura generada ✅' : 'Factura guardada offline ✅ — se subirá cuando vuelva internet', 'success', _online ? 3000 : 5000);
-      } catch (e) { toast('Error al procesar: ' + e.message, 'error'); console.error(e); }
+
+        const msg = _online ? 'Factura generada ✅' : 'Factura guardada offline ✅ — se subirá al reconectar';
+        toast(msg, 'success', _online ? 3000 : 5500);
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+        console.error('[confirmarFactura]', e);
+      }
       btn.innerHTML = '<i class="fas fa-check"></i> Confirmar Factura';
       btn.disabled = false;
     };
 
+    // Guardar factura en historial local (para consulta offline)
+    function _guardarFacturaLocal(f) {
+      try {
+        const key = 'facturas_local_' + negocioId;
+        const arr = JSON.parse(localStorage.getItem(key) || '[]');
+        arr.unshift({ ...f, _localId: 'loc_' + Date.now() });
+        if (arr.length > 200) arr.length = 200; // máx 200 facturas locales
+        localStorage.setItem(key, JSON.stringify(arr));
+      } catch (_) {}
+    }
     function mostrarTicket(factura) { const body = document.getElementById('modal-ticket-body'); body.innerHTML = generarHTMLTicket(factura); abrirModal('modal-ticket'); }
 
     function generarHTMLTicket(factura) {
@@ -2377,10 +2610,31 @@
     };
 
     window.abrirModalVaciarCarrito = () => { if (!carrito.length) { toast('El carrito ya está vacío', 'info'); return; } abrirModal('modal-vaciar-carrito'); };
-    window.confirmarVaciarCarrito = () => { carrito = []; renderCarrito(); cerrarModal('modal-vaciar-carrito'); toast('Carrito vaciado', 'info'); };
+    window.confirmarVaciarCarrito = () => { carrito = []; renderCarrito(); guardarCarritoLS(); cerrarModal('modal-vaciar-carrito'); toast('Carrito vaciado', 'info'); };
 
     // ==================== FACTURAS PAGE ====================
-    async function cargarFacturas() { const q = query(collection(db, 'negocios', negocioId, 'facturas'), orderBy('fecha', 'desc'), limit(100)); const snap = await getDocs(q); facturasCache = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaFacturas(facturasCache); }
+    async function cargarFacturas() {
+      if (!_online) {
+        // Offline: mostrar historial local guardado en localStorage
+        try {
+          const local = JSON.parse(localStorage.getItem('facturas_local_' + negocioId) || '[]');
+          // Convertir fechaLocal string a objeto con .toDate() para renderTablaFacturas
+          facturasCache = local.map(f => ({
+            ...f,
+            fecha: f.fechaLocal ? { toDate: () => new Date(f.fechaLocal) } : null
+          }));
+          renderTablaFacturas(facturasCache);
+          toast('Mostrando facturas offline guardadas localmente', 'info');
+        } catch (_) { facturasCache = []; renderTablaFacturas([]); }
+        return;
+      }
+      try {
+        const q = query(collection(db, 'negocios', negocioId, 'facturas'), orderBy('fecha', 'desc'), limit(100));
+        const snap = await getDocs(q);
+        facturasCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderTablaFacturas(facturasCache);
+      } catch (e) { toast('Error cargando facturas: ' + e.message, 'error'); }
+    }
 
     function renderTablaFacturas(facturas) { const tbody = document.getElementById('tbody-facturas'); if (!tbody) return; if (!facturas.length) { tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-file-invoice"></i><p>Sin facturas</p></div></td></tr>`; return; } tbody.innerHTML = facturas.map(f => { const fecha = f.fecha?.toDate ? f.fecha.toDate().toLocaleString('es-DO') : '-'; return `<tr><td style="font-family:var(--font-mono);font-weight:700;">${f.numero || '-'}</td><td style="font-family:var(--font-mono);font-size:11px;">${f.ncf || '-'}</td><td>${fecha}</td><td>${f.empleadoNombre || '-'}</td><td>${f.metodoPago || '-'}</td><td style="font-family:var(--font-mono);font-weight:700;">${fmt(f.total)}</td><td><span class="badge ${f.estado}">${f.estado === 'pagada' ? '✅ Pagada' : '⏳ Pendiente'}</span></td><td><button class="btn-sm gris" onclick="verFactura('${f.id}')" style="padding:6px 10px;font-size:12px;"><i class="fas fa-eye"></i></button>${f.estado === 'pendiente' ? `<button class="btn-sm verde" onclick="marcarPagada('${f.id}')" style="padding:6px 10px;font-size:12px;margin-left:4px;"><i class="fas fa-check"></i> Pagar</button>` : ''}</td></tr>`; }).join(''); }
 
@@ -2390,7 +2644,7 @@
 
     window.verFactura = (id) => { const f = facturasCache.find(f => f.id === id); if (!f) return; document.getElementById('modal-ver-factura-body').innerHTML = generarHTMLTicket(f); abrirModal('modal-ver-factura'); };
 
-    window.marcarPagada = async (id) => { try { await updateDoc(doc(db, 'negocios', negocioId, 'facturas', id), { estado: 'pagada' }); const f = facturasCache.find(f => f.id === id); if (f && cajaActual) { await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'ingreso', descripcion: `Pago factura ${f.numero}`, monto: f.total, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: await getEmpNombre(), facturaId: id, cajaId: cajaActual.id }); await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { ingresos: (cajaActual.ingresos || 0) + f.total }); } toast('Factura marcada como pagada', 'success'); await cargarFacturas(); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+    window.marcarPagada = async (id) => { try { await dbUpdate('negocios/' + negocioId + '/facturas/' + id, { estado: 'pagada' }); const f = facturasCache.find(f => f.id === id); if (f) { facturasCache = facturasCache.map(x => x.id === id ? { ...x, estado: 'pagada' } : x); if (cajaActual) { await dbAdd('negocios/' + negocioId + '/movimientos', { tipo: 'ingreso', descripcion: `Pago factura ${f.numero}`, monto: f.total, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: await getEmpNombre(), facturaId: id, cajaId: cajaActual.id }); cajaActual = { ...cajaActual, ingresos: (cajaActual.ingresos || 0) + f.total }; await dbUpdate('negocios/' + negocioId + '/caja/' + cajaActual.id, { ingresos: cajaActual.ingresos }); } } toast('Factura marcada como pagada', 'success'); renderTablaFacturas(facturasCache); } catch (e) { toast('Error: ' + e.message, 'error'); } };
 
     // ==================== INVENTARIO - NUEVA VERSIÓN (CATEGORÍAS → PRODUCTOS) ====================
     function renderInventario() {
@@ -2675,7 +2929,26 @@
 
     window.editarCategoria = async (catId) => { const cat = categorias.find(c => c.id === catId); if (!cat) return; document.getElementById('cat-nombre').value = cat.nombre || ''; document.getElementById('cat-emoji').value = cat.emoji || ''; const icon = document.getElementById('cat-img-icon'); const hint = document.getElementById('cat-img-hint'); if (cat.imagen) { document.getElementById('cat-img-preview').src = cat.imagen; document.getElementById('cat-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (hint) hint.style.display = 'none'; } else { document.getElementById('cat-img-preview').src = ''; document.getElementById('cat-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (hint) hint.style.display = 'block'; } window.categoriaEditandoId = catId; abrirModal('modal-categoria'); };
 
-    window.eliminarCategoria = async (catId) => { const productosEnCat = productos.filter(p => p.categoriaId === catId); if (productosEnCat.length > 0) { toast(`No se puede eliminar la categoría. Tiene ${productosEnCat.length} productos.`, 'error'); return; } if (!confirm('¿Eliminar esta categoría?')) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', catId)); toast('Categoría eliminada', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+    window.eliminarCategoria = async (catId) => {
+      const productosEnCat = productos.filter(p => p.categoriaId === catId);
+      if (productosEnCat.length > 0) { toast(`No se puede eliminar. Tiene ${productosEnCat.length} producto(s).`, 'error'); return; }
+      if (!confirm('¿Eliminar esta categoría?')) return;
+      // Optimistic: quitar de local inmediatamente
+      const catBackup = categorias.find(c => c.id === catId);
+      categorias = categorias.filter(c => c.id !== catId);
+      localStorage.setItem('cats_' + negocioId, JSON.stringify(categorias));
+      invalidarPanel(catId);
+      renderCategoriasPos(); populateCatSelects();
+      try {
+        if (_online) await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', catId));
+        else encolarOp({ tipo: 'delete', path: 'negocios/' + negocioId + '/categorias/' + catId });
+        toast('Categoría eliminada', 'success');
+      } catch (e) {
+        // Revertir
+        if (catBackup) { categorias.push(catBackup); localStorage.setItem('cats_' + negocioId, JSON.stringify(categorias)); renderCategoriasPos(); populateCatSelects(); }
+        toast('Error: ' + e.message, 'error');
+      }
+    };
 
     const guardarCategoriaOriginal = window.guardarCategoria;
     window.guardarCategoria = async () => {
@@ -2692,12 +2965,12 @@
       }
       try {
         if (window.categoriaEditandoId) {
-          await updateDoc(doc(db, 'negocios', negocioId, 'categorias', window.categoriaEditandoId), { nombre, emoji, imagen });
+          await dbUpdate('negocios/' + negocioId + '/categorias/' + window.categoriaEditandoId, { nombre, emoji, imagen });
           toast('Categoría actualizada', 'success');
           delete window.categoriaEditandoId;
         } else {
           const nextOrden = categorias.length + 1;
-          await addDoc(collection(db, 'negocios', negocioId, 'categorias'), { nombre, emoji, imagen, orden: nextOrden, creadoEn: serverTimestamp() });
+          await dbAdd('negocios/' + negocioId + '/categorias', { nombre, emoji, imagen, orden: nextOrden, creadoEn: serverTimestamp() });
           toast('Categoría creada', 'success');
         }
         cerrarModal('modal-categoria');
@@ -2752,14 +3025,14 @@
             // Si cambió de categoría, invalidar también la anterior
             if (productoEnEdicion && productoEnEdicion.categoriaId !== catId) invalidarPanel(productoEnEdicion.categoriaId);
           }
-          await updateDoc(doc(db, 'negocios', negocioId, 'categorias', catId, 'productos', prodId), data);
+          await dbUpdate('negocios/' + negocioId + '/categorias/' + catId + '/productos/' + prodId, data);
           if (productoEnEdicion && productoEnEdicion.categoriaId !== catId) {
-            await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', productoEnEdicion.categoriaId, 'productos', prodId));
+            await dbDelete('negocios/' + negocioId + '/categorias/' + productoEnEdicion.categoriaId + '/productos/' + prodId);
           }
           toast('Producto actualizado', 'success');
         } else {
           data.creadoEn = serverTimestamp();
-          const newRef = await addDoc(collection(db, 'negocios', negocioId, 'categorias', catId, 'productos'), data);
+          const newRef = { id: await dbAdd('negocios/' + negocioId + '/categorias/' + catId + '/productos', data) };
           // Optimistic add local
           productos.push({ ...data, id: newRef.id, categoriaId: catId, categoriaNombre: cat?.nombre || '' });
           localStorage.setItem(lsKeyProds(), JSON.stringify(productos));
@@ -2781,7 +3054,7 @@
       invalidarPanel(p.categoriaId);
       cargarTodosProductos();
       try {
-        await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id));
+        await dbDelete('negocios/' + negocioId + '/categorias/' + p.categoriaId + '/productos/' + id);
         toast('Producto eliminado', 'success');
       } catch (e) {
         // Revertir si falla
@@ -2869,19 +3142,91 @@
 
     window.guardarEmpleado = async () => { const nombre = document.getElementById('emp-nombre').value.trim(); const email = document.getElementById('emp-email').value.trim(); const pass = document.getElementById('emp-pass').value; const rol = document.getElementById('emp-rol').value; if (!nombre || !email || !pass) { toast('Todos los campos son requeridos', 'error'); return; } if (pass.length < 6) { toast('La contraseña debe tener mínimo 6 caracteres', 'error'); return; } try { const cred = await createUserWithEmailAndPassword(auth, email, pass); const uid = cred.user.uid; localStorage.setItem(`negocio_${uid}`, negocioId); await setDoc(doc(db, 'negocios', negocioId, 'empleados', uid), { nombre, email, rol, uid, activo: true, creadoEn: serverTimestamp() }); empleadosCache.push({ id: uid, nombre, email, rol, uid }); renderEmpleados(); cerrarModal('modal-empleado'); toast('Empleado agregado', 'success'); } catch (e) { let msg = 'Error: '; if (e.code === 'auth/email-already-in-use') msg += 'Ese email ya existe'; else msg += e.message; toast(msg, 'error'); } };
 
-    window.eliminarEmpleado = async (id) => { if (!confirm('¿Eliminar este empleado?')) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'empleados', id)); empleadosCache = empleadosCache.filter(e => e.id !== id); renderEmpleados(); toast('Empleado eliminado', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+    window.eliminarEmpleado = async (id) => { if (!confirm('¿Eliminar este empleado?')) return; empleadosCache = empleadosCache.filter(e => e.id !== id); localStorage.setItem('empleados_' + negocioId, JSON.stringify(empleadosCache)); renderEmpleados(); try { if (_online) await deleteDoc(doc(db, 'negocios', negocioId, 'empleados', id)); else encolarOp({ tipo: 'delete', path: 'negocios/' + negocioId + '/empleados/' + id }); toast('Empleado eliminado', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
 
     // ==================== CONFIG ====================
     function renderConfig() { if (!negocioData) return; document.getElementById('cfg-nombre').value = negocioData.nombre || ''; document.getElementById('cfg-rnc').value = negocioData.rnc || ''; document.getElementById('cfg-direccion').value = negocioData.direccion || ''; document.getElementById('cfg-telefono').value = negocioData.telefono || ''; document.getElementById('cfg-ncf-prefijo').value = config.ncfPrefijo || 'B01'; document.getElementById('cfg-ncf-seq').value = config.ncfSeq || 1; document.getElementById('cfg-itbis-pct').value = config.itbisPct || 18; document.getElementById('cfg-itbis-cliente').checked = config.itbisCliente !== false; }
 
-    window.guardarConfig = async () => { try { const negUpdate = { nombre: document.getElementById('cfg-nombre').value.trim(), rnc: document.getElementById('cfg-rnc').value.trim(), direccion: document.getElementById('cfg-direccion').value.trim(), telefono: document.getElementById('cfg-telefono').value.trim() }; const cfgUpdate = { ncfPrefijo: document.getElementById('cfg-ncf-prefijo').value.trim() || 'B01', ncfSeq: parseInt(document.getElementById('cfg-ncf-seq').value) || 1, itbisPct: parseFloat(document.getElementById('cfg-itbis-pct').value) || 18, itbisCliente: document.getElementById('cfg-itbis-cliente').checked }; await updateDoc(doc(db, 'negocios', negocioId), negUpdate); await updateDoc(doc(db, 'negocios', negocioId, 'configuraciones', 'general'), cfgUpdate); negocioData = { ...negocioData, ...negUpdate }; config = { ...config, ...cfgUpdate }; localStorage.setItem(`cfg_${negocioId}`, JSON.stringify(config)); localStorage.setItem(`negdata_${currentUser.uid}`, JSON.stringify(negocioData)); document.getElementById('nav-negocio-nombre').textContent = negocioData.nombre || 'Mi Colmado'; toast('Configuración guardada', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+    window.guardarConfig = async () => {
+      try {
+        const negUpdate = { nombre: document.getElementById('cfg-nombre').value.trim(), rnc: document.getElementById('cfg-rnc').value.trim(), direccion: document.getElementById('cfg-direccion').value.trim(), telefono: document.getElementById('cfg-telefono').value.trim() };
+        const cfgUpdate = { ncfPrefijo: document.getElementById('cfg-ncf-prefijo').value.trim() || 'B01', ncfSeq: parseInt(document.getElementById('cfg-ncf-seq').value) || 1, itbisPct: parseFloat(document.getElementById('cfg-itbis-pct').value) || 18, itbisCliente: document.getElementById('cfg-itbis-cliente').checked };
+        // Actualizar local inmediatamente
+        negocioData = { ...negocioData, ...negUpdate };
+        config = { ...config, ...cfgUpdate };
+        localStorage.setItem('cfg_' + negocioId, JSON.stringify(config));
+        localStorage.setItem('negdata_' + currentUser.uid, JSON.stringify(negocioData));
+        document.getElementById('nav-negocio-nombre').textContent = negocioData.nombre || 'Mi Colmado';
+        // Sincronizar con Firebase (online o encolar)
+        await dbUpdate('negocios/' + negocioId, negUpdate);
+        await dbUpdate('negocios/' + negocioId + '/configuraciones/general', cfgUpdate);
+        toast(_online ? 'Configuración guardada' : 'Config guardada offline — se sincronizará al reconectar', 'success');
+      } catch (e) { toast('Error: ' + e.message, 'error'); }
+    };
 
     // ==================== ESTADÍSTICAS ====================
     window.estadisticasHoy = () => { const hoy = new Date(); document.getElementById('stats-fecha-ini').value = hoy.toISOString().split('T')[0]; document.getElementById('stats-fecha-fin').value = hoy.toISOString().split('T')[0]; calcularEstadisticas(); };
 
-    window.calcularEstadisticas = async () => { const fechaIni = document.getElementById('stats-fecha-ini').value; const fechaFin = document.getElementById('stats-fecha-fin').value; let q; if (fechaIni && fechaFin) { const ini = Timestamp.fromDate(new Date(fechaIni)); const fin = Timestamp.fromDate(new Date(fechaFin + 'T23:59:59')); q = query(collection(db, 'negocios', negocioId, 'facturas'), where('fecha', '>=', ini), where('fecha', '<=', fin), orderBy('fecha', 'asc')); } else { q = query(collection(db, 'negocios', negocioId, 'facturas'), orderBy('fecha', 'desc'), limit(100)); } const snap = await getDocs(q); const facturas = snap.docs.map(d => ({ id: d.id, ...d.data() })); const pagadas = facturas.filter(f => f.estado === 'pagada'); const totalVentas = pagadas.reduce((s, f) => s + (f.total || 0), 0); const numFacturas = pagadas.length; let prodsVendidos = 0; const prodConteo = {}; pagadas.forEach(f => { (f.items || []).forEach(i => { prodsVendidos += i.qty || 0; prodConteo[i.nombre] = (prodConteo[i.nombre] || 0) + (i.qty || 0); }); }); document.getElementById('stat-ventas-total').textContent = fmt(totalVentas); document.getElementById('stat-num-facturas').textContent = numFacturas; document.getElementById('stat-prods-vendidos').textContent = prodsVendidos; document.getElementById('stat-promedio').textContent = numFacturas ? fmt(totalVentas / numFacturas) : 'RD$ 0'; renderCharts(pagadas, prodConteo); await calcularContabilidad(fechaIni, fechaFin); };
+    window.calcularEstadisticas = async () => {
+      const fechaIni = document.getElementById('stats-fecha-ini').value;
+      const fechaFin = document.getElementById('stats-fecha-fin').value;
+      let facturas = [];
+      if (!_online) {
+        // Offline: usar facturas locales guardadas
+        try {
+          const local = JSON.parse(localStorage.getItem('facturas_local_' + negocioId) || '[]');
+          facturas = local.map(f => ({ ...f, fecha: f.fechaLocal ? { toDate: () => new Date(f.fechaLocal) } : null }));
+          if (fechaIni && fechaFin) {
+            const ini = new Date(fechaIni), fin = new Date(fechaFin + 'T23:59:59');
+            facturas = facturas.filter(f => { const d = f.fecha?.toDate(); return d && d >= ini && d <= fin; });
+          }
+        } catch (_) {}
+        toast('Estadísticas basadas en datos offline locales', 'info');
+      } else {
+        try {
+          let q;
+          if (fechaIni && fechaFin) { const ini = Timestamp.fromDate(new Date(fechaIni)); const fin = Timestamp.fromDate(new Date(fechaFin + 'T23:59:59')); q = query(collection(db, 'negocios', negocioId, 'facturas'), where('fecha', '>=', ini), where('fecha', '<=', fin), orderBy('fecha', 'asc')); }
+          else { q = query(collection(db, 'negocios', negocioId, 'facturas'), orderBy('fecha', 'desc'), limit(100)); }
+          const snap = await getDocs(q);
+          facturas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { toast('Error cargando estadísticas: ' + e.message, 'error'); return; }
+      }
+      const pagadas = facturas.filter(f => f.estado === 'pagada');
+      const totalVentas = pagadas.reduce((s, f) => s + (f.total || 0), 0);
+      const numFacturas = pagadas.length;
+      let prodsVendidos = 0; const prodConteo = {};
+      pagadas.forEach(f => { (f.items || []).forEach(i => { prodsVendidos += i.qty || 0; prodConteo[i.nombre] = (prodConteo[i.nombre] || 0) + (i.qty || 0); }); });
+      document.getElementById('stat-ventas-total').textContent = fmt(totalVentas);
+      document.getElementById('stat-num-facturas').textContent = numFacturas;
+      document.getElementById('stat-prods-vendidos').textContent = prodsVendidos;
+      document.getElementById('stat-promedio').textContent = numFacturas ? fmt(totalVentas / numFacturas) : 'RD$ 0';
+      renderCharts(pagadas, prodConteo);
+      await calcularContabilidad(fechaIni, fechaFin, pagadas);
+    };
 
-    async function calcularContabilidad(fechaIni, fechaFin) { let q; if (fechaIni && fechaFin) { const ini = Timestamp.fromDate(new Date(fechaIni)); const fin = Timestamp.fromDate(new Date(fechaFin + 'T23:59:59')); q = query(collection(db, 'negocios', negocioId, 'movimientos'), where('fecha', '>=', ini), where('fecha', '<=', fin)); } else { q = query(collection(db, 'negocios', negocioId, 'movimientos'), limit(500)); } const snap = await getDocs(q); const movs = snap.docs.map(d => d.data()); const ingresos = movs.filter(m => m.tipo === 'ingreso').reduce((s, m) => s + (m.monto || 0), 0); const egresos = movs.filter(m => m.tipo === 'gasto').reduce((s, m) => s + (m.monto || 0), 0); document.getElementById('contab-ingresos').textContent = fmt(ingresos); document.getElementById('contab-egresos').textContent = fmt(egresos); document.getElementById('contab-ganancia').textContent = fmt(ingresos - egresos); }
+    async function calcularContabilidad(fechaIni, fechaFin, facturasOffline) {
+      if (!_online) {
+        // Offline: calcular desde facturas locales
+        const pagadas = (facturasOffline || []).filter(f => f.estado === 'pagada');
+        const ingresos = pagadas.reduce((s, f) => s + (f.total || 0), 0);
+        document.getElementById('contab-ingresos').textContent = fmt(ingresos);
+        document.getElementById('contab-egresos').textContent = fmt(0);
+        document.getElementById('contab-ganancia').textContent = fmt(ingresos);
+        return;
+      }
+      try {
+        let q;
+        if (fechaIni && fechaFin) { const ini = Timestamp.fromDate(new Date(fechaIni)); const fin = Timestamp.fromDate(new Date(fechaFin + 'T23:59:59')); q = query(collection(db, 'negocios', negocioId, 'movimientos'), where('fecha', '>=', ini), where('fecha', '<=', fin)); }
+        else { q = query(collection(db, 'negocios', negocioId, 'movimientos'), limit(500)); }
+        const snap = await getDocs(q);
+        const movs = snap.docs.map(d => d.data());
+        const ingresos = movs.filter(m => m.tipo === 'ingreso').reduce((s, m) => s + (m.monto || 0), 0);
+        const egresos = movs.filter(m => m.tipo === 'gasto').reduce((s, m) => s + (m.monto || 0), 0);
+        document.getElementById('contab-ingresos').textContent = fmt(ingresos);
+        document.getElementById('contab-egresos').textContent = fmt(egresos);
+        document.getElementById('contab-ganancia').textContent = fmt(ingresos - egresos);
+      } catch (_) {}
+    }
 
     function renderCharts(facturas, prodConteo) {
       const ventasPorDia = {}; facturas.forEach(f => { const fecha = f.fecha?.toDate ? f.fecha.toDate().toLocaleDateString('es-DO') : 'Sin fecha'; ventasPorDia[fecha] = (ventasPorDia[fecha] || 0) + (f.total || 0); });
@@ -2891,6 +3236,26 @@
     }
 
     window.exportarMovimientos = () => { let csv = 'Hora,Tipo,Descripción,Empleado,Monto\n'; movimientosCache.forEach(m => { const fecha = m.fecha?.toDate ? m.fecha.toDate().toLocaleTimeString('es-DO') : '-'; csv += `"${fecha}","${m.tipo}","${m.descripcion}","${m.empleadoNombre || '-'}","${m.monto}"\n`; }); const blob = new Blob([csv], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `movimientos_${new Date().toLocaleDateString('es-DO')}.csv`; a.click(); };
+
+    // ── Persistencia de movimientos del día en localStorage ──────────────────
+    function _saveMovimientosCache() {
+      try {
+        const hoy = new Date().toDateString();
+        localStorage.setItem('movimientos_' + negocioId + '_' + hoy, JSON.stringify(
+          movimientosCache.map(m => ({ ...m, fecha: m.fecha?.toDate ? { _d: m.fecha.toDate().toISOString() } : m.fecha }))
+        ));
+      } catch(_) {}
+    }
+    function _loadMovimientosCache() {
+      try {
+        const hoy = new Date().toDateString();
+        const saved = JSON.parse(localStorage.getItem('movimientos_' + negocioId + '_' + hoy) || '[]');
+        movimientosCache = saved.map(m => ({
+          ...m,
+          fecha: m.fecha?._d ? { toDate: () => new Date(m.fecha._d) } : m.fecha
+        }));
+      } catch(_) {}
+    }
 
     // ==================== HELPERS ====================
     function fmt(val) { return `RD$ ${(val || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; }
