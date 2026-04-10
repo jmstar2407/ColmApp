@@ -17,13 +17,14 @@
     /* ===== MODO ORDENAR — INVENTARIO ===== */
     .categorias-grid-inv {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(302px, 1fr));
       gap: 14px;
       border-radius: 12px;
       transition: background 0.25s, padding 0.25s;
     }
+
     .categorias-grid-inv.modo-orden {
-      background: #eef4ff;
+      background: #cbd9f3;
       padding: 14px;
       border: 2px dashed #1971c2;
     }
@@ -35,26 +36,29 @@
       border-radius: 12px;
       transition: background 0.25s, padding 0.25s;
     }
+
     .productos-grid-inv.modo-orden {
       background: #f0faf3;
       padding: 14px;
       border: 2px dashed #00b341;
     }
 
-    .cat-card-inv {
-      user-select: none;
-      position: relative;
-      transition: box-shadow 0.2s, opacity 0.2s, transform 0.2s;
-      will-change: transform, opacity;
-      cursor: default;
-    }
+
     .modo-orden .cat-card-inv {
       cursor: grab;
     }
-    .modo-orden .cat-card-inv:active { cursor: grabbing; }
-    .cat-card-inv.dragging { opacity: 0.3; transform: scale(0.93); }
+
+    .modo-orden .cat-card-inv:active {
+      cursor: grabbing;
+    }
+
+    .cat-card-inv.dragging {
+      opacity: 0.3;
+      transform: scale(0.93);
+    }
+
     .cat-card-inv.drag-over {
-      box-shadow: 0 0 0 3px #1971c2, 0 8px 24px rgba(25,113,194,0.22);
+      box-shadow: 0 0 0 3px #1971c2, 0 8px 24px rgba(25, 113, 194, 0.22);
       transform: scale(1.05);
       z-index: 5;
     }
@@ -66,13 +70,221 @@
       will-change: transform, opacity;
       cursor: default;
     }
-    .modo-orden .prod-card-inv { cursor: grab; }
-    .modo-orden .prod-card-inv:active { cursor: grabbing; }
-    .prod-card-inv.dragging { opacity: 0.3; transform: scale(0.92); }
+
+    .modo-orden .prod-card-inv {
+      cursor: grab;
+    }
+
+    .modo-orden .prod-card-inv:active {
+      cursor: grabbing;
+    }
+
+    .prod-card-inv.dragging {
+      opacity: 0.3;
+      transform: scale(0.92);
+    }
+
     .prod-card-inv.drag-over {
-      box-shadow: 0 0 0 3px #00b341, 0 8px 24px rgba(0,179,65,0.20);
+      box-shadow: 0 0 0 3px #00b341, 0 8px 24px rgba(0, 179, 65, 0.20);
       transform: scale(1.04);
       z-index: 5;
+    }
+
+    /* ===== NUEVO LAYOUT POS DE 3 COLUMNAS ===== */
+    #page-pos {
+      display: none;
+      flex-direction: row;
+      gap: 1rem;
+      padding: 0;
+      align-items: stretch;
+      min-height: calc(100vh - 100px);
+    }
+
+    #page-pos.active {
+      display: flex !important;
+    }
+
+    /* COLUMNA IZQUIERDA — Categorías */
+    .pos-left {
+      width: 200px;
+      min-width: 180px;
+      max-width: 220px;
+      background: #e0e6ee;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      align-self: flex-start;
+      height: calc(100vh - 100px);
+      border-radius: 16px;
+      flex: 1;
+    }
+
+    .pos-cats-title {
+      padding: 16px 14px 10px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      /* text-transform: uppercase; */
+      letter-spacing: 1px;
+      color: rgb(74 85 104);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: system-ui;
+      text-align: center;
+      border-bottom: 1px solid #c4cbd5;
+    }
+
+    .pos-categorias-lista {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pos-categorias-lista::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .pos-categorias-lista::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .pos-categorias-lista::-webkit-scrollbar-thumb {
+      background: rgb(252 79 98);
+      border-radius: 4px;
+    }
+
+    /* TARJETA DE CATEGORÍA — rectángulo con imagen de fondo */
+    .pos-cat-card {
+      position: relative;
+      width: 100%;
+      height: 80px;
+      border-radius: 7px;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      flex-shrink: 0;
+      /* border: 2px solid transparent; */
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+      /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); */
+    }
+
+    .pos-cat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      /* background: linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.65) 100%); */
+      background: #0000008a;
+      z-index: 1;
+    }
+
+    .pos-cat-card .cat-bg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    .pos-cat-card .cat-bg-emoji {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      background: linear-gradient(135deg, #2d3a5c 0%, #1a2135 100%);
+      z-index: 0;
+    }
+
+    .pos-cat-card .cat-label {
+      position: relative;
+      z-index: 2;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-family: system-ui;
+      text-align: center;
+      padding: 0 6px;
+      line-height: 1.3;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+    }
+
+    .pos-cat-card .cat-count {
+      position: relative;
+      z-index: 2;
+      margin-top: 4px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.75);
+      font-weight: 600;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    }
+
+    .pos-cat-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .pos-cat-card.activa {
+      /*border-color: #00b341;
+      box-shadow: 0 0 0 2px #00b341, 0 4px 16px rgba(0, 179, 65, 0.35);*/
+    }
+
+    .pos-cat-card.activa::before {
+      /*background: linear-gradient(to bottom, rgba(0, 100, 30, 0.25) 0%, rgba(0, 100, 30, 0.65) 100%);*/
+    }
+
+    /* COLUMNA CENTRAL — Productos */
+    .pos-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: visible;
+      /* background: var(--gris-bg, #f4f6fb); */
+      min-width: 0;
+      height: calc(100vh - 100px);
+      gap: 1rem;
+    }
+
+    .pos-center .pos-productos-area {
+      flex: 1;
+      padding: 16px;
+    }
+
+    /* Campo dirección cliente en POS */
+    .pos-direccion-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f8f9ff;
+      border: 2px solid var(--gris-borde);
+      border-radius: var(--radio-sm);
+      padding: 0 12px;
+      height: 42px;
+      flex: 1;
+      min-width: 160px;
+      transition: border-color 0.2s;
+    }
+
+    .pos-direccion-wrap:focus-within {
+      border-color: #1971c2;
+    }
+
+    /* Resaltado de búsqueda */
+    .search-highlight {
+      background: #11c6ff;
+      border-radius: 4px;
+      font-weight: 700;
+      color: #1a2135;
+      padding: 4px 2px;
+      margin: 0px 1px;
     }
 
     /* Orden badge — solo visible en modo ordenar */
@@ -97,6 +309,7 @@
       transform: scale(0.5);
       transition: opacity 0.2s, transform 0.2s;
     }
+
     .modo-orden .orden-badge {
       opacity: 1;
       transform: scale(1);
@@ -109,7 +322,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(25,113,194,0.12);
+      background: rgba(25, 113, 194, 0.12);
       border-radius: inherit;
       opacity: 0;
       pointer-events: none;
@@ -118,9 +331,16 @@
       color: #1971c2;
       z-index: 3;
     }
-    .productos-grid-inv .drag-grip-overlay { background: rgba(0,179,65,0.10); color: #00b341; }
+
+    .productos-grid-inv .drag-grip-overlay {
+      background: rgba(0, 179, 65, 0.10);
+      color: #00b341;
+    }
+
     .modo-orden .cat-card-inv:hover .drag-grip-overlay,
-    .modo-orden .prod-card-inv:hover .drag-grip-overlay { opacity: 1; }
+    .modo-orden .prod-card-inv:hover .drag-grip-overlay {
+      opacity: 1;
+    }
 
     /* Botón Ordenar */
     .btn-ordenar {
@@ -137,10 +357,11 @@
       color: #1971c2;
       transition: background 0.18s, color 0.18s, box-shadow 0.18s;
     }
+
     .btn-ordenar.activo {
       background: #1971c2;
       color: white;
-      box-shadow: 0 2px 12px rgba(25,113,194,0.25);
+      box-shadow: 0 2px 12px rgba(25, 113, 194, 0.25);
     }
 
     .guardando-orden {
@@ -154,7 +375,10 @@
       transition: opacity 0.3s;
       margin-left: 8px;
     }
-    .guardando-orden.visible { opacity: 1; }
+
+    .guardando-orden.visible {
+      opacity: 1;
+    }
 
     /* Estilos adicionales para el área de dibujo dentro del carrito-footer */
     .dibujo-container {
@@ -314,21 +538,32 @@
     <div class="content">
       <!-- POS PAGE -->
       <div class="page" id="page-pos">
+        <!-- COLUMNA IZQUIERDA: Categorías -->
         <div class="pos-left">
+          <div class="pos-cats-title">Categorías</div>
+          <div class="pos-categorias-lista" id="pos-categorias-lista"></div>
+        </div>
+        <!-- COLUMNA CENTRAL: Productos -->
+        <div class="pos-center">
           <div class="pos-search-bar">
             <i class="fas fa-search"></i>
             <input type="text" id="pos-buscar" placeholder="Buscar productos..." oninput="buscarProductos(this.value)">
-            <select id="pos-categoria-filtro" onchange="filtrarPorCategoria(this.value)">
-              <option value="">Todas las categorías</option>
-            </select>
-            <button class="icon-btn grid-btn active" id="btn-grid-grande" onclick="setGridSize('grande')"><i
-                class="fas fa-th-large"></i></button>
-            <button class="icon-btn grid-btn" id="btn-grid-peq" onclick="setGridSize('pequena')"><i
-                class="fas fa-th"></i></button>
+            <div class="pos-direccion-wrap">
+              <i class="fas fa-map-marker-alt" style="color:var(--gris-suave);font-size:13px;"></i>
+              <input type="text" id="pos-direccion-cliente" placeholder="Dirección del cliente..."
+                style="border:none;outline:none;font-family:var(--font-body);font-size:13px;flex:1;min-width:140px;background:transparent;">
+            </div>
+            <button class="icon-btn grid-btn active" id="btn-grid-grande" onclick="setGridSize('grande')">
+              <img src="./img/icons/grid.png">
+            </button>
+            <button class="icon-btn grid-btn" id="btn-grid-peq" onclick="setGridSize('pequena')">
+              <img src="./img/icons/list.png">
+            </button>
             <button class="icon-btn scan-btn" onclick="abrirScaner()"><i class="fas fa-barcode"></i></button>
           </div>
           <div class="pos-productos-area" id="pos-productos-area"></div>
         </div>
+        <!-- COLUMNA DERECHA: Carrito -->
         <div class="pos-right">
           <div class="carrito-header">
             <h3><i class="fas fa-shopping-cart"></i> Carrito</h3>
@@ -345,14 +580,16 @@
             </div>
             <div class="totales-row total"><span>Total</span><span id="cart-total">RD$ 0.00</span></div>
             <div style="display:flex;gap:8px;">
-              <button class="btn-facturar" style="background:var(--rojo);flex:0 0 auto;padding:0 18px;width: 120px;" onclick="abrirModalVaciarCarrito()"><i class="fas fa-trash"></i> Vaciar</button>
-              <button class="btn-facturar" style="flex:1;" onclick="abrirModalFacturar()"><i class="fas fa-receipt"></i> Facturar</button>
+              <button class="btn-facturar" style="background:var(--rojo);flex:0 0 auto;padding:0 18px;width: 120px;"
+                onclick="abrirModalVaciarCarrito()"><i class="fas fa-trash"></i> Vaciar</button>
+              <button class="btn-facturar" style="flex:1;" onclick="abrirModalFacturar()"><i class="fas fa-receipt"></i>
+                Facturar</button>
 
             </div>
 
             <!-- NUEVO BOTÓN CON FLECHA PARA DIBUJO (reemplaza al botón Limpiar) -->
-            <button class="btn-dibujo-principal" id="btn-toggle-dibujo" onclick="toggleDibujo()"><i id="icon-toggle-dibujo" class="fas fa-arrow-up"></i> Agregar Nota /
-              Dibujo</button>
+            <button class="btn-dibujo-principal" id="btn-toggle-dibujo" onclick="toggleDibujo()"><i
+                id="icon-toggle-dibujo" class="fas fa-arrow-up"></i> Agregar Nota</button>
 
             <!-- CONTENEDOR DEL CUADRO BLANCO PARA DIBUJAR (300px de alto) -->
             <div class="dibujo-container" id="dibujo-container">
@@ -482,8 +719,10 @@
               <div class="page-subtitle">Gestión de productos y categorías</div>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-              <button class="btn-ordenar" id="btn-modo-ordenar" onclick="toggleModoOrden()"><i class="fas fa-arrows-alt"></i> Ordenar</button>
-              <span class="guardando-orden" id="guardando-orden-indicator"><i class="fas fa-circle-notch fa-spin"></i> Guardando...</span>
+              <button class="btn-ordenar" id="btn-modo-ordenar" onclick="toggleModoOrden()"><i
+                  class="fas fa-arrows-alt"></i> Ordenar</button>
+              <span class="guardando-orden" id="guardando-orden-indicator"><i class="fas fa-circle-notch fa-spin"></i>
+                Guardando...</span>
               <button class="btn-sm verde" onclick="abrirModalCategoria()"><i class="fas fa-folder-plus"></i>
                 Categoría</button>
               <button class="btn-sm verde" onclick="abrirModalProducto()"><i class="fas fa-plus"></i> Producto</button>
@@ -789,12 +1028,9 @@
                 style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
                 <option value="">Selecciona categoría...</option>
               </select></div>
-            <div class="two-col">
-              <div class="form-group"><label>Precio Venta (RD$)</label><input type="number" id="prod-precio"
-                  placeholder="0.00" min="0" step="0.01"></div>
-              <div class="form-group"><label>Precio Costo (RD$)</label><input type="number" id="prod-costo"
-                  placeholder="0.00" min="0" step="0.01"></div>
-            </div>
+            <div class="form-group"><label>Precio Venta (RD$)</label><input type="number" id="prod-precio"
+                placeholder="0.00" min="0" step="0.01"></div>
+            <input type="hidden" id="prod-costo" value="0">
             <div class="two-col">
               <div class="form-group"><label>Stock Actual</label><input type="number" id="prod-stock" placeholder="0"
                   min="0"></div>
@@ -821,12 +1057,19 @@
           <div>
             <div class="form-group"><label>Imagen del Producto</label>
               <div class="file-upload-area" id="prod-img-area"
-                onclick="document.getElementById('prod-img-input').click()"><img id="prod-img-preview" src=""
-                  style="display:none;"><i class="fas fa-cloud-upload-alt"
+                onclick="document.getElementById('prod-img-input').click()">
+                <img id="prod-img-preview" src=""
+                  style="display:none;width:100%;border-radius:8px;object-fit:cover;max-height:160px;">
+                <i id="prod-img-icon" class="fas fa-cloud-upload-alt"
                   style="font-size:32px;color:var(--gris-suave);margin-bottom:8px;display:block;"></i>
-                <p style="font-size:13px;color:var(--gris-suave);">Clic para subir imagen</p>
-                <p style="font-size:11px;color:var(--gris-suave);">JPG, PNG hasta 2MB</p>
-              </div><input type="file" id="prod-img-input" accept="image/*" style="display:none;"
+                <p id="prod-img-hint1" style="font-size:13px;color:var(--gris-suave);">Clic para subir imagen</p>
+                <p id="prod-img-hint2" style="font-size:11px;color:var(--gris-suave);">JPG, PNG hasta 2MB</p>
+              </div>
+              <p id="prod-img-replace-hint"
+                style="display:none;font-size:12px;color:var(--gris-suave);text-align:center;margin-top:6px;cursor:pointer;"
+                onclick="document.getElementById('prod-img-input').click()"><i class="fas fa-sync-alt"></i> Clic para
+                reemplazar imagen del producto</p>
+              <input type="file" id="prod-img-input" accept="image/*,image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml,image/bmp,image/x-bmp,image/tiff,image/x-tiff,image/heic,image/heif,image/jfif,image/pjpeg,image/pjp,image/ico,image/x-icon,image/vnd.microsoft.icon" style="display:none;"
                 onchange="previewImagen(this)">
             </div>
           </div>
@@ -847,14 +1090,15 @@
       <div class="modal-body">
         <div class="form-group"><label>Nombre de la Categoría</label><input type="text" id="cat-nombre"
             placeholder="Ej: Bebidas, Lácteos, Frutas..."></div>
-        <div class="form-group"><label>Emoji / Ícono</label><input type="text" id="cat-emoji" placeholder="🥤"
-            maxlength="2"></div>
-        <div class="form-group"><label>Imagen (URL o subir)</label>
+        <input type="hidden" id="cat-emoji" value="📦">
+        <div class="form-group"><label>Imagen de la Categoría</label>
           <div class="file-upload-area" id="cat-img-area" onclick="document.getElementById('cat-img-input').click()">
-            <img id="cat-img-preview" src="" style="display:none;"><i class="fas fa-image"
+            <img id="cat-img-preview" src="" style="display:none;"
+              onload="document.getElementById('cat-img-icon').style.display='none';document.getElementById('cat-img-hint').style.display='none';">
+            <i id="cat-img-icon" class="fas fa-image"
               style="font-size:28px;color:var(--gris-suave);margin-bottom:6px;display:block;"></i>
-            <p style="font-size:13px;color:var(--gris-suave);">Clic para subir imagen</p>
-          </div><input type="file" id="cat-img-input" accept="image/*" style="display:none;"
+            <p id="cat-img-hint" style="font-size:13px;color:var(--gris-suave);">Clic para subir imagen</p>
+          </div><input type="file" id="cat-img-input" accept="image/*,image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml,image/bmp,image/x-bmp,image/tiff,image/x-tiff,image/heic,image/heif,image/jfif,image/pjpeg,image/pjp,image/ico,image/x-icon,image/vnd.microsoft.icon" style="display:none;"
             onchange="previewCatImagen(this)">
         </div>
       </div>
@@ -926,7 +1170,8 @@
         <button class="modal-close" onclick="cerrarModal('modal-vaciar-carrito')">✕</button>
       </div>
       <div class="modal-body" style="text-align:center;padding:24px 20px;">
-        <p style="font-size:15px;color:#444;">¿Deseas vaciar el carrito?<br><span style="color:#888;font-size:13px;">Esta acción eliminará todos los productos agregados.</span></p>
+        <p style="font-size:15px;color:#444;">¿Deseas vaciar el carrito?<br><span
+            style="color:#888;font-size:13px;">Esta acción eliminará todos los productos agregados.</span></p>
       </div>
       <div class="modal-footer">
         <button class="btn-sm gris" onclick="cerrarModal('modal-vaciar-carrito')">Cancelar</button>
@@ -1050,6 +1295,8 @@
       unsubscribers.forEach(u => u && u());
       unsubscribers = [];
       if (unsubCategorias) unsubCategorias();
+      // Cancelar todos los listeners de productos
+      Object.keys(unsubProductos).forEach(catId => { unsubProductos[catId](); delete unsubProductos[catId]; });
       await signOut(auth);
     };
 
@@ -1156,42 +1403,143 @@
       if (pageId === 'caja') { renderCaja(); }
     };
 
-    // ==================== INVENTARIO SUSCRIPCION ====================
+    // ==================== CACHE INTELIGENTE ====================
+    // Claves de localStorage
+    const lsKeyCats  = () => `cats_${negocioId}`;
+    const lsKeyProds = () => `prods_${negocioId}`;
+
+    // Guarda un fingerprint (JSON hash ligero) de los docs de categorías
+    // para detectar si algo cambió realmente entre cargas
+    function fingerprintCats(docs) {
+      return docs.map(d => `${d.id}:${d.nombre}:${d.imagen || ''}:${d.orden ?? ''}:${d.emoji || ''}`).sort().join('|');
+    }
+    function fingerprintProds(lista) {
+      return lista.map(p => `${p.id}:${p.nombre}:${p.imagen || ''}:${p.precio}:${p.stock}:${p.orden ?? ''}`).sort().join('|');
+    }
+
+    // Desuscriptores de productos por categoría
+    const unsubProductos = {};
+
+    // ── Arranque inmediato desde cache ──────────────────────────────────────
+    function cargarDesdeCache() {
+      try {
+        const catsCached = localStorage.getItem(lsKeyCats());
+        const prodsCached = localStorage.getItem(lsKeyProds());
+        if (catsCached) {
+          categorias = JSON.parse(catsCached);
+          renderCategoriasPos();
+          populateCatSelects();
+        }
+        if (prodsCached) {
+          productos = JSON.parse(prodsCached);
+          actualizarConteosCategorias();
+          if (categoriaActual) renderProductosCategoria(categoriaActual);
+          else renderCategoriasPos();
+          renderInventario();
+        }
+      } catch (e) { /* cache corrupta — se ignorará */ }
+    }
+
+    // ── Suscripción a categorías (1 listener, 0 lecturas si no hay cambios) ─
     function suscribirInventario() {
       if (unsubCategorias) unsubCategorias();
+
+      // Renderizar cache al instante antes de que llegue Firebase
+      cargarDesdeCache();
+
       const catsRef = collection(db, 'negocios', negocioId, 'categorias');
-      unsubCategorias = onSnapshot(catsRef, async (snap) => {
-        categorias = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        // Ordenar por campo 'orden' (si existe), luego por nombre como fallback
-        categorias.sort((a, b) => {
-          const oa = a.orden ?? 9999;
-          const ob = b.orden ?? 9999;
+
+      unsubCategorias = onSnapshot(catsRef, { includeMetadataChanges: true }, async (snap) => {
+        // Si el snapshot viene del cache local de Firestore (sin conexión / sin cambios nuevos del servidor)
+        // no gastar operaciones de lectura adicionales ni re-renderizar
+        if (snap.metadata.fromCache) return;
+
+        const nuevasCats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        nuevasCats.sort((a, b) => {
+          const oa = a.orden ?? 9999, ob = b.orden ?? 9999;
           if (oa !== ob) return oa - ob;
           return (a.nombre || '').localeCompare(b.nombre || '');
         });
-        localStorage.setItem(`cats_${negocioId}`, JSON.stringify(categorias));
-        renderCategoriasPos();
-        populateCatSelects();
-        await cargarTodosProductos();
+
+        // Comparar fingerprint para evitar re-renders y re-lecturas innecesarias
+        const fpNuevo = fingerprintCats(nuevasCats);
+        const fpAnterior = localStorage.getItem(`fp_cats_${negocioId}`) || '';
+
+        if (fpNuevo !== fpAnterior) {
+          categorias = nuevasCats;
+          localStorage.setItem(lsKeyCats(), JSON.stringify(categorias));
+          localStorage.setItem(`fp_cats_${negocioId}`, fpNuevo);
+          renderCategoriasPos();
+          populateCatSelects();
+          // Suscribir productos de categorías nuevas / re-suscribir si cambiaron
+          suscribirProductosDeCategorias();
+        } else {
+          // Categorías sin cambio — solo asegurar que los listeners de productos existan
+          suscribirProductosDeCategorias();
+        }
       });
     }
 
-    async function cargarTodosProductos() {
-      const nuevosProductos = [];
-      for (const cat of categorias) {
-        const prodsRef = collection(db, 'negocios', negocioId, 'categorias', cat.id, 'productos');
-        const snap = await getDocs(prodsRef);
-        snap.docs.forEach(d => { nuevosProductos.push({ id: d.id, categoriaId: cat.id, categoriaNombre: cat.nombre, ...d.data() }); });
-      }
-      productos = nuevosProductos;
-      // Sort products by orden within each category
-      productos.sort((a, b) => {
-        if (a.categoriaId !== b.categoriaId) return 0;
-        return (a.orden ?? 9999) - (b.orden ?? 9999);
+    // ── Suscripción en tiempo real a productos de cada categoría ────────────
+    // Reutiliza listeners existentes; solo crea nuevos para cats sin listener
+    function suscribirProductosDeCategorias() {
+      const catIdsActuales = new Set(categorias.map(c => c.id));
+
+      // Cancelar listeners de categorías eliminadas
+      Object.keys(unsubProductos).forEach(catId => {
+        if (!catIdsActuales.has(catId)) {
+          unsubProductos[catId]();
+          delete unsubProductos[catId];
+        }
       });
-      localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos));
-      if (categoriaActual) { renderProductosCategoria(categoriaActual); }
-      else { renderCategoriasPos(); }
+
+      // Crear listeners para categorías nuevas (sin listener activo)
+      categorias.forEach(cat => {
+        if (unsubProductos[cat.id]) return; // ya suscrito
+        const prodsRef = collection(db, 'negocios', negocioId, 'categorias', cat.id, 'productos');
+        unsubProductos[cat.id] = onSnapshot(prodsRef, { includeMetadataChanges: true }, (snap) => {
+          // Ignorar snapshots del cache de Firestore (sin datos nuevos del servidor)
+          if (snap.metadata.fromCache) return;
+
+          // Actualizar solo los productos de esta categoría en el array global
+          const prodsEstacat = snap.docs.map(d => ({
+            id: d.id, categoriaId: cat.id, categoriaNombre: cat.nombre, ...d.data()
+          }));
+
+          // Fingerprint para evitar re-renders si no cambió nada real
+          const fpNuevo = fingerprintProds(prodsEstacat);
+          const fpKey = `fp_prods_${negocioId}_${cat.id}`;
+          const fpAnterior = localStorage.getItem(fpKey) || '';
+          if (fpNuevo === fpAnterior) return;
+
+          localStorage.setItem(fpKey, fpNuevo);
+
+          // Reemplazar los productos de esta cat en el array global
+          productos = productos.filter(p => p.categoriaId !== cat.id).concat(prodsEstacat);
+          productos.sort((a, b) => {
+            if (a.categoriaId !== b.categoriaId) return 0;
+            return (a.orden ?? 9999) - (b.orden ?? 9999);
+          });
+
+          localStorage.setItem(lsKeyProds(), JSON.stringify(productos));
+          actualizarConteosCategorias();
+          if (categoriaActual) renderProductosCategoria(categoriaActual);
+          else renderCategoriasPos();
+          renderInventario();
+        });
+      });
+    }
+
+    // Stub para compatibilidad con llamadas existentes a cargarTodosProductos()
+    // (guardarProducto, eliminarProducto, etc.) — los listeners en tiempo real
+    // ya manejan la actualización automáticamente, pero forzamos un re-render inmediato
+    async function cargarTodosProductos() {
+      // Re-leer desde Firebase solo si es necesario (p.ej. tras guardar/eliminar)
+      // Los onSnapshot actualizarán el estado solos; aquí solo esperamos el ciclo
+      await new Promise(r => setTimeout(r, 300));
+      actualizarConteosCategorias();
+      if (categoriaActual) renderProductosCategoria(categoriaActual);
+      else renderCategoriasPos();
       renderInventario();
     }
 
@@ -1339,17 +1687,57 @@
       cargarHistorialCaja();
     }
 
-    // ==================== POS ====================
-    function renderCategoriasPos() {
-      const area = document.getElementById('pos-productos-area');
-      if (!area) return;
-      const sel = document.getElementById('pos-categoria-filtro');
-      if (sel) { const prev = sel.value; sel.innerHTML = '<option value="">Todas las categorías</option>' + categorias.map(c => `<option value="${c.id}">${c.emoji || '📦'} ${c.nombre}</option>`).join(''); sel.value = prev; }
-      if (!categorias.length) { area.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>No hay categorías creadas.<br>Ve a Inventario para crear categorías y productos.</p></div>`; return; }
-      area.innerHTML = `<div class="categorias-grid">${categorias.map(c => `<div class="cat-card" onclick="verProductosCategoria('${c.id}')">${c.imagen ? `<img src="${c.imagen}" alt="${c.nombre}" onerror="this.style.display='none'">` : `<span class="cat-emoji">${c.emoji || '📦'}</span>`}<span>${c.nombre}</span><small>${productos.filter(p => p.categoriaId === c.id).length} productos</small></div>`).join('')}</div>`;
+    // Actualiza solo los conteos de productos en las tarjetas del sidebar sin re-renderizar todo
+    function actualizarConteosCategorias() {
+      categorias.forEach(c => {
+        const card = document.getElementById(`pos-cat-${c.id}`);
+        if (!card) return;
+        const count = productos.filter(p => p.categoriaId === c.id).length;
+        const countEl = card.querySelector('.cat-count');
+        if (countEl) countEl.textContent = `${count} producto${count !== 1 ? 's' : ''}`;
+      });
     }
 
-    window.verProductosCategoria = (catId) => { categoriaActual = catId; renderProductosCategoria(catId); };
+    // ==================== POS ====================
+    function renderCategoriasPos() {
+      const lista = document.getElementById('pos-categorias-lista');
+      const area = document.getElementById('pos-productos-area');
+      if (!lista) return;
+
+      if (!categorias.length) {
+        lista.innerHTML = `<div style="color:rgba(0,0,0,0.4);font-size:12px;text-align:center;padding:20px 8px;">Sin categorías</div>`;
+        if (area) area.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>No hay categorías creadas.<br>Ve a Inventario para crear categorías y productos.</p></div>`;
+        return;
+      }
+
+      lista.innerHTML = categorias.map(c => {
+        const numProds = productos.filter(p => p.categoriaId === c.id).length;
+        const bgContent = c.imagen
+          ? `<img class="cat-bg-img" src="${c.imagen}" alt="${c.nombre}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          : '';
+        const emojiFallback = `<div class="cat-bg-emoji" ${c.imagen ? 'style="display:none"' : ''}>${c.emoji || '📦'}</div>`;
+        return `<div class="pos-cat-card" id="pos-cat-${c.id}" onclick="verProductosCategoria('${c.id}')">${bgContent}${emojiFallback}<span class="cat-label">${c.nombre}</span><span class="cat-count">${numProds} producto${numProds !== 1 ? 's' : ''}</span></div>`;
+      }).join('');
+
+      // Mostrar productos de la primera categoría por defecto
+      if (!categoriaActual && categorias.length) {
+        categoriaActual = categorias[0].id;
+      }
+      if (categoriaActual) {
+        renderProductosCategoria(categoriaActual);
+        const activeCard = document.getElementById(`pos-cat-${categoriaActual}`);
+        if (activeCard) activeCard.classList.add('activa');
+      }
+    }
+
+    window.verProductosCategoria = (catId) => {
+      categoriaActual = catId;
+      // Resaltar categoría activa en la barra lateral
+      document.querySelectorAll('.pos-cat-card').forEach(el => el.classList.remove('activa'));
+      const activeCard = document.getElementById(`pos-cat-${catId}`);
+      if (activeCard) activeCard.classList.add('activa');
+      renderProductosCategoria(catId);
+    };
 
     function renderProductosCategoria(catId, busqueda = '') {
       const area = document.getElementById('pos-productos-area');
@@ -1357,25 +1745,47 @@
       let prods = productos.filter(p => p.categoriaId === catId);
       if (busqueda) prods = prods.filter(p => p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigoBarras || '').includes(busqueda));
       if (!area) return;
-      area.innerHTML = `<div class="productos-header"><button class="back-btn" onclick="volverCategorias()"><i class="fas fa-arrow-left"></i> Categorías</button><strong style="font-size:15px;">${cat?.nombre || 'Productos'}</strong></div><div class="productos-grid ${gridSize}" id="productos-grid">${prods.length ? prods.map(p => renderProdCard(p)).join('') : '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin productos en esta categoría</p></div>'}</div>`;
+      area.innerHTML = `<div class="productos-grid ${gridSize}" id="productos-grid">${prods.length ? prods.map(p => renderProdCard(p)).join('') : '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin productos en esta categoría</p></div>'}</div>`;
     }
 
-    function renderProdCard(p) {
+    function escapeHtml(str) { return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+
+    function resaltarTexto(texto, busqueda) {
+      if (!busqueda) return escapeHtml(texto);
+      const regex = new RegExp(`(${busqueda.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return escapeHtml(texto).replace(new RegExp(`(${escapeHtml(busqueda).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'), '<span class="search-highlight">$1</span>');
+    }
+
+    function renderProdCard(p, busqueda = '') {
       const sinStock = p.stock <= 0;
-      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')">${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">` : `<div class="prod-emoji">📦</div>`}${p.stock <= (p.stockMin || 5) && p.stock > 0 ? `<div class="stock-badge">⚠️ Bajo</div>` : ''}${sinStock ? `<div class="stock-badge">Sin stock</div>` : ''}<div class="prod-info"><div class="prod-nombre">${p.nombre}</div><div class="prod-precio">${fmt(p.precio)}</div><div class="prod-stock">Stock: ${p.stock}</div></div></div>`;
+      const nombreHtml = resaltarTexto(p.nombre || '', busqueda);
+      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')">${p.imagen ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">` : `<div class="prod-emoji">📦</div>`}${p.stock <= (p.stockMin || 5) && p.stock > 0 ? `<div class="stock-badge">⚠️ Bajo</div>` : ''}${sinStock ? `<div class="stock-badge">Sin stock</div>` : ''}<div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${fmt(p.precio)}</div><div class="prod-stock">Stock: ${p.stock}</div></div></div>`;
     }
 
-    window.volverCategorias = () => { categoriaActual = null; renderCategoriasPos(); };
+    window.volverCategorias = () => {
+      if (categorias.length) {
+        categoriaActual = categorias[0].id;
+        renderProductosCategoria(categoriaActual);
+        document.querySelectorAll('.pos-cat-card').forEach(el => el.classList.remove('activa'));
+        const activeCard = document.getElementById(`pos-cat-${categoriaActual}`);
+        if (activeCard) activeCard.classList.add('activa');
+      }
+    };
 
     window.buscarProductos = (q) => {
       if (!q) { if (categoriaActual) { renderProductosCategoria(categoriaActual); } else { renderCategoriasPos(); } return; }
       const found = productos.filter(p => p.nombre?.toLowerCase().includes(q.toLowerCase()) || (p.codigoBarras || '').includes(q));
       const area = document.getElementById('pos-productos-area');
       if (!area) return;
-      area.innerHTML = `<div class="productos-header"><button class="back-btn" onclick="volverCategorias()"><i class="fas fa-arrow-left"></i> Categorías</button><span style="font-size:14px;color:var(--gris-suave);">${found.length} resultado(s) para "${q}"</span></div><div class="productos-grid ${gridSize}">${found.length ? found.map(p => renderProdCard(p)).join('') : '<div class="empty-state"><p>Sin resultados</p></div>'}</div>`;
+      // Deseleccionar categoría activa al buscar
+      document.querySelectorAll('.pos-cat-card').forEach(el => el.classList.remove('activa'));
+      area.innerHTML = `<div style="padding:0 0 12px;font-size:13px;color:var(--gris-suave);font-weight:600;">${found.length} resultado(s) para "<strong>${escapeHtml(q)}</strong>"</div><div class="productos-grid ${gridSize}">${found.length ? found.map(p => renderProdCard(p, q)).join('') : '<div class="empty-state"><p>Sin resultados</p></div>'}</div>`;
     };
 
-    window.filtrarPorCategoria = (catId) => { if (!catId) { categoriaActual = null; renderCategoriasPos(); } else { categoriaActual = catId; renderProductosCategoria(catId); } };
+    window.filtrarPorCategoria = (catId) => {
+      if (!catId) { categoriaActual = null; renderCategoriasPos(); }
+      else { window.verProductosCategoria(catId); }
+    };
 
     window.setGridSize = (size) => { gridSize = size; document.getElementById('btn-grid-grande').classList.toggle('active', size === 'grande'); document.getElementById('btn-grid-peq').classList.toggle('active', size === 'pequena'); const grid = document.getElementById('productos-grid'); if (grid) { grid.className = `productos-grid ${size}`; } };
 
@@ -1599,7 +2009,10 @@
       const myEmp = empleadosCache.find(e => e.uid === currentUser.uid);
       if (myEmp) sel.value = myEmp.id;
       seleccionarMetodo('efectivo');
-      setEstadoFactura('pagada');
+      // Dejar estado de pago sin seleccionar
+      estadoFacturaSeleccionado = '';
+      document.getElementById('btn-estado-pagada').classList.remove('selected');
+      document.getElementById('btn-estado-pendiente').classList.remove('selected');
       abrirModal('modal-facturar');
     };
 
@@ -1612,6 +2025,19 @@
     window.tecNumero = (val) => { const inp = document.getElementById('monto-recibido'); if (val === 'C') { inp.value = ''; } else if (val === '⌫') { inp.value = inp.value.slice(0, -1); } else if (val === 'OK') { calcularCambio(); return; } else { inp.value += val; } calcularCambio(); };
 
     window.confirmarFactura = async () => {
+      // Validar que se haya seleccionado el estado del pago
+      if (!estadoFacturaSeleccionado) {
+        toast('Selecciona si el pago es Confirmado o Pendiente', 'error');
+        return;
+      }
+      // Validar monto recibido si es pago confirmado en efectivo
+      if (estadoFacturaSeleccionado === 'pagada' && metodoPagoSeleccionado === 'efectivo') {
+        const montoRec = parseFloat(document.getElementById('monto-recibido').value);
+        if (!montoRec || montoRec <= 0) {
+          toast('Ingresa el monto recibido en efectivo para confirmar la factura', 'error');
+          return;
+        }
+      }
       const btn = document.getElementById('btn-confirmar-factura');
       btn.innerHTML = '<span class="loader"></span> Procesando...';
       btn.disabled = true;
@@ -1630,8 +2056,9 @@
         // Capturar el dibujo directamente del canvas en el momento de facturar
         // Si no hay nada dibujado, notaDibujo será null y no aparecerá en la factura
         const notaDibujo = (signaturePad && !signaturePad.isEmpty()) ? signaturePad.toDataURL() : null;
+        const direccionCliente = document.getElementById('pos-direccion-cliente')?.value.trim() || '';
 
-        const facturaData = { numero: numFactura, ncf, fecha: serverTimestamp(), items: carrito.map(i => ({ id: i.id, nombre: i.nombre, precio: i.precio, qty: i.qty, subtotal: i.precio * i.qty })), subtotal, itbis, itbisPct, total, metodoPago: metodoPagoSeleccionado, montoRecibido: parseFloat(document.getElementById('monto-recibido').value) || total, estado: estadoFacturaSeleccionado, empleadoId: empId, empleadoNombre: empNombre, cajaId: cajaActual.id, uid: currentUser.uid, dibujoNota: notaDibujo };
+        const facturaData = { numero: numFactura, ncf, fecha: serverTimestamp(), items: carrito.map(i => ({ id: i.id, nombre: i.nombre, precio: i.precio, qty: i.qty, subtotal: i.precio * i.qty })), subtotal, itbis, itbisPct, total, metodoPago: metodoPagoSeleccionado, montoRecibido: parseFloat(document.getElementById('monto-recibido').value) || total, estado: estadoFacturaSeleccionado, empleadoId: empId, empleadoNombre: empNombre, cajaId: cajaActual.id, uid: currentUser.uid, dibujoNota: notaDibujo, ...(direccionCliente ? { direccionCliente } : {}) };
         const factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaData);
         if (estadoFacturaSeleccionado === 'pagada') {
           await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'ingreso', descripcion: `Venta ${numFactura}`, monto: total, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, facturaId: factRef.id, cajaId: cajaActual.id });
@@ -1656,6 +2083,10 @@
         carrito = [];
         renderCarrito();
 
+        // Limpiar dirección del cliente
+        const dirInput = document.getElementById('pos-direccion-cliente');
+        if (dirInput) dirInput.value = '';
+
         // Limpiar el canvas pero mantener el panel abierto si estaba abierto
         if (signaturePad) signaturePad.clear();
         dibujoDataURL = null;
@@ -1674,7 +2105,7 @@
       if (factura.dibujoNota) {
         dibujoHtml = `<div style="margin-top:12px; border-top:1px dashed #ccc; padding-top:8px;"><strong>📝 Nota / Dibujo:</strong><br><img src="${factura.dibujoNota}" style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:8px; margin-top:6px;"></div>`;
       }
-      return `<div class="ticket"><div class="ticket-header"><div style="font-size:16px;font-weight:800;">${negocioData?.nombre || 'Colmado'}</div><div>${negocioData?.direccion || ''}</div><div>${negocioData?.telefono || ''}</div>${negocioData?.rnc ? `<div>RNC: ${negocioData.rnc}</div>` : ''}<div style="margin-top:6px;">━━━━━━━━━━━━━━━━━━━━━━</div><div>Factura: ${factura.numero}</div>${factura.ncf ? `<div>NCF: ${factura.ncf}</div>` : ''}<div>${fecha.toLocaleString('es-DO')}</div><div>Empleado: ${factura.empleadoNombre || '-'}</div></div><div>${(factura.items || []).map(i => `<div class="ticket-row"><span>${i.nombre} x${i.qty}</span><span>${fmt(i.subtotal)}</span></div>`).join('')}</div><div class="ticket-total"><div class="ticket-row"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div><div class="ticket-row"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div><div class="ticket-row" style="font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div><div class="ticket-row"><span>Método</span><span>${factura.metodoPago}</span></div>${factura.metodoPago === 'efectivo' ? `<div class="ticket-row"><span>Recibido</span><span>${fmt(factura.montoRecibido)}</span></div><div class="ticket-row"><span>Cambio</span><span>${fmt(Math.max(0, (factura.montoRecibido || 0) - factura.total))}</span></div>` : ''}</div>${dibujoHtml}<div style="text-align:center;margin-top:12px;font-size:11px;">¡Gracias por su compra!<br>Estado: <strong>${factura.estado === 'pagada' ? '✅ PAGADA' : '⏳ PENDIENTE'}</strong></div></div>`;
+      return `<div class="ticket"><div class="ticket-header"><div style="font-size:16px;font-weight:800;">${negocioData?.nombre || 'Colmado'}</div><div>${negocioData?.direccion || ''}</div><div>${negocioData?.telefono || ''}</div>${negocioData?.rnc ? `<div>RNC: ${negocioData.rnc}</div>` : ''}<div style="margin-top:6px;">━━━━━━━━━━━━━━━━━━━━━━</div><div>Factura: ${factura.numero}</div>${factura.ncf ? `<div>NCF: ${factura.ncf}</div>` : ''}<div>${fecha.toLocaleString('es-DO')}</div><div>Empleado: ${factura.empleadoNombre || '-'}</div>${factura.direccionCliente ? `<div style="margin-top:4px;"><strong>📍 Entrega:</strong> ${factura.direccionCliente}</div>` : ''}</div><div>${(factura.items || []).map(i => `<div class="ticket-row"><span>${i.nombre} x${i.qty}</span><span>${fmt(i.subtotal)}</span></div>`).join('')}</div><div class="ticket-total"><div class="ticket-row"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div><div class="ticket-row"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div><div class="ticket-row" style="font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div><div class="ticket-row"><span>Método</span><span>${factura.metodoPago}</span></div>${factura.metodoPago === 'efectivo' ? `<div class="ticket-row"><span>Recibido</span><span>${fmt(factura.montoRecibido)}</span></div><div class="ticket-row"><span>Cambio</span><span>${fmt(Math.max(0, (factura.montoRecibido || 0) - factura.total))}</span></div>` : ''}</div>${dibujoHtml}<div style="text-align:center;margin-top:12px;font-size:11px;">¡Gracias por su compra!<br>Estado: <strong>${factura.estado === 'pagada' ? '✅ PAGADA' : '⏳ PENDIENTE'}</strong></div></div>`;
     }
 
     window.imprimirTicket = () => { const content = document.getElementById('modal-ticket-body').innerHTML; const w = window.open('', '_blank'); w.document.write(`<html><head><title>Ticket</title><style>body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;}.ticket-row{display:flex;justify-content:space-between;margin-bottom:4px;}.ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}.ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}</style></head><body>${content}<script>window.print();window.close();<\/script></body></html>`); w.document.close(); };
@@ -1817,7 +2248,7 @@
           <span class="orden-badge">${index + 1}</span>
           <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
           ${imgHtml}
-          <div class="cat-info-inv" onclick="if(!window._modoOrden)verProductosPorCategoriaInventario('${cat.id}')">
+          <div class="cat-info-inv">
             <div class="cat-nombre-inv">${cat.nombre}</div>
             <div class="cat-stats-inv">${productos.filter(p => p.categoriaId === cat.id).length} productos</div>
           </div>
@@ -1825,6 +2256,13 @@
             <button class="icon-btn-sm" onclick="event.stopPropagation();editarCategoria('${cat.id}')" title="Editar"><i class="fas fa-edit"></i></button>
             <button class="icon-btn-sm" onclick="event.stopPropagation();eliminarCategoria('${cat.id}')" title="Eliminar"><i class="fas fa-trash"></i></button>
           </div>`;
+
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', (e) => {
+          if (window._modoOrden) return;
+          if (e.target.closest('.cat-actions-inv')) return;
+          verProductosPorCategoriaInventario(cat.id);
+        });
 
         attachCatDrag(card, cat.id);
         grid.appendChild(card);
@@ -1973,7 +2411,7 @@
 
     window.filtrarInventarioBusqueda = (texto) => { inventarioBusquedaActual = texto; renderInventario(); };
 
-    window.editarCategoria = async (catId) => { const cat = categorias.find(c => c.id === catId); if (!cat) return; document.getElementById('cat-nombre').value = cat.nombre || ''; document.getElementById('cat-emoji').value = cat.emoji || ''; if (cat.imagen) { document.getElementById('cat-img-preview').src = cat.imagen; document.getElementById('cat-img-preview').style.display = 'block'; } window.categoriaEditandoId = catId; abrirModal('modal-categoria'); };
+    window.editarCategoria = async (catId) => { const cat = categorias.find(c => c.id === catId); if (!cat) return; document.getElementById('cat-nombre').value = cat.nombre || ''; document.getElementById('cat-emoji').value = cat.emoji || ''; const icon = document.getElementById('cat-img-icon'); const hint = document.getElementById('cat-img-hint'); if (cat.imagen) { document.getElementById('cat-img-preview').src = cat.imagen; document.getElementById('cat-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (hint) hint.style.display = 'none'; } else { document.getElementById('cat-img-preview').src = ''; document.getElementById('cat-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (hint) hint.style.display = 'block'; } window.categoriaEditandoId = catId; abrirModal('modal-categoria'); };
 
     window.eliminarCategoria = async (catId) => { const productosEnCat = productos.filter(p => p.categoriaId === catId); if (productosEnCat.length > 0) { toast(`No se puede eliminar la categoría. Tiene ${productosEnCat.length} productos.`, 'error'); return; } if (!confirm('¿Eliminar esta categoría?')) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', catId)); toast('Categoría eliminada', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
 
@@ -2006,16 +2444,16 @@
       } catch (e) { toast('Error: ' + e.message, 'error'); }
     };
 
-    window.abrirModalCategoria = () => { delete window.categoriaEditandoId; document.getElementById('cat-nombre').value = ''; document.getElementById('cat-emoji').value = ''; document.getElementById('cat-img-preview').src = ''; document.getElementById('cat-img-preview').style.display = 'none'; abrirModal('modal-categoria'); };
+    window.abrirModalCategoria = () => { delete window.categoriaEditandoId; document.getElementById('cat-nombre').value = ''; document.getElementById('cat-emoji').value = ''; document.getElementById('cat-img-preview').src = ''; document.getElementById('cat-img-preview').style.display = 'none'; const icon = document.getElementById('cat-img-icon'); const hint = document.getElementById('cat-img-hint'); if (icon) icon.style.display = 'block'; if (hint) hint.style.display = 'block'; abrirModal('modal-categoria'); };
 
     function populateCatSelects() {
       const selects = ['pos-categoria-filtro', 'prod-categoria'];
       selects.forEach(id => { const sel = document.getElementById(id); if (!sel) return; const prev = sel.value; const prefix = id === 'prod-categoria' ? '<option value="">Selecciona categoría...</option>' : '<option value="">Todas las categorías</option>'; sel.innerHTML = prefix + categorias.map(c => `<option value="${c.id}">${c.emoji || '📦'} ${c.nombre}</option>`).join(''); if (prev && categorias.find(c => c.id === prev)) sel.value = prev; });
     }
 
-    window.abrirModalProducto = () => { productoEnEdicion = null; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-box"></i> Nuevo Producto';['prod-nombre', 'prod-barcode', 'prod-precio', 'prod-costo', 'prod-stock', 'prod-stock-min'].forEach(id => document.getElementById(id).value = ''); document.getElementById('prod-id').value = ''; document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; document.getElementById('prod-unidad').value = 'Unidad'; document.getElementById('prod-itbis').value = '1'; populateCatSelects(); abrirModal('modal-producto'); };
+    window.abrirModalProducto = () => { productoEnEdicion = null; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-box"></i> Nuevo Producto';['prod-nombre', 'prod-barcode', 'prod-precio', 'prod-costo', 'prod-stock', 'prod-stock-min'].forEach(id => document.getElementById(id).value = ''); document.getElementById('prod-id').value = ''; document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; const icon = document.getElementById('prod-img-icon'); const h1 = document.getElementById('prod-img-hint1'); const h2 = document.getElementById('prod-img-hint2'); const rh = document.getElementById('prod-img-replace-hint'); if (icon) icon.style.display = 'block'; if (h1) h1.style.display = 'block'; if (h2) h2.style.display = 'block'; if (rh) rh.style.display = 'none'; document.getElementById('prod-unidad').value = 'Unidad'; document.getElementById('prod-itbis').value = '1'; populateCatSelects(); abrirModal('modal-producto'); };
 
-    window.editarProducto = (id) => { const p = productos.find(pr => pr.id === id); if (!p) return; productoEnEdicion = p; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Producto'; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-barcode').value = p.codigoBarras || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-costo').value = p.costo || ''; document.getElementById('prod-stock').value = p.stock || ''; document.getElementById('prod-stock-min').value = p.stockMin || ''; document.getElementById('prod-unidad').value = p.unidad || 'Unidad'; document.getElementById('prod-itbis').value = p.itbis !== false ? '1' : '0'; populateCatSelects(); document.getElementById('prod-categoria').value = p.categoriaId || ''; if (p.imagen) { document.getElementById('prod-img-preview').src = p.imagen; document.getElementById('prod-img-preview').style.display = 'block'; } abrirModal('modal-producto'); };
+    window.editarProducto = (id) => { const p = productos.find(pr => pr.id === id); if (!p) return; productoEnEdicion = p; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Producto'; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-barcode').value = p.codigoBarras || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-costo').value = p.costo || ''; document.getElementById('prod-stock').value = p.stock || ''; document.getElementById('prod-stock-min').value = p.stockMin || ''; document.getElementById('prod-unidad').value = p.unidad || 'Unidad'; document.getElementById('prod-itbis').value = p.itbis !== false ? '1' : '0'; populateCatSelects(); document.getElementById('prod-categoria').value = p.categoriaId || ''; const icon = document.getElementById('prod-img-icon'); const h1 = document.getElementById('prod-img-hint1'); const h2 = document.getElementById('prod-img-hint2'); const rh = document.getElementById('prod-img-replace-hint'); if (p.imagen) { document.getElementById('prod-img-preview').src = p.imagen; document.getElementById('prod-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (h1) h1.style.display = 'none'; if (h2) h2.style.display = 'none'; if (rh) rh.style.display = 'block'; } else { document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (h1) h1.style.display = 'block'; if (h2) h2.style.display = 'block'; if (rh) rh.style.display = 'none'; } abrirModal('modal-producto'); };
 
     window.guardarProducto = async () => {
       const nombre = document.getElementById('prod-nombre').value.trim();
@@ -2045,9 +2483,60 @@
 
     window.eliminarProducto = async (id) => { if (!confirm('¿Eliminar este producto?')) return; const p = productos.find(pr => pr.id === id); if (!p) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id)); toast('Producto eliminado', 'success'); await cargarTodosProductos(); renderInventario(); } catch (e) { toast('Error: ' + e.message, 'error'); } };
 
-    window.previewImagen = (input) => { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { const prev = document.getElementById('prod-img-preview'); prev.src = e.target.result; prev.style.display = 'block'; }; reader.readAsDataURL(file); };
+    // ── Comprime y redimensiona cualquier imagen a máx 175px de alto ──────────
+    function comprimirImagen(file, maxHeight = 175, quality = 1.0) {
+      return new Promise((resolve, reject) => {
+        const objectURL = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(objectURL);
+          let { width, height } = img;
+          if (height > maxHeight) { width = Math.round(width * (maxHeight / height)); height = maxHeight; }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          // SVG/BMP/TIFF/HEIC → convertir a JPEG; PNG transparente → mantener PNG
+          const isSVG = file.type === 'image/svg+xml';
+          const hasPossibleAlpha = file.type === 'image/png' || file.type === 'image/gif' || file.type === 'image/webp' || file.type === 'image/avif';
+          const outMime = (isSVG || !hasPossibleAlpha) ? 'image/jpeg' : 'image/png';
+          const outQuality = outMime === 'image/jpeg' ? quality : undefined;
+          resolve(canvas.toDataURL(outMime, outQuality));
+        };
+        img.onerror = () => { URL.revokeObjectURL(objectURL); reject(new Error('No se pudo cargar la imagen')); };
+        img.src = objectURL;
+      });
+    }
 
-    window.previewCatImagen = (input) => { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { const prev = document.getElementById('cat-img-preview'); prev.src = e.target.result; prev.style.display = 'block'; }; reader.readAsDataURL(file); };
+    window.previewImagen = async (input) => {
+      const file = input.files[0]; if (!file) return;
+      try {
+        const dataUrl = await comprimirImagen(file);
+        const prev = document.getElementById('prod-img-preview');
+        prev.src = dataUrl; prev.style.display = 'block';
+        const icon = document.getElementById('prod-img-icon');
+        const hint1 = document.getElementById('prod-img-hint1');
+        const hint2 = document.getElementById('prod-img-hint2');
+        const replaceHint = document.getElementById('prod-img-replace-hint');
+        if (icon) icon.style.display = 'none';
+        if (hint1) hint1.style.display = 'none';
+        if (hint2) hint2.style.display = 'none';
+        if (replaceHint) replaceHint.style.display = 'block';
+      } catch (e) { toast('Error procesando imagen: ' + e.message, 'error'); }
+    };
+
+    window.previewCatImagen = async (input) => {
+      const file = input.files[0]; if (!file) return;
+      try {
+        const dataUrl = await comprimirImagen(file);
+        const prev = document.getElementById('cat-img-preview');
+        prev.src = dataUrl; prev.style.display = 'block';
+        const icon = document.getElementById('cat-img-icon');
+        const hint = document.getElementById('cat-img-hint');
+        if (icon) icon.style.display = 'none';
+        if (hint) hint.style.display = 'none';
+      } catch (e) { toast('Error procesando imagen: ' + e.message, 'error'); }
+    };
 
     window.escanearBarcodeProducto = () => { const val = prompt('Ingresa el código de barras:'); if (val) document.getElementById('prod-barcode').value = val; };
 
