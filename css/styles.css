@@ -17,7 +17,7 @@
   --sombra-hover: 0 8px 24px rgba(0, 0, 0, 0.14);
   --radio: 12px;
   --radio-sm: 8px;
-  --nav-h: 60px;
+  --nav-h: 100px;
   --font-titulo: 'Syne', sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
   --font-body: 'Nunito', sans-serif;
@@ -222,7 +222,7 @@ body {
     align-items: center;
     padding: 0 20px;
     gap: 16px;
-    position: fixed;
+    position: relative;
     top: 0;
     left: 0;
     right: 0;
@@ -327,9 +327,9 @@ color: rgb(252 79 98);
 
 /* ---- CONTENT ---- */
 .content {
-margin-top: 4rem;
   flex: 1;
   overflow: hidden;
+  margin: 1rem;
 }
 
 /* ---- PAGES ---- */
@@ -370,13 +370,7 @@ margin-top: 4rem;
     gap: 1rem;
 }
 
-.pos-left {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+
 
 .pos-search-bar {
     display: flex;
@@ -434,13 +428,18 @@ margin-top: 4rem;
 }
 
 .icon-btn.grid-btn {
-  background: var(--gris-bg);
-  color: var(--gris-suave);
+    background: #e2e8f0;
+    color: var(--gris-suave);
+    filter: grayscale(1);
+}
+
+.icon-btn img{
+  height: 20px;
 }
 
 .icon-btn.grid-btn.active {
-  background: var(--negro);
-  color: white;
+    color: white;
+    filter: grayscale(0);
 }
 
 .pos-productos-area {
@@ -634,6 +633,7 @@ margin-top: 4rem;
     border-left: 1px solid var(--gris-borde);
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.06);
     border-radius: 16px;
+    height: calc(100vh - 100px);
 }
 
 .carrito-header {
@@ -2163,17 +2163,18 @@ font-size: 1.4rem;
 }
 
 .cat-card-inv {
-  background: white;
-  border-radius: var(--radio, 16px);
-  box-shadow: var(--sombra, 0 4px 12px rgba(0,0,0,0.05));
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  border: 1px solid var(--gris-borde, #e9ecef);
+    background: white;
+    border-radius: var(--radio, 16px);
+    box-shadow: var(--sombra, 0 4px 12px rgba(0, 0, 0, 0.05));
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    gap: 2px;
+    padding: 0px;
+    border: 1px solid var(--gris-borde, #e9ecef);
+    flex-direction: column;
+    align-items: center;
 }
 
 .cat-card-inv:hover {
@@ -2183,11 +2184,11 @@ font-size: 1.4rem;
 }
 
 .cat-card-inv img {
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: 12px;
-  background: var(--gris-bg, #f8f9fa);
+    width: 64px;
+    height: 154px;
+    object-fit: cover;
+    border-radius: 12px;
+    background: var(--gris-bg, #f8f9fa);
 }
 
 .cat-emoji-inv {
@@ -2218,22 +2219,23 @@ font-size: 1.4rem;
 }
 
 .cat-actions-inv {
-  display: flex;
-  gap: 8px;
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .icon-btn-sm {
-  background: var(--gris-bg, #f8f9fa);
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+    background: #dddddd;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .icon-btn-sm:hover {
