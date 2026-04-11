@@ -404,11 +404,50 @@ color: rgb(252 79 98);
     box-shadow: var(--sombra);
 }
 
+ #pos-resizer:hover #pos-resizer-bar,
+    #pos-resizer.dragging #pos-resizer-bar {
+      background: #fc4f62;
+    }
+
+    #pos-resizer.dragging {
+      background: rgba(25, 113, 194, 0.08);
+      border-radius: 4px;
+    }
+
+    #pos-right {
+      width: var(--pos-right-w, 320px) !important;
+      min-width: var(--pos-right-w, 320px) !important;
+      max-width: var(--pos-right-w, 320px) !important;
+      flex-shrink: 0 !important;
+    }
+
+#pos-resizer {
+    width: 8px;
+    flex-shrink: 0;
+    cursor: col-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.15s;
+    user-select: none;
+    touch-action: none;
+}
+
+#pos-resizer-bar {
+    width: 5px;
+    height: 40px;
+    border-radius: 3px;
+    background: #c4cbd5;
+    transition: background 0.15s;
+    position: absolute;
+}
+
 .pos-search-bar input {
     flex: 1;
     border: none;
     outline: none;
-    font-size: 14px;
+    font-size: 1.1rem;
     font-family: var(--font-body);
     color: var(--negro);
     background: #ffffff;
@@ -416,7 +455,6 @@ color: rgb(252 79 98);
     padding: 10px 15px;
     border: 2px solid #e2e8f0;
     border-radius: 8px;
-    font-size: 14px;
 }
 
 .pos-search-bar select {
@@ -558,7 +596,7 @@ color: rgb(252 79 98);
 }
 
 .productos-grid.pequena {
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
 }
 
 .prod-card {
@@ -601,11 +639,13 @@ color: rgb(252 79 98);
 }
 
 .prod-card .prod-precio {
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--verde);
-  font-family: var(--font-mono);
-  margin-top: 4px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--verde);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* color: #38a169; */
+    font-weight: bold;
+    font-size: 1.1rem;
 }
 
 .prod-card .prod-stock {
@@ -718,7 +758,7 @@ color: rgb(252 79 98);
 .carrito-item img {
     width: 64px;
     height: 64px;
-    object-fit: cover;
+object-fit: contain;
     border-radius: 10px;
     background: white;
 }
@@ -799,7 +839,7 @@ font-size: 1.4rem;
 
 .carrito-footer {
   border-top: 1px solid var(--gris-borde);
-  padding: 16px 20px;
+  padding: 7px 20px;
 }
 
 .totales-row {
@@ -2579,13 +2619,14 @@ font-size: 1.4rem;
 /* Estilos para el área de dibujo dentro del carrito-footer */
 .dibujo-container {
   margin-top: 12px;
-  border: 2px dashed var(--gris-borde);
+
   border-radius: var(--radio-sm);
   background: white;
   display: none;
   flex-direction: column;
   overflow: hidden;
 }
+
 .dibujo-container.visible {
   display: flex;
 }

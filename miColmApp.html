@@ -12,42 +12,49 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Signature Pad para dibujo -->
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-    <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="stylesheet" href="./css/styles.css" />
   <style>
     /* ===== MÁS VENDIDOS — Categoría especial ===== */
     .pos-cat-card.mas-vendidos-cat {
       background: linear-gradient(135deg, #f59f00 0%, #e67700 100%);
       border: 2px solid #f59f00;
-      box-shadow: 0 4px 16px rgba(245,159,0,0.35);
+      box-shadow: 0 4px 16px rgba(245, 159, 0, 0.35);
     }
+
     .pos-cat-card.mas-vendidos-cat::before {
-      background: linear-gradient(to bottom, rgba(0,0,0,0.18), rgba(0,0,0,0.48));
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.48));
     }
+
     /* ===== FIN MÁS VENDIDOS ===== */
 
-        /* ===== MÁS VENDIDOS — Categoría especial ===== */
+    /* ===== MÁS VENDIDOS — Categoría especial ===== */
     .pos-cat-card.mas-vendidos-cat {
       background: linear-gradient(135deg, #f59f00 0%, #e67700 100%);
       border: 2px solid #f59f00;
-      box-shadow: 0 4px 16px rgba(245,159,0,0.35);
+      box-shadow: 0 4px 16px rgba(245, 159, 0, 0.35);
     }
+
     .pos-cat-card.mas-vendidos-cat::before {
-      background: linear-gradient(to bottom, rgba(0,0,0,0.18), rgba(0,0,0,0.48));
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.48));
     }
+
     .pos-cat-card.mas-vendidos-cat .cat-label {
       font-size: 1.05rem;
       letter-spacing: 0.3px;
     }
+
     /* Toggle slider checked state via JS */
     .mv-slider-on {
       background: #00b341 !important;
     }
+
     .mv-dot-on {
       transform: translateX(20px);
     }
+
     /* ===== FIN MÁS VENDIDOS ===== */
 
-    
+
 
     .categorias-grid-inv {
       display: grid;
@@ -142,7 +149,7 @@
     /* COLUMNA IZQUIERDA — Categorías */
     .pos-left {
       width: 200px;
-      min-width: 180px;
+      min-width: 220px;
       max-width: 220px;
       background: #e0e6ee;
       display: flex;
@@ -191,8 +198,25 @@
       border-radius: 4px;
     }
 
+
+
     /* TARJETA DE CATEGORÍA — rectángulo con imagen de fondo */
     .pos-cat-card {
+      position: relative;
+      width: 100%;
+      height: 80px;
+      border-radius: 7px;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+
+    .pos-cat-card.activa {
       position: relative;
       width: 100%;
       height: 80px;
@@ -309,97 +333,104 @@
     }
 
     /* ===== MULTI-FACTURAS TABS ===== */
-.facturas-tabs-bar-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background: #f4f4f6;
-    border-radius: var(--radio);
-    box-shadow: var(--sombra);
-    overflow: hidden;
-    flex-shrink: 0;
-}
+    .facturas-tabs-bar-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: #f4f4f6;
+      border-radius: var(--radio);
+      box-shadow: var(--sombra);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
 
-.tabs-scroll-btn {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    min-width: 32px;
-    height: 100%;
-    background: linear-gradient(to right, #f4f4f6 60%, transparent);
-    border: none;
-    cursor: pointer;
-    color: #4a5568;
-    font-size: 16px;
-    z-index: 2;
-    flex-shrink: 0;
-    padding: 0;
-    transition: background 0.15s, color 0.15s;
-}
+    .tabs-scroll-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      min-width: 32px;
+      height: 100%;
+      background: #fc4f62;
+      border: none;
+      cursor: pointer;
+      color: #ffffff;
+      font-size: 2rem;
+      z-index: 2;
+      flex-shrink: 0;
+      padding: 0;
+      transition: background 0.15s, color 0.15s;
+    }
 
-.tabs-scroll-btn.right {
+    /*.tabs-scroll-btn.right {
     background: linear-gradient(to left, #f4f4f6 60%, transparent);
-}
+}*/
 
-.tabs-scroll-btn:hover { color: #1971c2; }
-.tabs-scroll-btn.visible { display: flex; }
+    .tabs-scroll-btn:hover {
+      color: #1971c2;
+    }
 
-.facturas-tabs-bar {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 10px 14px;
-    overflow-x: auto;
-    flex-shrink: 0;
-    scrollbar-width: none;
-    gap: 8px;
-    align-items: center;
-    flex: 1;
-    min-width: 0;
-}
+    .tabs-scroll-btn.visible {
+      display: flex;
+    }
 
-    .facturas-tabs-bar::-webkit-scrollbar { display: none; }
+    .facturas-tabs-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 14px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: none;
+      gap: 8px;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
 
-.factura-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 12px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    font-family: var(--font-body);
-    cursor: pointer;
-    border: none;
-    background: #d0d8e8;
-    color: #4a5568;
-    white-space: nowrap;
-    transition: background 0.15s, color 0.15s;
-    position: relative;
-    min-width: 90px;
-    justify-content: center;
-}
+    .facturas-tabs-bar::-webkit-scrollbar {
+      display: none;
+    }
 
-.factura-tab.activa {
-    background: #00aa3e;
-    color: #1a2135;
-    /* box-shadow: 0 -2px 0 #1971c2 inset; */
-    background: #28a745;
-    color: white;
-    /* box-shadow: 0 -2px 0 #176081 inset; */
-}
+    .factura-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: var(--font-body);
+      cursor: pointer;
+      border: none;
+      background: #d0d8e8;
+      color: #4a5568;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+      position: relative;
+      /* min-width: 90px; */
+      justify-content: center;
+    }
 
-.factura-tab .tab-badge {
-    background: #fc4f62;
-    color: white;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 1px 5px;
-    min-width: 16px;
-    text-align: center;
-}
+    .factura-tab.activa {
+      background: #00aa3e;
+      color: #1a2135;
+      /* box-shadow: 0 -2px 0 #1971c2 inset; */
+      background: #28a745;
+      color: white;
+      /* box-shadow: 0 -2px 0 #176081 inset; */
+    }
+
+    .factura-tab .tab-badge {
+      background: #fc4f62;
+      color: white;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 1px 5px;
+      min-width: 16px;
+      text-align: center;
+    }
 
     .factura-tab.activa .tab-badge {
       /*background: #1971c2;*/
@@ -411,44 +442,45 @@
     }
 
 
-.factura-tab .tab-close {
-    background: none;
-    border: none;
-    color: #ff00009e;
-    cursor: pointer;
-    font-size: 20px;
-    padding: 2px 3px;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    transition: background 0.15s, color 0.15s;
-    margin-left: 9px;
-    flex-shrink: 0;
-    background: #ff00002b;
-}
-.factura-tab .tab-close:hover {
-    color: #e03131;
-    background: rgb(224 49 49 / 54%);
-}
+    .factura-tab .tab-close {
+      background: none;
+      border: none;
+      color: #ff00009e;
+      cursor: pointer;
+      font-size: 20px;
+      padding: 2px 3px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background 0.15s, color 0.15s;
+      margin-left: 9px;
+      flex-shrink: 0;
+      background: #ff00002b;
+    }
 
-.btn-nueva-factura-tab {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 36px;
-    border-radius: 7px;
-    border: 2px dashed #aab4c8;
-    background: transparent;
-    color: #1971c2;
-    font-size: 22px;
-    cursor: pointer;
-    font-weight: 700;
-    flex-shrink: 0;
-    transition: background 0.15s, border-color 0.15s;
-}
+    .factura-tab .tab-close:hover {
+      color: #e03131;
+      background: rgb(224 49 49 / 54%);
+    }
+
+    .btn-nueva-factura-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 36px;
+      border-radius: 7px;
+      border: 2px dashed #aab4c8;
+      background: transparent;
+      color: #1971c2;
+      font-size: 22px;
+      cursor: pointer;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
 
     .btn-nueva-factura-tab:hover {
       background: #dce8f8;
@@ -501,9 +533,9 @@
     }
 
     .productos-grid-inv .drag-grip-overlay {
-background: rgb(0 179 65 / 48%);
-    color: #00b341;
-    font-size: 3rem;
+      background: rgb(0 179 65 / 48%);
+      color: #00b341;
+      font-size: 3rem;
     }
 
     .modo-orden .cat-card-inv:hover .drag-grip-overlay,
@@ -551,23 +583,48 @@ background: rgb(0 179 65 / 48%);
 
     /* Estilos adicionales para el área de dibujo dentro del carrito-footer */
     .dibujo-container {
-      margin-top: 12px;
       border: 2px dashed var(--gris-borde);
+      border: 2px dashed #adbbd3;
       border-radius: var(--radio-sm);
       background: white;
-      display: none;
+      display: flex;
       flex-direction: column;
       overflow: hidden;
+      margin-bottom: 0;
+      max-height: 0;
+      opacity: 0;
+      border-width: 0;
+      transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.22s ease,
+        border-width 0.28s ease,
+        margin-bottom 0.28s ease;
+      pointer-events: none;
     }
 
     .dibujo-container.visible {
-      display: flex;
+      max-height: 420px;
+      opacity: 1;
+      border-width: 2px;
+      margin-bottom: 8px;
+      pointer-events: auto;
+    }
+
+    .btn-dibujo-sm.rojo {
+      background: #aab4c8;
+      color: white;
+      border: none;
+      transition: background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .btn-dibujo-sm.rojo.con-dibujo {
+      background: var(--rojo);
+      box-shadow: 0 2px 8px rgba(252, 79, 98, 0.35);
     }
 
     .dibujo-canvas-wrapper {
       background: white;
       width: 100%;
-      height: 300px;
+      height: 256px;
       position: relative;
     }
 
@@ -578,15 +635,6 @@ background: rgb(0 179 65 / 48%);
       background: white;
       cursor: crosshair;
       touch-action: none;
-    }
-
-    .dibujo-toolbar {
-      display: flex;
-      gap: 8px;
-      padding: 8px;
-      background: var(--gris-bg);
-      border-top: 1px solid var(--gris-borde);
-      justify-content: flex-end;
     }
 
     .btn-dibujo-sm {
@@ -601,12 +649,6 @@ background: rgb(0 179 65 / 48%);
 
     .btn-dibujo-sm.verde {
       background: var(--verde);
-      color: white;
-      border: none;
-    }
-
-    .btn-dibujo-sm.rojo {
-      background: var(--rojo);
       color: white;
       border: none;
     }
@@ -700,7 +742,9 @@ background: rgb(0 179 65 / 48%);
     .prod-card-inv img {
       width: 100%;
       aspect-ratio: 1;
-      object-fit: cover;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #efefef;
     }
 
     .prod-emoji-inv {
@@ -805,6 +849,231 @@ background: rgb(0 179 65 / 48%);
       height: 120px;
       background: #f0f0f0;
     }
+
+    /* ===== UNIDADES DETALLABLES (peso/volumen) ===== */
+    #modal-detalle-unidad .modal {
+      /*max-width: 340px;*/
+    }
+    .detalle-unidad-body {
+      padding: 8px 14px;
+    }
+    .detalle-prod-nombre {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+      color: #1a2135;
+    }
+    .detalle-precio-ref {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+    .detalle-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .detalle-tab-btn {
+      flex: 1;
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      color: #4a5568;
+      transition: all 0.15s;
+    }
+    .detalle-tab-btn.activo {
+      background: #1971c2;
+      border-color: #1971c2;
+      color: white;
+    }
+    .detalle-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .detalle-input-wrap input {
+      flex: 1;
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      outline: none;
+      font-family: var(--font-mono);
+    }
+    .detalle-input-wrap input:focus {
+      border-color: #1971c2;
+    }
+    .detalle-unidad-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #4a5568;
+      min-width: 40px;
+    }
+    .detalle-resultado {
+      background: #f0faf3;
+      border: 1px solid #b2dfdb;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: #1a7a50;
+      font-weight: 600;
+      margin-bottom: 14px;
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .detalle-teclado {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .detalle-key {
+      background: #f0f4fa;
+      border: none;
+      border-radius: 8px;
+      padding: 13px 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.12s;
+      color: #1a2135;
+    }
+    .detalle-key:active { background: #dce8f8; }
+    .detalle-key.del { background: #ffe0e3; color: #e03131; }
+    .detalle-key.ok { background: #00b341; color: white; font-size: 1rem; grid-column: span 3; padding: 14px; }
+    .detalle-key.ok:active { background: #009932; }
+    /* Edición inline en carrito */
+    .item-ctrl-detalle {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .item-edit-field {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #f0f4fa;
+      border-radius: 7px;
+      padding: 2px 6px;
+    }
+    .item-edit-field label {
+      font-size: 10px;
+      color: #888;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .item-edit-input {
+      width: 70px;
+      border: 1px solid #c4cbd5;
+      border-radius: 5px;
+      padding: 2px 5px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-align: right;
+      background: white;
+      color: #1a2135;
+    }
+    .item-edit-input:focus {
+      outline: none;
+      border-color: #1971c2;
+    }
+    .item-unidad-badge {
+      font-size: 10px;
+      background: #1971c2;
+      color: white;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-weight: 700;
+      margin-left: 2px;
+    }
+    /* ===== FIN UNIDADES DETALLABLES ===== */
+
+    /* ===== VISTA PEQUEÑA (lista horizontal) ===== */
+    .productos-grid.pequena {
+      display: grid;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .productos-grid.pequena .prod-card {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      height: 73px;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      padding: 4px;
+    }
+
+    /* Imagen o emoji a la izquierda */
+    .productos-grid.pequena .prod-card img,
+    .productos-grid.pequena .prod-card .prod-emoji {
+      width: 64px;
+      /* min-width: 72px; */
+      /* height: 100%; */
+      object-fit: contain;
+      border-radius: 0;
+      flex-shrink: 0;
+      font-size: 28px;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      /* box-shadow: 0px 0px 0px 1px rgb(0 0 0 / 21%); */
+    }
+
+    /* Info a la derecha en columna */
+    .productos-grid.pequena .prod-card .prod-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8px 6px;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .productos-grid.pequena .prod-card .prod-nombre {
+      font-size: 0.9rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+
+    .productos-grid.pequena .prod-card .prod-stock {
+      font-size: 0.8rem;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Stock bajo: texto rojo en lugar del badge */
+    .productos-grid.pequena .prod-card .prod-stock.stock-bajo {
+      color: #e03131;
+      font-weight: 700;
+    }
+
+    /* Ocultar el stock-badge en vista pequeña */
+    .productos-grid.pequena .prod-card .stock-badge {
+      display: none;
+    }
+
+    /* ===== FIN VISTA PEQUEÑA ===== */
   </style>
 </head>
 
@@ -892,69 +1161,87 @@ background: rgb(0 179 65 / 48%);
           <div class="pos-categorias-lista" id="pos-categorias-lista"></div>
         </div>
         <!-- COLUMNA CENTRAL: Productos -->
-        <div class="pos-center">
-          <div class="pos-search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" id="pos-buscar" placeholder="Buscar productos..." oninput="buscarProductos(this.value)">
-            <div class="pos-direccion-wrap">
-              <i class="fas fa-map-marker-alt" style="color:var(--gris-suave);font-size:13px;"></i>
-              <input type="text" id="pos-direccion-cliente" placeholder="Dirección del cliente..."
-                style="border:none;outline:none;font-family:var(--font-body);font-size:13px;flex:1;min-width:140px;background:transparent;"
-                oninput="const t=_getTabActiva();if(t){t.direccion=this.value;_guardarTabsEnStorage();}">
-            </div>
-            <button class="icon-btn grid-btn active" id="btn-grid-grande" onclick="setGridSize('grande')">
-              <img src="./img/icons/grid.png">
-            </button>
-            <button class="icon-btn grid-btn" id="btn-grid-peq" onclick="setGridSize('pequena')">
-              <img src="./img/icons/list.png">
-            </button>
-            <button class="icon-btn scan-btn" onclick="abrirScaner()"><i class="fas fa-barcode"></i></button>
-          </div>
-          <div class="pos-productos-area" id="pos-productos-area"></div>
-          <!-- BARRA DE FACTURAS MÚLTIPLES -->
-          <div class="facturas-tabs-bar-wrapper" id="facturas-tabs-bar-wrapper">
-            <button class="tabs-scroll-btn left" id="tabs-scroll-left" onclick="scrollTabs(-1)" aria-label="Scroll izquierda">&#8249;</button>
-            <div class="facturas-tabs-bar" id="facturas-tabs-bar">
-              <!-- tabs rendered by JS -->
-            </div>
-            <button class="tabs-scroll-btn right" id="tabs-scroll-right" onclick="scrollTabs(1)" aria-label="Scroll derecha">&#8250;</button>
-          </div>
-        </div>
-        <!-- COLUMNA DERECHA: Carrito -->
-        <div class="pos-right">
-          <div class="carrito-header">
-            <h3><i class="fas fa-shopping-cart"></i> Carrito</h3>
-            <span class="carrito-count" id="carrito-count">0</span>
-          </div>
-          <div class="carrito-items" id="carrito-items">
-            <div class="carrito-empty"><i class="fas fa-shopping-cart"></i>
-              <p>Agrega productos al carrito</p>
-            </div>
-          </div>
-          <div class="carrito-footer">
-            <div class="totales-row"><span>Subtotal</span><span id="cart-subtotal">RD$ 0.00</span></div>
-            <div class="totales-row"><span id="cart-itbis-label">ITBIS (18%)</span><span id="cart-itbis">RD$ 0.00</span>
-            </div>
-            <div class="totales-row total"><span>Total</span><span id="cart-total">RD$ 0.00</span></div>
-            <div style="display:flex;gap:8px;">
-              <button class="btn-facturar" style="background:var(--rojo);flex:0 0 auto;padding:0 18px;width: 120px;"
-                onclick="abrirModalVaciarCarrito()"><i class="fas fa-trash"></i> Vaciar</button>
-              <button class="btn-facturar" style="flex:1;" onclick="abrirModalFacturar()"><i class="fas fa-receipt"></i>
-                Facturar</button>
-            </div>
-            <button class="btn-dibujo-principal" id="btn-toggle-dibujo" onclick="toggleDibujo()"><i
-                id="icon-toggle-dibujo" class="fas fa-arrow-up"></i> Agregar Nota</button>
-            <div class="dibujo-container" id="dibujo-container">
-              <div class="dibujo-canvas-wrapper">
-                <canvas id="firmaCanvas" class="dibujo-canvas"></canvas>
+
+        <div style="display: inline-flex;width: 100%;gap: 0.3rem;">
+          <div class="pos-center">
+            <div class="pos-search-bar">
+              <i class="fas fa-search"></i>
+              <input type="text" id="pos-buscar" placeholder="Buscar productos..."
+                oninput="buscarProductos(this.value)">
+              <div class="pos-direccion-wrap">
+                <i class="fas fa-map-marker-alt" style="color:var(--gris-suave);font-size:13px;"></i>
+                <input type="text" id="pos-direccion-cliente" placeholder="Dirección del cliente..."
+                  style="border:none;outline:none;font-family:var(--font-body);font-size:1.1rem;flex:1;min-width:140px;background:transparent;"
+                  oninput="const t=_getTabActiva();if(t){t.direccion=this.value;_guardarTabsEnStorage();}">
               </div>
-              <div class="dibujo-toolbar">
-                <button class="btn-dibujo-sm rojo" onclick="limpiarDibujo()"><i class="fas fa-trash-alt"></i>
+              <button class="icon-btn grid-btn" id="btn-grid-grande" onclick="setGridSize('grande')">
+                <img src="./img/icons/grid.png">
+              </button>
+              <button class="icon-btn grid-btn" id="btn-grid-peq" onclick="setGridSize('pequena')">
+                <img src="./img/icons/list.png">
+              </button>
+              <button class="icon-btn scan-btn" onclick="abrirScaner()"><i class="fas fa-barcode"></i></button>
+            </div>
+            <div class="pos-productos-area" id="pos-productos-area"></div>
+            <!-- BARRA DE FACTURAS MÚLTIPLES -->
+            <div class="facturas-tabs-bar-wrapper" id="facturas-tabs-bar-wrapper">
+              <button class="tabs-scroll-btn left" id="tabs-scroll-left" onclick="scrollTabs(-1)"
+                aria-label="Scroll izquierda">&#8249;</button>
+              <div class="facturas-tabs-bar" id="facturas-tabs-bar">
+                <!-- tabs rendered by JS -->
+              </div>
+              <button class="tabs-scroll-btn right" id="tabs-scroll-right" onclick="scrollTabs(1)"
+                aria-label="Scroll derecha">&#8250;</button>
+            </div>
+          </div>
+
+          <!-- RESIZER -->
+          <div id="pos-resizer">
+            <div id="pos-resizer-bar"></div>
+          </div>
+
+          <!-- COLUMNA DERECHA: Carrito -->
+          <div class="pos-right" id="pos-right">
+            <div class="carrito-header">
+              <h3><i class="fas fa-shopping-cart"></i> Carrito</h3>
+              <span class="carrito-count" id="carrito-count">0</span>
+            </div>
+            <div class="carrito-items" id="carrito-items">
+              <div class="carrito-empty"><i class="fas fa-shopping-cart"></i>
+                <p>Agrega productos al carrito</p>
+              </div>
+            </div>
+            <div class="carrito-footer">
+              <div class="totales-row"><span>Subtotal</span><span id="cart-subtotal">RD$ 0.00</span></div>
+              <div class="totales-row"><span id="cart-itbis-label">ITBIS (18%)</span><span id="cart-itbis">RD$
+                  0.00</span>
+              </div>
+              <div class="totales-row total"><span>Total</span><span id="cart-total">RD$ 0.00</span></div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn-facturar" id="btn-vaciar-carrito"
+                  style="background:#aab4c8;flex:0 0 auto;padding:0 18px;width: 120px;transition:background 0.18s ease,box-shadow 0.18s ease;"
+                  onclick="abrirModalVaciarCarrito()"><i class="fas fa-trash"></i> Vaciar</button>
+                <button class="btn-facturar" style="flex:1;" onclick="abrirModalFacturar()"><i
+                    class="fas fa-receipt"></i>
+                  Facturar</button>
+              </div>
+              <div class="dibujo-container" id="dibujo-container">
+                <div class="dibujo-canvas-wrapper">
+                  <canvas id="firmaCanvas" class="dibujo-canvas"></canvas>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+                <button class="btn-dibujo-principal" id="btn-toggle-dibujo" onclick="toggleDibujo()"
+                  style="margin-top:0;flex:1;"><i id="icon-toggle-dibujo" class="fas fa-arrow-up"></i> Agregar
+                  Nota</button>
+                <button class="btn-dibujo-sm rojo" onclick="limpiarDibujo()"
+                  style="height:100%;padding:12px 16px;border-radius:40px;"><i class="fas fa-trash-alt"></i>
                   Limpiar</button>
               </div>
             </div>
           </div>
         </div>
+
       </div>
 
       <!-- CAJA PAGE -->
@@ -1073,10 +1360,13 @@ background: rgb(0 179 65 / 48%);
                 Categoría</button>
             </div>
           </div>
-          <div class="inv-controles" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;position:relative;">
+          <div class="inv-controles"
+            style="margin-bottom:16px;display:flex;gap:12px;align-items:center;position:relative;">
             <input type="text" id="inv-buscar" placeholder="Buscar productos..."
               oninput="filtrarInventarioBusqueda(this.value)" style="flex:1;min-width:200px;" autocomplete="off">
-            <div id="inv-buscar-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:2px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:100;max-height:320px;overflow-y:auto;margin-top:4px;"></div>
+            <div id="inv-buscar-dropdown"
+              style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:2px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:100;max-height:320px;overflow-y:auto;margin-top:4px;">
+            </div>
           </div>
           <div id="inv-contenido"></div>
         </div>
@@ -1167,31 +1457,44 @@ background: rgb(0 179 65 / 48%);
               <div class="config-field"><label>Nombre del Colmado</label><input type="text" id="cfg-nombre"></div>
               <div class="config-field"><label>RNC</label><input type="text" id="cfg-rnc"></div>
               <div class="config-field"><label>Dirección</label><input type="text" id="cfg-direccion"></div>
-              <div class="config-field"><label>Prefijo NCF</label><input type="text" id="cfg-ncf-prefijo" placeholder="B01"></div>
-              <div class="config-field"><label>Secuencia NCF actual</label><input type="number" id="cfg-ncf-seq" placeholder="1"></div>
+              <div class="config-field"><label>Prefijo NCF</label><input type="text" id="cfg-ncf-prefijo"
+                  placeholder="B01"></div>
+              <div class="config-field"><label>Secuencia NCF actual</label><input type="number" id="cfg-ncf-seq"
+                  placeholder="1"></div>
             </div>
             <!-- TELÉFONO Y WHATSAPP CON SELECTOR DE PAÍS -->
             <div style="padding:0 20px 16px;">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px;">
                 <div>
-                  <label style="font-size:13px;font-weight:700;color:#4a5568;display:block;margin-bottom:6px;"><i class="fas fa-phone" style="color:#1971c2;margin-right:5px;"></i> Teléfono de Contacto</label>
+                  <label style="font-size:13px;font-weight:700;color:#4a5568;display:block;margin-bottom:6px;"><i
+                      class="fas fa-phone" style="color:#1971c2;margin-right:5px;"></i> Teléfono de Contacto</label>
                   <div style="display:flex;gap:6px;align-items:stretch;">
-                    <select id="cfg-tel-pais" style="flex-shrink:0;padding:9px 4px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:12px;outline:none;background:white;cursor:pointer;max-width:120px;" onchange="onChangeTelPais(this.value,'cfg-telefono','cfg-tel-preview')"></select>
-                    <input type="tel" id="cfg-telefono" placeholder="809-555-0000" style="flex:1;min-width:0;" oninput="autoDetectPaisTel(this.value,'cfg-tel-pais','cfg-tel-preview')">
+                    <select id="cfg-tel-pais"
+                      style="flex-shrink:0;padding:9px 4px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:12px;outline:none;background:white;cursor:pointer;max-width:120px;"
+                      onchange="onChangeTelPais(this.value,'cfg-telefono','cfg-tel-preview')"></select>
+                    <input type="tel" id="cfg-telefono" placeholder="809-555-0000" style="flex:1;min-width:0;"
+                      oninput="autoDetectPaisTel(this.value,'cfg-tel-pais','cfg-tel-preview')">
                   </div>
-                  <div id="cfg-tel-preview" style="font-size:11px;color:#1971c2;margin-top:4px;font-weight:600;min-height:16px;"></div>
+                  <div id="cfg-tel-preview"
+                    style="font-size:11px;color:#1971c2;margin-top:4px;font-weight:600;min-height:16px;"></div>
                 </div>
                 <div>
-                  <label style="font-size:13px;font-weight:700;color:#4a5568;display:block;margin-bottom:6px;"><i class="fab fa-whatsapp" style="color:#25D366;margin-right:5px;"></i> WhatsApp del Negocio</label>
+                  <label style="font-size:13px;font-weight:700;color:#4a5568;display:block;margin-bottom:6px;"><i
+                      class="fab fa-whatsapp" style="color:#25D366;margin-right:5px;"></i> WhatsApp del Negocio</label>
                   <div style="display:flex;gap:6px;align-items:stretch;">
-                    <select id="cfg-ws-pais" style="flex-shrink:0;padding:9px 4px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:12px;outline:none;background:white;cursor:pointer;max-width:120px;" onchange="onChangeTelPais(this.value,'cfg-whatsapp','cfg-ws-preview')"></select>
-                    <input type="tel" id="cfg-whatsapp" placeholder="809-555-0000" style="flex:1;min-width:0;" oninput="autoDetectPaisTel(this.value,'cfg-ws-pais','cfg-ws-preview')">
+                    <select id="cfg-ws-pais"
+                      style="flex-shrink:0;padding:9px 4px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:12px;outline:none;background:white;cursor:pointer;max-width:120px;"
+                      onchange="onChangeTelPais(this.value,'cfg-whatsapp','cfg-ws-preview')"></select>
+                    <input type="tel" id="cfg-whatsapp" placeholder="809-555-0000" style="flex:1;min-width:0;"
+                      oninput="autoDetectPaisTel(this.value,'cfg-ws-pais','cfg-ws-preview')">
                   </div>
-                  <div id="cfg-ws-preview" style="font-size:11px;color:#25D366;margin-top:4px;font-weight:600;min-height:16px;"></div>
+                  <div id="cfg-ws-preview"
+                    style="font-size:11px;color:#25D366;margin-top:4px;font-weight:600;min-height:16px;"></div>
                 </div>
               </div>
             </div>
-            <div style="padding:0 20px 20px;"><button class="btn-sm verde" onclick="guardarConfig()"><i class="fas fa-save"></i> Guardar Configuración</button></div>
+            <div style="padding:0 20px 20px;"><button class="btn-sm verde" onclick="guardarConfig()"><i
+                  class="fas fa-save"></i> Guardar Configuración</button></div>
           </div>
           <div class="config-section" style="margin-bottom:20px;">
             <div class="section-header">
@@ -1222,6 +1525,46 @@ background: rgb(0 179 65 / 48%);
   </div>
 
   <div id="toast-container"></div>
+
+  <!-- MODAL DETALLE UNIDAD (peso/volumen) -->
+  <div class="modal-overlay" id="modal-detalle-unidad">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fas fa-balance-scale"></i> Cantidad a detallar</h3>
+        <button class="modal-close" onclick="cerrarModal('modal-detalle-unidad')">✕</button>
+      </div>
+      <div class="modal-body detalle-unidad-body">
+        <div class="detalle-prod-nombre" id="du-nombre"></div>
+        <div class="detalle-precio-ref" id="du-precio-ref"></div>
+        <div class="detalle-tabs">
+          <button class="detalle-tab-btn activo" id="du-tab-cant" onclick="duCambiarTab('cantidad')">📦 Por Cantidad</button>
+          <button class="detalle-tab-btn" id="du-tab-precio" onclick="duCambiarTab('precio')">💰 Por Precio</button>
+        </div>
+        <div class="detalle-input-wrap">
+          <input type="text" id="du-valor" inputmode="decimal" placeholder="0" autocomplete="off" autocorrect="off" spellcheck="false">
+          <span class="detalle-unidad-label" id="du-label-unidad">lb</span>
+        </div>
+        <div class="detalle-resultado" id="du-resultado">
+          <i class="fas fa-info-circle"></i> <span id="du-resultado-texto">Ingresa la cantidad</span>
+        </div>
+        <div class="detalle-teclado">
+          <button class="detalle-key" onclick="duTecla('7')">7</button>
+          <button class="detalle-key" onclick="duTecla('8')">8</button>
+          <button class="detalle-key" onclick="duTecla('9')">9</button>
+          <button class="detalle-key" onclick="duTecla('4')">4</button>
+          <button class="detalle-key" onclick="duTecla('5')">5</button>
+          <button class="detalle-key" onclick="duTecla('6')">6</button>
+          <button class="detalle-key" onclick="duTecla('1')">1</button>
+          <button class="detalle-key" onclick="duTecla('2')">2</button>
+          <button class="detalle-key" onclick="duTecla('3')">3</button>
+          <button class="detalle-key" onclick="duTecla('.')">.</button>
+          <button class="detalle-key" onclick="duTecla('0')">0</button>
+          <button class="detalle-key del" onclick="duTecla('⌫')">⌫</button>
+          <button class="detalle-key ok" onclick="duConfirmar()"><i class="fas fa-check"></i> Agregar al Carrito</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- MODALES -->
   <div class="modal-overlay" id="modal-facturar">
@@ -1402,6 +1745,7 @@ background: rgb(0 179 65 / 48%);
                 <option>Unidad</option>
                 <option>Libra</option>
                 <option>Kilogramo</option>
+                <option>Onza</option>
                 <option>Litro</option>
                 <option>Galón</option>
                 <option>Caja</option>
@@ -1435,27 +1779,57 @@ background: rgb(0 179 65 / 48%);
         <!-- Más Vendidos toggle -->
         <div class="form-group" style="margin-top:12px;">
           <style>
-            .mv-toggle-wrap { display:flex; align-items:center; gap:12px; cursor:pointer; user-select:none; }
-            .mv-toggle-wrap input[type=checkbox] { display:none; }
+            .mv-toggle-wrap {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              cursor: pointer;
+              user-select: none;
+            }
+
+            .mv-toggle-wrap input[type=checkbox] {
+              display: none;
+            }
+
             .mv-toggle-track {
-              position:relative; width:46px; height:26px; border-radius:26px;
-              background:#ccc; transition:background .25s; flex-shrink:0;
-              cursor:pointer;
+              position: relative;
+              width: 46px;
+              height: 26px;
+              border-radius: 26px;
+              background: #ccc;
+              transition: background .25s;
+              flex-shrink: 0;
+              cursor: pointer;
             }
-            .mv-toggle-wrap input:checked + .mv-toggle-track { background:#00b341; }
+
+            .mv-toggle-wrap input:checked+.mv-toggle-track {
+              background: #00b341;
+            }
+
             .mv-toggle-track::after {
-              content:''; position:absolute; top:3px; left:3px;
-              width:20px; height:20px; border-radius:50%;
-              background:white; transition:transform .25s; box-shadow:0 1px 4px rgba(0,0,0,.25);
+              content: '';
+              position: absolute;
+              top: 3px;
+              left: 3px;
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              background: white;
+              transition: transform .25s;
+              box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
             }
-            .mv-toggle-wrap input:checked + .mv-toggle-track::after { transform:translateX(20px); }
+
+            .mv-toggle-wrap input:checked+.mv-toggle-track::after {
+              transform: translateX(20px);
+            }
           </style>
           <label class="mv-toggle-wrap" for="prod-mas-vendidos">
             <input type="checkbox" id="prod-mas-vendidos">
             <span class="mv-toggle-track"></span>
             <span style="font-weight:600;">⭐ Añadir a Más Vendidos</span>
           </label>
-          <p style="font-size:11px;color:var(--gris-suave);margin-top:4px;margin-left:58px;">El producto aparecerá en la categoría especial "Más Vendidos"</p>
+          <p style="font-size:11px;color:var(--gris-suave);margin-top:4px;margin-left:58px;">El producto aparecerá en la
+            categoría especial "Más Vendidos"</p>
         </div>
         <input type="hidden" id="prod-id">
       </div>
@@ -1562,15 +1936,16 @@ background: rgb(0 179 65 / 48%);
   <div class="modal-overlay" id="modal-cerrar-tab">
     <div class="modal" style="max-width:360px;">
       <div class="modal-header">
-        <h3><i class="fas fa-times-circle" style="color:var(--rojo);"></i>Eliminar Pedido</h3><button class="modal-close"
-          onclick="cerrarModal('modal-cerrar-tab')">✕</button>
+        <h3><i class="fas fa-times-circle" style="color:var(--rojo);"></i>Eliminar Pedido</h3><button
+          class="modal-close" onclick="cerrarModal('modal-cerrar-tab')">✕</button>
       </div>
       <div class="modal-body" style="text-align:center;padding:24px 20px;">
         <p style="font-size:15px;color:#444;" id="modal-cerrar-tab-msg">¿Eliminar Este Pedido?</p>
       </div>
       <div class="modal-footer">
         <button class="btn-sm gris" onclick="cerrarModal('modal-cerrar-tab')">Cancelar</button>
-        <button class="btn-sm rojo" id="btn-confirmar-cerrar-tab" onclick="confirmarCerrarTab()">Eliminar Pedido</button>
+        <button class="btn-sm rojo" id="btn-confirmar-cerrar-tab" onclick="confirmarCerrarTab()">Eliminar
+          Pedido</button>
       </div>
     </div>
   </div>
@@ -1612,7 +1987,7 @@ background: rgb(0 179 65 / 48%);
     let metodoPagoSeleccionado = 'efectivo';
     let estadoFacturaSeleccionado = 'pagada';
     let categoriaActual = null;
-    let gridSize = 'grande';
+    let gridSize = localStorage.getItem('pos_grid_size') === 'pequena' ? 'pequena' : 'grande';
     let invViewGrid = true;
     let chartVentas = null, chartProductos = null, chartMetodos = null;
     let unsubscribers = [];
@@ -1644,7 +2019,7 @@ background: rgb(0 179 65 / 48%);
         } else {
           localStorage.removeItem(key);
         }
-      } catch(e) {
+      } catch (e) {
         console.warn('No se pudo guardar el dibujo en localStorage:', e);
       }
     }
@@ -1654,13 +2029,13 @@ background: rgb(0 179 65 / 48%);
       if (!negocioId || !tabId) return null;
       try {
         return localStorage.getItem(`dibujo_${negocioId}_${tabId}`) || null;
-      } catch(e) { return null; }
+      } catch (e) { return null; }
     }
 
     // Elimina el dibujo guardado de una tab (al cerrarla)
     function _eliminarDibujoTab(tabId) {
       if (!negocioId || !tabId) return;
-      try { localStorage.removeItem(`dibujo_${negocioId}_${tabId}`); } catch(e) {}
+      try { localStorage.removeItem(`dibujo_${negocioId}_${tabId}`); } catch (e) { }
     }
 
     function _guardarTabsEnStorage() {
@@ -1675,7 +2050,7 @@ background: rgb(0 179 65 / 48%);
         }));
         localStorage.setItem(`tabs_${negocioId}`, JSON.stringify(data));
         localStorage.setItem(`tab_activa_${negocioId}`, facturaTabActiva || '');
-      } catch(e) {}
+      } catch (e) { }
     }
 
     function _cargarTabsDeStorage() {
@@ -1698,7 +2073,7 @@ background: rgb(0 179 65 / 48%);
         } else if (facturasTabs.length) {
           facturaTabActiva = facturasTabs[0].id;
         }
-      } catch(e) {}
+      } catch (e) { }
     }
 
     function _crearNuevaTab(nombre) {
@@ -1995,6 +2370,14 @@ background: rgb(0 179 65 / 48%);
       inicializarSignaturePad();
       // Restaurar estado del panel de dibujo DESPUÉS de inicializar el pad y cargar el dibujo
       restaurarEstadoDibujo();
+      // Actualizar color del botón limpiar según si hay dibujo guardado
+      _actualizarBtnLimpiar();
+
+      // Restaurar botones de grid según preferencia guardada
+      const bg = document.getElementById('btn-grid-grande');
+      const bp = document.getElementById('btn-grid-peq');
+      if (bg) bg.classList.toggle('active', gridSize === 'grande');
+      if (bp) bp.classList.toggle('active', gridSize === 'pequena');
 
       showScreen('app');
       showPage('pos');
@@ -2313,8 +2696,16 @@ background: rgb(0 179 65 / 48%);
 
     function renderProdCard(p, busqueda = '') {
       const sinStock = p.stock <= 0;
+      const bajoStock = p.stock <= (p.stockMin || 5) && p.stock > 0;
       const nombreHtml = resaltarTexto(p.nombre || '', busqueda);
-      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')">${p.imagen ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">` : `<div class="prod-emoji">📦</div>`}${p.stock <= (p.stockMin || 5) && p.stock > 0 ? `<div class="stock-badge">⚠️ Bajo</div>` : ''}${sinStock ? `<div class="stock-badge">Sin stock</div>` : ''}<div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${fmt(p.precio)}</div><div class="prod-stock">Stock: ${p.stock}</div></div></div>`;
+      const stockClass = bajoStock ? ' stock-bajo' : '';
+      const esDetallable = esUnidadDetallable(p.unidad);
+      const unidadLabel = esDetallable ? labelUnidad(p.unidad) : '';
+      const precioHtml = esDetallable
+        ? `${fmt(p.precio)}/${unidadLabel}`
+        : fmt(p.precio);
+      const stockHtml = `Stock: ${p.stock}${esDetallable ? ' ' + unidadLabel : ''}`;
+      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')">${p.imagen ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">` : `<div class="prod-emoji">📦</div>`}${bajoStock ? `<div class="stock-badge">⚠️ Bajo</div>` : ''}${sinStock ? `<div class="stock-badge">Sin stock</div>` : ''}<div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
     }
 
     window.buscarProductos = (q) => {
@@ -2333,14 +2724,264 @@ background: rgb(0 179 65 / 48%);
       area.innerHTML = `<div style="padding:0 0 12px;font-size:13px;color:var(--gris-suave);font-weight:600;">${found.length} resultado(s) para "<strong>${escapeHtml(q)}</strong>"</div><div class="productos-grid ${gridSize}">${found.length ? found.map(p => renderProdCard(p, q)).join('') : '<div class="empty-state"><p>Sin resultados</p></div>'}</div>`;
     };
 
-    window.setGridSize = (size) => { gridSize = size; document.getElementById('btn-grid-grande').classList.toggle('active', size === 'grande'); document.getElementById('btn-grid-peq').classList.toggle('active', size === 'pequena'); const grid = document.getElementById('productos-grid'); if (grid) { grid.className = `productos-grid ${size}`; } };
+    window.setGridSize = (size) => { gridSize = size; localStorage.setItem('pos_grid_size', size); document.getElementById('btn-grid-grande').classList.toggle('active', size === 'grande'); document.getElementById('btn-grid-peq').classList.toggle('active', size === 'pequena'); const grid = document.getElementById('productos-grid'); if (grid) { grid.className = `productos-grid ${size}`; } };
+    // Restaurar tamaño de grid guardado
+    (function () { const saved = localStorage.getItem('pos_grid_size'); if (saved === 'pequena' || saved === 'grande') { gridSize = saved; document.addEventListener('DOMContentLoaded', () => { const bg = document.getElementById('btn-grid-grande'); const bp = document.getElementById('btn-grid-peq'); if (bg) bg.classList.toggle('active', saved === 'grande'); if (bp) bp.classList.toggle('active', saved === 'pequena'); }); } })();
 
     window.abrirScaner = () => { document.getElementById('scanner-input').value = ''; abrirModal('modal-scanner'); setTimeout(() => document.getElementById('scanner-input').focus(), 300); };
 
     window.buscarPorBarcode = () => { const codigo = document.getElementById('scanner-input').value.trim(); if (!codigo) return; const prod = productos.find(p => p.codigoBarras === codigo); if (prod) { agregarAlCarritoObj(prod); cerrarModal('modal-scanner'); } else { toast('Producto no encontrado con ese código', 'error'); } };
 
     // ==================== CARRITO ====================
-    // Cola para manejar clicks rápidos en productos sin perderlos
+    // Unidades que permiten cantidades decimales (detallables)
+    const UNIDADES_DETALLABLES = ['libra', 'libras', 'lb', 'kilogramo', 'kilogramos', 'kg', 'kilo', 'kilos', 'onza', 'onzas', 'oz', 'litro', 'litros', 'lt', 'l', 'galon', 'galones', 'gal', 'galón', 'galones'];
+
+    function esUnidadDetallable(unidad) {
+      if (!unidad) return false;
+      return UNIDADES_DETALLABLES.includes((unidad || '').toLowerCase().trim());
+    }
+
+    function labelUnidad(unidad) {
+      const u = (unidad || '').toLowerCase().trim();
+      const map = { libra: 'lb', libras: 'lb', lb: 'lb', kilogramo: 'kg', kilogramos: 'kg', kg: 'kg', kilo: 'kg', kilos: 'kg', onza: 'oz', onzas: 'oz', oz: 'oz', litro: 'L', litros: 'L', lt: 'L', l: 'L', galon: 'gal', galones: 'gal', gal: 'gal', 'galón': 'gal' };
+      return map[u] || unidad;
+    }
+
+    // Estado del modal de detalle
+    let _duProd = null;
+    let _duTab = 'cantidad'; // 'cantidad' | 'precio'
+    let _duValor = '';
+
+    window.duCambiarTab = (tab) => {
+      _duTab = tab;
+      _duValor = '';
+      document.getElementById('du-valor').value = '';
+      document.getElementById('du-tab-cant').classList.toggle('activo', tab === 'cantidad');
+      document.getElementById('du-tab-precio').classList.toggle('activo', tab === 'precio');
+      const lbl = document.getElementById('du-label-unidad');
+      if (tab === 'cantidad') {
+        lbl.textContent = labelUnidad(_duProd?.unidad || '');
+      } else {
+        lbl.textContent = 'RD$';
+      }
+      duActualizarResultado();
+    };
+
+    window.duTecla = (key) => {
+      if (key === '⌫') {
+        _duValor = _duValor.slice(0, -1);
+      } else if (key === '.') {
+        if (!_duValor.includes('.')) _duValor += '.';
+      } else {
+        if (_duValor === '0') _duValor = key;
+        else _duValor += key;
+      }
+      document.getElementById('du-valor').value = _duValor;
+      duActualizarResultado();
+    };
+
+    function duActualizarResultado() {
+      const res = document.getElementById('du-resultado-texto');
+      if (!_duProd || !_duValor) { res.textContent = 'Ingresa la cantidad'; return; }
+      const val = parseFloat(_duValor);
+      if (isNaN(val) || val <= 0) { res.textContent = 'Valor inválido'; return; }
+      const unidadLabel = labelUnidad(_duProd.unidad || '');
+      if (_duTab === 'cantidad') {
+        const subtotal = val * _duProd.precio;
+        res.textContent = `${val} ${unidadLabel} × ${fmt(_duProd.precio)} = ${fmt(subtotal)}`;
+      } else {
+        // Por precio: calcular cuántas unidades
+        const cantEquiv = val / _duProd.precio;
+        res.textContent = `${fmt(val)} ÷ ${fmt(_duProd.precio)}/${unidadLabel} = ${cantEquiv.toFixed(3)} ${unidadLabel}`;
+      }
+    }
+
+    window.duConfirmar = () => {
+      if (!_duProd || !_duValor) { toast('Ingresa una cantidad', 'error'); return; }
+      const val = parseFloat(_duValor);
+      if (isNaN(val) || val <= 0) { toast('Cantidad inválida', 'error'); return; }
+
+      let qty;
+      const precioBase = _duProd._precioBase || _duProd.precio;
+      if (_duTab === 'cantidad') {
+        qty = val;
+      } else {
+        qty = val / precioBase;
+      }
+
+      const carrito = getCarrito();
+      const idx = carrito.findIndex(i => i.id === _duProd.id);
+      if (_duModoEdicion) {
+        // Modo edición: reemplazar qty existente
+        if (idx >= 0) {
+          if (qty <= 0) {
+            carrito.splice(idx, 1);
+          } else {
+            carrito[idx].qty = qty;
+          }
+        }
+      } else {
+        // Modo agregar: sumar o crear
+        if (idx >= 0) {
+          carrito[idx].qty += qty;
+        } else {
+          carrito.push({ ..._duProd, qty, _precioBase: precioBase });
+        }
+      }
+      setCarrito(carrito);
+      renderCarrito();
+      cerrarModal('modal-detalle-unidad');
+      const accion = _duModoEdicion ? 'actualizado' : 'agregado';
+      toast(`✅ ${qty.toFixed(3)} ${labelUnidad(_duProd.unidad)} de ${_duProd.nombre} ${accion}`, 'success');
+    };
+
+    // ===== TECLADO FÍSICO + INPUT NATIVO para modal-detalle-unidad =====
+    (function () {
+
+      // Sincronizar cuando el usuario escribe directo en el input (teclado físico nativo)
+      document.addEventListener('DOMContentLoaded', () => {
+        const inp = document.getElementById('du-valor');
+        if (!inp) return;
+
+        // Escuchar escritura directa en el input
+        inp.addEventListener('input', () => {
+          // Filtrar solo caracteres válidos: dígitos y punto decimal
+          let val = inp.value.replace(/[^0-9.]/g, '');
+          // Evitar más de un punto
+          const parts = val.split('.');
+          if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+          if (inp.value !== val) inp.value = val;
+          _duValor = val;
+          duActualizarResultado();
+        });
+
+        // Interceptar keydown en el input para Enter y Escape
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { duConfirmar(); e.preventDefault(); }
+          else if (e.key === 'Escape') { cerrarModal('modal-detalle-unidad'); e.preventDefault(); }
+        });
+
+        // Observar apertura del modal para enfocar el input
+        const modal = document.getElementById('modal-detalle-unidad');
+        if (!modal) return;
+        const observer = new MutationObserver(() => {
+          if (modal.classList.contains('active')) {
+            setTimeout(() => inp.focus(), 120);
+          }
+        });
+        observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+      });
+
+    })();
+    // ===== FIN TECLADO FÍSICO =====
+
+    let _duModoEdicion = false; // false = agregar nuevo, true = editar existente en carrito
+
+    function abrirModalDetalle(prod) {
+      _duProd = prod;
+      _duModoEdicion = false;
+      _duTab = 'cantidad';
+      _duValor = '';
+      document.getElementById('du-nombre').textContent = prod.nombre;
+      document.getElementById('du-precio-ref').textContent = `Precio: ${fmt(prod.precio)} por ${labelUnidad(prod.unidad)}`;
+      document.getElementById('du-valor').value = '';
+      document.getElementById('du-label-unidad').textContent = labelUnidad(prod.unidad || '');
+      document.getElementById('du-tab-cant').classList.add('activo');
+      document.getElementById('du-tab-precio').classList.remove('activo');
+      const h3 = document.querySelector('#modal-detalle-unidad .modal-header h3');
+      if (h3) h3.innerHTML = '<i class="fas fa-balance-scale"></i> Cantidad a detallar';
+      const btnOk = document.querySelector('#modal-detalle-unidad .detalle-key.ok');
+      if (btnOk) btnOk.innerHTML = '<i class="fas fa-check"></i> Agregar al Carrito';
+      duActualizarResultado();
+      abrirModal('modal-detalle-unidad');
+    }
+
+    window.abrirModalEditarDetalle = (prodId) => {
+      const carrito = getCarrito();
+      const item = carrito.find(i => i.id === prodId);
+      if (!item) return;
+      _duProd = item;
+      _duModoEdicion = true;
+      _duTab = 'cantidad';
+      const qtyActual = item.qty;
+      _duValor = Number.isInteger(qtyActual) ? String(qtyActual) : qtyActual.toFixed(3);
+      document.getElementById('du-nombre').textContent = item.nombre;
+      document.getElementById('du-precio-ref').textContent = `Precio: ${fmt(item._precioBase || item.precio)} por ${labelUnidad(item.unidad)}`;
+      document.getElementById('du-valor').value = _duValor;
+      document.getElementById('du-label-unidad').textContent = labelUnidad(item.unidad || '');
+      document.getElementById('du-tab-cant').classList.add('activo');
+      document.getElementById('du-tab-precio').classList.remove('activo');
+      // Cambiar título y botón confirmar
+      const h3 = document.querySelector('#modal-detalle-unidad .modal-header h3');
+      if (h3) h3.innerHTML = '<i class="fas fa-pen"></i> Editar cantidad';
+      const btnOk = document.querySelector('#modal-detalle-unidad .detalle-key.ok');
+      if (btnOk) btnOk.innerHTML = '<i class="fas fa-check"></i> Actualizar Carrito';
+      duActualizarResultado();
+      abrirModal('modal-detalle-unidad');
+    };
+
+    // Edición inline de cantidad/precio en carrito (para productos detallables)
+    window.editarCantidadDetalle = (prodId, inputEl) => {
+      const carrito = getCarrito();
+      const idx = carrito.findIndex(i => i.id === prodId);
+      if (idx < 0) return;
+      const val = parseFloat(inputEl.value);
+      if (isNaN(val) || val <= 0) { inputEl.value = carrito[idx].qty.toFixed(3); return; }
+      carrito[idx].qty = val;
+      setCarrito(carrito);
+      // Solo actualizar totales sin re-renderizar todo el carrito (para no perder el foco)
+      _actualizarTotalesCarrito();
+    };
+
+    window.editarPrecioDetalle = (prodId, inputEl) => {
+      const carrito = getCarrito();
+      const idx = carrito.findIndex(i => i.id === prodId);
+      if (idx < 0) return;
+      const precioUnitario = carrito[idx]._precioBase || carrito[idx].precio;
+      const totalIngresado = parseFloat(inputEl.value);
+      if (isNaN(totalIngresado) || totalIngresado <= 0) { inputEl.value = (carrito[idx].qty * precioUnitario).toFixed(2); return; }
+      // Calcular nueva qty a partir del precio total ingresado
+      const nuevaQty = totalIngresado / precioUnitario;
+      carrito[idx].qty = nuevaQty;
+      setCarrito(carrito);
+      // Actualizar campo de cantidad también
+      const qtyInput = document.getElementById(`du-qty-${prodId}`);
+      if (qtyInput) qtyInput.value = nuevaQty.toFixed(3);
+      _actualizarTotalesCarrito();
+    };
+
+    window.confirmarEdicionDetalle = (prodId) => {
+      const carrito = getCarrito();
+      const idx = carrito.findIndex(i => i.id === prodId);
+      if (idx < 0) return;
+      if (carrito[idx].qty <= 0) {
+        carrito.splice(idx, 1);
+        setCarrito(carrito);
+        renderCarrito();
+      } else {
+        setCarrito(carrito);
+        renderCarrito();
+      }
+    };
+
+    function _actualizarTotalesCarrito() {
+      const carrito = getCarrito();
+      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+      const itbisPct = config.itbisPct || 18;
+      const itbisCliente = config.itbisCliente !== false;
+      const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
+      const total = subtotal + itbis;
+      document.getElementById('cart-subtotal').textContent = fmt(subtotal);
+      document.getElementById('cart-itbis').textContent = fmt(itbis);
+      document.getElementById('cart-total').textContent = fmt(total);
+      // Actualizar subtotal de cada item detallable
+      carrito.forEach(item => {
+        if (esUnidadDetallable(item.unidad)) {
+          const st = document.getElementById(`du-subtotal-${item.id}`);
+          if (st) st.textContent = fmt((item._precioBase || item.precio) * item.qty);
+        }
+      });
+    }
     let _carritoQueue = [];
     let _carritoProcessing = false;
 
@@ -2359,6 +3000,19 @@ background: rgb(0 179 65 / 48%);
       const prod = productos.find(p => p.id === prodId);
       if (!prod) return;
       if (prod.stock <= 0) { toast('Sin stock disponible', 'error'); return; }
+      if (esUnidadDetallable(prod.unidad)) {
+        // Agregar directo con qty=1, sin modal
+        const carrito = getCarrito();
+        const idx = carrito.findIndex(i => i.id === prod.id);
+        if (idx >= 0) {
+          carrito[idx].qty += 1;
+        } else {
+          carrito.push({ ...prod, qty: 1, _precioBase: prod.precio });
+        }
+        setCarrito(carrito);
+        renderCarrito();
+        return;
+      }
       _carritoQueue.push(prodId);
       requestAnimationFrame(_procesarColaCarrito);
     };
@@ -2386,16 +3040,51 @@ background: rgb(0 179 65 / 48%);
       renderCarrito();
     };
 
+    function _renderItemNormal(item) {
+      return `<div class="carrito-item">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}<div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
+    }
+
+    function _renderItemDetallable(item) {
+      const precioBase = item._precioBase || item.precio;
+      const unidadLabel = labelUnidad(item.unidad || '');
+      const subtotal = precioBase * item.qty;
+      const qtyDisplay = Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(3);
+      return `<div class="carrito-item">
+        ${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'" style="width:44px;height:44px;object-fit:contain;border-radius:6px;background:#f0f0f0;">` : `<div class="item-emoji" style="width:44px;height:44px;font-size:20px;">📦</div>`}
+        <div class="item-info" style="flex:1;min-width:0;">
+          <div class="item-nombre">${item.nombre}</div>
+          <div class="item-precio">${fmt(precioBase)}/${unidadLabel}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <span class="item-subtotal" id="du-subtotal-${item.id}">${fmt(subtotal)}</span>
+            <span style="font-size:11px;color:#888;">· ${qtyDisplay} ${unidadLabel}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+          <button onclick="abrirModalEditarDetalle('${item.id}')" style="background:#1971c2;color:white;border:none;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;"><i class="fas fa-pen" style="font-size:10px;"></i> Editar</button>
+          <button class="qty-btn minus" onclick="eliminarItemDetalle('${item.id}')" style="background:#ffe0e3;color:#e03131;width:32px;height:28px;font-size:14px;" title="Eliminar">🗑</button>
+        </div>
+      </div>`;
+    }
+
+    window.eliminarItemDetalle = (prodId) => {
+      const carrito = getCarrito();
+      const idx = carrito.findIndex(i => i.id === prodId);
+      if (idx >= 0) { carrito.splice(idx, 1); setCarrito(carrito); renderCarrito(); }
+    };
+
     function renderCarrito() {
       renderFacturasTabs();
       const items = document.getElementById('carrito-items');
       const count = document.getElementById('carrito-count');
       const carrito = getCarrito();
       const totalQty = carrito.reduce((s, i) => s + i.qty, 0);
-      count.textContent = totalQty;
-      if (!carrito.length) { items.innerHTML = `<div class="carrito-empty"><i class="fas fa-shopping-cart"></i><p>Agrega productos al carrito</p></div>`; }
-      else { items.innerHTML = carrito.map(item => `<div class="carrito-item">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}<div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`).join(''); }
-      const subtotal = carrito.reduce((s, i) => s + i.precio * i.qty, 0);
+      count.textContent = Number.isInteger(totalQty) ? totalQty : totalQty.toFixed(2);
+      if (!carrito.length) {
+        items.innerHTML = `<div class="carrito-empty"><i class="fas fa-shopping-cart"></i><p>Agrega productos al carrito</p></div>`;
+      } else {
+        items.innerHTML = carrito.map(item => esUnidadDetallable(item.unidad) ? _renderItemDetallable(item) : _renderItemNormal(item)).join('');
+      }
+      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente !== false;
       const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
@@ -2404,27 +3093,40 @@ background: rgb(0 179 65 / 48%);
       document.getElementById('cart-itbis-label').textContent = `ITBIS (${itbisPct}%)${!itbisCliente ? ' (asumido)' : ''}`;
       document.getElementById('cart-itbis').textContent = fmt(itbis);
       document.getElementById('cart-total').textContent = fmt(total);
+      const btnVaciar = document.getElementById('btn-vaciar-carrito');
+      if (btnVaciar) btnVaciar.style.background = carrito.length ? 'var(--rojo)' : '#aab4c8';
+    }
+
+    function _actualizarBtnLimpiar() {
+      const btn = document.querySelector('.btn-dibujo-sm.rojo');
+      if (!btn) return;
+      const tieneContenido = dibujoDataURL !== null;
+      btn.classList.toggle('con-dibujo', tieneContenido);
     }
 
     // ==================== DIBUJO ====================
     // Función central que (re)crea el SignaturePad y adjunta siempre el listener correcto
     function _crearSignaturePad(canvas, dataURL) {
       if (signaturePad) {
-        try { signaturePad.off(); } catch(e) {}
+        try { signaturePad.off(); } catch (e) { }
       }
       const container = canvas.parentElement;
       const rect = container.getBoundingClientRect();
-      const width = rect.width || container.offsetWidth || 300;
-      canvas.width = width;
-      canvas.height = 300;
-      canvas.style.width = width + 'px';
-      canvas.style.height = '300px';
+      // Fallback: usar el ancho de pos-right menos padding si el wrapper mide 0 (aún oculto)
+      const posRight = document.getElementById('pos-right');
+      const width = rect.width || container.offsetWidth
+        || (posRight ? posRight.clientWidth - 32 : 0)
+        || 280;
+      canvas.width = Math.round(width);
+      canvas.height = 256;
+      canvas.style.width = '100%';
+      canvas.style.height = '256px';
 
       signaturePad = new SignaturePad(canvas, {
         backgroundColor: 'white',
         penColor: 'black',
-        minWidth: 1.5,
-        maxWidth: 3,
+        minWidth: 1,
+        maxWidth: 1,
         throttle: 16
       });
 
@@ -2446,6 +3148,7 @@ background: rgb(0 179 65 / 48%);
           tab.dibujoDataURL = dibujoDataURL;
           _guardarDibujoTab(tab.id, dibujoDataURL);
         }
+        _actualizarBtnLimpiar();
       });
     }
 
@@ -2509,10 +3212,11 @@ background: rgb(0 179 65 / 48%);
       } else {
         container.classList.add('visible');
         actualizarEstadoDibujo(true);
+        // Esperar a que termine la transición CSS (~280ms) para medir el ancho real
         setTimeout(() => {
           const canvas = document.getElementById('firmaCanvas');
           if (canvas) _crearSignaturePad(canvas, dibujoDataURL);
-        }, 50);
+        }, 300);
       }
     };
 
@@ -2541,6 +3245,7 @@ background: rgb(0 179 65 / 48%);
           tab.dibujoDataURL = null;
           _guardarDibujoTab(tab.id, null);
         }
+        _actualizarBtnLimpiar();
         toast('Dibujo eliminado', 'info');
       }
     };
@@ -2550,12 +3255,17 @@ background: rgb(0 179 65 / 48%);
       const carrito = getCarrito();
       if (!carrito.length) { toast('El carrito está vacío', 'error'); return; }
       if (!cajaActual) { toast('La caja no está abierta', 'error'); return; }
-      const subtotal = carrito.reduce((s, i) => s + i.precio * i.qty, 0);
+      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente !== false;
       const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
       const total = subtotal + itbis;
-      document.getElementById('factura-items-lista').innerHTML = carrito.map(item => `<div class="factura-item-row"><span class="fi-nombre">${item.nombre}</span><span class="fi-qty">x${item.qty}</span><span class="fi-precio">${fmt(item.precio * item.qty)}</span></div>`).join('');
+      document.getElementById('factura-items-lista').innerHTML = carrito.map(item => {
+        const precioBase = item._precioBase || item.precio;
+        const subtItem = precioBase * item.qty;
+        const qtyLabel = esUnidadDetallable(item.unidad) ? `${item.qty.toFixed(3)} ${labelUnidad(item.unidad)}` : `x${item.qty}`;
+        return `<div class="factura-item-row"><span class="fi-nombre">${item.nombre}</span><span class="fi-qty">${qtyLabel}</span><span class="fi-precio">${fmt(subtItem)}</span></div>`;
+      }).join('');
       document.getElementById('mfact-subtotal').textContent = fmt(subtotal);
       document.getElementById('mfact-itbis-lbl').textContent = `ITBIS (${itbisPct}%)${!itbisCliente ? ' (asumido)' : ''}`;
       document.getElementById('mfact-itbis').textContent = fmt(itbis);
@@ -2577,7 +3287,7 @@ background: rgb(0 179 65 / 48%);
 
     window.setEstadoFactura = (estado) => { estadoFacturaSeleccionado = estado; document.getElementById('btn-estado-pagada').classList.toggle('selected', estado === 'pagada'); document.getElementById('btn-estado-pendiente').classList.toggle('selected', estado === 'pendiente'); };
 
-    window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + i.precio * i.qty, 0) * (1 + (config.itbisCliente !== false ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); if (recibido > 0) { disp.style.display = 'flex'; document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { disp.style.display = 'none'; } };
+    window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente !== false ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); if (recibido > 0) { disp.style.display = 'flex'; document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { disp.style.display = 'none'; } };
 
     window.tecNumero = (val) => { const inp = document.getElementById('monto-recibido'); if (val === 'C') { inp.value = ''; } else if (val === '⌫') { inp.value = inp.value.slice(0, -1); } else if (val === 'OK') { calcularCambio(); return; } else { inp.value += val; } calcularCambio(); };
 
@@ -2597,7 +3307,7 @@ background: rgb(0 179 65 / 48%);
       btn.innerHTML = '<span class="loader"></span> Procesando...';
       btn.disabled = true;
       try {
-        const subtotal = getCarrito().reduce((s, i) => s + i.precio * i.qty, 0);
+        const subtotal = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
         const itbisPct = config.itbisPct || 18;
         const itbisCliente = config.itbisCliente !== false;
         const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
@@ -2610,7 +3320,7 @@ background: rgb(0 179 65 / 48%);
         const notaDibujo = (signaturePad && !signaturePad.isEmpty()) ? signaturePad.toDataURL() : null;
         const direccionCliente = document.getElementById('pos-direccion-cliente')?.value.trim() || '';
 
-        const facturaData = { numero: numFactura, ncf, fecha: serverTimestamp(), items: getCarrito().map(i => ({ id: i.id, nombre: i.nombre, precio: i.precio, qty: i.qty, subtotal: i.precio * i.qty })), subtotal, itbis, itbisPct, total, metodoPago: metodoPagoSeleccionado, montoRecibido: parseFloat(document.getElementById('monto-recibido').value) || total, estado: estadoFacturaSeleccionado, empleadoId: empId, empleadoNombre: empNombre, cajaId: cajaActual.id, uid: currentUser.uid, dibujoNota: notaDibujo, ...(direccionCliente ? { direccionCliente } : {}) };
+        const facturaData = { numero: numFactura, ncf, fecha: serverTimestamp(), items: getCarrito().map(i => { const pb = i._precioBase || i.precio; return { id: i.id, nombre: i.nombre, precio: pb, qty: i.qty, unidad: i.unidad || null, subtotal: pb * i.qty }; }), subtotal, itbis, itbisPct, total, metodoPago: metodoPagoSeleccionado, montoRecibido: parseFloat(document.getElementById('monto-recibido').value) || total, estado: estadoFacturaSeleccionado, empleadoId: empId, empleadoNombre: empNombre, cajaId: cajaActual.id, uid: currentUser.uid, dibujoNota: notaDibujo, ...(direccionCliente ? { direccionCliente } : {}) };
         const factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaData);
         if (estadoFacturaSeleccionado === 'pagada') {
           await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'ingreso', descripcion: `Venta ${numFactura}`, monto: total, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, facturaId: factRef.id, cajaId: cajaActual.id });
@@ -2653,7 +3363,7 @@ background: rgb(0 179 65 / 48%);
       if (factura.dibujoNota) {
         dibujoHtml = `<div style="margin-top:12px; border-top:1px dashed #ccc; padding-top:8px;"><strong>📝 Nota / Dibujo:</strong><br><img src="${factura.dibujoNota}" style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:8px; margin-top:6px;"></div>`;
       }
-      return `<div class="ticket"><div class="ticket-header"><div style="font-size:16px;font-weight:800;">${negocioData?.nombre || 'Colmado'}</div><div>${negocioData?.direccion || ''}</div><div>${negocioData?.telefono || ''}</div>${negocioData?.rnc ? `<div>RNC: ${negocioData.rnc}</div>` : ''}<div style="margin-top:6px;">━━━━━━━━━━━━━━━━━━━━━━</div><div>Factura: ${factura.numero}</div>${factura.ncf ? `<div>NCF: ${factura.ncf}</div>` : ''}<div>${fecha.toLocaleString('es-DO')}</div><div>Empleado: ${factura.empleadoNombre || '-'}</div>${factura.direccionCliente ? `<div style="margin-top:4px;"><strong>📍 Entrega:</strong> ${factura.direccionCliente}</div>` : ''}</div><div>${(factura.items || []).map(i => `<div class="ticket-row"><span>${i.nombre} x${i.qty}</span><span>${fmt(i.subtotal)}</span></div>`).join('')}</div><div class="ticket-total"><div class="ticket-row"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div><div class="ticket-row"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div><div class="ticket-row" style="font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div><div class="ticket-row"><span>Método</span><span>${factura.metodoPago}</span></div>${factura.metodoPago === 'efectivo' ? `<div class="ticket-row"><span>Recibido</span><span>${fmt(factura.montoRecibido)}</span></div><div class="ticket-row"><span>Cambio</span><span>${fmt(Math.max(0, (factura.montoRecibido || 0) - factura.total))}</span></div>` : ''}</div>${dibujoHtml}<div style="text-align:center;margin-top:12px;font-size:11px;">¡Gracias por su compra!<br>Estado: <strong>${factura.estado === 'pagada' ? '✅ PAGADA' : '⏳ PENDIENTE'}</strong></div></div>`;
+      return `<div class="ticket"><div class="ticket-header"><div style="font-size:16px;font-weight:800;">${negocioData?.nombre || 'Colmado'}</div><div>${negocioData?.direccion || ''}</div><div>${negocioData?.telefono || ''}</div>${negocioData?.rnc ? `<div>RNC: ${negocioData.rnc}</div>` : ''}<div style="margin-top:6px;">━━━━━━━━━━━━━━━━━━━━━━</div><div>Factura: ${factura.numero}</div>${factura.ncf ? `<div>NCF: ${factura.ncf}</div>` : ''}<div>${fecha.toLocaleString('es-DO')}</div><div>Empleado: ${factura.empleadoNombre || '-'}</div>${factura.direccionCliente ? `<div style="margin-top:4px;"><strong>📍 Entrega:</strong> ${factura.direccionCliente}</div>` : ''}</div><div>${(factura.items || []).map(i => { const qtyLabel = (i.unidad && esUnidadDetallable(i.unidad)) ? `${parseFloat(i.qty).toFixed(3)} ${labelUnidad(i.unidad)}` : `x${i.qty}`; return `<div class="ticket-row"><span>${i.nombre} ${qtyLabel}</span><span>${fmt(i.subtotal)}</span></div>`; }).join('')}</div><div class="ticket-total"><div class="ticket-row"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div><div class="ticket-row"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div><div class="ticket-row" style="font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div><div class="ticket-row"><span>Método</span><span>${factura.metodoPago}</span></div>${factura.metodoPago === 'efectivo' ? `<div class="ticket-row"><span>Recibido</span><span>${fmt(factura.montoRecibido)}</span></div><div class="ticket-row"><span>Cambio</span><span>${fmt(Math.max(0, (factura.montoRecibido || 0) - factura.total))}</span></div>` : ''}</div>${dibujoHtml}<div style="text-align:center;margin-top:12px;font-size:11px;">¡Gracias por su compra!<br>Estado: <strong>${factura.estado === 'pagada' ? '✅ PAGADA' : '⏳ PENDIENTE'}</strong></div></div>`;
     }
 
     window.imprimirTicket = () => { const content = document.getElementById('modal-ticket-body').innerHTML; const w = window.open('', '_blank'); w.document.write(`<html><head><title>Ticket</title><style>body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;}.ticket-row{display:flex;justify-content:space-between;margin-bottom:4px;}.ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}.ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}</style></head><body>${content}<script>window.print();window.close();<\/script></body></html>`); w.document.close(); };
@@ -3172,7 +3882,7 @@ background: rgb(0 179 65 / 48%);
     }
 
     // Toggle Más Vendidos — solo setea el checked del checkbox nativo
-    window.toggleMasVendidosSlider = () => {}; // ya no se usa, se deja vacío por retrocompatibilidad
+    window.toggleMasVendidosSlider = () => { }; // ya no se usa, se deja vacío por retrocompatibilidad
 
     function setMasVendidosToggle(val) {
       const chk = document.getElementById('prod-mas-vendidos');
@@ -3357,7 +4067,7 @@ background: rgb(0 179 65 / 48%);
       else updateTelPreview('cfg-ws-pais', '', 'cfg-ws-preview');
     }
 
-    window.guardarConfig = async () => { try { const telPaisSel = document.getElementById('cfg-tel-pais'); const wsPaisSel = document.getElementById('cfg-ws-pais'); const telPais = PAISES_TEL.find(p=>p.code===telPaisSel?.value); const wsPais = PAISES_TEL.find(p=>p.code===wsPaisSel?.value); const telRaw = document.getElementById('cfg-telefono').value.trim(); const wsRaw = document.getElementById('cfg-whatsapp').value.trim(); const telFull = telPais && telRaw ? (telRaw.startsWith('+') ? telRaw : telPais.dial + telRaw.replace(/\D/g,'')) : telRaw; const wsFull = wsPais && wsRaw ? (wsRaw.startsWith('+') ? wsRaw : wsPais.dial + wsRaw.replace(/\D/g,'')) : wsRaw; const negUpdate = { nombre: document.getElementById('cfg-nombre').value.trim(), rnc: document.getElementById('cfg-rnc').value.trim(), direccion: document.getElementById('cfg-direccion').value.trim(), telefono: telFull, whatsapp: wsFull }; const cfgUpdate = { ncfPrefijo: document.getElementById('cfg-ncf-prefijo').value.trim() || 'B01', ncfSeq: parseInt(document.getElementById('cfg-ncf-seq').value) || 1, itbisPct: parseFloat(document.getElementById('cfg-itbis-pct').value) || 18, itbisCliente: document.getElementById('cfg-itbis-cliente').checked }; await updateDoc(doc(db, 'negocios', negocioId), negUpdate); await updateDoc(doc(db, 'negocios', negocioId, 'configuraciones', 'general'), cfgUpdate); negocioData = { ...negocioData, ...negUpdate }; config = { ...config, ...cfgUpdate }; document.getElementById('nav-negocio-nombre').textContent = negocioData.nombre || 'Mi Colmado'; toast('Configuración guardada', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+    window.guardarConfig = async () => { try { const telPaisSel = document.getElementById('cfg-tel-pais'); const wsPaisSel = document.getElementById('cfg-ws-pais'); const telPais = PAISES_TEL.find(p => p.code === telPaisSel?.value); const wsPais = PAISES_TEL.find(p => p.code === wsPaisSel?.value); const telRaw = document.getElementById('cfg-telefono').value.trim(); const wsRaw = document.getElementById('cfg-whatsapp').value.trim(); const telFull = telPais && telRaw ? (telRaw.startsWith('+') ? telRaw : telPais.dial + telRaw.replace(/\D/g, '')) : telRaw; const wsFull = wsPais && wsRaw ? (wsRaw.startsWith('+') ? wsRaw : wsPais.dial + wsRaw.replace(/\D/g, '')) : wsRaw; const negUpdate = { nombre: document.getElementById('cfg-nombre').value.trim(), rnc: document.getElementById('cfg-rnc').value.trim(), direccion: document.getElementById('cfg-direccion').value.trim(), telefono: telFull, whatsapp: wsFull }; const cfgUpdate = { ncfPrefijo: document.getElementById('cfg-ncf-prefijo').value.trim() || 'B01', ncfSeq: parseInt(document.getElementById('cfg-ncf-seq').value) || 1, itbisPct: parseFloat(document.getElementById('cfg-itbis-pct').value) || 18, itbisCliente: document.getElementById('cfg-itbis-cliente').checked }; await updateDoc(doc(db, 'negocios', negocioId), negUpdate); await updateDoc(doc(db, 'negocios', negocioId, 'configuraciones', 'general'), cfgUpdate); negocioData = { ...negocioData, ...negUpdate }; config = { ...config, ...cfgUpdate }; document.getElementById('nav-negocio-nombre').textContent = negocioData.nombre || 'Mi Colmado'; toast('Configuración guardada', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
 
     // ==================== ESTADÍSTICAS ====================
     window.estadisticasHoy = () => { const hoy = new Date(); document.getElementById('stats-fecha-ini').value = hoy.toISOString().split('T')[0]; document.getElementById('stats-fecha-fin').value = hoy.toISOString().split('T')[0]; calcularEstadisticas(); };
@@ -3389,34 +4099,34 @@ background: rgb(0 179 65 / 48%);
 
     // ==================== PAÍSES TELÉFONO ====================
     const PAISES_TEL = [
-      { code:'DO', flag:'🇩🇴', name:'Rep. Dominicana', dial:'+1', areaCodes:['809','829','849'] },
-      { code:'US', flag:'🇺🇸', name:'Estados Unidos', dial:'+1', areaCodes:['201','202','203','212','213','305','310','312','347','404','415','424','469','512','602','646','702','713','718','786','917'] },
-      { code:'MX', flag:'🇲🇽', name:'México', dial:'+52', areaCodes:['55','33','81'] },
-      { code:'CO', flag:'🇨🇴', name:'Colombia', dial:'+57', areaCodes:['1','2','4','5','6','7','8'] },
-      { code:'VE', flag:'🇻🇪', name:'Venezuela', dial:'+58', areaCodes:['212','412','414','416','424','426'] },
-      { code:'PR', flag:'🇵🇷', name:'Puerto Rico', dial:'+1', areaCodes:['787','939'] },
-      { code:'HT', flag:'🇭🇹', name:'Haití', dial:'+509', areaCodes:[] },
-      { code:'CU', flag:'🇨🇺', name:'Cuba', dial:'+53', areaCodes:[] },
-      { code:'PA', flag:'🇵🇦', name:'Panamá', dial:'+507', areaCodes:[] },
-      { code:'GT', flag:'🇬🇹', name:'Guatemala', dial:'+502', areaCodes:[] },
-      { code:'HN', flag:'🇭🇳', name:'Honduras', dial:'+504', areaCodes:[] },
-      { code:'SV', flag:'🇸🇻', name:'El Salvador', dial:'+503', areaCodes:[] },
-      { code:'NI', flag:'🇳🇮', name:'Nicaragua', dial:'+505', areaCodes:[] },
-      { code:'CR', flag:'🇨🇷', name:'Costa Rica', dial:'+506', areaCodes:[] },
-      { code:'EC', flag:'🇪🇨', name:'Ecuador', dial:'+593', areaCodes:[] },
-      { code:'PE', flag:'🇵🇪', name:'Perú', dial:'+51', areaCodes:[] },
-      { code:'CL', flag:'🇨🇱', name:'Chile', dial:'+56', areaCodes:[] },
-      { code:'AR', flag:'🇦🇷', name:'Argentina', dial:'+54', areaCodes:[] },
-      { code:'BO', flag:'🇧🇴', name:'Bolivia', dial:'+591', areaCodes:[] },
-      { code:'PY', flag:'🇵🇾', name:'Paraguay', dial:'+595', areaCodes:[] },
-      { code:'UY', flag:'🇺🇾', name:'Uruguay', dial:'+598', areaCodes:[] },
-      { code:'BR', flag:'🇧🇷', name:'Brasil', dial:'+55', areaCodes:[] },
-      { code:'ES', flag:'🇪🇸', name:'España', dial:'+34', areaCodes:[] },
-      { code:'CA', flag:'🇨🇦', name:'Canadá', dial:'+1', areaCodes:['416','604','613','647','780','905'] },
+      { code: 'DO', flag: '🇩🇴', name: 'Rep. Dominicana', dial: '+1', areaCodes: ['809', '829', '849'] },
+      { code: 'US', flag: '🇺🇸', name: 'Estados Unidos', dial: '+1', areaCodes: ['201', '202', '203', '212', '213', '305', '310', '312', '347', '404', '415', '424', '469', '512', '602', '646', '702', '713', '718', '786', '917'] },
+      { code: 'MX', flag: '🇲🇽', name: 'México', dial: '+52', areaCodes: ['55', '33', '81'] },
+      { code: 'CO', flag: '🇨🇴', name: 'Colombia', dial: '+57', areaCodes: ['1', '2', '4', '5', '6', '7', '8'] },
+      { code: 'VE', flag: '🇻🇪', name: 'Venezuela', dial: '+58', areaCodes: ['212', '412', '414', '416', '424', '426'] },
+      { code: 'PR', flag: '🇵🇷', name: 'Puerto Rico', dial: '+1', areaCodes: ['787', '939'] },
+      { code: 'HT', flag: '🇭🇹', name: 'Haití', dial: '+509', areaCodes: [] },
+      { code: 'CU', flag: '🇨🇺', name: 'Cuba', dial: '+53', areaCodes: [] },
+      { code: 'PA', flag: '🇵🇦', name: 'Panamá', dial: '+507', areaCodes: [] },
+      { code: 'GT', flag: '🇬🇹', name: 'Guatemala', dial: '+502', areaCodes: [] },
+      { code: 'HN', flag: '🇭🇳', name: 'Honduras', dial: '+504', areaCodes: [] },
+      { code: 'SV', flag: '🇸🇻', name: 'El Salvador', dial: '+503', areaCodes: [] },
+      { code: 'NI', flag: '🇳🇮', name: 'Nicaragua', dial: '+505', areaCodes: [] },
+      { code: 'CR', flag: '🇨🇷', name: 'Costa Rica', dial: '+506', areaCodes: [] },
+      { code: 'EC', flag: '🇪🇨', name: 'Ecuador', dial: '+593', areaCodes: [] },
+      { code: 'PE', flag: '🇵🇪', name: 'Perú', dial: '+51', areaCodes: [] },
+      { code: 'CL', flag: '🇨🇱', name: 'Chile', dial: '+56', areaCodes: [] },
+      { code: 'AR', flag: '🇦🇷', name: 'Argentina', dial: '+54', areaCodes: [] },
+      { code: 'BO', flag: '🇧🇴', name: 'Bolivia', dial: '+591', areaCodes: [] },
+      { code: 'PY', flag: '🇵🇾', name: 'Paraguay', dial: '+595', areaCodes: [] },
+      { code: 'UY', flag: '🇺🇾', name: 'Uruguay', dial: '+598', areaCodes: [] },
+      { code: 'BR', flag: '🇧🇷', name: 'Brasil', dial: '+55', areaCodes: [] },
+      { code: 'ES', flag: '🇪🇸', name: 'España', dial: '+34', areaCodes: [] },
+      { code: 'CA', flag: '🇨🇦', name: 'Canadá', dial: '+1', areaCodes: ['416', '604', '613', '647', '780', '905'] },
     ];
 
     function initPaisSelects() {
-      ['cfg-tel-pais','cfg-ws-pais'].forEach(selId => {
+      ['cfg-tel-pais', 'cfg-ws-pais'].forEach(selId => {
         const sel = document.getElementById(selId);
         if (!sel || sel.options.length > 1) return;
         sel.innerHTML = PAISES_TEL.map(p =>
@@ -3429,11 +4139,11 @@ background: rgb(0 179 65 / 48%);
     function autoDetectPaisTel(numero, selId, previewId) {
       const sel = document.getElementById(selId);
       if (!sel) return;
-      const digits = numero.replace(/\D/g,'');
+      const digits = numero.replace(/\D/g, '');
       let detectado = null;
       // Detectar por código de área (primeros 3 dígitos sin +1)
-      const area3 = digits.substring(0,3);
-      const area2 = digits.substring(0,2);
+      const area3 = digits.substring(0, 3);
+      const area2 = digits.substring(0, 2);
       for (const p of PAISES_TEL) {
         if (p.areaCodes.includes(area3) || p.areaCodes.includes(area2)) {
           detectado = p;
@@ -3443,7 +4153,7 @@ background: rgb(0 179 65 / 48%);
       // Si el número empieza con + detectar por dial code
       if (!detectado && numero.startsWith('+')) {
         for (const p of PAISES_TEL) {
-          const dialDigits = p.dial.replace('+','');
+          const dialDigits = p.dial.replace('+', '');
           if (digits.startsWith(dialDigits) && dialDigits.length > 1) {
             detectado = p; break;
           }
@@ -3459,7 +4169,7 @@ background: rgb(0 179 65 / 48%);
       if (!prev || !sel) return;
       const pais = PAISES_TEL.find(p => p.code === sel.value);
       if (!pais || !numero) { prev.textContent = ''; return; }
-      const digits = numero.replace(/\D/g,'');
+      const digits = numero.replace(/\D/g, '');
       const full = pais.dial + digits;
       prev.textContent = `${pais.flag} Número completo: ${full}`;
     }
@@ -3508,7 +4218,7 @@ background: rgb(0 179 65 / 48%);
                 return { ...item, imagen: prodSnap.data().imagen || null };
               }
             }
-          } catch(e) { /* silencioso */ }
+          } catch (e) { /* silencioso */ }
           return item;
         }));
 
@@ -3547,11 +4257,88 @@ background: rgb(0 179 65 / 48%);
         showPage('pos');
         toast(`✅ Pedido #${pParam.toUpperCase()} de ${data.clienteNombre || 'cliente'} cargado`, 'success', 5000);
         return true;
-      } catch(e) {
+      } catch (e) {
         toast('Error cargando pedido: ' + e.message, 'error');
         return true;
       }
     }
+    // ==================== POS RESIZER ====================
+    (function () {
+      const MIN_W = 320;
+      const MAX_W = 520;
+      const STORAGE_KEY = 'pos_right_width';
+
+      function setRightWidth(w) {
+        w = Math.max(MIN_W, Math.min(MAX_W, w));
+        document.documentElement.style.setProperty('--pos-right-w', w + 'px');
+        localStorage.setItem(STORAGE_KEY, w);
+      }
+
+      // Recrear el canvas SOLO al terminar el drag, restaurando el dibujo
+      function reajustarCanvas() {
+        const container = document.getElementById('dibujo-container');
+        if (!container?.classList.contains('visible')) return;
+        const canvas = document.getElementById('firmaCanvas');
+        if (!canvas || typeof _crearSignaturePad !== 'function') return;
+        // Guardar el dataURL actual antes de que canvas.width lo borre
+        const dataActual = (typeof dibujoDataURL !== 'undefined' ? dibujoDataURL : null)
+          || (typeof signaturePad !== 'undefined' && signaturePad && !signaturePad.isEmpty()
+            ? signaturePad.toDataURL() : null);
+        _crearSignaturePad(canvas, dataActual);
+      }
+
+      // Restore saved width
+      const saved = parseInt(localStorage.getItem(STORAGE_KEY));
+      if (saved) setRightWidth(saved);
+
+      const resizer = document.getElementById('pos-resizer');
+      if (!resizer) return;
+
+      // Mouse
+      resizer.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        resizer.classList.add('dragging');
+        const startX = e.clientX;
+        const startW = parseInt(getComputedStyle(document.getElementById('pos-right')).width);
+
+        function onMove(e) {
+          const dx = startX - e.clientX; // drag left = wider
+          setRightWidth(startW + dx);
+          // NO tocar el canvas durante el drag — el canvas se estira visualmente con CSS width:100%
+        }
+        function onUp() {
+          resizer.classList.remove('dragging');
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+          // Solo al soltar: recrear canvas con el nuevo ancho y restaurar el dibujo
+          reajustarCanvas();
+        }
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+
+      // Touch
+      resizer.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        resizer.classList.add('dragging');
+        const startX = e.touches[0].clientX;
+        const startW = parseInt(getComputedStyle(document.getElementById('pos-right')).width);
+
+        function onMove(e) {
+          const dx = startX - e.touches[0].clientX;
+          setRightWidth(startW + dx);
+        }
+        function onEnd() {
+          resizer.classList.remove('dragging');
+          document.removeEventListener('touchmove', onMove);
+          document.removeEventListener('touchend', onEnd);
+          reajustarCanvas();
+        }
+        document.addEventListener('touchmove', onMove, { passive: true });
+        document.addEventListener('touchend', onEnd);
+      }, { passive: false });
+    })();
+
     window._manejarPedidoEntrante = manejarPedidoEntrante;
   </script>
 </body>
