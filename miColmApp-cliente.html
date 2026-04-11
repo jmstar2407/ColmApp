@@ -530,14 +530,8 @@
             <div class="shop-banner-addr"><i class="fas fa-map-marker-alt"></i> ${esc(colmadoActual.direccion||'')}${colmadoActual.whatsapp ? `<span style="margin-left:10px;"><i class="fab fa-whatsapp"></i> ${esc(colmadoActual.whatsapp)}</span>` : ''}</div>`;
         }
 
-        // Cargar categorías
-        let catSnap;
-        try {
-          catSnap = await getDocs(query(collection(db, 'negocios', id, 'categorias'), orderBy('orden','asc')));
-        } catch(e) {
-          console.warn('Error ordenando categorías, cargando sin orden:', e);
-          catSnap = await getDocs(collection(db, 'negocios', id, 'categorias'));
-        }
+        // Cargar categorías (sin orderBy para evitar errores de índice)
+        const catSnap = await getDocs(collection(db, 'negocios', id, 'categorias'));
         categoriasLista = catSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         categoriasLista.sort((a,b) => (a.orden??9999)-(b.orden??9999));
 
@@ -546,37 +540,18 @@
         
         for (const cat of categoriasLista) {
           try {
-            let pSnap;
-            try {
-              pSnap = await getDocs(query(
-                collection(db, 'negocios', id, 'categorias', cat.id, 'productos'),
-                orderBy('orden','asc')
-              ));
-            } catch(orderError) {
-              console.warn(`Error ordenando productos de categoría ${cat.id}, cargando sin orden:`, orderError);
-              pSnap = await getDocs(collection(db, 'negocios', id, 'categorias', cat.id, 'productos'));
-            }
-            
+            const pSnap = await getDocs(
+              collection(db, 'negocios', id, 'categorias', cat.id, 'productos')
+            );
             pSnap.docs.forEach(d => {
-              const prodData = d.data();
-              if (prodData.nombre && prodData.precio !== undefined && prodData.precio !== null) {
-                productosLista.push({
-                  id: d.id,
-                  categoriaId: cat.id,
-                  categoriaNombre: cat.nombre,
-                  categoriaEmoji: cat.emoji || '📦',
-                  ...prodData
-                });
-              } else if (prodData.nombre) {
-                productosLista.push({
-                  id: d.id,
-                  categoriaId: cat.id,
-                  categoriaNombre: cat.nombre,
-                  categoriaEmoji: cat.emoji || '📦',
-                  ...prodData,
-                  precio: prodData.precio || 0
-                });
-              }
+              productosLista.push({
+                id: d.id,
+                categoriaId: cat.id,
+                categoriaNombre: cat.nombre,
+                categoriaEmoji: cat.emoji || '📦',
+                ...d.data(),
+                precio: d.data().precio ?? 0
+              });
             });
           } catch(catError) {
             console.error(`Error cargando productos de categoría ${cat.id}:`, catError);
@@ -868,73 +843,94 @@
       return s;
     }
 
-    window.completarPorWhatsapp = async () => {
-      if (!carrito.length) { toast('El carrito está vacío', 'error'); return; }
-      const nombre    = document.getElementById('cliente-nombre').value.trim();
-      const direccion = document.getElementById('cliente-direccion').value.trim();
-      if (!nombre)    { toast('Por favor escribe tu nombre', 'error'); return; }
-      if (!direccion) { toast('Por favor escribe tu dirección de entrega', 'error'); return; }
+   window.completarPorWhatsapp = async () => {
+  if (!carrito.length) { toast('El carrito está vacío', 'error'); return; }
+  const nombre    = document.getElementById('cliente-nombre').value.trim();
+  const direccion = document.getElementById('cliente-direccion').value.trim();
+  if (!nombre)    { toast('Por favor escribe tu nombre', 'error'); return; }
+  if (!direccion) { toast('Por favor escribe tu dirección de entrega', 'error'); return; }
 
-      guardarDatosSiRecordar();
+  guardarDatosSiRecordar();
 
-      const pedidoId = idCorto();
-      const total    = carrito.reduce((s,i)=>s+i.precio*i.qty,0);
-      const fecha    = new Date().toLocaleString('es-DO');
+  const pedidoId = idCorto();
+  const total    = carrito.reduce((s,i)=>s+i.precio*i.qty,0);
+  const fecha    = new Date().toLocaleString('es-DO', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
 
-      const currentUrl = window.location.href.split('?')[0];
-      const adminUrl = currentUrl.replace(/miColmApp-cliente\.html/i, 'miColmApp.html')
-                                  .replace(/cliente\.html/i, '.html');
-      const link = `${adminUrl}?c=${colmadoIdActual}&p=${pedidoId}`;
+  const currentUrl = window.location.href.split('?')[0];
+  const adminUrl = currentUrl.replace(/miColmApp-cliente\.html/i, 'miColmApp.html')
+                              .replace(/cliente\.html/i, '.html');
+  const link = `${adminUrl}?c=${colmadoIdActual}&p=${pedidoId}`;
 
-      let msg = `🛒 *PEDIDO — miColmApp*\n`;
-      msg    += `📋 *#${pedidoId.toUpperCase()}*  ·  ${fecha}\n`;
-      msg    += `━━━━━━━━━━━━━━━━━━━━━\n`;
-      msg    += `👤 *Cliente:* ${nombre}\n`;
-      msg    += `📍 *Entrega:* ${direccion}\n`;
-      msg    += `━━━━━━━━━━━━━━━━━━━━━\n`;
-      msg    += `🧾 *PRODUCTOS:*\n`;
-      carrito.forEach(it => {
-        msg  += `  • ${it.nombre} x${it.qty}  →  ${fmtPrice(it.precio*it.qty)}\n`;
-      });
-      msg    += `━━━━━━━━━━━━━━━━━━━━━\n`;
-      msg    += `💵 *TOTAL: ${fmtPrice(total)}*\n\n`;
-      msg    += `🔗 Ver pedido: ${link}`;
+  // Mensaje profesional SIN emojis
+  let msg = `PEDIDO - miColmApp\n`;
+  msg    += `================================\n`;
+  msg    += `Folio: #${pedidoId.toUpperCase()}\n`;
+  msg    += `Fecha: ${fecha}\n`;
+  msg    += `================================\n\n`;
+  msg    += `DATOS DEL CLIENTE\n`;
+  msg    += `--------------------------------\n`;
+  msg    += `Nombre: ${nombre}\n`;
+  msg    += `Dirección: ${direccion}\n\n`;
+  msg    += `DETALLE DEL PEDIDO\n`;
+  msg    += `--------------------------------\n`;
+  
+  carrito.forEach((it, idx) => {
+    const subtotal = it.precio * it.qty;
+    msg    += `${idx + 1}. ${it.nombre}\n`;
+    msg    += `   Cantidad: ${it.qty} x ${fmtPrice(it.precio)} = ${fmtPrice(subtotal)}\n`;
+  });
+  
+  msg    += `\n`;
+  msg    += `--------------------------------\n`;
+  msg    += `TOTAL: ${fmtPrice(total)}\n`;
+  msg    += `================================\n\n`;
+  msg    += `Enlace de seguimiento:\n`;
+  msg    += `${link}\n\n`;
+  msg    += `Gracias por su compra.`;
 
-      const pedidoData = {
-        pedidoId, colmadoId: colmadoIdActual,
-        colmadoNombre: colmadoActual?.nombre || '',
-        clienteNombre: nombre, clienteDireccion: direccion,
-        items: carrito.map(i => ({
-          id: i.id, categoriaId: i.categoriaId,
-          nombre: i.nombre, precio: i.precio,
-          qty: i.qty, subtotal: i.precio * i.qty,
-          imagen: i.imagen || null
-        })),
-        total, estado: 'pendiente', enlaceAdmin: link, fecha: serverTimestamp()
-      };
+  const pedidoData = {
+    pedidoId, colmadoId: colmadoIdActual,
+    colmadoNombre: colmadoActual?.nombre || '',
+    clienteNombre: nombre, clienteDireccion: direccion,
+    items: carrito.map(i => ({
+      id: i.id, categoriaId: i.categoriaId,
+      nombre: i.nombre, precio: i.precio,
+      qty: i.qty, subtotal: i.precio * i.qty,
+      imagen: i.imagen || null
+    })),
+    total, estado: 'pendiente', enlaceAdmin: link, fecha: serverTimestamp()
+  };
 
-      try {
-        await setDoc(doc(db, 'negocios', colmadoIdActual, 'pedidos_cliente', pedidoId), pedidoData);
-      } catch(e) {
-        toast('Error guardando pedido: ' + e.message, 'error');
-        console.error(e); return;
-      }
+  try {
+    await setDoc(doc(db, 'negocios', colmadoIdActual, 'pedidos_cliente', pedidoId), pedidoData);
+  } catch(e) {
+    toast('Error guardando pedido: ' + e.message, 'error');
+    console.error(e); return;
+  }
 
-      const wsNumero = colmadoActual?.whatsapp || '';
-      let waUrl;
-      if (wsNumero) {
-        const wsDigits = wsNumero.replace(/\D/g,'');
-        waUrl = `https://wa.me/${wsDigits}?text=${encodeURIComponent(msg)}`;
-      } else {
-        waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-      }
+  const wsNumero = colmadoActual?.whatsapp || '';
+  let waUrl;
+  
+  if (wsNumero) {
+    const wsDigits = wsNumero.replace(/\D/g,'');
+    waUrl = `https://wa.me/${wsDigits}?text=${encodeURIComponent(msg)}`;
+  } else {
+    waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  }
 
-      window.open(waUrl, '_blank');
-      linkGenerado = link;
-      document.getElementById('link-pedido-box').style.display = 'block';
-      document.getElementById('link-pedido-url').textContent = link;
-      toast('¡Pedido enviado por WhatsApp! ✅', 'success', 4000);
-    };
+  window.open(waUrl, '_blank');
+  linkGenerado = link;
+  document.getElementById('link-pedido-box').style.display = 'block';
+  document.getElementById('link-pedido-url').textContent = link;
+  toast('Pedido enviado por WhatsApp', 'success', 4000);
+};
 
     window.copiarEnlace = () => {
       if (!linkGenerado) return;
