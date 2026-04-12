@@ -368,7 +368,7 @@
       background: var(--white);
       border-bottom: 1px solid var(--border);
       position: sticky;
-      top: var(--header-h);
+      top: 62px;
       z-index: 90;
     }
 
@@ -471,14 +471,14 @@
     }
 
     .cat-section-title {
-      font-family: var(--font-display);
+      font-family: system-ui;
       font-size: 1rem;
-      font-weight: 900;
+      font-weight: 400;
       padding: 10px 0 8px;
       display: flex;
       align-items: center;
       gap: 10px;
-      color: var(--text);
+      color: #434343;
       letter-spacing: -0.2px;
     }
 
@@ -536,24 +536,25 @@
     }
 
     .prod-img-wrap {
-      position: relative;
       width: 100%;
-      aspect-ratio: 1;
-      overflow: hidden;
-      background: var(--bg);
+      height: 90px;
+      background: #ffffff00;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* margin-bottom: 10px; */
+      font-size: 48px;
+      color: #a0aec0;
     }
 
     .prod-img {
-      width: 100%;
-      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
       object-fit: contain;
-      display: block;
-      transition: transform .3s;
+      border-radius: 9px;
     }
 
-    .prod-card:hover .prod-img {
-      transform: scale(1.04);
-    }
 
     .prod-placeholder {
       width: 100%;
@@ -592,6 +593,11 @@
       font-size: .8rem;
       line-height: 1.3;
       color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .prod-nombre .highlight {
@@ -686,70 +692,58 @@
     /* ── FLOAT CART ── */
     .float-cart {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--white);
-      border-radius: 20px 20px 0 0;
-      z-index: 150;
-      transform: translateY(100%);
-      opacity: 0;
-      transition: transform .38s cubic-bezier(.34, 1.4, .64, 1), opacity .3s ease;
-      border-top: 1.5px solid var(--border);
-      box-shadow: 0 -4px 24px rgba(0,0,0,.12);
+      bottom: 7px;
+      left: 10px;
+      right: 10px;
+      background: var(--verde);
+      border-radius: 12px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
       cursor: pointer;
+      box-shadow: var(--shadow-verde);
+      z-index: 150;
+      transform: translateY(130px);
+      opacity: 0;
+      transition: transform .35s cubic-bezier(.34, 1.56, .64, 1), opacity .3s ease;
     }
-    .float-cart::before {
-      content: '';
-      display: block;
-      width: 36px;
-      height: 4px;
-      background: var(--border2);
-      border-radius: 2px;
-      margin: 10px auto 0;
-    }
+
     .float-cart.visible {
       transform: translateY(0);
       opacity: 1;
     }
-    .float-cart-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 20px 20px;
-    }
+
     .float-cart-left {
       display: flex;
       flex-direction: column;
     }
+
     .float-cart-count {
       font-size: .73rem;
-      color: var(--muted);
+      opacity: .85;
     }
+
     .float-cart-total {
       font-family: var(--font-display);
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-weight: 900;
       letter-spacing: -0.3px;
-      color: var(--verde);
     }
+
     .float-cart-right {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: var(--verde);
+      background: rgba(255, 255, 255, .2);
       border-radius: 10px;
-      padding: 9px 16px;
+      padding: 8px 14px;
       font-weight: 700;
       font-size: .83rem;
-      color: white;
     }
-    .float-cart-expanded {
-      display: none;
-    }
-    .float-cart-items { display: none; }
-    .float-cart-form { display: none; }
-    .float-cart-footer { display: none; }
+
+    /* ── CART DRAWER ── */
     .cart-overlay {
       position: fixed;
       inset: 0;
@@ -776,7 +770,7 @@
       z-index: 201;
       transform: translateY(100%);
       transition: transform .32s cubic-bezier(.25, .46, .45, .94);
-      max-height: 94vh;
+      max-height: 94dvh;
       display: flex;
       flex-direction: column;
     }
@@ -832,7 +826,7 @@
 
     .cart-item {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 10px;
       padding: 12px 0;
       border-bottom: 1px solid var(--border);
@@ -887,7 +881,6 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      margin-top: 6px;
     }
 
     .cart-qty-btn {
@@ -1448,39 +1441,42 @@
     .unit-modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.52);
+      background: rgba(0, 0, 0, .52);
       z-index: 500;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 16px;
       opacity: 0;
       pointer-events: none;
       transition: opacity .22s;
-      backdrop-filter: blur(3px);
+      backdrop-filter: blur(2px);
+      padding: 20px 16px;
     }
+
     .unit-modal-overlay.open {
       opacity: 1;
       pointer-events: all;
     }
+
     .unit-modal {
       background: var(--white);
       border-radius: 24px;
       width: 100%;
-      max-width: 440px;
+      max-width: 480px;
       padding: 0 0 24px;
-      transform: scale(.88) translateY(16px);
-      opacity: 0;
-      transition: transform .3s cubic-bezier(.34,1.4,.64,1), opacity .25s ease;
-      box-shadow: 0 24px 60px rgba(0,0,0,.2);
+      transform: scale(.93) translateY(16px);
+      transition: transform .28s cubic-bezier(.25, .46, .45, .94);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, .22);
     }
+
     .unit-modal-overlay.open .unit-modal {
       transform: scale(1) translateY(0);
-      opacity: 1;
     }
+
     .unit-modal-handle {
       display: none;
     }
+
     .unit-modal-header {
       display: flex;
       align-items: center;
@@ -1488,25 +1484,32 @@
       padding: 14px 20px 10px;
       border-bottom: 1px solid var(--border);
     }
+
     .unit-modal-title {
       font-family: var(--font-display);
       font-size: 1.05rem;
       font-weight: 900;
       color: var(--text);
     }
+
     .unit-modal-close {
       background: var(--bg2);
       border: none;
       border-radius: var(--radius-xs);
-      width: 32px; height: 32px;
+      width: 32px;
+      height: 32px;
       cursor: pointer;
       color: var(--text2);
       font-size: .9rem;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
     .unit-modal-body {
       padding: 18px 20px 0;
     }
+
     .unit-modal-prod-info {
       display: flex;
       align-items: center;
@@ -1516,26 +1519,34 @@
       border-radius: var(--radius-sm);
       padding: 12px 14px;
     }
+
     .unit-modal-prod-img {
-      width: 50px; height: 50px;
+      width: 50px;
+      height: 50px;
       border-radius: 10px;
       object-fit: cover;
       background: var(--bg);
       flex-shrink: 0;
     }
+
     .unit-modal-prod-emoji {
-      width: 50px; height: 50px;
+      width: 50px;
+      height: 50px;
       border-radius: 10px;
       background: linear-gradient(135deg, var(--bg), var(--border));
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 1.6rem;
       flex-shrink: 0;
     }
+
     .unit-modal-prod-name {
       font-weight: 700;
       font-size: .92rem;
       color: var(--text);
     }
+
     .unit-modal-prod-price {
       font-family: var(--font-display);
       font-weight: 900;
@@ -1543,6 +1554,7 @@
       color: var(--verde);
       margin-top: 2px;
     }
+
     .unit-modal-tabs {
       display: flex;
       border-radius: var(--radius-xs);
@@ -1550,6 +1562,7 @@
       border: 1.5px solid var(--border2);
       margin-bottom: 14px;
     }
+
     .unit-modal-tab {
       flex: 1;
       padding: 10px 4px;
@@ -1563,10 +1576,12 @@
       transition: all .15s;
       text-align: center;
     }
+
     .unit-modal-tab.active {
       background: var(--azul);
       color: white;
     }
+
     .unit-modal-input-wrap {
       display: flex;
       align-items: center;
@@ -1578,10 +1593,12 @@
       transition: border-color .15s, box-shadow .15s;
       margin-bottom: 10px;
     }
+
     .unit-modal-input-wrap:focus-within {
       border-color: var(--azul);
-      box-shadow: 0 0 0 3px rgba(25,113,194,.1);
+      box-shadow: 0 0 0 3px rgba(25, 113, 194, .1);
     }
+
     .unit-modal-input {
       flex: 1;
       padding: 13px 0;
@@ -1593,12 +1610,14 @@
       color: var(--text);
       background: transparent;
     }
+
     .unit-modal-suffix {
       font-size: .82rem;
       font-weight: 800;
       color: var(--muted);
       white-space: nowrap;
     }
+
     .unit-modal-result {
       font-size: .82rem;
       color: var(--verde-dark);
@@ -1607,6 +1626,7 @@
       text-align: center;
       margin-bottom: 16px;
     }
+
     .unit-modal-add-btn {
       width: 100%;
       padding: 14px;
@@ -1623,10 +1643,17 @@
       justify-content: center;
       gap: 8px;
       transition: background .15s, transform .12s;
-      box-shadow: 0 4px 14px rgba(25,113,194,.28);
+      box-shadow: 0 4px 14px rgba(25, 113, 194, .28);
     }
-    .unit-modal-add-btn:hover { background: #1560a8; }
-    .unit-modal-add-btn:active { transform: scale(.98); }
+
+    .unit-modal-add-btn:hover {
+      background: #1560a8;
+    }
+
+    .unit-modal-add-btn:active {
+      transform: scale(.98);
+    }
+
     .unit-modal-add-btn:disabled {
       background: var(--border2);
       color: #999;
@@ -1706,16 +1733,21 @@
 
   <!-- ══ TIENDA ══ -->
   <div class="screen" id="screen-shop">
-    <div class="app-header">
-      <button class="header-back" onclick="volverColmados()"><i class="fas fa-arrow-left"></i> Colmados</button>
-      <div style="flex:1"></div>
-      <button class="cart-btn" id="cart-header-btn" style="display:none;" onclick="abrirCarrito()">
+    <div id="shop-header" class="shop-banner" style="position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px;padding:0 14px;height:62px;overflow:visible;">
+      <button onclick="volverColmados()" style="flex-shrink:0;background:rgba(255,255,255,.18);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;cursor:pointer;backdrop-filter:blur(4px);transition:background .15s;" onmouseenter="this.style.background='rgba(255,255,255,.28)'" onmouseleave="this.style.background='rgba(255,255,255,.18)'">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div style="flex:1;min-width:0;overflow:hidden;">
+        <div id="shop-header-nombre" style="font-family:var(--font-display);font-weight:900;font-size:1rem;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.15);"></div>
+        <div id="shop-header-dir" style="font-size:.68rem;color:rgba(255,255,255,.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;display:flex;align-items:center;gap:4px;"></div>
+        <div id="shop-header-ws" style="font-size:.66rem;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;display:none;align-items:center;gap:4px;"></div>
+      </div>
+      <button id="cart-header-btn" onclick="abrirCarrito()" style="flex-shrink:0;position:relative;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;cursor:pointer;backdrop-filter:blur(4px);transition:background .15s;" onmouseenter="this.style.background='rgba(255,255,255,.32)'" onmouseleave="this.style.background='rgba(255,255,255,.2)'">
         <i class="fas fa-shopping-cart"></i>
-        <span id="cart-header-total">RD$ 0</span>
-        <span class="cart-badge" id="cart-header-badge">0</span>
+        <span id="cart-header-badge" style="position:absolute;top:-6px;right:-6px;background:var(--rojo);color:white;border-radius:20px;font-size:.58rem;font-weight:900;min-width:17px;height:17px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid white;line-height:1;">0</span>
       </button>
     </div>
-    <div id="shop-banner" class="shop-banner"></div>
+    <div id="shop-banner" style="display:none;"></div>
     <div class="cats-wrap">
       <div class="cats-scroll" id="cats-scroll"></div>
     </div>
@@ -1795,14 +1827,12 @@
   </div>
 
   <!-- ══ FLOAT CART ══ -->
-  <div class="float-cart" id="float-cart">
-    <div class="float-cart-inner">
-      <div class="float-cart-left">
-        <div class="float-cart-count" id="float-cart-count">0 productos</div>
-        <div class="float-cart-total" id="float-cart-total">RD$ 0.00</div>
-      </div>
-      <div class="float-cart-right"><i class="fas fa-shopping-bag"></i> Ver carrito</div>
+  <div class="float-cart" id="float-cart" onclick="abrirCarrito()">
+    <div class="float-cart-left">
+      <div class="float-cart-count" id="float-cart-count">0 productos</div>
+      <div class="float-cart-total" id="float-cart-total">RD$ 0.00</div>
     </div>
+    <div class="float-cart-right"><i class="fas fa-shopping-bag"></i> Ver carrito</div>
   </div>
 
   <!-- ══ MODAL UNIDAD ══ -->
@@ -1811,16 +1841,18 @@
       <div class="unit-modal-handle"></div>
       <div class="unit-modal-header">
         <div class="unit-modal-title" id="unit-modal-title">Agregar producto</div>
-        <button class="unit-modal-close" onclick="_cerrarModalUnidadBtn()"><i class="fas fa-times"></i></button>
+        <button class="unit-modal-close" onclick="cerrarModalUnidad()"><i class="fas fa-times"></i></button>
       </div>
       <div class="unit-modal-body">
         <div class="unit-modal-prod-info" id="unit-modal-prod-info"></div>
         <div class="unit-modal-tabs" id="unit-modal-tabs">
-          <button class="unit-modal-tab active" id="unit-modal-tab-unidad" onclick="setModalModo('unidad')">Por unidad</button>
+          <button class="unit-modal-tab active" id="unit-modal-tab-unidad" onclick="setModalModo('unidad')">Por
+            unidad</button>
           <button class="unit-modal-tab" id="unit-modal-tab-precio" onclick="setModalModo('precio')">Por precio</button>
         </div>
         <div class="unit-modal-input-wrap">
-          <input class="unit-modal-input" id="unit-modal-input" type="number" min="0" step="0.1" placeholder="Ej: 2.5" oninput="calcModalResult()">
+          <input class="unit-modal-input" id="unit-modal-input" type="number" min="0" step="0.1" placeholder="Ej: 2.5"
+            oninput="calcModalResult()">
           <span class="unit-modal-suffix" id="unit-modal-suffix">lb</span>
         </div>
         <div class="unit-modal-result" id="unit-modal-result"></div>
@@ -1955,9 +1987,49 @@
     window.volverColmados = () => {
       carrito = []; actualizarCarritoUI();
       showScreen('colmados');
-      history.pushState({}, '', location.pathname);
+      history.pushState({ screen: 'colmados' }, '', location.pathname);
       cargarColmados();
     };
+
+    // ══════════════════════
+    // HISTORIAL / BACK BUTTON
+    // ══════════════════════
+    // Push estados para manejar el botón retroceder
+    function pushHistoryShop(id) {
+      history.pushState({ screen: 'shop', colmadoId: id }, '', `?c=${id}`);
+    }
+    function pushHistoryModal(type) {
+      history.pushState({ modal: type }, '', location.href.split('#')[0]);
+    }
+
+    window.addEventListener('popstate', (e) => {
+      const state = e.state;
+      // 1) Si el modal de unidad está abierto → cerrarlo
+      const unitOverlay = document.getElementById('unit-modal-overlay');
+      if (unitOverlay && unitOverlay.classList.contains('open')) {
+        unitOverlay.classList.remove('open');
+        _modalProdId = null;
+        // Volvemos a empujar el estado del shop para que el próximo back funcione
+        history.pushState({ screen: 'shop', colmadoId: colmadoIdActual }, '', location.href);
+        return;
+      }
+      // 2) Si el carrito está abierto → cerrarlo
+      const cartDrawer = document.getElementById('cart-drawer');
+      if (cartDrawer && cartDrawer.classList.contains('open')) {
+        cerrarCarrito();
+        history.pushState({ screen: 'shop', colmadoId: colmadoIdActual }, '', location.href);
+        return;
+      }
+      // 3) Si estamos en la tienda → volver a colmados
+      const shopScreen = document.getElementById('screen-shop');
+      if (shopScreen && shopScreen.classList.contains('active')) {
+        carrito = []; actualizarCarritoUI();
+        showScreen('colmados');
+        history.replaceState({ screen: 'colmados' }, '', location.pathname);
+        cargarColmados();
+        return;
+      }
+    });
 
     // ══════════════════════
     // SHOP - VERSIÓN CORREGIDA
@@ -1970,6 +2042,10 @@
       catFiltro = '';
       busqueda = '';
       actualizarCarritoUI();
+      // Push state para que el botón retroceder funcione
+      if (!history.state || history.state.screen !== 'shop' || history.state.colmadoId !== id) {
+        history.pushState({ screen: 'shop', colmadoId: id }, '', `?c=${id}`);
+      }
 
       const prodsArea = document.getElementById('shop-prods');
       if (prodsArea) {
@@ -1989,6 +2065,24 @@
           banner.innerHTML = `
             <div class="shop-banner-name">${esc(colmadoActual.nombre || 'Colmado')}</div>
             <div class="shop-banner-addr"><i class="fas fa-map-marker-alt"></i> ${esc(colmadoActual.direccion || '')}${colmadoActual.whatsapp ? `<span style="margin-left:10px;"><i class="fab fa-whatsapp"></i> ${esc(colmadoActual.whatsapp)}</span>` : ''}</div>`;
+        }
+
+        // Actualizar encabezado del shop
+        const hNombre = document.getElementById('shop-header-nombre');
+        const hDir = document.getElementById('shop-header-dir');
+        const hWs = document.getElementById('shop-header-ws');
+        if (hNombre) hNombre.textContent = colmadoActual.nombre || 'Colmado';
+        if (hDir) {
+          hDir.style.display = 'flex';
+          hDir.innerHTML = colmadoActual.direccion ? `<i class="fas fa-map-marker-alt" style="opacity:.7;font-size:.6rem;"></i> ${esc(colmadoActual.direccion)}` : '';
+        }
+        if (hWs) {
+          if (colmadoActual.whatsapp) {
+            hWs.innerHTML = `<i class="fab fa-whatsapp" style="opacity:.7;font-size:.6rem;"></i> ${esc(colmadoActual.whatsapp)}`;
+            hWs.style.display = 'flex';
+          } else {
+            hWs.style.display = 'none';
+          }
         }
 
         // Cargar categorías (sin orderBy para evitar errores de índice)
@@ -2118,7 +2212,7 @@
         categoriasConProductos++;
 
         html += `<div class="cat-section">
-          <div class="cat-section-title"><span class="cat-emoji">${cat.emoji || '📦'}</span>${esc(cat.nombre)}</div>
+          <div class="cat-section-title"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-basket-icon lucide-shopping-basket"><path d="m15 11-1 9"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="M4.5 15.5h15"/><path d="m5 11 4-7"/><path d="m9 11 1 9"/></svg>${esc(cat.nombre)}</div>
           <div class="prods-grid">${prods.map(p => prodCardHTML(p, '')).join('')}</div>
         </div>`;
       }
@@ -2186,14 +2280,14 @@
                <i class="fas fa-plus"></i> Agregar
              </button>`;
       } else {
-        // Producto por unidad: botón que abre modal
+        // Producto por unidad: botón que abre modal + basurero si está en carrito
         if (enCarrito) {
-          ctrl = `<div style="display:flex;gap:6px;align-items:center;">
-                    <button class="prod-add-btn" style="background:var(--rojo-light);color:var(--rojo);flex:0 0 36px;padding:0;height:36px;border-radius:var(--radius-xs);margin-top:8px;" onclick="event.stopPropagation();eliminarProdCarrito('${p.id}')">
-                      <i class="fas fa-trash" style="font-size:.7rem;"></i>
+          ctrl = `<div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+                    <button class="prod-add-btn" style="background:var(--rojo-light);color:var(--rojo);width:auto;padding:8px 10px;flex-shrink:0;" onclick="event.stopPropagation();eliminarDelCarrito('${p.id}')">
+                      <i class="fas fa-trash"></i>
                     </button>
-                    <button class="prod-add-btn" style="background:var(--azul);flex:1;" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')">
-                      <i class="fas fa-edit"></i> Editar cantidad
+                    <button class="prod-add-btn" style="background:var(--azul);flex:1;margin-top:0;" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')">
+                      <i class="fas fa-edit"></i> Editar
                     </button>
                   </div>`;
         } else {
@@ -2203,8 +2297,8 @@
         }
       }
 
-      return `<div class="prod-card ${qty > 0 ? 'en-carrito' : ''}" ${detallable ? '' : 'onclick="agregarProd(\'' + p.id + '\')"'}>
-                <div class="prod-img-wrap">${imgHtml}${cartBadge}</div>
+      return `<div class="prod-card ${qty > 0 ? 'en-carrito' : ''}" onclick="${detallable ? 'abrirModalUnidad(\'' + p.id + '\')' : 'agregarProd(\'' + p.id + '\')'}">
+                <div class="prod-img-wrap" style="${detallable ? 'height:74px;' : ''}">${imgHtml}${cartBadge}</div>
                 <div class="prod-body">
                   <div class="prod-nombre">${nombreHtml}</div>
                   <div class="prod-precio">${precioLabel}</div>
@@ -2264,20 +2358,14 @@
         calcModalResult();
       }
 
-      document.body.style.overflow = 'hidden';
       document.getElementById('unit-modal-overlay').classList.add('open');
       setTimeout(() => inp.focus(), 200);
+      history.pushState({ modal: 'unit', screen: 'shop', colmadoId: colmadoIdActual }, '', location.href);
     };
 
     window.cerrarModalUnidad = (e) => {
       if (e && e.target !== document.getElementById('unit-modal-overlay')) return;
       document.getElementById('unit-modal-overlay').classList.remove('open');
-      document.body.style.overflow = '';
-      _modalProdId = null;
-    };
-    window._cerrarModalUnidadBtn = () => {
-      document.getElementById('unit-modal-overlay').classList.remove('open');
-      document.body.style.overflow = '';
       _modalProdId = null;
     };
 
@@ -2368,23 +2456,10 @@
       renderProductos();
     };
 
-    window.eliminarProdCarrito = (prodId) => {
+    window.eliminarDelCarrito = (prodId) => {
       carrito = carrito.filter(i => i.id !== prodId);
       actualizarCarritoUI();
       renderProductos();
-    };
-
-    window.abrirModalUnidadDesdeCarrito = (prodId) => {
-      // Busca el producto en la lista de productos
-      let p = productosLista.find(x => x.id === prodId);
-      if (!p) {
-        // Si no está en lista (poco probable), reconstruye desde carrito
-        const it = carrito.find(i => i.id === prodId);
-        if (!it) return;
-        p = { id: it.id, categoriaId: it.categoriaId, nombre: it.nombre, precio: it.precio, unidad: it.unidad, imagen: it.imagen, emoji: it.emoji };
-        productosLista.push(p);
-      }
-      abrirModalUnidad(prodId);
     };
 
     function actualizarCarritoUI() {
@@ -2393,9 +2468,8 @@
       const tf = fmtPrice(total);
 
       document.getElementById('cart-total-display').textContent = tf;
-      document.getElementById('cart-header-total').textContent = tf;
       document.getElementById('cart-header-badge').textContent = count;
-      document.getElementById('cart-header-btn').style.display = count > 0 ? 'flex' : 'none';
+      // cart-header-btn siempre visible
       document.getElementById('float-cart-count').textContent = `${count} producto${count !== 1 ? 's' : ''}`;
       document.getElementById('float-cart-total').textContent = tf;
       document.getElementById('float-cart').classList.toggle('visible', count > 0);
@@ -2419,8 +2493,8 @@
           ? `<div class="cart-item-unit">${it.qty.toFixed(3)} ${lbl} × ${fmtPrice(it.precio)}</div>` : '';
         const qtyCtrl = isUnit
           ? `<div style="display:flex;align-items:center;gap:6px;">
-               <button class="cart-qty-btn minus" style="background:var(--rojo-light);color:var(--rojo);width:32px;height:32px;" onclick="eliminarProdCarrito('${it.id}')"><i class="fas fa-trash" style="font-size:.6rem;"></i></button>
-               <button class="cart-qty-btn plus" style="background:var(--azul-light);color:var(--azul);width:auto;padding:0 10px;height:32px;border-radius:7px;font-size:.72rem;font-weight:700;" onclick="abrirModalUnidadDesdeCarrito('${it.id}')"><i class="fas fa-edit" style="margin-right:4px;"></i>Editar</button>
+               <button class="cart-qty-btn minus" style="background:var(--rojo-light);color:var(--rojo);" onclick="eliminarDelCarrito('${it.id}')"><i class="fas fa-trash" style="font-size:.6rem;"></i></button>
+               <button class="cart-qty-btn" style="background:var(--azul-light);color:var(--azul);width:auto;padding:0 10px;font-size:.72rem;font-weight:800;border-radius:7px;border:none;cursor:pointer;" onclick="abrirModalUnidad('${it.id}')"><i class="fas fa-edit" style="font-size:.6rem;margin-right:3px;"></i>Editar</button>
              </div>`
           : `<div style="display:flex;align-items:center;gap:6px;">
                <button class="cart-qty-btn minus" onclick="quitarProd('${it.id}')">−</button>
@@ -2434,8 +2508,8 @@
             <div class="cart-item-name">${esc(it.nombre)}</div>
             ${unitInfo}
             <div class="cart-item-price">${fmtPrice(sub)}</div>
-            <div class="cart-item-qty">${qtyCtrl}</div>
           </div>
+          <div class="cart-item-qty" style="flex-shrink:0;margin-top:0;">${qtyCtrl}</div>
         </div>`;
       }).join('');
     }
@@ -2446,16 +2520,15 @@
       document.getElementById('cart-overlay').classList.add('open');
       document.getElementById('cart-drawer').classList.add('open');
       document.getElementById('link-pedido-box').style.display = 'none';
-      document.body.style.overflow = 'hidden';
       linkGenerado = null;
       datosModificados = false;
+      history.pushState({ modal: 'cart', screen: 'shop', colmadoId: colmadoIdActual }, '', location.href);
     };
 
     window.cerrarCarrito = () => {
       if (datosModificados) guardarDatosSiRecordar();
       document.getElementById('cart-overlay').classList.remove('open');
       document.getElementById('cart-drawer').classList.remove('open');
-      document.body.style.overflow = '';
     };
 
     // Swipe down to close cart drawer
@@ -2498,41 +2571,6 @@
       drawer.addEventListener('touchstart', onTouchStart, { passive: true });
       drawer.addEventListener('touchmove', onTouchMove, { passive: false });
       drawer.addEventListener('touchend', onTouchEnd);
-    })();
-
-    // ══════════════════════
-    // FLOAT CART – abre el cart-drawer
-    // ══════════════════════
-    (function () {
-      const fc = document.getElementById('float-cart');
-      let touchStartY = 0, isDragging = false, dragMoved = false;
-
-      fc.addEventListener('touchstart', (e) => {
-        touchStartY = e.touches[0].clientY;
-        isDragging = true;
-        dragMoved = false;
-      }, { passive: true });
-
-      fc.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        const deltaY = e.touches[0].clientY - touchStartY;
-        if (Math.abs(deltaY) > 8) dragMoved = true;
-      }, { passive: true });
-
-      fc.addEventListener('touchend', (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-        const deltaY = e.changedTouches[0].clientY - touchStartY;
-        // swipe up (deltaY negativo) o tap simple → abrir carrito
-        if (!dragMoved || deltaY < -30) {
-          abrirCarrito();
-        }
-        dragMoved = false;
-      });
-
-      fc.addEventListener('click', () => {
-        abrirCarrito();
-      });
     })();
 
     // ══════════════════════
@@ -2761,7 +2799,7 @@
     function ocultarLoading() {
       document.getElementById('loading-screen').style.display = 'none';
     }
-    function toast() {} // eliminado
+    function toast() { } // eliminado
     window.toast = toast;
 
     init();
