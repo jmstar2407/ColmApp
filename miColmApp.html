@@ -4244,10 +4244,7 @@
         }));
 
         // Crear nueva tab con los datos del pedido
-        // Nombre de la tab: dirección del cliente (con nombre si está disponible), fallback al folio
-        const tabNombre = data.clienteDireccion
-          ? (data.clienteNombre ? `${data.clienteNombre} — ${data.clienteDireccion}` : data.clienteDireccion)
-          : `Pedido ${(pParam).toUpperCase()}`;
+        const tabNombre = data.clienteDireccion || `Pedido ${(pParam).toUpperCase()}`;
         const id = _crearNuevaTab(tabNombre);
         const tab = facturasTabs.find(t => t.id === id);
         if (tab) {
@@ -4262,10 +4259,7 @@
           }));
           tab.direccion = data.clienteDireccion || '';
           tab.nombre = tabNombre;
-          // Guardar nombre del cliente
-          if (data.clienteNombre) {
-            tab.clienteNombre = data.clienteNombre;
-          }
+          if (data.clienteNombre) tab.clienteNombre = data.clienteNombre;
         }
         facturaTabActiva = id;
         _guardarTabsEnStorage();
