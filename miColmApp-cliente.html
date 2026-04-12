@@ -241,22 +241,6 @@
     .cart-items-list::-webkit-scrollbar{width:4px;}
     .cart-items-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
-    /* ── UNIDAD DETALLABLE ── */
-    .prod-unidad-badge{display:inline-block;background:var(--azul-light);color:var(--azul);font-size:.64rem;font-weight:800;border-radius:20px;padding:1px 7px;margin-top:3px;letter-spacing:.3px;}
-    .prod-unit-ctrl{margin-top:8px;display:flex;flex-direction:column;gap:5px;}
-    .prod-unit-tabs{display:flex;border-radius:var(--radius-xs);overflow:hidden;border:1.5px solid var(--border2);}
-    .prod-unit-tab{flex:1;padding:5px 2px;border:none;background:var(--bg2);color:var(--text2);font-family:var(--font);font-size:.67rem;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;}
-    .prod-unit-tab.active{background:var(--azul);color:white;}
-    .prod-unit-input-row{display:flex;align-items:center;gap:5px;}
-    .prod-unit-input{flex:1;padding:6px 8px;border:1.5px solid var(--border2);border-radius:var(--radius-xs);font-family:var(--font);font-size:.82rem;font-weight:700;color:var(--text);outline:none;width:100%;transition:border-color .15s;}
-    .prod-unit-input:focus{border-color:var(--azul);}
-    .prod-unit-suffix{font-size:.72rem;font-weight:800;color:var(--muted);white-space:nowrap;min-width:20px;}
-    .prod-unit-result{font-size:.7rem;color:var(--verde-dark);font-weight:700;min-height:14px;text-align:center;}
-    .prod-unit-add-btn{width:100%;padding:7px;border:none;border-radius:var(--radius-xs);background:var(--azul);color:white;font-family:var(--font);font-weight:700;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:background .15s;}
-    .prod-unit-add-btn:hover{background:#1560a8;}
-    .prod-unit-add-btn:disabled{background:var(--border2);color:#999;cursor:not-allowed;}
-    .cart-item-unit{font-size:.72rem;color:var(--muted);margin-top:1px;}
-
     /* ── RESPONSIVE DESKTOP ── */
     @media(min-width:768px){
       .cart-drawer{left:50%;right:auto;transform:translateX(-50%) translateY(100%);width:520px;border-radius:var(--radius) var(--radius) 0 0;}
@@ -695,148 +679,41 @@
       return `${before}<span class="highlight">${match}</span>${after}`;
     }
 
-    // ── Unidades que se venden por peso/volumen ──
-    const UNIDADES_DETALLABLES = ['libra','libras','lb','kilogramo','kilogramos','kg','kilo','kilos','onza','onzas','oz','litro','litros','lt','l','galon','galones','gal','galón'];
-    function esDetallable(unidad) {
-      return UNIDADES_DETALLABLES.includes((unidad||'').toLowerCase().trim());
-    }
-    function labelUnidad(unidad) {
-      const map = {libra:'lb',libras:'lb',lb:'lb',kilogramo:'kg',kilogramos:'kg',kg:'kg',kilo:'kg',kilos:'kg',onza:'oz',onzas:'oz',oz:'oz',litro:'L',litros:'L',lt:'L',l:'L',galon:'gal',galones:'gal',gal:'gal','galón':'gal'};
-      return map[(unidad||'').toLowerCase().trim()] || unidad || '';
-    }
-    // Estado de modo (por unidad / por precio) por producto
-    const _modoInput = {}; // prodId -> 'unidad' | 'precio'
-
     function prodCardHTML(p, query) {
       const enCarrito = carrito.find(i => i.id === p.id);
-      const qty       = enCarrito ? enCarrito.qty : 0;
-      const detallable = esDetallable(p.unidad);
-      const lbl       = labelUnidad(p.unidad);
-      const precioFmt = (p.precio !== undefined && p.precio !== null)
+      const qty = enCarrito ? enCarrito.qty : 0;
+      const precio = (p.precio !== undefined && p.precio !== null)
         ? `RD$ ${Number(p.precio).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2})}`
         : 'Sin precio';
-      const precioLabel = detallable ? `${precioFmt} / ${lbl}` : precioFmt;
 
       const imgHtml = p.imagen
         ? `<img class="prod-img" src="${p.imagen}" alt="${esc(p.nombre||'')}"
              onerror="this.parentElement.innerHTML='<div class=\\'prod-placeholder\\'>${p.emoji||'📦'}</div>'">`
         : `<div class="prod-placeholder">${p.emoji||'📦'}</div>`;
 
-      const cartBadge = qty > 0
-        ? `<div class="prod-in-cart-badge">${detallable ? lbl : qty}</div>`
-        : '';
+      const cartBadge = qty > 0 ? `<div class="prod-in-cart-badge">${qty}</div>` : '';
+
+      const ctrl = qty > 0
+        ? `<div class="prod-qty-ctrl">
+             <button class="qty-btn minus" onclick="event.stopPropagation();quitarProd('${p.id}')">−</button>
+             <div class="qty-display">${qty}</div>
+             <button class="qty-btn plus" onclick="event.stopPropagation();agregarProd('${p.id}')">+</button>
+           </div>`
+        : `<button class="prod-add-btn" onclick="event.stopPropagation();agregarProd('${p.id}')">
+             <i class="fas fa-plus"></i> Agregar
+           </button>`;
 
       const nombreHtml = highlightText(p.nombre||'Producto', query);
 
-      let ctrl = '';
-      if (!detallable) {
-        // Producto normal: +/−
-        ctrl = qty > 0
-          ? `<div class="prod-qty-ctrl">
-               <button class="qty-btn minus" onclick="event.stopPropagation();quitarProd('${p.id}')">−</button>
-               <div class="qty-display">${qty}</div>
-               <button class="qty-btn plus" onclick="event.stopPropagation();agregarProd('${p.id}')">+</button>
-             </div>`
-          : `<button class="prod-add-btn" onclick="event.stopPropagation();agregarProd('${p.id}')">
-               <i class="fas fa-plus"></i> Agregar
-             </button>`;
-      } else {
-        // Producto por unidad: input con opción por cantidad o por precio
-        const modo = _modoInput[p.id] || 'unidad';
-        const inputId   = `unit-input-${p.id}`;
-        const resultId  = `unit-result-${p.id}`;
-        const inCarrito = enCarrito ? `<div class="prod-unit-result" id="${resultId}" style="color:var(--verde);">✓ En carrito: ${enCarrito.qty.toFixed(3)} ${lbl} = ${fmtPrice(enCarrito.precio * enCarrito.qty)}</div>` : `<div class="prod-unit-result" id="${resultId}"></div>`;
-        ctrl = `
-          <div class="prod-unit-ctrl" onclick="event.stopPropagation()">
-            <div class="prod-unit-tabs">
-              <button class="prod-unit-tab ${modo==='unidad'?'active':''}" onclick="setModoInput('${p.id}','unidad')">Por ${lbl}</button>
-              <button class="prod-unit-tab ${modo==='precio'?'active':''}" onclick="setModoInput('${p.id}','precio')">Por precio</button>
-            </div>
-            <div class="prod-unit-input-row">
-              <input class="prod-unit-input" id="${inputId}" type="number" min="0" step="0.1"
-                placeholder="${modo==='unidad'?`Ej: 2.5`:`Ej: 100`}"
-                oninput="calcUnitResult('${p.id}', ${p.precio||0}, '${lbl}')">
-              <span class="prod-unit-suffix">${modo==='unidad'?lbl:'RD$'}</span>
-            </div>
-            ${inCarrito}
-            <button class="prod-unit-add-btn" id="unit-btn-${p.id}" onclick="agregarProdUnidad('${p.id}')" disabled>
-              <i class="fas fa-cart-plus"></i> Agregar al carrito
-            </button>
-          </div>`;
-      }
-
-      return `<div class="prod-card ${qty>0?'en-carrito':''}" ${detallable?'':'onclick="agregarProd(\''+p.id+'\')"'}>
+      return `<div class="prod-card ${qty>0?'en-carrito':''}" onclick="agregarProd('${p.id}')">
                 <div class="prod-img-wrap">${imgHtml}${cartBadge}</div>
                 <div class="prod-body">
                   <div class="prod-nombre">${nombreHtml}</div>
-                  <div class="prod-precio">${precioLabel}</div>
-                  ${detallable ? `<div class="prod-unidad-badge">Se vende por ${lbl}</div>` : ''}
+                  <div class="prod-precio">${precio}</div>
                   ${ctrl}
                 </div>
               </div>`;
     }
-
-    window.setModoInput = (prodId, modo) => {
-      _modoInput[prodId] = modo;
-      // Clear result and re-render just this card
-      renderProductos();
-    };
-
-    window.calcUnitResult = (prodId, precio, lbl) => {
-      const modo   = _modoInput[prodId] || 'unidad';
-      const input  = document.getElementById(`unit-input-${prodId}`);
-      const result = document.getElementById(`unit-result-${prodId}`);
-      const btn    = document.getElementById(`unit-btn-${prodId}`);
-      if (!input || !result || !btn) return;
-      const val = parseFloat(input.value);
-      if (!val || val <= 0) {
-        result.textContent = '';
-        btn.disabled = true;
-        return;
-      }
-      btn.disabled = false;
-      if (modo === 'unidad') {
-        const subtotal = val * precio;
-        result.textContent = `${val} ${lbl} × ${fmtPrice(precio)} = ${fmtPrice(subtotal)}`;
-      } else {
-        // Por precio: calcular cuántas unidades
-        const cantEquiv = val / precio;
-        result.textContent = `${fmtPrice(val)} ÷ ${fmtPrice(precio)}/${lbl} = ${cantEquiv.toFixed(3)} ${lbl}`;
-      }
-    };
-
-    window.agregarProdUnidad = (prodId) => {
-      const p    = productosLista.find(x => x.id === prodId);
-      if (!p)    return;
-      const modo = _modoInput[prodId] || 'unidad';
-      const input = document.getElementById(`unit-input-${prodId}`);
-      if (!input) return;
-      const val  = parseFloat(input.value);
-      if (!val || val <= 0) { toast('Escribe una cantidad válida', 'error'); return; }
-
-      let qty, subtotal;
-      if (modo === 'unidad') {
-        qty      = val;
-        subtotal = val * p.precio;
-      } else {
-        qty      = val / p.precio;   // cantidad en unidades
-        subtotal = val;              // el precio ingresado ES el subtotal
-      }
-
-      const lbl = labelUnidad(p.unidad);
-      const ex  = carrito.find(i => i.id === prodId);
-      if (ex) {
-        ex.qty      = qty;
-        ex.subtotal = subtotal;
-      } else {
-        carrito.push({ id: prodId, categoriaId: p.categoriaId, nombre: p.nombre||'Producto',
-          precio: p.precio||0, qty, subtotal, imagen: p.imagen||null, emoji: p.emoji||'📦',
-          unidad: p.unidad, _lbl: lbl });
-      }
-      actualizarCarritoUI();
-      renderProductos();
-      toast(`${p.nombre}: ${qty.toFixed(3)} ${lbl} agregado ✓`, 'success');
-    };
 
     // ══════════════════════
     // CARRITO
@@ -862,8 +739,8 @@
     };
 
     function actualizarCarritoUI() {
-      const total = carrito.reduce((s,i)=>s+(i.subtotal !== undefined ? i.subtotal : i.precio*i.qty),0);
-      const count = carrito.length; // cada entrada = 1 producto (distinto)
+      const total = carrito.reduce((s,i)=>s+i.precio*i.qty,0);
+      const count = carrito.reduce((s,i)=>s+i.qty,0);
       const tf    = fmtPrice(total);
 
       document.getElementById('cart-total-display').textContent = tf;
@@ -880,32 +757,20 @@
         return;
       }
       listEl.innerHTML = carrito.map(it => {
-        const lbl = it._lbl || labelUnidad(it.unidad) || '';
-        const isUnit = esDetallable(it.unidad);
-        const sub = it.subtotal !== undefined ? it.subtotal : it.precio * it.qty;
         const imgEl = it.imagen
           ? `<img class="cart-item-img" src="${it.imagen}" alt="${esc(it.nombre)}" onerror="this.outerHTML='<div class=\\'cart-item-img-placeholder\\'>${it.emoji||'📦'}</div>'">`
           : `<div class="cart-item-img-placeholder">${it.emoji||'📦'}</div>`;
-        const qtyLabel = isUnit
-          ? `${it.qty.toFixed(3)} ${lbl}`
-          : `${it.qty}`;
-        const unitInfo = isUnit
-          ? `<div class="cart-item-unit">${it.qty.toFixed(3)} ${lbl} × ${fmtPrice(it.precio)}</div>` : '';
-        const qtyCtrl = isUnit
-          ? `<button class="cart-qty-btn minus" style="background:var(--rojo-light);color:var(--rojo);" onclick="quitarProd('${it.id}')"><i class="fas fa-trash" style="font-size:.6rem;"></i></button>`
-          : `<div style="display:flex;align-items:center;gap:6px;">
-               <button class="cart-qty-btn minus" onclick="quitarProd('${it.id}')">−</button>
-               <span style="font-weight:800;min-width:22px;text-align:center;">${it.qty}</span>
-               <button class="cart-qty-btn plus" onclick="agregarProd('${it.id}')">+</button>
-             </div>`;
         return `
         <div class="cart-item">
           ${imgEl}
           <div class="cart-item-info">
             <div class="cart-item-name">${esc(it.nombre)}</div>
-            ${unitInfo}
-            <div class="cart-item-price">${fmtPrice(sub)}</div>
-            <div class="cart-item-qty">${qtyCtrl}</div>
+            <div class="cart-item-price">${fmtPrice(it.precio*it.qty)}</div>
+            <div class="cart-item-qty">
+              <button class="cart-qty-btn minus" onclick="quitarProd('${it.id}')">−</button>
+              <span style="font-weight:800;min-width:22px;text-align:center;">${it.qty}</span>
+              <button class="cart-qty-btn plus" onclick="agregarProd('${it.id}')">+</button>
+            </div>
           </div>
         </div>`;
       }).join('');
@@ -988,7 +853,7 @@
   guardarDatosSiRecordar();
 
   const pedidoId = idCorto();
-  const total    = carrito.reduce((s,i)=>s+(i.subtotal !== undefined ? i.subtotal : i.precio*i.qty),0);
+  const total    = carrito.reduce((s,i)=>s+i.precio*i.qty,0);
   const fecha    = new Date().toLocaleString('es-DO', {
     year: 'numeric',
     month: '2-digit',
@@ -1018,12 +883,9 @@
   msg    += `---------------------------------------\n`;
   
   carrito.forEach((it, idx) => {
-    const isUnit = esDetallable(it.unidad);
-    const lbl    = it._lbl || labelUnidad(it.unidad) || '';
-    const sub    = it.subtotal !== undefined ? it.subtotal : it.precio * it.qty;
-    const cantLabel = isUnit ? `${it.qty.toFixed(3)} ${lbl}` : `${it.qty}`;
+    const subtotal = it.precio * it.qty;
     msg    += `${idx + 1}. ${it.nombre}\n`;
-    msg    += `   Cantidad: ${cantLabel} × ${fmtPrice(it.precio)}${isUnit?'/'+lbl:''} = ${fmtPrice(sub)}\n`;
+    msg    += `   Cantidad: ${it.qty} x ${fmtPrice(it.precio)} = ${fmtPrice(subtotal)}\n`;
   });
   
   msg    += `\n`;
@@ -1038,16 +900,12 @@
     pedidoId, colmadoId: colmadoIdActual,
     colmadoNombre: colmadoActual?.nombre || '',
     clienteNombre: nombre, clienteDireccion: direccion,
-    items: carrito.map(i => {
-      const sub = i.subtotal !== undefined ? i.subtotal : i.precio * i.qty;
-      return {
-        id: i.id, categoriaId: i.categoriaId,
-        nombre: i.nombre, precio: i.precio,
-        qty: i.qty, subtotal: sub,
-        unidad: i.unidad || null,
-        imagen: i.imagen || null
-      };
-    }),
+    items: carrito.map(i => ({
+      id: i.id, categoriaId: i.categoriaId,
+      nombre: i.nombre, precio: i.precio,
+      qty: i.qty, subtotal: i.precio * i.qty,
+      imagen: i.imagen || null
+    })),
     total, estado: 'pendiente', enlaceAdmin: link, fecha: serverTimestamp()
   };
 
@@ -1123,16 +981,12 @@
       };
       const est = estMap[data.estado] || estMap.pendiente;
 
-      const itemsHtml = (data.items||[]).map(it => {
-        const lbl = it.unidad ? labelUnidad(it.unidad) : null;
-        const qtyLabel = lbl ? `${Number(it.qty).toFixed(3)} ${lbl}` : it.qty;
-        return `
+      const itemsHtml = (data.items||[]).map(it => `
         <div class="factura-item">
-          <div class="factura-item-qty">${qtyLabel}</div>
+          <div class="factura-item-qty">${it.qty}</div>
           <div class="factura-item-name">${esc(it.nombre||'')}</div>
           <div class="factura-item-price">${fmtPrice(it.subtotal||it.precio*it.qty)}</div>
-        </div>`;
-      }).join('');
+        </div>`).join('');
 
       let accionesHtml = '';
       if (data.estado === 'entregado') {
