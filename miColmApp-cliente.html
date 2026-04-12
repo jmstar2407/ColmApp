@@ -876,11 +876,11 @@
   msg    += `Fecha: ${fecha}\n`;
   msg    += `================================\n\n`;
   msg    += `DATOS DEL CLIENTE\n`;
-  msg    += `--------------------------------\n`;
+  msg    += `---------------------------------------\n`;
   msg    += `Nombre: ${nombre}\n`;
   msg    += `Dirección: ${direccion}\n\n`;
   msg    += `DETALLE DEL PEDIDO\n`;
-  msg    += `--------------------------------\n`;
+  msg    += `---------------------------------------\n`;
   
   carrito.forEach((it, idx) => {
     const subtotal = it.precio * it.qty;
@@ -889,7 +889,7 @@
   });
   
   msg    += `\n`;
-  msg    += `--------------------------------\n`;
+  msg    += `---------------------------------------\n`;
   msg    += `TOTAL: ${fmtPrice(total)}\n`;
   msg    += `================================\n\n`;
   msg    += `Enlace de seguimiento:\n`;
