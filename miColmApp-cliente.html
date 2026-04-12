@@ -686,58 +686,70 @@
     /* ── FLOAT CART ── */
     .float-cart {
       position: fixed;
-      bottom: 20px;
-      left: 14px;
-      right: 14px;
-      background: var(--verde);
-      border-radius: var(--radius);
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: white;
-      cursor: pointer;
-      box-shadow: var(--shadow-verde);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border-radius: 20px 20px 0 0;
       z-index: 150;
-      transform: translateY(130px);
+      transform: translateY(100%);
       opacity: 0;
-      transition: transform .35s cubic-bezier(.34, 1.56, .64, 1), opacity .3s ease;
+      transition: transform .38s cubic-bezier(.34, 1.4, .64, 1), opacity .3s ease;
+      border-top: 1.5px solid var(--border);
+      box-shadow: 0 -4px 24px rgba(0,0,0,.12);
+      cursor: pointer;
     }
-
+    .float-cart::before {
+      content: '';
+      display: block;
+      width: 36px;
+      height: 4px;
+      background: var(--border2);
+      border-radius: 2px;
+      margin: 10px auto 0;
+    }
     .float-cart.visible {
       transform: translateY(0);
       opacity: 1;
     }
-
+    .float-cart-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px 20px;
+    }
     .float-cart-left {
       display: flex;
       flex-direction: column;
     }
-
     .float-cart-count {
       font-size: .73rem;
-      opacity: .85;
+      color: var(--muted);
     }
-
     .float-cart-total {
       font-family: var(--font-display);
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 900;
       letter-spacing: -0.3px;
+      color: var(--verde);
     }
-
     .float-cart-right {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255, 255, 255, .2);
+      background: var(--verde);
       border-radius: 10px;
-      padding: 8px 14px;
+      padding: 9px 16px;
       font-weight: 700;
       font-size: .83rem;
+      color: white;
     }
-
-    /* ── CART DRAWER ── */
+    .float-cart-expanded {
+      display: none;
+    }
+    .float-cart-items { display: none; }
+    .float-cart-form { display: none; }
+    .float-cart-footer { display: none; }
     .cart-overlay {
       position: fixed;
       inset: 0;
@@ -1439,12 +1451,13 @@
       background: rgba(0,0,0,.52);
       z-index: 500;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
+      padding: 16px;
       opacity: 0;
       pointer-events: none;
       transition: opacity .22s;
-      backdrop-filter: blur(2px);
+      backdrop-filter: blur(3px);
     }
     .unit-modal-overlay.open {
       opacity: 1;
@@ -1452,22 +1465,21 @@
     }
     .unit-modal {
       background: var(--white);
-      border-radius: 24px 24px 0 0;
+      border-radius: 24px;
       width: 100%;
-      max-width: 520px;
-      padding: 0 0 32px;
-      transform: translateY(60px);
-      transition: transform .28s cubic-bezier(.25,.46,.45,.94);
-      box-shadow: 0 -8px 40px rgba(0,0,0,.14);
+      max-width: 440px;
+      padding: 0 0 24px;
+      transform: scale(.88) translateY(16px);
+      opacity: 0;
+      transition: transform .3s cubic-bezier(.34,1.4,.64,1), opacity .25s ease;
+      box-shadow: 0 24px 60px rgba(0,0,0,.2);
     }
     .unit-modal-overlay.open .unit-modal {
-      transform: translateY(0);
+      transform: scale(1) translateY(0);
+      opacity: 1;
     }
     .unit-modal-handle {
-      width: 36px; height: 4px;
-      background: var(--border2);
-      border-radius: 2px;
-      margin: 12px auto 0;
+      display: none;
     }
     .unit-modal-header {
       display: flex;
@@ -1783,12 +1795,14 @@
   </div>
 
   <!-- ══ FLOAT CART ══ -->
-  <div class="float-cart" id="float-cart" onclick="abrirCarrito()">
-    <div class="float-cart-left">
-      <div class="float-cart-count" id="float-cart-count">0 productos</div>
-      <div class="float-cart-total" id="float-cart-total">RD$ 0.00</div>
+  <div class="float-cart" id="float-cart">
+    <div class="float-cart-inner">
+      <div class="float-cart-left">
+        <div class="float-cart-count" id="float-cart-count">0 productos</div>
+        <div class="float-cart-total" id="float-cart-total">RD$ 0.00</div>
+      </div>
+      <div class="float-cart-right"><i class="fas fa-shopping-bag"></i> Ver carrito</div>
     </div>
-    <div class="float-cart-right"><i class="fas fa-shopping-bag"></i> Ver carrito</div>
   </div>
 
   <!-- ══ MODAL UNIDAD ══ -->
@@ -1797,7 +1811,7 @@
       <div class="unit-modal-handle"></div>
       <div class="unit-modal-header">
         <div class="unit-modal-title" id="unit-modal-title">Agregar producto</div>
-        <button class="unit-modal-close" onclick="cerrarModalUnidad()"><i class="fas fa-times"></i></button>
+        <button class="unit-modal-close" onclick="_cerrarModalUnidadBtn()"><i class="fas fa-times"></i></button>
       </div>
       <div class="unit-modal-body">
         <div class="unit-modal-prod-info" id="unit-modal-prod-info"></div>
@@ -2174,9 +2188,14 @@
       } else {
         // Producto por unidad: botón que abre modal
         if (enCarrito) {
-          ctrl = `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')">
-                    <i class="fas fa-edit"></i> Editar cantidad
-                  </button>`;
+          ctrl = `<div style="display:flex;gap:6px;align-items:center;">
+                    <button class="prod-add-btn" style="background:var(--rojo-light);color:var(--rojo);flex:0 0 36px;padding:0;height:36px;border-radius:var(--radius-xs);margin-top:8px;" onclick="event.stopPropagation();eliminarProdCarrito('${p.id}')">
+                      <i class="fas fa-trash" style="font-size:.7rem;"></i>
+                    </button>
+                    <button class="prod-add-btn" style="background:var(--azul);flex:1;" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')">
+                      <i class="fas fa-edit"></i> Editar cantidad
+                    </button>
+                  </div>`;
         } else {
           ctrl = `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')">
                     <i class="fas fa-plus"></i> Agregar
@@ -2245,6 +2264,7 @@
         calcModalResult();
       }
 
+      document.body.style.overflow = 'hidden';
       document.getElementById('unit-modal-overlay').classList.add('open');
       setTimeout(() => inp.focus(), 200);
     };
@@ -2252,6 +2272,12 @@
     window.cerrarModalUnidad = (e) => {
       if (e && e.target !== document.getElementById('unit-modal-overlay')) return;
       document.getElementById('unit-modal-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+      _modalProdId = null;
+    };
+    window._cerrarModalUnidadBtn = () => {
+      document.getElementById('unit-modal-overlay').classList.remove('open');
+      document.body.style.overflow = '';
       _modalProdId = null;
     };
 
@@ -2342,6 +2368,25 @@
       renderProductos();
     };
 
+    window.eliminarProdCarrito = (prodId) => {
+      carrito = carrito.filter(i => i.id !== prodId);
+      actualizarCarritoUI();
+      renderProductos();
+    };
+
+    window.abrirModalUnidadDesdeCarrito = (prodId) => {
+      // Busca el producto en la lista de productos
+      let p = productosLista.find(x => x.id === prodId);
+      if (!p) {
+        // Si no está en lista (poco probable), reconstruye desde carrito
+        const it = carrito.find(i => i.id === prodId);
+        if (!it) return;
+        p = { id: it.id, categoriaId: it.categoriaId, nombre: it.nombre, precio: it.precio, unidad: it.unidad, imagen: it.imagen, emoji: it.emoji };
+        productosLista.push(p);
+      }
+      abrirModalUnidad(prodId);
+    };
+
     function actualizarCarritoUI() {
       const total = carrito.reduce((s, i) => s + (i.subtotal !== undefined ? i.subtotal : i.precio * i.qty), 0);
       const count = carrito.length; // cada entrada = 1 producto (distinto)
@@ -2373,7 +2418,10 @@
         const unitInfo = isUnit
           ? `<div class="cart-item-unit">${it.qty.toFixed(3)} ${lbl} × ${fmtPrice(it.precio)}</div>` : '';
         const qtyCtrl = isUnit
-          ? `<button class="cart-qty-btn minus" style="background:var(--rojo-light);color:var(--rojo);" onclick="quitarProd('${it.id}')"><i class="fas fa-trash" style="font-size:.6rem;"></i></button>`
+          ? `<div style="display:flex;align-items:center;gap:6px;">
+               <button class="cart-qty-btn minus" style="background:var(--rojo-light);color:var(--rojo);width:32px;height:32px;" onclick="eliminarProdCarrito('${it.id}')"><i class="fas fa-trash" style="font-size:.6rem;"></i></button>
+               <button class="cart-qty-btn plus" style="background:var(--azul-light);color:var(--azul);width:auto;padding:0 10px;height:32px;border-radius:7px;font-size:.72rem;font-weight:700;" onclick="abrirModalUnidadDesdeCarrito('${it.id}')"><i class="fas fa-edit" style="margin-right:4px;"></i>Editar</button>
+             </div>`
           : `<div style="display:flex;align-items:center;gap:6px;">
                <button class="cart-qty-btn minus" onclick="quitarProd('${it.id}')">−</button>
                <span style="font-weight:800;min-width:22px;text-align:center;">${it.qty}</span>
@@ -2398,6 +2446,7 @@
       document.getElementById('cart-overlay').classList.add('open');
       document.getElementById('cart-drawer').classList.add('open');
       document.getElementById('link-pedido-box').style.display = 'none';
+      document.body.style.overflow = 'hidden';
       linkGenerado = null;
       datosModificados = false;
     };
@@ -2406,6 +2455,7 @@
       if (datosModificados) guardarDatosSiRecordar();
       document.getElementById('cart-overlay').classList.remove('open');
       document.getElementById('cart-drawer').classList.remove('open');
+      document.body.style.overflow = '';
     };
 
     // Swipe down to close cart drawer
@@ -2448,6 +2498,41 @@
       drawer.addEventListener('touchstart', onTouchStart, { passive: true });
       drawer.addEventListener('touchmove', onTouchMove, { passive: false });
       drawer.addEventListener('touchend', onTouchEnd);
+    })();
+
+    // ══════════════════════
+    // FLOAT CART – abre el cart-drawer
+    // ══════════════════════
+    (function () {
+      const fc = document.getElementById('float-cart');
+      let touchStartY = 0, isDragging = false, dragMoved = false;
+
+      fc.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+        isDragging = true;
+        dragMoved = false;
+      }, { passive: true });
+
+      fc.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const deltaY = e.touches[0].clientY - touchStartY;
+        if (Math.abs(deltaY) > 8) dragMoved = true;
+      }, { passive: true });
+
+      fc.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        const deltaY = e.changedTouches[0].clientY - touchStartY;
+        // swipe up (deltaY negativo) o tap simple → abrir carrito
+        if (!dragMoved || deltaY < -30) {
+          abrirCarrito();
+        }
+        dragMoved = false;
+      });
+
+      fc.addEventListener('click', () => {
+        abrirCarrito();
+      });
     })();
 
     // ══════════════════════
