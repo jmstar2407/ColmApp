@@ -870,16 +870,16 @@
 
   // Mensaje profesional SIN emojis
   const nombreColmado = colmadoActual?.nombre || 'miColmApp';
-  let msg = `PEDIDO - ${nombreColmado}\n`;
+  let msg = `*PEDIDO* - ${nombreColmado}\n`;
   msg    += `================================\n`;
-  msg    += `Folio: #${pedidoId.toUpperCase()}\n`;
+  msg    += `ID: #${pedidoId.toUpperCase()}\n`;
   msg    += `Fecha: ${fecha}\n`;
   msg    += `================================\n\n`;
-  msg    += `DATOS DEL CLIENTE\n`;
+  msg    += `*DATOS DEL CLIENTE*\n`;
   msg    += `---------------------------------------\n`;
   msg    += `Nombre: ${nombre}\n`;
   msg    += `Dirección: ${direccion}\n\n`;
-  msg    += `DETALLE DEL PEDIDO\n`;
+  msg    += `*DETALLE DEL PEDIDO*\n`;
   msg    += `---------------------------------------\n`;
   
   carrito.forEach((it, idx) => {
@@ -889,8 +889,8 @@
   });
   
   msg    += `\n`;
-  msg    += `================================\n`;
-  msg    += `TOTAL: ${fmtPrice(total)}\n`;
+  msg    += `------------------------------------------------------------------\n`;
+  msg    += `TOTAL: *${fmtPrice(total)}*\n`;
   msg    += `================================\n\n`;
   msg    += `Enlace de seguimiento:\n`;
   msg    += `${link}\n\n`;
