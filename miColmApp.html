@@ -146,6 +146,10 @@
       display: flex !important;
     }
 
+        #page-caja.active {
+      display: inline-flex !important;
+    }
+
     /* COLUMNA IZQUIERDA — Categorías */
     .pos-left {
       width: 200px;
@@ -197,7 +201,6 @@
       background: rgb(252 79 98);
       border-radius: 4px;
     }
-
 
 
     /* TARJETA DE CATEGORÍA — rectángulo con imagen de fondo */
@@ -937,7 +940,7 @@
       margin-bottom: 14px;
     }
     .detalle-key {
-      background: #f0f4fa;
+      background: #e1e2e5;
       border: none;
       border-radius: 8px;
       padding: 13px 0;
@@ -2159,6 +2162,7 @@
           signaturePad.fromDataURL(dibujoDataURL);
         }
       }
+      _actualizarBtnLimpiar();
       // Scroll a la tab activa
       setTimeout(() => {
         const bar = document.getElementById('facturas-tabs-bar');
@@ -2185,6 +2189,7 @@
       // Nueva tab empieza sin dibujo
       dibujoDataURL = null;
       if (signaturePad) signaturePad.clear();
+      _actualizarBtnLimpiar();
     };
 
     let _tabPendienteCerrar = null;
@@ -2224,6 +2229,7 @@
         signaturePad.clear();
         if (dibujoDataURL) signaturePad.fromDataURL(dibujoDataURL);
       }
+      _actualizarBtnLimpiar();
     };
 
     // Retrocompatibilidad: variable carrito apunta a la tab activa
@@ -3105,37 +3111,46 @@
     }
 
     // ==================== DIBUJO ====================
-    // Función central que (re)crea el SignaturePad y adjunta siempre el listener correcto
+    // Función central que (re)crea el SignaturePad ajustando el canvas al tamaño físico real
     function _crearSignaturePad(canvas, dataURL) {
       if (signaturePad) {
         try { signaturePad.off(); } catch (e) { }
       }
-      const container = canvas.parentElement;
-      const rect = container.getBoundingClientRect();
-      // Fallback: usar el ancho de pos-right menos padding si el wrapper mide 0 (aún oculto)
+
+      // Ancho real en píxeles CSS del wrapper (lo que ocupa en pantalla)
+      const wrapper = canvas.parentElement;
       const posRight = document.getElementById('pos-right');
-      const width = rect.width || container.offsetWidth
+      const realW = wrapper.offsetWidth
         || (posRight ? posRight.clientWidth - 32 : 0)
-        || 280;
-      canvas.width = Math.round(width);
-      canvas.height = 256;
-      canvas.style.width = '100%';
+        || 320;
+      const dpr = window.devicePixelRatio || 1;
+
+      // Fijar el canvas al tamaño físico real × DPR para que SignaturePad calcule el offset bien
+      canvas.width  = Math.round(realW * dpr);
+      canvas.height = Math.round(256 * dpr);
+      canvas.style.width  = realW + 'px';
       canvas.style.height = '256px';
 
       signaturePad = new SignaturePad(canvas, {
         backgroundColor: 'white',
         penColor: 'black',
-        minWidth: 1,
-        maxWidth: 1,
-        throttle: 16
+        minWidth: 1.5,
+        maxWidth: 3,
+        velocityFilterWeight: 0.7
       });
+
+      // Escalar el contexto del canvas por DPR para nitidez en pantallas HiDPI
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
 
       // Cargar datos si existen
       const datos = dataURL !== undefined ? dataURL : dibujoDataURL;
       if (datos) {
-        // fromDataURL es asíncrono internamente; usamos imagen para garantizar carga
         const img = new Image();
-        img.onload = () => { signaturePad.fromDataURL(datos); };
+        img.onload = () => {
+          // Dibujar manualmente la imagen respetando la escala DPR
+          ctx.drawImage(img, 0, 0, realW, 256);
+        };
         img.src = datos;
         dibujoDataURL = datos;
       }
@@ -3152,6 +3167,15 @@
       });
     }
 
+    // Recrea el pad adaptando el canvas al ancho real actual
+    function _redimensionarCanvas() {
+      const canvas = document.getElementById('firmaCanvas');
+      if (!canvas) return;
+      const dataActual = dibujoDataURL
+        || (signaturePad && !signaturePad.isEmpty() ? signaturePad.toDataURL() : null);
+      _crearSignaturePad(canvas, dataActual);
+    }
+
     function inicializarSignaturePad() {
       const canvas = document.getElementById('firmaCanvas');
       if (!canvas) return;
@@ -3159,35 +3183,35 @@
       // Crear pad con el dibujo de la tab activa al iniciar
       _crearSignaturePad(canvas, dibujoDataURL);
 
-      // Solo re-crear el pad al cambiar tamaño de ventana (no al mostrar/ocultar)
-      window.addEventListener('resize', () => {
-        if (document.getElementById('dibujo-container')?.classList.contains('visible')) {
-          // Preservar dibujoDataURL actual antes de recrear
-          const dataActual = dibujoDataURL;
-          _crearSignaturePad(canvas, dataActual);
-        }
-      });
+      // ResizeObserver: recrea el pad si el wrapper cambia de ancho (resize, resizer drag, etc.)
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(() => {
+          if (!document.getElementById('dibujo-container')?.classList.contains('visible')) return;
+          const wrapper = canvas.parentElement;
+          const newW = Math.round(wrapper.offsetWidth * (window.devicePixelRatio || 1));
+          if (Math.abs(canvas.width - newW) > 2) {
+            _redimensionarCanvas();
+          }
+        });
+        ro.observe(canvas.parentElement);
+      } else {
+        // Fallback para navegadores sin ResizeObserver
+        window.addEventListener('resize', () => {
+          if (document.getElementById('dibujo-container')?.classList.contains('visible')) {
+            _redimensionarCanvas();
+          }
+        });
+      }
 
-      // Cuando el panel se abre: solo restaurar el dibujo sin recrear el pad
+      // Cuando el panel se abre: recrear el pad con el ancho real post-animación
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           if (mutation.attributeName === 'class') {
             const container = document.getElementById('dibujo-container');
             if (container && container.classList.contains('visible')) {
-              // Si estamos restaurando al inicio, no interferir
               if (window._restaurandoDibujo) return;
-              setTimeout(() => {
-                // Solo ajustar tamaño y restaurar dibujo, sin recrear el pad completo
-                const rect = canvas.parentElement.getBoundingClientRect();
-                const width = rect.width || canvas.parentElement.offsetWidth || 300;
-                if (canvas.width !== width) {
-                  // Necesita resize: recrear preservando dibujoDataURL
-                  _crearSignaturePad(canvas, dibujoDataURL);
-                } else if (dibujoDataURL && signaturePad && signaturePad.isEmpty()) {
-                  // Mismo tamaño: solo restaurar imagen si el pad está vacío
-                  signaturePad.fromDataURL(dibujoDataURL);
-                }
-              }, 80);
+              // Esperar a que la animación CSS termine (~290ms) para medir el ancho real
+              setTimeout(_redimensionarCanvas, 300);
             }
           }
         });
@@ -3212,11 +3236,8 @@
       } else {
         container.classList.add('visible');
         actualizarEstadoDibujo(true);
-        // Esperar a que termine la transición CSS (~280ms) para medir el ancho real
-        setTimeout(() => {
-          const canvas = document.getElementById('firmaCanvas');
-          if (canvas) _crearSignaturePad(canvas, dibujoDataURL);
-        }, 300);
+        // Esperar a que termine la transición CSS (~300ms) para medir el ancho real
+        setTimeout(_redimensionarCanvas, 300);
       }
     };
 
@@ -4223,7 +4244,10 @@
         }));
 
         // Crear nueva tab con los datos del pedido
-        const tabNombre = `Pedido ${(pParam).toUpperCase()}`;
+        // Nombre de la tab: dirección del cliente (con nombre si está disponible), fallback al folio
+        const tabNombre = data.clienteDireccion
+          ? (data.clienteNombre ? `${data.clienteNombre} — ${data.clienteDireccion}` : data.clienteDireccion)
+          : `Pedido ${(pParam).toUpperCase()}`;
         const id = _crearNuevaTab(tabNombre);
         const tab = facturasTabs.find(t => t.id === id);
         if (tab) {
@@ -4238,10 +4262,9 @@
           }));
           tab.direccion = data.clienteDireccion || '';
           tab.nombre = tabNombre;
-          // Guardar nombre del cliente en la dirección si disponible
+          // Guardar nombre del cliente
           if (data.clienteNombre) {
             tab.clienteNombre = data.clienteNombre;
-            tab.direccion = `${data.clienteNombre} — ${data.clienteDireccion || ''}`;
           }
         }
         facturaTabActiva = id;
@@ -4278,13 +4301,7 @@
       function reajustarCanvas() {
         const container = document.getElementById('dibujo-container');
         if (!container?.classList.contains('visible')) return;
-        const canvas = document.getElementById('firmaCanvas');
-        if (!canvas || typeof _crearSignaturePad !== 'function') return;
-        // Guardar el dataURL actual antes de que canvas.width lo borre
-        const dataActual = (typeof dibujoDataURL !== 'undefined' ? dibujoDataURL : null)
-          || (typeof signaturePad !== 'undefined' && signaturePad && !signaturePad.isEmpty()
-            ? signaturePad.toDataURL() : null);
-        _crearSignaturePad(canvas, dataActual);
+        if (typeof _redimensionarCanvas === 'function') _redimensionarCanvas();
       }
 
       // Restore saved width
