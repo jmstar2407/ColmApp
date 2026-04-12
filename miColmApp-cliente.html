@@ -869,7 +869,8 @@
   const link = `${adminUrl}?c=${colmadoIdActual}&p=${pedidoId}`;
 
   // Mensaje profesional SIN emojis
-  let msg = `PEDIDO - miColmApp\n`;
+  const nombreColmado = colmadoActual?.nombre || 'miColmApp';
+  let msg = `PEDIDO - ${nombreColmado}\n`;
   msg    += `================================\n`;
   msg    += `Folio: #${pedidoId.toUpperCase()}\n`;
   msg    += `Fecha: ${fecha}\n`;
