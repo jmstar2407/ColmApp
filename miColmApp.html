@@ -304,6 +304,7 @@
     .pos-center .pos-productos-area {
       flex: 1;
       padding: 16px;
+      overflow: auto;
     }
 
     /* Campo dirección cliente en POS */
@@ -1017,7 +1018,7 @@
       border-radius: 12px;
       overflow: hidden;
       position: relative;
-      padding: 4px;
+      padding: 0px;
     }
 
     /* Imagen o emoji a la izquierda */
@@ -1726,7 +1727,7 @@
           <div>
             <div class="form-group"><label>Nombre del Producto</label><input type="text" id="prod-nombre"
                 placeholder="Ej: Arroz Superior 5lb"></div>
-            <div class="form-group"><label>Código de Barras</label>
+            <div class="form-group" style="display: none;"><label>Código de Barras</label>
               <div style="display:flex;gap:8px;"><input type="text" id="prod-barcode"
                   placeholder="Escanear o escribir..." style="flex:1;"><button class="icon-btn scan-btn"
                   onclick="escanearBarcodeProducto()" title="Escanear"><i class="fas fa-barcode"></i></button></div>
@@ -2103,7 +2104,7 @@
       const bar = document.getElementById('facturas-tabs-bar');
       if (!bar) return;
       bar.innerHTML = facturasTabs.map(t => {
-        const count = t.carrito.reduce((s, i) => s + i.qty, 0);
+        const count = t.carrito.length; // cantidad de productos distintos, no suma de unidades
         const activa = t.id === facturaTabActiva;
         return `<button class="factura-tab${activa ? ' activa' : ''}" onclick="seleccionarTab('${t.id}')">
           <span>${t.nombre}</span>
@@ -2198,7 +2199,7 @@
       const tab = facturasTabs.find(t => t.id === id);
       if (!tab) return;
       _tabPendienteCerrar = id;
-      const qty = tab.carrito.reduce((s, i) => s + i.qty, 0);
+      const qty = tab.carrito.length; // cantidad de productos distintos
       const msg = document.getElementById('modal-cerrar-tab-msg');
       if (qty > 0) {
         msg.innerHTML = `¿Eliminar <strong>"${tab.nombre}"</strong>?<br><span style="color:#888;font-size:13px;">Se perderán los ${qty} producto${qty !== 1 ? 's' : ''} en el carrito.</span>`;
@@ -2640,8 +2641,9 @@
 
       // Construir categorías: Más Vendidos primero (virtual), luego las reales
       const masVendidosProds = productos.filter(p => p.masVendidos);
+      const mvBgImg = negocioData?.masVendidosBg || './img/backgrounds/masvendidos_1.jpg';
       const catsMostrar = [
-        { id: '__mas_vendidos__', nombre: 'Más Vendidos', emoji: '⭐', imagen: null, _virtual: true, _count: masVendidosProds.length }
+        { id: '__mas_vendidos__', nombre: 'Más Vendidos', emoji: '⭐', imagen: mvBgImg, _virtual: true, _count: masVendidosProds.length }
       ].concat(categorias.filter(c => c.id !== '__mas_vendidos__').map(c => ({ ...c, _virtual: false, _count: productos.filter(p => p.categoriaId === c.id).length })));
 
       if (!catsMostrar.length || (catsMostrar.length === 1 && categorias.length === 0)) {
@@ -2711,7 +2713,10 @@
         ? `${fmt(p.precio)}/${unidadLabel}`
         : fmt(p.precio);
       const stockHtml = `Stock: ${p.stock}${esDetallable ? ' ' + unidadLabel : ''}`;
-      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')">${p.imagen ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">` : `<div class="prod-emoji">📦</div>`}${bajoStock ? `<div class="stock-badge">⚠️ Bajo</div>` : ''}${sinStock ? `<div class="stock-badge">Sin stock</div>` : ''}<div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
+      const imagenHtml = p.imagen
+        ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">`
+        : `<div class="prod-emoji">📦</div>`;
+      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')"><div class="product-image">${imagenHtml}</div>${bajoStock ? `<div class="stock-badge">⚠️ Bajo</div>` : ''}${sinStock ? `<div class="stock-badge">Sin stock</div>` : ''}<div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
     }
 
     window.buscarProductos = (q) => {
@@ -3047,7 +3052,7 @@
     };
 
     function _renderItemNormal(item) {
-      return `<div class="carrito-item">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}<div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
+      return `<div class="carrito-item"><div class="img-producto">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
     }
 
     function _renderItemDetallable(item) {
@@ -3056,7 +3061,7 @@
       const subtotal = precioBase * item.qty;
       const qtyDisplay = Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(3);
       return `<div class="carrito-item">
-        ${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'" style="width:44px;height:44px;object-fit:contain;border-radius:6px;background:#f0f0f0;">` : `<div class="item-emoji" style="width:44px;height:44px;font-size:20px;">📦</div>`}
+        <div class="img-producto">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'" style="">` : `<div class="item-emoji" style="width:44px;height:44px;font-size:20px;">📦</div>`}</div>
         <div class="item-info" style="flex:1;min-width:0;">
           <div class="item-nombre">${item.nombre}</div>
           <div class="item-precio">${fmt(precioBase)}/${unidadLabel}</div>
@@ -3065,9 +3070,10 @@
             <span style="font-size:11px;color:#888;">· ${qtyDisplay} ${unidadLabel}</span>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
-          <button onclick="abrirModalEditarDetalle('${item.id}')" style="background:#1971c2;color:white;border:none;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;"><i class="fas fa-pen" style="font-size:10px;"></i> Editar</button>
-          <button class="qty-btn minus" onclick="eliminarItemDetalle('${item.id}')" style="background:#ffe0e3;color:#e03131;width:32px;height:28px;font-size:14px;" title="Eliminar">🗑</button>
+        <div class="btns-editar-lib">
+                    <button class="qty-btn minus" onclick="eliminarItemDetalle('${item.id}')" style="background:#fff0f0;color:#e03131;width:36px;height:36px;font-size: 16px;" title="Eliminar"><i class="fas fa-trash"></i></button>
+          <button onclick="abrirModalEditarDetalle('${item.id}')" style="background:#1971c2;color:white;border:none;border-radius:6px;padding:10px 10px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;"><i class="fas fa-pen" style="font-size:10px;"></i> Editar</button>
+
         </div>
       </div>`;
     }
@@ -3083,8 +3089,8 @@
       const items = document.getElementById('carrito-items');
       const count = document.getElementById('carrito-count');
       const carrito = getCarrito();
-      const totalQty = carrito.reduce((s, i) => s + i.qty, 0);
-      count.textContent = Number.isInteger(totalQty) ? totalQty : totalQty.toFixed(2);
+      // Contar productos distintos (no suma de unidades/libras/onzas)
+      count.textContent = carrito.length;
       if (!carrito.length) {
         items.innerHTML = `<div class="carrito-empty"><i class="fas fa-shopping-cart"></i><p>Agrega productos al carrito</p></div>`;
       } else {
@@ -3418,7 +3424,9 @@
 
     // ==================== INVENTARIO - NUEVA VERSIÓN CON BÚSQUEDA, DRAG TÁCTIL Y MOVER PRODUCTO ENTRE CATEGORÍAS ====================
     function renderInventario() {
-      if (inventarioCategoriaActual) {
+      if (inventarioCategoriaActual === '__mas_vendidos__') {
+        renderMasVendidosInventario();
+      } else if (inventarioCategoriaActual) {
         renderProductosInventario(inventarioCategoriaActual, inventarioBusquedaActual);
       } else {
         renderCategoriasInventario();
@@ -3514,6 +3522,150 @@
       });
     }
 
+    // ===== MÁS VENDIDOS INVENTARIO: imagen de fondo editable =====
+    window.editarImagenMasVendidos = (e) => {
+      e.stopPropagation();
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await comprimirImagen(file, 400, 0.92);
+          const url = await subirImagenBase64(dataUrl, `negocios/${negocioId}/mas_vendidos_bg_${Date.now()}`);
+          // Guardar en Firestore (campo en el negocio)
+          await updateDoc(doc(db, 'negocios', negocioId), { masVendidosBg: url });
+          negocioData.masVendidosBg = url;
+          renderInventario();
+          renderCategoriasPos(); // actualizar imagen en el POS también
+          toast('Imagen de Más Vendidos actualizada', 'success');
+        } catch (err) { toast('Error subiendo imagen: ' + err.message, 'error'); }
+      };
+      input.click();
+    };
+
+    function renderMasVendidosInventario() {
+      const area = document.getElementById('inv-contenido');
+      if (!area) return;
+      const masVendidosProds = productos.filter(p => p.masVendidos);
+      masVendidosProds.sort((a, b) => (a.ordenMV ?? a.orden ?? 9999) - (b.ordenMV ?? b.orden ?? 9999));
+
+      const header = `<div class="productos-header-inv">
+        <button class="back-btn" onclick="volverCategoriasInventario()"><i class="fas fa-arrow-left"></i> Categorías</button>
+        <strong>⭐ Más Vendidos</strong>
+        <span style="font-size:12px;color:#888;margin-left:8px;">${masVendidosProds.length} producto${masVendidosProds.length!==1?'s':''}</span>
+        <span style="font-size:11px;color:#aaa;margin-left:8px;">Activa "Ordenar" para reorganizar</span>
+      </div>`;
+
+      if (!masVendidosProds.length) {
+        area.innerHTML = header + `<div class="empty-state"><i class="fas fa-star"></i><p>No hay productos marcados como Más Vendidos.<br>Edita un producto y activa el toggle "⭐ Más Vendidos".</p></div>`;
+        return;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'productos-grid-inv' + (modoOrdenActivo ? ' modo-orden' : '');
+      grid.id = 'prod-drag-grid';
+
+      const attachMVDragEvents = (card, prod) => {
+        card.addEventListener('dragstart', (e) => {
+          if (!modoOrdenActivo) { e.preventDefault(); return; }
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', prod.id);
+          window._dragSrcEl = card;
+          window._dragSrcId = prod.id;
+          window._dragType = 'prod';
+        });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
+        });
+        card.addEventListener('dragover', (e) => {
+          if (!modoOrdenActivo || window._dragType !== 'prod') return;
+          e.preventDefault();
+          if (card !== window._dragSrcEl) {
+            grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
+            card.classList.add('drag-over');
+          }
+        });
+        card.addEventListener('dragleave', (e) => {
+          if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over');
+        });
+        card.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+          if (!modoOrdenActivo || window._dragType !== 'prod') return;
+          const srcEl = window._dragSrcEl;
+          const srcId = window._dragSrcId;
+          if (!srcEl || srcId === prod.id) return;
+          const allCards = [...grid.children];
+          const srcIdx = allCards.indexOf(srcEl);
+          const dstIdx = allCards.indexOf(card);
+          if (srcIdx < dstIdx) grid.insertBefore(srcEl, card.nextSibling);
+          else grid.insertBefore(srcEl, card);
+          const newOrder = [...grid.children].map(c => c.dataset.id);
+          newOrder.forEach((id, i) => { const p = productos.find(x => x.id === id); if (p) p.ordenMV = i + 1; });
+          [...grid.children].forEach((c, i) => {
+            const badge = c.querySelector('.orden-badge');
+            if (badge) badge.textContent = i + 1;
+          });
+          await guardarOrdenMasVendidos(newOrder);
+        });
+        attachTouchDrag(card, prod.id, 'prod', grid);
+      };
+
+      masVendidosProds.forEach((p, index) => {
+        const sinStock = p.stock <= 0;
+        const bajoStock = p.stock > 0 && p.stock <= (p.stockMin || 5);
+        const card = document.createElement('div');
+        card.className = `prod-card-inv${sinStock ? ' sin-stock' : ''}`;
+        card.draggable = modoOrdenActivo;
+        card.dataset.id = p.id;
+        card.innerHTML = `
+          <span class="orden-badge" style="background:#e67700;">${index + 1}</span>
+          <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
+          ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'">` : `<div class="prod-emoji-inv">📦</div>`}
+          ${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${p.stock}</div>` : ''}
+          ${sinStock ? `<div class="stock-badge-inv danger">Sin stock</div>` : ''}
+          <div class="prod-info-inv">
+            <div class="prod-nombre-inv">${escapeHtml(p.nombre || '')}</div>
+            ${p.codigoBarras ? `<div class="prod-codigo-inv">${escapeHtml(p.codigoBarras)}</div>` : ''}
+            <div class="prod-precios-inv"><span class="precio-venta">${fmt(p.precio)}</span>${p.costo ? `<span class="precio-costo">Costo: ${fmt(p.costo)}</span>` : ''}</div>
+            <div class="prod-stock-inv ${bajoStock ? 'bajo' : ''} ${sinStock ? 'sin' : ''}">Stock: ${p.stock || 0} ${p.unidad || ''}</div>
+            <div class="prod-actions-inv">
+              <button class="btn-sm gris" onclick="editarProducto('${p.id}')"><i class="fas fa-edit"></i> Editar</button>
+              <button class="btn-sm rojo" onclick="eliminarProducto('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+          </div>`;
+        attachMVDragEvents(card, p);
+        grid.appendChild(card);
+      });
+
+      area.innerHTML = header;
+      area.appendChild(grid);
+    }
+
+    async function guardarOrdenMasVendidos(newOrder) {
+      const indicator = document.getElementById('guardando-orden-indicator');
+      if (indicator) indicator.classList.add('visible');
+      try {
+        const batch = writeBatch(db);
+        newOrder.forEach((id, i) => {
+          const p = productos.find(x => x.id === id);
+          if (p && p.categoriaId) {
+            batch.update(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id), { ordenMV: i + 1 });
+          }
+        });
+        await batch.commit();
+      } catch (e) {
+        toast('Error guardando orden: ' + e.message, 'error');
+      } finally {
+        if (indicator) setTimeout(() => indicator.classList.remove('visible'), 1400);
+      }
+    }
+    // ===== FIN MÁS VENDIDOS INVENTARIO =====
+
     function renderCategoriasInventario() {
       const area = document.getElementById('inv-contenido');
       if (!area) return;
@@ -3577,6 +3729,33 @@
         // Touch events
         attachTouchDrag(card, catId, 'cat', grid);
       };
+
+      // Tarjeta especial "Más Vendidos" al inicio del grid
+      const mvCard = document.createElement('div');
+      mvCard.className = 'cat-card-inv mv-inv-card';
+      mvCard.dataset.id = '__mas_vendidos__';
+      const mvCount = productos.filter(p => p.masVendidos).length;
+      const mvBg = negocioData?.masVendidosBg || './img/backgrounds/masvendidos_1.jpg';
+      mvCard.innerHTML = `
+        <div class="drag-grip-overlay" style="display:none;"></div>
+        ${mvBg ? `<img src="${mvBg}" alt="Más Vendidos" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px 10px 0 0;display:block;" onerror="this.src='./img/backgrounds/masvendidos_1.jpg'">` : `<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:52px;background:linear-gradient(135deg,#f59f00,#e67700);border-radius:10px 10px 0 0;">⭐</div>`}
+        <div class="cat-info-inv">
+          <div class="cat-nombre-inv" style="color:#e67700;">⭐ Más Vendidos</div>
+          <div class="cat-stats-inv">${mvCount} producto${mvCount!==1?'s':''} destacados</div>
+        </div>
+        <div class="cat-actions-inv">
+          <button class="icon-btn-sm" onclick="event.stopPropagation();editarImagenMasVendidos(event)" title="Cambiar imagen de fondo" style="background:#fff3bf;color:#e67700;"><i class="fas fa-image"></i></button>
+        </div>`;
+      mvCard.style.cursor = 'pointer';
+      mvCard.style.border = '2px solid #f59f00';
+      mvCard.style.boxShadow = '0 4px 16px rgba(245,159,0,0.25)';
+      mvCard.addEventListener('click', (e) => {
+        if (modoOrdenActivo) return;
+        if (e.target.closest('.cat-actions-inv')) return;
+        inventarioCategoriaActual = '__mas_vendidos__';
+        renderInventario();
+      });
+      grid.appendChild(mvCard);
 
       categorias.forEach((cat, index) => {
         const card = document.createElement('div');
