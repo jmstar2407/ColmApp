@@ -1171,12 +1171,14 @@
             <div class="pos-search-bar">
               <i class="fas fa-search"></i>
               <input type="text" id="pos-buscar" placeholder="Buscar productos..."
-                oninput="buscarProductos(this.value)">
+                oninput="buscarProductos(this.value);document.getElementById('pos-buscar-clear').style.display=this.value?'flex':'none';">
+              <button id="pos-buscar-clear" onclick="document.getElementById('pos-buscar').value='';buscarProductos('');this.style.display='none';" style="display:none;background:none;border:none;cursor:pointer;color:#888;font-size:16px;padding:0 4px;align-items:center;justify-content:center;line-height:1;" title="Limpiar búsqueda">&#x2715;</button>
               <div class="pos-direccion-wrap">
                 <i class="fas fa-map-marker-alt" style="color:var(--gris-suave);font-size:13px;"></i>
                 <input type="text" id="pos-direccion-cliente" placeholder="Dirección del cliente..."
                   style="border:none;outline:none;font-family:var(--font-body);font-size:1.1rem;flex:1;min-width:140px;background:transparent;"
-                  oninput="const t=_getTabActiva();if(t){t.direccion=this.value;_guardarTabsEnStorage();}">
+                  oninput="const t=_getTabActiva();if(t){t.direccion=this.value;_guardarTabsEnStorage();}document.getElementById('pos-dir-clear').style.display=this.value?'flex':'none';">
+                <button id="pos-dir-clear" onclick="const inp=document.getElementById('pos-direccion-cliente');inp.value='';const t=_getTabActiva();if(t){t.direccion='';_guardarTabsEnStorage();}this.style.display='none';" style="display:none;background:none;border:none;cursor:pointer;color:#888;font-size:16px;padding:0 4px;align-items:center;justify-content:center;line-height:1;" title="Limpiar dirección">&#x2715;</button>
               </div>
               <button class="icon-btn grid-btn" id="btn-grid-grande" onclick="setGridSize('grande')">
                 <img src="./img/icons/grid.png">
@@ -2155,6 +2157,9 @@
       const tab = _getTabActiva();
       const dirInput = document.getElementById('pos-direccion-cliente');
       if (dirInput && tab) dirInput.value = tab.direccion || '';
+      // Actualizar visibilidad del botón "x" de dirección
+      const dirClearBtn = document.getElementById('pos-dir-clear');
+      if (dirClearBtn) dirClearBtn.style.display = (tab?.direccion) ? 'flex' : 'none';
       // Restaurar dibujo de la nueva tab
       dibujoDataURL = tab?.dibujoDataURL || null;
       if (signaturePad) {
@@ -2391,7 +2396,11 @@
 
       // Restaurar dirección del cliente de la tab activa al refrescar
       const dirInputInit = document.getElementById('pos-direccion-cliente');
-      if (dirInputInit && tabInicial?.direccion) dirInputInit.value = tabInicial.direccion;
+      if (dirInputInit && tabInicial?.direccion) {
+        dirInputInit.value = tabInicial.direccion;
+        const dirClearBtn = document.getElementById('pos-dir-clear');
+        if (dirClearBtn) dirClearBtn.style.display = tabInicial.direccion ? 'flex' : 'none';
+      }
 
       // Verificar si hay pedido entrante en la URL
       setTimeout(() => { manejarPedidoEntrante(); }, 800);
@@ -2712,7 +2721,8 @@
       const precioHtml = esDetallable
         ? `${fmt(p.precio)}/${unidadLabel}`
         : fmt(p.precio);
-      const stockHtml = `Stock: ${p.stock}${esDetallable ? ' ' + unidadLabel : ''}`;
+      const unidadBadge = esDetallable ? ` <span style="background:#1971c2;color:white;border-radius:4px;padding:1px 5px;font-size:10px;font-weight:700;">${unidadLabel}</span>` : '';
+      const stockHtml = `Stock: ${p.stock}${unidadBadge}`;
       const imagenHtml = p.imagen
         ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">`
         : `<div class="prod-emoji">📦</div>`;
@@ -3066,8 +3076,7 @@
           <div class="item-nombre">${item.nombre}</div>
           <div class="item-precio">${fmt(precioBase)}/${unidadLabel}</div>
           <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
-            <span class="item-subtotal" id="du-subtotal-${item.id}">${fmt(subtotal)}</span>
-            <span style="font-size:11px;color:#888;">· ${qtyDisplay} ${unidadLabel}</span>
+            <span class="item-subtotal" id="du-subtotal-${item.id}">${fmt(subtotal)}</span><span class="item-unidad-cantidad">${qtyDisplay} ${unidadLabel}</span>
           </div>
         </div>
         <div class="btns-editar-lib">
@@ -3140,9 +3149,9 @@
       signaturePad = new SignaturePad(canvas, {
         backgroundColor: 'white',
         penColor: 'black',
-        minWidth: 1.5,
-        maxWidth: 3,
-        velocityFilterWeight: 0.7
+        minWidth: 1,
+        maxWidth: 1,
+        velocityFilterWeight: 0
       });
 
       // Escalar el contexto del canvas por DPR para nitidez en pantallas HiDPI
