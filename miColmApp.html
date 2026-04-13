@@ -1169,16 +1169,19 @@
         <div style="display: inline-flex;width: 100%;gap: 0.3rem;">
           <div class="pos-center">
             <div class="pos-search-bar">
-              <i class="fas fa-search"></i>
-              <input type="text" id="pos-buscar" placeholder="Buscar productos..."
-                oninput="buscarProductos(this.value);document.getElementById('pos-buscar-clear').style.display=this.value?'flex':'none';">
-              <button id="pos-buscar-clear" onclick="document.getElementById('pos-buscar').value='';buscarProductos('');this.style.display='none';" style="display:none;background:none;border:none;cursor:pointer;color:#888;font-size:16px;padding:0 4px;align-items:center;justify-content:center;line-height:1;" title="Limpiar búsqueda">&#x2715;</button>
+              <div style="position:relative;display:flex;align-items:center;flex:1;min-width:0;">
+                <i class="fas fa-search" style="position:absolute;left:12px;color:#aaa;pointer-events:none;font-size:14px;"></i>
+                <input type="text" id="pos-buscar" placeholder="Buscar productos..."
+                  style="padding-left:34px;padding-right:32px;width:100%;box-sizing:border-box;"
+                  oninput="buscarProductos(this.value);_syncClearBtn('pos-buscar','pos-buscar-clear');">
+                <button id="pos-buscar-clear" onclick="document.getElementById('pos-buscar').value='';buscarProductos('');_syncClearBtn('pos-buscar','pos-buscar-clear');" style="display:none;position:absolute;right:6px;background:none;border:none;cursor:pointer;color:#aaa;font-size:15px;padding:0 4px;align-items:center;justify-content:center;line-height:1;height:100%;" title="Limpiar búsqueda">&#x2715;</button>
+              </div>
               <div class="pos-direccion-wrap">
-                <i class="fas fa-map-marker-alt" style="color:var(--gris-suave);font-size:13px;"></i>
+                <i class="fas fa-map-marker-alt" style="color:var(--gris-suave);font-size:13px;flex-shrink:0;"></i>
                 <input type="text" id="pos-direccion-cliente" placeholder="Dirección del cliente..."
                   style="border:none;outline:none;font-family:var(--font-body);font-size:1.1rem;flex:1;min-width:140px;background:transparent;"
-                  oninput="const t=_getTabActiva();if(t){t.direccion=this.value;_guardarTabsEnStorage();}document.getElementById('pos-dir-clear').style.display=this.value?'flex':'none';">
-                <button id="pos-dir-clear" onclick="const inp=document.getElementById('pos-direccion-cliente');inp.value='';const t=_getTabActiva();if(t){t.direccion='';_guardarTabsEnStorage();}this.style.display='none';" style="display:none;background:none;border:none;cursor:pointer;color:#888;font-size:16px;padding:0 4px;align-items:center;justify-content:center;line-height:1;" title="Limpiar dirección">&#x2715;</button>
+                  oninput="const t=_getTabActiva();if(t){t.direccion=this.value;_guardarTabsEnStorage();}_syncClearBtn('pos-direccion-cliente','pos-dir-clear');">
+                <button id="pos-dir-clear" onclick="const inp=document.getElementById('pos-direccion-cliente');inp.value='';const t=_getTabActiva();if(t){t.direccion='';_guardarTabsEnStorage();}_syncClearBtn('pos-direccion-cliente','pos-dir-clear');" style="display:none;background:none;border:none;cursor:pointer;color:#aaa;font-size:15px;padding:0 4px;align-items:center;justify-content:center;line-height:1;flex-shrink:0;" title="Limpiar dirección">&#x2715;</button>
               </div>
               <button class="icon-btn grid-btn" id="btn-grid-grande" onclick="setGridSize('grande')">
                 <img src="./img/icons/grid.png">
@@ -2158,8 +2161,7 @@
       const dirInput = document.getElementById('pos-direccion-cliente');
       if (dirInput && tab) dirInput.value = tab.direccion || '';
       // Actualizar visibilidad del botón "x" de dirección
-      const dirClearBtn = document.getElementById('pos-dir-clear');
-      if (dirClearBtn) dirClearBtn.style.display = (tab?.direccion) ? 'flex' : 'none';
+      _syncClearBtn('pos-direccion-cliente', 'pos-dir-clear');
       // Restaurar dibujo de la nueva tab
       dibujoDataURL = tab?.dibujoDataURL || null;
       if (signaturePad) {
@@ -2192,6 +2194,7 @@
       renderCarrito();
       const dirInput = document.getElementById('pos-direccion-cliente');
       if (dirInput) dirInput.value = '';
+      _syncClearBtn('pos-direccion-cliente', 'pos-dir-clear');
       // Nueva tab empieza sin dibujo
       dibujoDataURL = null;
       if (signaturePad) signaturePad.clear();
@@ -2229,6 +2232,7 @@
       const tabNueva = _getTabActiva();
       const dirInput = document.getElementById('pos-direccion-cliente');
       if (dirInput && tabNueva) dirInput.value = tabNueva.direccion || '';
+      _syncClearBtn('pos-direccion-cliente', 'pos-dir-clear');
       // Restaurar dibujo de la tab que quedó activa
       dibujoDataURL = tabNueva?.dibujoDataURL || null;
       if (signaturePad) {
@@ -2401,6 +2405,8 @@
         const dirClearBtn = document.getElementById('pos-dir-clear');
         if (dirClearBtn) dirClearBtn.style.display = tabInicial.direccion ? 'flex' : 'none';
       }
+      _syncClearBtn('pos-direccion-cliente', 'pos-dir-clear');
+      _syncClearBtn('pos-buscar', 'pos-buscar-clear');
 
       // Verificar si hay pedido entrante en la URL
       setTimeout(() => { manejarPedidoEntrante(); }, 800);
@@ -4457,6 +4463,7 @@
         // Rellenar campo dirección
         const dirInput = document.getElementById('pos-direccion-cliente');
         if (dirInput && tab) dirInput.value = tab.direccion || '';
+        _syncClearBtn('pos-direccion-cliente', 'pos-dir-clear');
 
         // Ir al POS
         showPage('pos');
@@ -4467,6 +4474,14 @@
         return true;
       }
     }
+    // ==================== SYNC CLEAR BUTTONS ====================
+    window._syncClearBtn = function(inputId, btnId) {
+      const inp = document.getElementById(inputId);
+      const btn = document.getElementById(btnId);
+      if (!inp || !btn) return;
+      btn.style.display = inp.value.length > 0 ? 'flex' : 'none';
+    };
+
     // ==================== POS RESIZER ====================
     (function () {
       const MIN_W = 320;
