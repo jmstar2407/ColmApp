@@ -299,26 +299,6 @@ background: #ffffff00;
       overflow: hidden;
     }
 
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      border-bottom: 1.5px solid #e2e8f0;
-      flex-shrink: 0;
-      background: white;
-      border-radius: 16px 16px 0 0;
-    }
-
-    .modal-header h3 {
-      margin: 0;
-      font-size: 1.05rem;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
     .modal-close {
       background: none;
       border: none;
@@ -351,17 +331,7 @@ background: #ffffff00;
       border-radius: 4px;
     }
 
-    .modal-footer {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      padding: 14px 20px;
-      border-top: 1.5px solid #e2e8f0;
-      flex-shrink: 0;
-      background: white;
-      border-radius: 0 0 16px 16px;
-    }
+
 
     /* Mobile: fullscreen */
     @media (max-width: 640px) {
@@ -1083,20 +1053,12 @@ background: #ffffff00;
       cursor: pointer;
     }
 
-    .cat-info-inv {
-      padding: 12px;
-    }
-
     .cat-nombre-inv {
       font-weight: 700;
       font-size: 1.1rem;
       margin-bottom: 4px;
     }
 
-    .cat-stats-inv {
-      font-size: 12px;
-      color: #666;
-    }
 
     .cat-actions-inv {
       padding: 8px 12px 12px;
@@ -1228,6 +1190,7 @@ background: #ffffff00;
 
     .detalle-unidad-body {
       padding: 8px 14px;
+      background: #ffffff;
     }
 
     .detalle-prod-nombre {
@@ -1237,11 +1200,12 @@ background: #ffffff00;
       color: #1a2135;
     }
 
-    .detalle-precio-ref {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 16px;
-    }
+.detalle-precio-ref {
+    font-size: 1.2rem;
+    color: #009688;
+    margin-bottom: 16px;
+    font-weight: bold;
+}
 
     .detalle-tabs {
       display: flex;
@@ -1249,23 +1213,27 @@ background: #ffffff00;
       margin-bottom: 14px;
     }
 
-    .detalle-tab-btn {
-      flex: 1;
-      padding: 8px 6px;
-      border-radius: 8px;
-      border: 2px solid #e2e8f0;
-      background: white;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-      color: #4a5568;
-      transition: all 0.15s;
-    }
+.detalle-tab-btn {
+    flex: 1;
+    padding: 8px 6px;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    font-weight: 500;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #4a5568;
+    transition: all 0.15s;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
 
     .detalle-tab-btn.activo {
-      background: #1971c2;
-      border-color: #1971c2;
-      color: white;
+    background: #009688;
+    border-color: #009688;
+    color: white;
     }
 
     .detalle-input-wrap {
@@ -1291,12 +1259,13 @@ background: #ffffff00;
       border-color: #1971c2;
     }
 
-    .detalle-unidad-label {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #4a5568;
-      min-width: 40px;
-    }
+.detalle-unidad-label {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #009688;
+    min-width: 40px;
+    font-family: 'IBM Plex Mono';
+}
 
     .detalle-resultado {
       background: #f0faf3;
@@ -1313,24 +1282,28 @@ background: #ffffff00;
       gap: 6px;
     }
 
-    .detalle-teclado {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-bottom: 14px;
-    }
+.detalle-teclado {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+    padding: 0 1rem;
+}
 
-    .detalle-key {
-      background: #e1e2e5;
-      border: none;
-      border-radius: 8px;
-      padding: 13px 0;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.12s;
-      color: #1a2135;
-    }
+.detalle-key {
+    background: #cdcdcd;
+    border: none;
+    border-radius: 8px;
+    padding: 15px 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s;
+    color: #1a2135;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
 
     .detalle-key:active {
       background: #dce8f8;
@@ -1345,12 +1318,35 @@ background: #ffffff00;
       background: #00b341;
       color: white;
       font-size: 1rem;
-      grid-column: span 3;
       padding: 14px;
+      flex: 1;
     }
 
     .detalle-key.ok:active {
       background: #009932;
+    }
+
+    .detalle-key.ok:disabled {
+      background: #a0aab8;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .detalle-key.cancelar {
+      background: #e53e3e;
+      color: white;
+      font-size: 1rem;
+      padding: 14px;
+      flex: 0 0 auto;
+    }
+
+    .detalle-key.cancelar:active {
+      background: #c53030;
+    }
+
+    #modal-detalle-unidad .modal-footer {
+      display: flex;
+      gap: 10px;
     }
 
     /* Edición inline en carrito */
@@ -1966,47 +1962,50 @@ background: #ffffff00;
     </div>
   </div>
 
-  <div id="toast-container"></div>
+  
 
   <!-- MODAL DETALLE UNIDAD (peso/volumen) -->
   <div class="modal-overlay" id="modal-detalle-unidad">
     <div class="modal">
       <div class="modal-header">
         <h3><i class="fas fa-balance-scale"></i> Cantidad a detallar</h3>
-        <button class="modal-close" onclick="cerrarModal('modal-detalle-unidad')">✕</button>
+        <button class="modal-close" onclick="cerrarModal('modal-detalle-unidad')" style="display: none;">✕</button>
       </div>
       <div class="modal-body detalle-unidad-body">
         <div class="detalle-prod-nombre" id="du-nombre"></div>
-        <div class="detalle-precio-ref" id="du-precio-ref"></div>
+        <div class="detalle-precio-ref du-precio-valor" id="du-precio-ref"></div>
+        <div class="detalle-resultado" id="du-resultado">
+          <i class="fas fa-info-circle"></i> <span id="du-resultado-texto" class="du-resultado-texto">Ingresa la cantidad</span>
+        </div>
         <div class="detalle-tabs">
-          <button class="detalle-tab-btn activo" id="du-tab-cant" onclick="duCambiarTab('cantidad')">📦 Por
-            Cantidad</button>
-          <button class="detalle-tab-btn" id="du-tab-precio" onclick="duCambiarTab('precio')">💰 Por Precio</button>
+          <button class="detalle-tab-btn activo" id="du-tab-cant" onclick="duCambiarTab('cantidad')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-scale-icon lucide-scale"><path d="M12 3v18"/><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"/><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M7 21h10"/></svg> Por Cantidad</button>
+          <button class="detalle-tab-btn" id="du-tab-precio" onclick="duCambiarTab('precio')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign-icon lucide-dollar-sign"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Por Precio</button>
         </div>
         <div class="detalle-input-wrap">
           <input type="text" id="du-valor" inputmode="decimal" placeholder="0" autocomplete="off" autocorrect="off"
             spellcheck="false">
           <span class="detalle-unidad-label" id="du-label-unidad">lb</span>
         </div>
-        <div class="detalle-resultado" id="du-resultado">
-          <i class="fas fa-info-circle"></i> <span id="du-resultado-texto">Ingresa la cantidad</span>
-        </div>
         <div class="detalle-teclado">
-          <button class="detalle-key" onclick="duTecla('7')">7</button>
-          <button class="detalle-key" onclick="duTecla('8')">8</button>
-          <button class="detalle-key" onclick="duTecla('9')">9</button>
-          <button class="detalle-key" onclick="duTecla('4')">4</button>
-          <button class="detalle-key" onclick="duTecla('5')">5</button>
-          <button class="detalle-key" onclick="duTecla('6')">6</button>
           <button class="detalle-key" onclick="duTecla('1')">1</button>
           <button class="detalle-key" onclick="duTecla('2')">2</button>
           <button class="detalle-key" onclick="duTecla('3')">3</button>
+          <button class="detalle-key" onclick="duTecla('4')">4</button>
+          <button class="detalle-key" onclick="duTecla('5')">5</button>
+          <button class="detalle-key" onclick="duTecla('6')">6</button>
+          <button class="detalle-key" onclick="duTecla('7')">7</button>
+          <button class="detalle-key" onclick="duTecla('8')">8</button>
+          <button class="detalle-key" onclick="duTecla('9')">9</button>
           <button class="detalle-key" onclick="duTecla('.')">.</button>
           <button class="detalle-key" onclick="duTecla('0')">0</button>
-          <button class="detalle-key del" onclick="duTecla('⌫')">⌫</button>
-          <button class="detalle-key ok" onclick="duConfirmar()"><i class="fas fa-check"></i> Agregar al
-            Carrito</button>
+          <button class="detalle-key del" onclick="duTecla('⌫')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-delete-icon lucide-delete"><path d="M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><path d="m12 9 6 6"/><path d="m18 9-6 6"/></svg></button>
+
         </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="detalle-key cancelar" onclick="cerrarModal('modal-detalle-unidad')"><i class="fas fa-times"></i> Cancelar</button>
+        <button class="detalle-key ok" id="du-btn-confirmar" onclick="duConfirmar()" disabled><i class="fas fa-check"></i> Agregar al Carrito</button>
       </div>
     </div>
   </div>
@@ -2382,13 +2381,12 @@ background: #ffffff00;
   <div class="modal-overlay" id="modal-ticket">
     <div class="modal">
       <div class="modal-header">
-        <h3><i class="fas fa-print"></i> Factura Generada</h3><button class="modal-close"
-          onclick="cerrarModal('modal-ticket')">✕</button>
+        <h3><i class="fas fa-print"></i> Factura Generada</h3>
+        <button class="modal-close" onclick="cerrarModal('modal-ticket')" style="display: none;">✕</button>
       </div>
       <div class="modal-body" id="modal-ticket-body"></div>
-      <div class="modal-footer"><button class="btn-sm gris" onclick="cerrarModal('modal-ticket')">Cerrar</button><button
-          class="btn-sm azul" onclick="imprimirTicket()"><i class="fas fa-print"></i> Imprimir</button><button
-          class="btn-sm verde" onclick="nuevaVenta()"><i class="fas fa-plus"></i> Nueva Venta</button></div>
+      <div class="modal-footer" id="footer-view-factura"><button class="btn-sm azul" onclick="cerrarModal('modal-ticket')">Cerrar</button><button
+          class="btn-sm verde" onclick="imprimirTicket()"><i class="fas fa-print"></i> Imprimir</button></div>
     </div>
   </div>
 
@@ -3679,17 +3677,19 @@ background: #ffffff00;
 
     function duActualizarResultado() {
       const res = document.getElementById('du-resultado-texto');
-      if (!_duProd || !_duValor) { res.textContent = 'Ingresa la cantidad'; return; }
+      const btn = document.getElementById('du-btn-confirmar');
+      if (!_duProd || !_duValor) { res.textContent = 'Ingresa la cantidad'; if (btn) btn.disabled = true; return; }
       const val = parseFloat(_duValor);
-      if (isNaN(val) || val <= 0) { res.textContent = 'Valor inválido'; return; }
+      if (isNaN(val) || val <= 0) { res.textContent = 'Valor inválido'; if (btn) btn.disabled = true; return; }
+      if (btn) btn.disabled = false;
       const unidadLabel = labelUnidad(_duProd.unidad || '');
       if (_duTab === 'cantidad') {
         const subtotal = val * _duProd.precio;
-        res.textContent = `${val} ${unidadLabel} × ${fmt(_duProd.precio)} = ${fmt(subtotal)}`;
+        res.innerHTML = `${val} ${unidadLabel} × ${fmt(_duProd.precio)} = <span class="du-resultado-valor">${fmt(subtotal)}</span>`;
       } else {
         // Por precio: calcular cuántas unidades
         const cantEquiv = val / _duProd.precio;
-        res.textContent = `${fmt(val)} ÷ ${fmt(_duProd.precio)}/${unidadLabel} = ${cantEquiv.toFixed(3)} ${unidadLabel}`;
+        res.innerHTML = `${fmt(val)} ÷ ${fmt(_duProd.precio)}/${unidadLabel} = <span class="du-resultado-valor">${cantEquiv.toFixed(3)} ${unidadLabel}</span>`;
       }
     }
 
@@ -3780,15 +3780,15 @@ background: #ffffff00;
       _duTab = 'cantidad';
       _duValor = '';
       document.getElementById('du-nombre').textContent = prod.nombre;
-      document.getElementById('du-precio-ref').textContent = `Precio: ${fmt(prod.precio)} por ${labelUnidad(prod.unidad)}`;
+      document.getElementById('du-precio-ref').innerHTML = `Precio: <span class="du-precio-valor">${fmt(prod.precio)}</span> por ${labelUnidad(prod.unidad)}`;
       document.getElementById('du-valor').value = '';
       document.getElementById('du-label-unidad').textContent = labelUnidad(prod.unidad || '');
       document.getElementById('du-tab-cant').classList.add('activo');
       document.getElementById('du-tab-precio').classList.remove('activo');
       const h3 = document.querySelector('#modal-detalle-unidad .modal-header h3');
       if (h3) h3.innerHTML = '<i class="fas fa-balance-scale"></i> Cantidad a detallar';
-      const btnOk = document.querySelector('#modal-detalle-unidad .detalle-key.ok');
-      if (btnOk) btnOk.innerHTML = '<i class="fas fa-check"></i> Agregar al Carrito';
+      const btnOk = document.getElementById('du-btn-confirmar');
+      if (btnOk) { btnOk.innerHTML = '<i class="fas fa-check"></i> Agregar al Carrito'; btnOk.disabled = true; }
       duActualizarResultado();
       abrirModal('modal-detalle-unidad');
     }
@@ -3803,7 +3803,7 @@ background: #ffffff00;
       const qtyActual = item.qty;
       _duValor = Number.isInteger(qtyActual) ? String(qtyActual) : qtyActual.toFixed(3);
       document.getElementById('du-nombre').textContent = item.nombre;
-      document.getElementById('du-precio-ref').textContent = `Precio: ${fmt(item._precioBase || item.precio)} por ${labelUnidad(item.unidad)}`;
+      document.getElementById('du-precio-ref').innerHTML = `Precio: <span class="du-precio-valor">${fmt(item._precioBase || item.precio)}</span> por ${labelUnidad(item.unidad)}`;
       document.getElementById('du-valor').value = _duValor;
       document.getElementById('du-label-unidad').textContent = labelUnidad(item.unidad || '');
       document.getElementById('du-tab-cant').classList.add('activo');
@@ -3811,8 +3811,8 @@ background: #ffffff00;
       // Cambiar título y botón confirmar
       const h3 = document.querySelector('#modal-detalle-unidad .modal-header h3');
       if (h3) h3.innerHTML = '<i class="fas fa-pen"></i> Editar cantidad';
-      const btnOk = document.querySelector('#modal-detalle-unidad .detalle-key.ok');
-      if (btnOk) btnOk.innerHTML = '<i class="fas fa-check"></i> Actualizar Carrito';
+      const btnOk = document.getElementById('du-btn-confirmar');
+      if (btnOk) { btnOk.innerHTML = '<i class="fas fa-check"></i> Actualizar Carrito'; btnOk.disabled = true; }
       duActualizarResultado();
       abrirModal('modal-detalle-unidad');
     };
@@ -3952,13 +3952,15 @@ background: #ffffff00;
           <div class="item-nombre">${item.nombre}</div>
           <div class="item-precio">${fmt(precioBase)}/${unidadLabel}</div>
           <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
-            <span class="item-subtotal" id="du-subtotal-${item.id}">${fmt(subtotal)}</span><span class="item-unidad-cantidad">${qtyDisplay} ${unidadLabel}</span>
+            <span class="item-subtotal" id="du-subtotal-${item.id}">${fmt(subtotal)}</span>
           </div>
         </div>
         <div class="btns-editar-lib">
-                    <button class="qty-btn minus" onclick="eliminarItemDetalle('${item.id}')" style="background:#fff0f0;color:#e03131;width:36px;height:36px;font-size: 16px;" title="Eliminar"><i class="fas fa-trash"></i></button>
-          <button onclick="abrirModalEditarDetalle('${item.id}')" style="background:#1971c2;color:white;border:none;border-radius:6px;padding:10px 10px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;"><i class="fas fa-pen" style="font-size:10px;"></i> Editar</button>
-
+          <div style="display:flex;gap:4px;">
+            <button class="qty-btn minus" onclick="eliminarItemDetalle('${item.id}')" style="background:#fff0f0;color:#e03131;width:36px;height:36px;font-size:16px;" title="Eliminar"><i class="fas fa-trash"></i></button>
+            <button onclick="abrirModalEditarDetalle('${item.id}')" style="background:#1971c2;color:white;border:none;border-radius:6px;padding:10px 10px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;"><i class="fas fa-pen" style="font-size:10px;"></i> Editar</button>
+          </div>
+          <span class="item-unidad-cantidad">${qtyDisplay} ${unidadLabel}</span>
         </div>
       </div>`;
     }
@@ -4466,7 +4468,50 @@ background: #ffffff00;
         pagoHtml += `<div class="ticket-row"><span>💵 Efectivo</span><span>${fmt(factura.mixtoEfectivo || 0)}</span></div><div class="ticket-row"><span>${subLbl}</span><span>${fmt(factura.mixtoElectronico || 0)}</span></div>`;
         if (cambioMixto > 0) pagoHtml += `<div class="ticket-row"><span>Cambio</span><span>${fmt(cambioMixto)}</span></div>`;
       }
-      return `<div class="ticket"><div class="ticket-header"><div style="font-size:16px;font-weight:800;">${negocioData?.nombre || 'Colmado'}</div><div>${negocioData?.direccion || ''}</div><div>${negocioData?.telefono || ''}</div>${negocioData?.rnc ? `<div>RNC: ${negocioData.rnc}</div>` : ''}<div style="margin-top:6px;">━━━━━━━━━━━━━━━━━━━━━━</div><div>Factura: ${factura.numero}</div>${factura.ncf ? `<div>NCF: ${factura.ncf}</div>` : ''}<div>${fecha.toLocaleString('es-DO')}</div><div>Empleado: ${factura.empleadoNombre || '-'}</div>${factura.direccionCliente ? `<div style="margin-top:4px;"><strong>📍 Entrega:</strong> ${factura.direccionCliente}</div>` : ''}</div><div>${(factura.items || []).map(i => { const qtyLabel = (i.unidad && esUnidadDetallable(i.unidad)) ? `${parseFloat(i.qty).toFixed(3)} ${labelUnidad(i.unidad)}` : `x${i.qty}`; return `<div class="ticket-row"><span>${i.nombre} ${qtyLabel}</span><span>${fmt(i.subtotal)}</span></div>`; }).join('')}</div><div class="ticket-total"><div class="ticket-row"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div><div class="ticket-row"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div><div class="ticket-row" style="font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div>${pagoHtml}</div>${dibujoHtml}<div style="text-align:center;margin-top:12px;font-size:11px;">¡Gracias por su compra!<br>Estado: <strong>${factura.estado === 'pagada' ? '✅ PAGADA' : '⏳ PENDIENTE'}</strong></div></div>`;
+      const itemsHtml = (factura.items || []).map(i => {
+        const precioBase = i._precioBase || i.precio;
+        const qty = i.qty;
+        const subtotal = i.subtotal ?? (precioBase * qty);
+        const qtyStr = (i.unidad && esUnidadDetallable(i.unidad))
+          ? `${parseFloat(qty).toFixed(3)} ${labelUnidad(i.unidad)} x ${fmt(precioBase)}`
+          : `Cant. ${qty} x  ${precioBase.toFixed(2)}`;
+        return `<div style="padding:3px 4px 5px;border-bottom:1px dashed #e0e0e0;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <span style="font-weight:700;font-size:12px;">${i.nombre}</span>
+            <span style="font-family:monospace;font-size:12px;font-weight:700;white-space:nowrap;margin-left:8px;">${fmt(subtotal)}</span>
+          </div>
+          <div style="font-size:11px;color:#555;margin-top:1px;">${qtyStr}</div>
+        </div>`;
+      }).join('');
+      return `<div class="ticket">
+        <div class="ticket-header">
+          <div style="font-size:16px;font-weight:800;">${negocioData?.nombre || 'Colmado'}</div>
+          <div>${negocioData?.direccion || ''}</div>
+          <div>${negocioData?.telefono || ''}</div>
+          ${negocioData?.rnc ? `<div>RNC: ${negocioData.rnc}</div>` : ''}
+          <div style="margin-top:6px;">━━━━━━━━━━━━━━━━━━━━━━</div>
+          <div>Factura: ${factura.numero}</div>
+          ${factura.ncf ? `<div>NCF: ${factura.ncf}</div>` : ''}
+          <div>${fecha.toLocaleString('es-DO')}</div>
+          ${factura.direccionCliente ? `<div style="margin-top:4px;"><strong>📍 Entrega:</strong> ${factura.direccionCliente}</div>` : ''}
+        </div>
+        <div style="margin:6px 4px 0;">
+          <div style="font-size:11px;color:#999;letter-spacing:0.5px;">--------------------------------</div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:2px 0;">
+            <span>PRODUCTO</span><span>PRECIO</span>
+          </div>
+          <div style="font-size:11px;color:#999;letter-spacing:0.5px;">--------------------------------</div>
+          ${itemsHtml}
+        </div>
+        <div class="ticket-total">
+          <div class="ticket-row"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div>
+          <div class="ticket-row"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div>
+          <div class="ticket-row" style="font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div>
+          ${pagoHtml}
+        </div>
+        ${dibujoHtml}
+        <div style="text-align:center;margin-top:12px;font-size:11px;">¡Gracias por su compra!<br>Estado: <strong>${factura.estado === 'pagada' ? '✅ PAGADA' : '⏳ PENDIENTE'}</strong></div>
+      </div>`;
     }
 
     window.imprimirTicket = () => { const content = document.getElementById('modal-ticket-body').innerHTML; const w = window.open('', '_blank'); w.document.write(`<html><head><title>Ticket</title><style>body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;}.ticket-row{display:flex;justify-content:space-between;margin-bottom:4px;}.ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}.ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}</style></head><body>${content}<script>window.print();window.close();<\/script></body></html>`); w.document.close(); };
@@ -5744,7 +5789,7 @@ background: #ffffff00;
     window.cerrarModal = (id) => document.getElementById(id)?.classList.remove('visible');
     document.querySelectorAll('.modal-overlay').forEach(overlay => { overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('visible'); }); });
 
-    function toast(msg, type = 'info', duration = 3000) { const container = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-info-circle'}"></i> ${msg}`; container.appendChild(t); setTimeout(() => t.remove(), duration); }
+    function toast(msg, type, duration) { /* toasts desactivados */ }
     window.toast = toast;
 
     setTimeout(() => { if (document.getElementById('loading-screen').style.display !== 'none') { const authState = auth.currentUser; if (!authState) showScreen('auth'); } }, 2500);

@@ -806,6 +806,7 @@ body {
 
 .carrito-item .item-info {
   flex: 1;
+  min-width: 0;
 }
 
 .carrito-item .item-nombre {
@@ -891,9 +892,16 @@ body {
 .item-unidad-cantidad {
     font-size: 1rem;
     color: #ffffff;
-    background: #1971c2;
+background: #28a745;
     border-radius: 4px;
     padding: 0px 6px;
+}
+
+.btns-editar-lib{
+display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
 }
 
 .carrito-footer {
@@ -1205,6 +1213,8 @@ body {
 .btn-sm.verde {
   background: var(--verde);
   color: white;
+  padding: 10px 34px;
+  max-width: 190px;
 }
 
 .btn-sm.gris {
@@ -1688,21 +1698,25 @@ body {
 }
 
 .modal-header {
-  padding: 14px 21px;
-  border-bottom: 1px solid var(--gris-borde);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    padding: 10px 54px;
+    border-bottom: 1px solid var(--gris-borde);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    min-height: 40px;
 }
 
 .modal-header h3 {
-  font-family: var(--font-titulo);
-  font-size: 18px;
-  font-weight: 800;
-  gap: 0.5rem;
-  display: inline-flex;
-  flex-direction: row;
-  align-items: center;
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    justify-content: center;
+    min-height: 30px;
 }
 
 
@@ -1728,14 +1742,31 @@ body {
 
 .modal-body {
   padding: 24px;
+  background: white;
+}
+
+#modal-ticket-body{
+  background: rgb(87 119 139 / 49%);
+}
+
+#footer-view-factura {
+  background: #b6bfc7;
+    border-top: none;
 }
 
 .modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid var(--gris-borde);
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 9px 20px;
+    border-top: 1.5px solid #e2e8f0;
+    flex-shrink: 0;
+    background: white;
+}
+
+.detalle-tab-btn i {
+  color: black;
 }
 
 #modal-footer-facturacion{
@@ -1748,6 +1779,15 @@ body {
   /*max-height: 220px;*/
   overflow-y: auto;
   margin-bottom: 16px;
+}
+
+.du-precio-valor,
+.du-resultado-valor {
+color: #000000;
+    font-weight: 900;
+}
+.du-resultado-valor {
+    font-size: 1.2rem;
 }
 
 .factura-item-row {
@@ -1784,7 +1824,6 @@ body {
 .metodo-pago-btns {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
 }
 
 .mpago-btn {
@@ -2346,7 +2385,10 @@ body {
 }
 
 .cat-info-inv {
-  flex: 1;
+    padding: 4px 12px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .cat-nombre-inv {
@@ -2357,8 +2399,8 @@ body {
 }
 
 .cat-stats-inv {
-  font-size: 13px;
-  color: var(--gris-suave, #adb5bd);
+    font-size: 1rem;
+    color: #666;
 }
 
 .cat-actions-inv {
