@@ -932,7 +932,6 @@ body {
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
-  margin-top: 12px;
   transition: all .2s;
   display: flex;
   align-items: center;
@@ -1739,9 +1738,14 @@ body {
   justify-content: flex-end;
 }
 
+#modal-footer-facturacion{
+  background: #b6bfc7;
+  border-top: none;
+}
+
 /* Factura modal */
 .factura-items-lista {
-  max-height: 220px;
+  /*max-height: 220px;*/
   overflow-y: auto;
   margin-bottom: 16px;
 }

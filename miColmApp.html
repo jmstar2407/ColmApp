@@ -54,6 +54,373 @@
 
     /* ===== FIN MÁS VENDIDOS ===== */
 
+    .mpago-btn.mixto-btn {
+      /*background: linear-gradient(135deg, #fff3bf 0%, #ffe0b2 100%);
+      border-color: #f59f00;
+      color: #7c4f00;*/
+    }
+
+    .mpago-btn.mixto-btn.selected {
+      background: linear-gradient(135deg, #f59f00 0%, #e67700 100%);
+      border-color: #e67700;
+      color: white;
+    }
+
+    /* ===== MODAL FACTURAR — LAYOUT DOS COLUMNAS ===== */
+    .modal-facturar-wide {
+      max-width: 960px !important;
+      width: 96vw !important;
+    }
+
+    .modal-facturar-body {
+      display: flex !important;
+      gap: 0 !important;
+      padding: 0 !important;
+      /*min-height: 500px;*/
+      max-height: 82vh;
+      overflow: hidden;
+    }
+
+.mf-col-factura {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 20px 16px;
+    /* border-right: 2px solid #e2e8f0; */
+    overflow: hidden;
+}
+
+    .mf-factura-titulo {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #1a2135;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mf-tabla-header {
+      display: grid;
+      grid-template-columns: 1fr 80px 60px 80px;
+      gap: 6px;
+      padding: 6px 8px;
+      background: #e2e8f0;
+      border-radius: 8px 8px 0 0;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #4a5568;
+      flex-shrink: 0;
+    }
+
+    .mf-tabla-header .mf-col-precio,
+    .mf-tabla-header .mf-col-cant,
+    .mf-tabla-header .mf-col-sub {
+      text-align: right;
+    }
+
+    .mf-items-scroll {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      background: white;
+    }
+
+    .mf-items-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .mf-items-scroll::-webkit-scrollbar-thumb {
+      background: #aab4c8;
+      border-radius: 4px;
+    }
+
+    .mf-items-scroll .factura-item-row {
+      display: grid !important;
+      grid-template-columns: 1fr 80px 60px 80px !important;
+      gap: 6px !important;
+      padding: 9px 8px !important;
+      border-bottom: 1px solid #f0f2f5 !important;
+      align-items: center !important;
+      font-size: 13px !important;
+    }
+
+    .mf-items-scroll .factura-item-row:last-child {
+      border-bottom: none !important;
+    }
+
+    .mf-items-scroll .fi-nombre {
+      font-weight: 600;
+      color: #1a2135;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mf-items-scroll .fi-qty,
+    .mf-items-scroll .fi-precio {
+      text-align: right;
+      color: #4a5568;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .mf-totales-box {
+      margin-top: 12px;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      flex-shrink: 0;
+    }
+
+    .mf-total-grande {
+      font-size: 1.15rem !important;
+      padding-top: 8px !important;
+      border-top: 2px solid #e2e8f0;
+      margin-top: 4px;
+    }
+
+.mf-col-pago {
+    width: 45%;
+    min-width: 320px;
+    max-width: 445px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 18px;
+    overflow-y: auto;
+    background: #b6bfc7;
+    margin: 1rem 2rem;
+    border-radius: 19px;
+}
+
+    .mf-col-pago::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .mf-col-pago::-webkit-scrollbar-thumb {
+      background: #aab4c8;
+      border-radius: 4px;
+    }
+
+    .mf-seccion-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #4a5568;
+      margin-bottom: 4px;
+    }
+
+    .mf-teclado {
+      margin-top: 8px !important;
+    }
+
+    .mf-empleado-wrap {
+      margin-top: 4px;
+    }
+
+    .mf-acciones-footer {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 10px;
+    }
+
+    .mf-btn-confirmar {
+      flex: 1;
+      padding: 12px 16px !important;
+      font-size: 15px !important;
+      font-weight: 800 !important;
+      transition: background 0.25s, box-shadow 0.25s, opacity 0.25s !important;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .mf-btn-confirmar.listo {
+      opacity: 1 !important;
+      background: #00b341 !important;
+      box-shadow: 0 4px 16px rgba(0, 179, 65, 0.35) !important;
+      pointer-events: auto;
+    }
+
+    .mf-btn-pendiente {
+      padding: 12px 14px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      background: #f59f00 !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 40px !important;
+      cursor: pointer !important;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .mf-btn-pendiente:hover {
+      background: #e67700 !important;
+    }
+
+    /* ===== FIN MODAL FACTURAR ===== */
+
+    /* ===== MODAL GLOBAL — Header fijo, body scroll, footer fijo ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.55);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal {
+background: #ffffff00;
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1.5px solid #e2e8f0;
+      flex-shrink: 0;
+      background: white;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: #aab4c8;
+      padding: 2px 6px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      background: #f0f2f5;
+      color: #e03131;
+    }
+
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      overscroll-behavior: contain;
+    }
+
+    .modal-body::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .modal-body::-webkit-scrollbar-thumb {
+      background: #cbd5e0;
+      border-radius: 4px;
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 14px 20px;
+      border-top: 1.5px solid #e2e8f0;
+      flex-shrink: 0;
+      background: white;
+      border-radius: 0 0 16px 16px;
+    }
+
+    /* Mobile: fullscreen */
+    @media (max-width: 640px) {
+      .modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+      }
+
+      .modal {
+        max-width: 100vw !important;
+        width: 100vw !important;
+        max-height: 95dvh;
+        border-radius: 20px 20px 0 0;
+      }
+
+      .modal-header {
+        border-radius: 20px 20px 0 0;
+      }
+
+      .modal-footer {
+        border-radius: 0;
+        padding-bottom: max(14px, env(safe-area-inset-bottom));
+      }
+    }
+
+    /* Override max-height para el body del modal facturar en el layout dos columnas */
+    .modal-facturar-wide .modal-body.modal-facturar-body {
+      padding: 0 !important;
+      max-height: none !important;
+      overflow: hidden !important;
+      background: rgb(87 119 139 / 49%);
+    }
+
+    @media (max-width: 640px) {
+      .modal-facturar-wide {
+        max-width: 100vw !important;
+        width: 100vw !important;
+        border-radius: 20px 20px 0 0;
+      }
+
+      .modal-facturar-wide .modal-body.modal-facturar-body {
+        flex-direction: column;
+        overflow-y: auto !important;
+      }
+
+      .mf-col-factura {
+        border-right: none;
+        border-bottom: 2px solid #e2e8f0;
+        max-height: 280px;
+      }
+
+      .mf-col-pago {
+        width: 100%;
+        min-width: 0;
+      }
+    }
+
+    /* ===== FIN MODAL GLOBAL ===== */
+
 
 
     .categorias-grid-inv {
@@ -146,7 +513,7 @@
       display: flex !important;
     }
 
-        #page-caja.active {
+    #page-caja.active {
       display: inline-flex !important;
     }
 
@@ -279,7 +646,7 @@
       position: relative;
       z-index: 2;
       margin-top: 4px;
-      font-size: 10px;
+      font-size: 0.9rem;
       color: rgba(255, 255, 255, 0.75);
       font-weight: 600;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
@@ -858,25 +1225,30 @@
     #modal-detalle-unidad .modal {
       /*max-width: 340px;*/
     }
+
     .detalle-unidad-body {
       padding: 8px 14px;
     }
+
     .detalle-prod-nombre {
       font-weight: 700;
       font-size: 1.1rem;
       margin-bottom: 4px;
       color: #1a2135;
     }
+
     .detalle-precio-ref {
       font-size: 13px;
       color: #666;
       margin-bottom: 16px;
     }
+
     .detalle-tabs {
       display: flex;
       gap: 6px;
       margin-bottom: 14px;
     }
+
     .detalle-tab-btn {
       flex: 1;
       padding: 8px 6px;
@@ -889,17 +1261,20 @@
       color: #4a5568;
       transition: all 0.15s;
     }
+
     .detalle-tab-btn.activo {
       background: #1971c2;
       border-color: #1971c2;
       color: white;
     }
+
     .detalle-input-wrap {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 12px;
     }
+
     .detalle-input-wrap input {
       flex: 1;
       font-size: 1.5rem;
@@ -911,15 +1286,18 @@
       outline: none;
       font-family: var(--font-mono);
     }
+
     .detalle-input-wrap input:focus {
       border-color: #1971c2;
     }
+
     .detalle-unidad-label {
       font-size: 0.95rem;
       font-weight: 700;
       color: #4a5568;
       min-width: 40px;
     }
+
     .detalle-resultado {
       background: #f0faf3;
       border: 1px solid #b2dfdb;
@@ -934,12 +1312,14 @@
       align-items: center;
       gap: 6px;
     }
+
     .detalle-teclado {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 6px;
       margin-bottom: 14px;
     }
+
     .detalle-key {
       background: #e1e2e5;
       border: none;
@@ -951,10 +1331,28 @@
       transition: background 0.12s;
       color: #1a2135;
     }
-    .detalle-key:active { background: #dce8f8; }
-    .detalle-key.del { background: #ffe0e3; color: #e03131; }
-    .detalle-key.ok { background: #00b341; color: white; font-size: 1rem; grid-column: span 3; padding: 14px; }
-    .detalle-key.ok:active { background: #009932; }
+
+    .detalle-key:active {
+      background: #dce8f8;
+    }
+
+    .detalle-key.del {
+      background: #ffe0e3;
+      color: #e03131;
+    }
+
+    .detalle-key.ok {
+      background: #00b341;
+      color: white;
+      font-size: 1rem;
+      grid-column: span 3;
+      padding: 14px;
+    }
+
+    .detalle-key.ok:active {
+      background: #009932;
+    }
+
     /* Edición inline en carrito */
     .item-ctrl-detalle {
       display: flex;
@@ -962,6 +1360,7 @@
       align-items: flex-end;
       gap: 4px;
     }
+
     .item-edit-field {
       display: flex;
       align-items: center;
@@ -970,12 +1369,14 @@
       border-radius: 7px;
       padding: 2px 6px;
     }
+
     .item-edit-field label {
       font-size: 10px;
       color: #888;
       font-weight: 600;
       white-space: nowrap;
     }
+
     .item-edit-input {
       width: 70px;
       border: 1px solid #c4cbd5;
@@ -988,10 +1389,12 @@
       background: white;
       color: #1a2135;
     }
+
     .item-edit-input:focus {
       outline: none;
       border-color: #1971c2;
     }
+
     .item-unidad-badge {
       font-size: 10px;
       background: #1971c2;
@@ -1001,6 +1404,7 @@
       font-weight: 700;
       margin-left: 2px;
     }
+
     /* ===== FIN UNIDADES DETALLABLES ===== */
 
     /* ===== VISTA PEQUEÑA (lista horizontal) ===== */
@@ -1170,18 +1574,36 @@
           <div class="pos-center">
             <div class="pos-search-bar">
               <div style="position:relative;display:flex;align-items:center;flex:1;min-width:0;">
-                <i class="fas fa-search" style="position:absolute;left:12px;color:#aaa;pointer-events:none;font-size:14px;"></i>
+                <i class="fas fa-search"
+                  style="position:absolute;left:12px;color:#aaa;pointer-events:none;font-size:14px;"></i>
                 <input type="text" id="pos-buscar" placeholder="Buscar productos..."
                   style="padding-left:34px;padding-right:32px;width:100%;box-sizing:border-box;"
                   oninput="buscarProductos(this.value);_syncClearBtn('pos-buscar','pos-buscar-clear');">
-                <button id="pos-buscar-clear" onclick="document.getElementById('pos-buscar').value='';buscarProductos('');_syncClearBtn('pos-buscar','pos-buscar-clear');" style="display:none;position:absolute;right:6px;background:none;border:none;cursor:pointer;color:#aaa;font-size:15px;padding:0 4px;align-items:center;justify-content:center;line-height:1;height:100%;" title="Limpiar búsqueda">&#x2715;</button>
+                <button id="pos-buscar-clear"
+                  onclick="document.getElementById('pos-buscar').value='';buscarProductos('');_syncClearBtn('pos-buscar','pos-buscar-clear');"
+                  style="display:none;    position: absolute;
+    right: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgb(240 68 73);
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0px 7px;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    height: 100%;" title="Limpiar búsqueda">&#x2715;</button>
               </div>
               <div class="pos-direccion-wrap">
                 <i class="fas fa-map-marker-alt" style="color:var(--gris-suave);font-size:13px;flex-shrink:0;"></i>
                 <input type="text" id="pos-direccion-cliente" placeholder="Dirección del cliente..."
                   style="border:none;outline:none;font-family:var(--font-body);font-size:1.1rem;flex:1;min-width:140px;background:transparent;"
                   oninput="const t=_getTabActiva();if(t){t.direccion=this.value;_guardarTabsEnStorage();}_syncClearBtn('pos-direccion-cliente','pos-dir-clear');">
-                <button id="pos-dir-clear" onclick="const inp=document.getElementById('pos-direccion-cliente');inp.value='';const t=_getTabActiva();if(t){t.direccion='';_guardarTabsEnStorage();}_syncClearBtn('pos-direccion-cliente','pos-dir-clear');" style="display:none;background:none;border:none;cursor:pointer;color:#aaa;font-size:15px;padding:0 4px;align-items:center;justify-content:center;line-height:1;flex-shrink:0;" title="Limpiar dirección">&#x2715;</button>
+                <button id="pos-dir-clear"
+                  onclick="const inp=document.getElementById('pos-direccion-cliente');inp.value='';const t=_getTabActiva();if(t){t.direccion='';_guardarTabsEnStorage();}_syncClearBtn('pos-direccion-cliente','pos-dir-clear');"
+                  style="display:none;background:none;border:none;cursor:pointer;color:#aaa;font-size:15px;padding:0 4px;align-items:center;justify-content:center;line-height:1;flex-shrink:0;"
+                  title="Limpiar dirección">&#x2715;</button>
               </div>
               <button class="icon-btn grid-btn" id="btn-grid-grande" onclick="setGridSize('grande')">
                 <img src="./img/icons/grid.png">
@@ -1310,24 +1732,35 @@
           <div
             style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
             <div>
-              <div class="page-title">Facturas Generadas</div>
+              <div class="page-title">Facturas</div>
               <div class="page-subtitle">Consulta y gestión de facturas</div>
             </div>
           </div>
+
+          <!-- TABS PENDIENTES / PAGADAS -->
+          <div style="display:flex;gap:10px;margin-bottom:18px;">
+            <button id="btn-tab-pendientes" onclick="switchFacturasTab('pendientes')"
+              style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:40px;border:2px solid #f59f00;background:#f59f00;color:#fff;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.18s;box-shadow:0 2px 10px rgba(245,159,0,0.3);">
+              <i class="fas fa-clock"></i> Pagos Pendientes
+              <span id="badge-pendientes"
+                style="background:white;color:#e67700;border-radius:10px;font-size:12px;font-weight:800;padding:1px 8px;min-width:20px;text-align:center;">0</span>
+            </button>
+            <button id="btn-tab-pagadas" onclick="switchFacturasTab('pagadas')"
+              style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:40px;border:2px solid #aab4c8;background:white;color:#4a5568;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.18s;">
+              <i class="fas fa-check-circle"></i> Facturas Pagadas
+            </button>
+          </div>
+
           <div class="facturas-filtros" style="margin-bottom:16px;">
             <input type="text" id="fact-buscar" placeholder="Buscar por # o cliente..." oninput="filtrarFacturas()">
             <input type="date" id="fact-fecha-ini" onchange="filtrarFacturas()">
             <input type="date" id="fact-fecha-fin" onchange="filtrarFacturas()">
-            <select id="fact-estado" onchange="filtrarFacturas()">
-              <option value="">Todos los estados</option>
-              <option value="pagada">Pagadas</option>
-              <option value="pendiente">Pendientes</option>
-            </select>
             <select id="fact-metodo" onchange="filtrarFacturas()">
               <option value="">Todos los métodos</option>
               <option value="efectivo">Efectivo</option>
               <option value="transferencia">Transferencia</option>
               <option value="tarjeta">Tarjeta</option>
+              <option value="mixto">Mixto</option>
             </select>
             <button class="btn-sm gris" onclick="limpiarFiltrosFacturas()"><i class="fas fa-times"></i> Limpiar</button>
           </div>
@@ -1546,11 +1979,13 @@
         <div class="detalle-prod-nombre" id="du-nombre"></div>
         <div class="detalle-precio-ref" id="du-precio-ref"></div>
         <div class="detalle-tabs">
-          <button class="detalle-tab-btn activo" id="du-tab-cant" onclick="duCambiarTab('cantidad')">📦 Por Cantidad</button>
+          <button class="detalle-tab-btn activo" id="du-tab-cant" onclick="duCambiarTab('cantidad')">📦 Por
+            Cantidad</button>
           <button class="detalle-tab-btn" id="du-tab-precio" onclick="duCambiarTab('precio')">💰 Por Precio</button>
         </div>
         <div class="detalle-input-wrap">
-          <input type="text" id="du-valor" inputmode="decimal" placeholder="0" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input type="text" id="du-valor" inputmode="decimal" placeholder="0" autocomplete="off" autocorrect="off"
+            spellcheck="false">
           <span class="detalle-unidad-label" id="du-label-unidad">lb</span>
         </div>
         <div class="detalle-resultado" id="du-resultado">
@@ -1569,7 +2004,8 @@
           <button class="detalle-key" onclick="duTecla('.')">.</button>
           <button class="detalle-key" onclick="duTecla('0')">0</button>
           <button class="detalle-key del" onclick="duTecla('⌫')">⌫</button>
-          <button class="detalle-key ok" onclick="duConfirmar()"><i class="fas fa-check"></i> Agregar al Carrito</button>
+          <button class="detalle-key ok" onclick="duConfirmar()"><i class="fas fa-check"></i> Agregar al
+            Carrito</button>
         </div>
       </div>
     </div>
@@ -1577,59 +2013,369 @@
 
   <!-- MODALES -->
   <div class="modal-overlay" id="modal-facturar">
-    <div class="modal">
+    <div class="modal modal-facturar-wide">
       <div class="modal-header">
         <h3><i class="fas fa-receipt"></i> Procesar Factura</h3><button class="modal-close"
           onclick="cerrarModal('modal-facturar')">✕</button>
       </div>
-      <div class="modal-body">
-        <div class="factura-items-lista" id="factura-items-lista"></div>
-        <div style="background:var(--gris-bg);border-radius:var(--radio-sm);padding:12px 16px;margin-bottom:16px;">
-          <div class="totales-row"><span>Subtotal</span><span id="mfact-subtotal">RD$ 0.00</span></div>
-          <div class="totales-row"><span id="mfact-itbis-lbl">ITBIS (18%)</span><span id="mfact-itbis">RD$ 0.00</span>
+      <div class="modal-body modal-facturar-body">
+
+        <!-- ===== COLUMNA IZQUIERDA: FACTURA ===== -->
+        <div class="mf-col-factura">
+
+
+          <!-- Encabezado tabla -->
+          <div class="mf-tabla-header">
+            <span class="mf-col-prod">Producto</span>
+            <span class="mf-col-precio">Precio</span>
+            <span class="mf-col-cant">Cant.</span>
+            <span class="mf-col-sub">Subtotal</span>
           </div>
-          <div class="totales-row total"><span>TOTAL</span><span id="mfact-total">RD$ 0.00</span></div>
+
+          <!-- Items -->
+          <div class="factura-items-lista mf-items-scroll" id="factura-items-lista"></div>
+
+          <!-- Totales -->
+          <div class="mf-totales-box">
+            <div class="totales-row"><span id="mfact-itbis-lbl">ITBIS (18%)</span><span id="mfact-itbis">RD$ 0.00</span>
+            </div>
+            <div class="totales-row"><span>Subtotal</span><span id="mfact-subtotal">RD$ 0.00</span></div>
+            <div class="totales-row total mf-total-grande"><span>TOTAL</span><span id="mfact-total">RD$ 0.00</span>
+            </div>
+          </div>
         </div>
-        <div style="margin-bottom:16px;"><label>Método de Pago</label>
-          <div class="metodo-pago-btns"><button class="mpago-btn selected" onclick="seleccionarMetodo('efectivo')"><i
-                class="fas fa-money-bill-wave"></i> Efectivo</button><button class="mpago-btn"
-              onclick="seleccionarMetodo('transferencia')"><i class="fas fa-exchange-alt"></i>
-              Transferencia</button><button class="mpago-btn" onclick="seleccionarMetodo('tarjeta')"><i
-                class="fas fa-credit-card"></i> Tarjeta</button></div>
-        </div>
-        <div class="efectivo-section visible" id="efectivo-section"><label>Dinero Recibido</label><input type="number"
-            id="monto-recibido"
-            style="width:100%;padding:12px 16px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:20px;font-family:var(--font-mono);outline:none;font-weight:700;"
-            placeholder="0.00" oninput="calcularCambio()">
-          <div class="teclado-num"><button class="tec-btn" onclick="tecNumero('1')">1</button><button class="tec-btn"
-              onclick="tecNumero('2')">2</button><button class="tec-btn" onclick="tecNumero('3')">3</button><button
-              class="tec-btn rojo" onclick="tecNumero('C')">C</button><button class="tec-btn"
-              onclick="tecNumero('4')">4</button><button class="tec-btn" onclick="tecNumero('5')">5</button><button
-              class="tec-btn" onclick="tecNumero('6')">6</button><button class="tec-btn rojo"
-              onclick="tecNumero('⌫')">⌫</button><button class="tec-btn" onclick="tecNumero('7')">7</button><button
-              class="tec-btn" onclick="tecNumero('8')">8</button><button class="tec-btn"
-              onclick="tecNumero('9')">9</button><button class="tec-btn" onclick="tecNumero('00')">00</button><button
-              class="tec-btn" onclick="tecNumero('.')">.</button><button class="tec-btn"
-              onclick="tecNumero('0')">0</button><button class="tec-btn verde" style="grid-column:span 2;"
-              onclick="tecNumero('OK')">✓ OK</button></div>
-          <div class="cambio-display" id="cambio-display" style="display:none;"><span>💵 Cambio a entregar:</span><span
-              id="cambio-valor">RD$ 0.00</span></div>
-        </div>
-        <div style="margin-top:16px;"><label>Empleado que procesa</label><select id="fact-empleado"
-            style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;"></select>
-        </div>
-        <div style="margin-top:12px;"><label>Estado del Pago</label>
-          <div style="display:flex;gap:8px;"><button class="mpago-btn selected" id="btn-estado-pagada"
-              onclick="setEstadoFactura('pagada')" style="flex:1;"><i class="fas fa-check-circle"></i> Pago
-              Confirmado</button><button class="mpago-btn" id="btn-estado-pendiente"
-              onclick="setEstadoFactura('pendiente')" style="flex:1;"><i class="fas fa-clock"></i> Pago
-              Pendiente</button></div>
-        </div>
+
+        <!-- ===== COLUMNA DERECHA: PAGO ===== -->
+        <div class="mf-col-pago">
+
+          <!-- Métodos de pago -->
+          <div class="mf-seccion-label">Método de Pago</div>
+          <div class="metodo-pago-btns mf-metodos">
+            <button class="mpago-btn selected" onclick="seleccionarMetodo('efectivo')"><i
+                class="fas fa-money-bill-wave"></i> Efectivo</button>
+            <button class="mpago-btn" onclick="seleccionarMetodo('transferencia')"><i class="fas fa-exchange-alt"></i>
+              Transferencia</button>
+            <button class="mpago-btn" onclick="seleccionarMetodo('tarjeta')"><i class="fas fa-credit-card"></i>
+              Tarjeta</button>
+            <button class="mpago-btn mixto-btn" onclick="seleccionarMetodo('mixto')"><i class="fas fa-random"></i>
+              Mixto</button>
+          </div>
+
+          <!-- SECCIÓN EFECTIVO SIMPLE -->
+          <div class="efectivo-section visible" id="efectivo-section">
+            <div class="mf-seccion-label">Dinero Recibido</div>
+            <input type="number" id="monto-recibido"
+              style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:22px;font-family:var(--font-mono);outline:none;font-weight:700;box-sizing:border-box;"
+              placeholder="0.00" oninput="calcularCambio()">
+            <div class="teclado-num mf-teclado">
+              <button class="tec-btn" onclick="tecNumero('1')">1</button>
+              <button class="tec-btn" onclick="tecNumero('2')">2</button>
+              <button class="tec-btn" onclick="tecNumero('3')">3</button>
+              <button class="tec-btn rojo" onclick="tecNumero('C')">C</button>
+              <button class="tec-btn" onclick="tecNumero('4')">4</button>
+              <button class="tec-btn" onclick="tecNumero('5')">5</button>
+              <button class="tec-btn" onclick="tecNumero('6')">6</button>
+              <button class="tec-btn rojo" onclick="tecNumero('⌫')">⌫</button>
+              <button class="tec-btn" onclick="tecNumero('7')">7</button>
+              <button class="tec-btn" onclick="tecNumero('8')">8</button>
+              <button class="tec-btn" onclick="tecNumero('9')">9</button>
+              <button class="tec-btn" onclick="tecNumero('00')">00</button>
+              <button class="tec-btn" onclick="tecNumero('.')">.</button>
+              <button class="tec-btn" onclick="tecNumero('0')">0</button>
+              <button class="tec-btn verde" style="grid-column:span 2;" onclick="tecNumero('OK')">✓ OK</button>
+            </div>
+            <div class="cambio-display" id="cambio-display" style="display:none;">
+              <span>💵 Cambio a entregar:</span><span id="cambio-valor">RD$ 0.00</span>
+            </div>
+          </div>
+
+          <!-- SECCIÓN PAGO MIXTO -->
+          <div id="mixto-section" style="display:none;">
+            <style>
+              .mixto-wrapper {
+                background: linear-gradient(135deg, #f0faf3 0%, #e8f4fd 100%);
+                border-radius: 14px;
+                padding: 14px;
+                border: 2px solid #b2dfdb;
+                margin-bottom: 4px;
+              }
+
+              .mixto-split-label {
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                color: #4a5568;
+                margin-bottom: 8px;
+              }
+
+              .mixto-campo-activo {
+                border: 2px solid #1971c2 !important;
+                background: #fff !important;
+                box-shadow: 0 0 0 3px rgba(25, 113, 194, 0.18) !important;
+              }
+
+              .mixto-campo {
+                cursor: pointer;
+                transition: all 0.18s;
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 10px 14px;
+                background: white;
+                margin-bottom: 10px;
+              }
+
+              .mixto-campo-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 4px;
+              }
+
+              .mixto-campo-icon {
+                font-size: 18px;
+              }
+
+              .mixto-campo-nombre {
+                font-size: 12px;
+                font-weight: 700;
+                color: #4a5568;
+              }
+
+              .mixto-campo-val {
+                font-family: var(--font-mono);
+                font-size: 1.4rem;
+                font-weight: 800;
+                color: #1a2135;
+                min-height: 32px;
+                display: flex;
+                align-items: center;
+              }
+
+              .mixto-campo-val.placeholder {
+                color: #aab4c8;
+                font-size: 1rem;
+                font-weight: 400;
+              }
+
+              .mixto-resto-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 11px;
+                font-weight: 700;
+                padding: 2px 8px;
+                border-radius: 20px;
+                cursor: pointer;
+                transition: all 0.15s;
+              }
+
+              .mixto-resto-badge.verde {
+                background: #d4edda;
+                color: #155724;
+              }
+
+              .mixto-resto-badge.rojo {
+                background: #f8d7da;
+                color: #721c24;
+              }
+
+              .mixto-teclado {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+                margin-top: 10px;
+              }
+
+              .mixto-key {
+                height: 46px;
+                border-radius: 10px;
+                border: none;
+                font-size: 1.1rem;
+                font-weight: 700;
+                background: white;
+                color: #1a2135;
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+                transition: all 0.1s;
+                font-family: var(--font-mono);
+                border: 2px solid #e2e8f0;
+              }
+
+              .mixto-key:active {
+                transform: scale(0.95);
+                background: #e8f0fe;
+              }
+
+              .mixto-key.del {
+                background: #fff5f5;
+                color: #e03131;
+                border-color: #ffc9c9;
+              }
+
+              .mixto-key.ok {
+                background: linear-gradient(135deg, #00b341, #1971c2);
+                color: white;
+                grid-column: span 3;
+                height: 42px;
+                font-size: 0.95rem;
+                border: none;
+                letter-spacing: 0.5px;
+              }
+
+              .mixto-key.ok:active {
+                transform: scale(0.98);
+                opacity: 0.9;
+              }
+
+              .mixto-resumen {
+                background: white;
+                border-radius: 10px;
+                padding: 10px 12px;
+                border: 1px solid #dee2e6;
+                margin-top: 10px;
+              }
+
+              .mixto-resumen-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 13px;
+                padding: 3px 0;
+              }
+
+              .mixto-resumen-row .lbl {
+                color: #666;
+                font-weight: 600;
+              }
+
+              .mixto-resumen-row .val {
+                font-family: var(--font-mono);
+                font-weight: 700;
+                color: #1a2135;
+              }
+
+              .mixto-resumen-row.cambio-ok {
+                background: #d4edda;
+                border-radius: 6px;
+                padding: 5px 8px;
+                margin-top: 4px;
+              }
+
+              .mixto-resumen-row.cambio-falta {
+                background: #f8d7da;
+                border-radius: 6px;
+                padding: 5px 8px;
+                margin-top: 4px;
+              }
+
+              .mixto-sub-metodo-btns {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 10px;
+              }
+
+              .mixto-sub-btn {
+                flex: 1;
+                padding: 8px 0;
+                border-radius: 8px;
+                border: 2px solid #e2e8f0;
+                background: #f1f3f5;
+                font-weight: 700;
+                font-size: 13px;
+                cursor: pointer;
+                transition: all 0.15s;
+                color: #4a5568;
+              }
+
+              .mixto-sub-btn.activo {
+                background: #1971c2;
+                border-color: #1971c2;
+                color: white;
+              }
+            </style>
+            <div class="mixto-wrapper">
+              <div class="mixto-split-label">💳 + 💵 Pago Combinado</div>
+              <div style="margin-bottom:10px;">
+                <div style="font-size:11px;font-weight:700;color:#666;margin-bottom:6px;">Segunda forma de pago:</div>
+                <div class="mixto-sub-metodo-btns">
+                  <button class="mixto-sub-btn activo" id="mixto-sub-trans"
+                    onclick="mixtoSelSubMetodo('transferencia')"><i class="fas fa-exchange-alt"></i>
+                    Transferencia</button>
+                  <button class="mixto-sub-btn" id="mixto-sub-tarj" onclick="mixtoSelSubMetodo('tarjeta')"><i
+                      class="fas fa-credit-card"></i> Tarjeta</button>
+                </div>
+              </div>
+              <div class="mixto-campo" id="mixto-campo-efectivo" onclick="mixtoActivarCampo('efectivo')">
+                <div class="mixto-campo-header">
+                  <span class="mixto-campo-nombre">💵 EFECTIVO</span>
+                  <span id="mixto-btn-resto-ef" class="mixto-resto-badge verde"
+                    onclick="event.stopPropagation();mixtoPonerResto('efectivo')" title="Poner el resto">↑ Resto</span>
+                </div>
+                <div class="mixto-campo-val" id="mixto-display-efectivo"><span class="placeholder">Toca para
+                    ingresar</span></div>
+              </div>
+              <div class="mixto-campo" id="mixto-campo-elec" onclick="mixtoActivarCampo('elec')">
+                <div class="mixto-campo-header">
+                  <span class="mixto-campo-nombre" id="mixto-elec-label">🏦 TRANSFERENCIA</span>
+                  <span id="mixto-btn-resto-elec" class="mixto-resto-badge verde"
+                    onclick="event.stopPropagation();mixtoPonerResto('elec')" title="Poner el resto">↑ Resto</span>
+                </div>
+                <div class="mixto-campo-val" id="mixto-display-elec"><span class="placeholder">Toca para ingresar</span>
+                </div>
+              </div>
+              <div class="mixto-teclado">
+                <button class="mixto-key" onclick="mixtoTecla('1')">1</button>
+                <button class="mixto-key" onclick="mixtoTecla('2')">2</button>
+                <button class="mixto-key" onclick="mixtoTecla('3')">3</button>
+                <button class="mixto-key" onclick="mixtoTecla('4')">4</button>
+                <button class="mixto-key" onclick="mixtoTecla('5')">5</button>
+                <button class="mixto-key" onclick="mixtoTecla('6')">6</button>
+                <button class="mixto-key" onclick="mixtoTecla('7')">7</button>
+                <button class="mixto-key" onclick="mixtoTecla('8')">8</button>
+                <button class="mixto-key" onclick="mixtoTecla('9')">9</button>
+                <button class="mixto-key" onclick="mixtoTecla('.')">.</button>
+                <button class="mixto-key" onclick="mixtoTecla('0')">0</button>
+                <button class="mixto-key del" onclick="mixtoTecla('⌫')">⌫</button>
+                <button class="mixto-key ok" onclick="mixtoTecla('OK')">✓ Aplicar &amp; Ver resumen</button>
+              </div>
+              <div class="mixto-resumen" id="mixto-resumen">
+                <div class="mixto-resumen-row"><span class="lbl">💵 Efectivo</span><span class="val"
+                    id="mixto-res-ef">RD$ 0.00</span></div>
+                <div class="mixto-resumen-row"><span class="lbl" id="mixto-res-elec-lbl">🏦 Transferencia</span><span
+                    class="val" id="mixto-res-elec">RD$ 0.00</span></div>
+                <div class="mixto-resumen-row" style="border-top:1px dashed #dee2e6;margin-top:6px;padding-top:6px;">
+                  <span class="lbl">Total pagado</span><span class="val" id="mixto-res-total">RD$ 0.00</span></div>
+                <div id="mixto-res-cambio-row" class="mixto-resumen-row" style="display:none;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cambio (para transferencia/tarjeta sin teclado) -->
+          <div id="cambio-display-alt" style="display:none;" class="cambio-display"><span>✅ Pago digital recibido</span>
+          </div>
+
+          <!-- Empleado -->
+          <div class="mf-empleado-wrap">
+            <div class="mf-seccion-label">Empleado que procesa</div>
+            <select id="fact-empleado"
+              style="width:100%;padding:9px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;"></select>
+          </div>
+
+          <!-- Botón confirmar + pago pendiente -->
+          <!-- (moved to modal-footer) -->
+
+        </div><!-- fin col-pago -->
+      </div><!-- fin modal-body -->
+      <div class="modal-footer" id="modal-footer-facturacion">
+        <button class="btn-sm gris" onclick="cerrarModal('modal-facturar')">Cancelar</button>
+        <button class="btn-sm mf-btn-pendiente" onclick="procesarComoPendiente()" id="btn-pago-pendiente">
+          <i class="fas fa-clock"></i> Pago Pendiente
+        </button>
+        <button class="btn-sm verde mf-btn-confirmar" onclick="confirmarFactura()" id="btn-confirmar-factura">
+          <i class="fas fa-check"></i> Confirmar Factura
+        </button>
       </div>
-      <div class="modal-footer"><button class="btn-sm gris"
-          onclick="cerrarModal('modal-facturar')">Cancelar</button><button class="btn-sm verde"
-          onclick="confirmarFactura()" id="btn-confirmar-factura"><i class="fas fa-check"></i> Confirmar
-          Factura</button></div>
     </div>
   </div>
 
@@ -1907,6 +2653,130 @@
       <div class="modal-footer"><button class="btn-sm gris"
           onclick="cerrarModal('modal-ver-factura')">Cerrar</button><button class="btn-sm azul"
           onclick="imprimirFacturaActual()"><i class="fas fa-print"></i> Imprimir</button></div>
+    </div>
+  </div>
+
+  <!-- MODAL PAGAR FACTURA PENDIENTE -->
+  <div class="modal-overlay" id="modal-pagar-factura-pendiente">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-cash-register" style="color:#00b341;"></i> Pagar Factura</h3>
+        <button class="modal-close" onclick="cerrarModal('modal-pagar-factura-pendiente')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="pfp-info"
+          style="background:#f0faf3;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:14px;">
+          <!-- Info factura -->
+        </div>
+        <div style="font-weight:700;font-size:14px;color:#4a5568;margin-bottom:10px;">Método de Pago:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+          <button class="pfp-mpago-btn" id="pfp-btn-efectivo" onclick="pfpSelMetodo('efectivo')"
+            style="flex:1;min-width:80px;padding:12px 0;border-radius:10px;border:2px solid #e2e8f0;background:#e2e8f0;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s;">
+            💵 Efectivo
+          </button>
+          <button class="pfp-mpago-btn" id="pfp-btn-transferencia" onclick="pfpSelMetodo('transferencia')"
+            style="flex:1;min-width:80px;padding:12px 0;border-radius:10px;border:2px solid #e2e8f0;background:#e2e8f0;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s;">
+            🏦 Transferencia
+          </button>
+          <button class="pfp-mpago-btn" id="pfp-btn-tarjeta" onclick="pfpSelMetodo('tarjeta')"
+            style="flex:1;min-width:80px;padding:12px 0;border-radius:10px;border:2px solid #e2e8f0;background:#e2e8f0;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s;">
+            💳 Tarjeta
+          </button>
+          <button class="pfp-mpago-btn" id="pfp-btn-mixto" onclick="pfpSelMetodo('mixto')"
+            style="flex:1;min-width:80px;padding:12px 0;border-radius:10px;border:2px solid #e2e8f0;background:#e2e8f0;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s;">
+            💵+💳 Mixto
+          </button>
+        </div>
+
+        <!-- SECCIÓN EFECTIVO -->
+        <div id="pfp-efectivo-section" style="display:none;">
+          <div style="font-weight:700;font-size:14px;color:#4a5568;margin-bottom:8px;">Monto Recibido:</div>
+          <div
+            style="background:#f8f9fa;border-radius:10px;padding:12px;text-align:center;font-size:2rem;font-weight:800;font-family:var(--font-mono);color:#1a2135;border:2px solid #e2e8f0;margin-bottom:12px;min-height:58px;"
+            id="pfp-monto-display">RD$ 0.00</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+            <button onclick="pfpTecla('1')" class="detalle-key">1</button>
+            <button onclick="pfpTecla('2')" class="detalle-key">2</button>
+            <button onclick="pfpTecla('3')" class="detalle-key">3</button>
+            <button onclick="pfpTecla('4')" class="detalle-key">4</button>
+            <button onclick="pfpTecla('5')" class="detalle-key">5</button>
+            <button onclick="pfpTecla('6')" class="detalle-key">6</button>
+            <button onclick="pfpTecla('7')" class="detalle-key">7</button>
+            <button onclick="pfpTecla('8')" class="detalle-key">8</button>
+            <button onclick="pfpTecla('9')" class="detalle-key">9</button>
+            <button onclick="pfpTecla('.')" class="detalle-key">.</button>
+            <button onclick="pfpTecla('0')" class="detalle-key">0</button>
+            <button onclick="pfpTecla('⌫')" class="detalle-key del">⌫</button>
+          </div>
+          <div id="pfp-cambio-display"
+            style="display:none;padding:10px 14px;border-radius:8px;font-weight:700;font-size:15px;margin-bottom:8px;text-align:center;">
+          </div>
+        </div>
+
+        <!-- SECCIÓN MIXTO (Pago Pendiente) -->
+        <div id="pfp-mixto-section" style="display:none;">
+          <div class="mixto-wrapper">
+            <div class="mixto-split-label">💳 + 💵 Pago Combinado</div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:11px;font-weight:700;color:#666;margin-bottom:6px;">Segunda forma de pago:</div>
+              <div class="mixto-sub-metodo-btns">
+                <button class="mixto-sub-btn activo" id="pfp-sub-trans" onclick="pfpMixtoSelSub('transferencia')"><i
+                    class="fas fa-exchange-alt"></i> Transferencia</button>
+                <button class="mixto-sub-btn" id="pfp-sub-tarj" onclick="pfpMixtoSelSub('tarjeta')"><i
+                    class="fas fa-credit-card"></i> Tarjeta</button>
+              </div>
+            </div>
+            <div class="mixto-campo" id="pfp-mixto-campo-ef" onclick="pfpMixtoActivar('efectivo')">
+              <div class="mixto-campo-header">
+                <span class="mixto-campo-nombre">💵 EFECTIVO</span>
+                <span class="mixto-resto-badge verde" onclick="event.stopPropagation();pfpMixtoResto('efectivo')">↑
+                  Resto</span>
+              </div>
+              <div class="mixto-campo-val" id="pfp-mixto-disp-ef"><span class="placeholder">Toca para ingresar</span>
+              </div>
+            </div>
+            <div class="mixto-campo" id="pfp-mixto-campo-elec" onclick="pfpMixtoActivar('elec')">
+              <div class="mixto-campo-header">
+                <span class="mixto-campo-nombre" id="pfp-mixto-elec-lbl">🏦 TRANSFERENCIA</span>
+                <span class="mixto-resto-badge verde" onclick="event.stopPropagation();pfpMixtoResto('elec')">↑
+                  Resto</span>
+              </div>
+              <div class="mixto-campo-val" id="pfp-mixto-disp-el"><span class="placeholder">Toca para ingresar</span>
+              </div>
+            </div>
+            <div class="mixto-teclado">
+              <button class="mixto-key" onclick="pfpMixtoTecla('1')">1</button>
+              <button class="mixto-key" onclick="pfpMixtoTecla('2')">2</button>
+              <button class="mixto-key" onclick="pfpMixtoTecla('3')">3</button>
+              <button class="mixto-key" onclick="pfpMixtoTecla('4')">4</button>
+              <button class="mixto-key" onclick="pfpMixtoTecla('5')">5</button>
+              <button class="mixto-key" onclick="pfpMixtoTecla('6')">6</button>
+              <button class="mixto-key" onclick="pfpMixtoTecla('7')">7</button>
+              <button class="mixto-key" onclick="pfpMixtoTecla('8')">8</button>
+              <button class="mixto-key" onclick="pfpMixtoTecla('9')">9</button>
+              <button class="mixto-key" onclick="pfpMixtoTecla('.')">.</button>
+              <button class="mixto-key" onclick="pfpMixtoTecla('0')">0</button>
+              <button class="mixto-key del" onclick="pfpMixtoTecla('⌫')">⌫</button>
+              <button class="mixto-key ok" onclick="pfpMixtoTecla('OK')">✓ Ver resumen</button>
+            </div>
+            <div class="mixto-resumen" id="pfp-mixto-resumen">
+              <div class="mixto-resumen-row"><span class="lbl">💵 Efectivo</span><span class="val"
+                  id="pfp-mx-res-ef">RD$ 0.00</span></div>
+              <div class="mixto-resumen-row"><span class="lbl" id="pfp-mx-res-el-lbl">🏦 Transferencia</span><span
+                  class="val" id="pfp-mx-res-el">RD$ 0.00</span></div>
+              <div class="mixto-resumen-row" style="border-top:1px dashed #dee2e6;margin-top:6px;padding-top:6px;"><span
+                  class="lbl">Total pagado</span><span class="val" id="pfp-mx-res-tot">RD$ 0.00</span></div>
+              <div id="pfp-mx-cambio-row" class="mixto-resumen-row" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm gris" onclick="cerrarModal('modal-pagar-factura-pendiente')">Cancelar</button>
+        <button class="btn-sm verde" id="btn-confirmar-pagar-pendiente" onclick="confirmarPagarFacturaPendiente()">
+          <i class="fas fa-check"></i> Confirmar Pago
+        </button>
+      </div>
     </div>
   </div>
 
@@ -3147,9 +4017,9 @@
       const dpr = window.devicePixelRatio || 1;
 
       // Fijar el canvas al tamaño físico real × DPR para que SignaturePad calcule el offset bien
-      canvas.width  = Math.round(realW * dpr);
+      canvas.width = Math.round(realW * dpr);
       canvas.height = Math.round(256 * dpr);
-      canvas.style.width  = realW + 'px';
+      canvas.style.width = realW + 'px';
       canvas.style.height = '256px';
 
       signaturePad = new SignaturePad(canvas, {
@@ -3306,7 +4176,7 @@
         const precioBase = item._precioBase || item.precio;
         const subtItem = precioBase * item.qty;
         const qtyLabel = esUnidadDetallable(item.unidad) ? `${item.qty.toFixed(3)} ${labelUnidad(item.unidad)}` : `x${item.qty}`;
-        return `<div class="factura-item-row"><span class="fi-nombre">${item.nombre}</span><span class="fi-qty">${qtyLabel}</span><span class="fi-precio">${fmt(subtItem)}</span></div>`;
+        return `<div class="factura-item-row"><span class="fi-nombre">${item.nombre}</span><span class="fi-precio">${fmt(precioBase)}</span><span class="fi-qty">${qtyLabel}</span><span class="fi-precio">${fmt(subtItem)}</span></div>`;
       }).join('');
       document.getElementById('mfact-subtotal').textContent = fmt(subtotal);
       document.getElementById('mfact-itbis-lbl').textContent = `ITBIS (${itbisPct}%)${!itbisCliente ? ' (asumido)' : ''}`;
@@ -3314,36 +4184,208 @@
       document.getElementById('mfact-total').textContent = fmt(total);
       document.getElementById('monto-recibido').value = '';
       document.getElementById('cambio-display').style.display = 'none';
+      mixtoResetear();
       const sel = document.getElementById('fact-empleado');
       sel.innerHTML = empleadosCache.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
       const myEmp = empleadosCache.find(e => e.uid === currentUser.uid);
       if (myEmp) sel.value = myEmp.id;
       seleccionarMetodo('efectivo');
-      estadoFacturaSeleccionado = '';
-      document.getElementById('btn-estado-pagada').classList.remove('selected');
-      document.getElementById('btn-estado-pendiente').classList.remove('selected');
+      estadoFacturaSeleccionado = 'pagada'; // default: confirmar pago
+      actualizarBtnConfirmar();
       abrirModal('modal-facturar');
     };
 
-    window.seleccionarMetodo = (metodo) => { metodoPagoSeleccionado = metodo; document.querySelectorAll('.mpago-btn').forEach((b, i) => { const metodos = ['efectivo', 'transferencia', 'tarjeta']; b.classList.toggle('selected', metodos[i] === metodo); }); const efectivoSec = document.getElementById('efectivo-section'); if (metodo === 'efectivo') efectivoSec.classList.add('visible'); else efectivoSec.classList.remove('visible'); };
+    window.seleccionarMetodo = (metodo) => {
+      metodoPagoSeleccionado = metodo;
+      const metodos = ['efectivo', 'transferencia', 'tarjeta', 'mixto'];
+      document.querySelectorAll('.mpago-btn').forEach((b, i) => {
+        b.classList.toggle('selected', metodos[i] === metodo);
+      });
+      const efectivoSec = document.getElementById('efectivo-section');
+      const mixtoSec = document.getElementById('mixto-section');
+      if (metodo === 'efectivo') {
+        efectivoSec.classList.add('visible');
+        if (mixtoSec) mixtoSec.style.display = 'none';
+      } else if (metodo === 'mixto') {
+        efectivoSec.classList.remove('visible');
+        if (mixtoSec) { mixtoSec.style.display = 'block'; mixtoActivarCampo('efectivo'); mixtoActualizarResumen(); }
+      } else {
+        efectivoSec.classList.remove('visible');
+        if (mixtoSec) mixtoSec.style.display = 'none';
+      }
+      actualizarBtnConfirmar();
+    };
+
+    // ==================== PAGO MIXTO (POS) ====================
+    let _mixtoActivo = 'efectivo'; // campo activo en teclado
+    let _mixtoEfStr = '';
+    let _mixtoElecStr = '';
+    let _mixtoSubMetodo = 'transferencia'; // 'transferencia' | 'tarjeta'
+
+    window.mixtoSelSubMetodo = (sub) => {
+      _mixtoSubMetodo = sub;
+      document.getElementById('mixto-sub-trans').classList.toggle('activo', sub === 'transferencia');
+      document.getElementById('mixto-sub-tarj').classList.toggle('activo', sub === 'tarjeta');
+      const lbl = document.getElementById('mixto-elec-label');
+      const resLbl = document.getElementById('mixto-res-elec-lbl');
+      if (sub === 'transferencia') {
+        if (lbl) lbl.textContent = '🏦 TRANSFERENCIA';
+        if (resLbl) resLbl.textContent = '🏦 Transferencia';
+      } else {
+        if (lbl) lbl.textContent = '💳 TARJETA';
+        if (resLbl) resLbl.textContent = '💳 Tarjeta';
+      }
+    };
+
+    window.mixtoActivarCampo = (campo) => {
+      _mixtoActivo = campo;
+      const ef = document.getElementById('mixto-campo-efectivo');
+      const elec = document.getElementById('mixto-campo-elec');
+      if (ef) ef.classList.toggle('mixto-campo-activo', campo === 'efectivo');
+      if (elec) elec.classList.toggle('mixto-campo-activo', campo === 'elec');
+    };
+
+    window.mixtoPonerResto = (campo) => {
+      const carrito = getCarrito();
+      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+      const itbisPct = config.itbisPct || 18;
+      const itbisCliente = config.itbisCliente !== false;
+      const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
+      if (campo === 'efectivo') {
+        const elec = parseFloat(_mixtoElecStr) || 0;
+        const resto = Math.max(0, total - elec);
+        _mixtoEfStr = resto.toFixed(2);
+      } else {
+        const ef = parseFloat(_mixtoEfStr) || 0;
+        const resto = Math.max(0, total - ef);
+        _mixtoElecStr = resto.toFixed(2);
+      }
+      mixtoActivarCampo(campo);
+      _mixtoRefrescarDisplays();
+      mixtoActualizarResumen();
+    };
+
+    window.mixtoTecla = (val) => {
+      let str = _mixtoActivo === 'efectivo' ? _mixtoEfStr : _mixtoElecStr;
+      if (val === '⌫') { str = str.slice(0, -1); }
+      else if (val === '.') { if (!str.includes('.')) str += '.'; }
+      else if (val === 'OK') { mixtoActualizarResumen(); return; }
+      else { if (str.length < 10) str += val; }
+      if (_mixtoActivo === 'efectivo') _mixtoEfStr = str;
+      else _mixtoElecStr = str;
+      _mixtoRefrescarDisplays();
+      mixtoActualizarResumen();
+    };
+
+    function _mixtoRefrescarDisplays() {
+      const dispEf = document.getElementById('mixto-display-efectivo');
+      const dispEl = document.getElementById('mixto-display-elec');
+      if (dispEf) dispEf.innerHTML = _mixtoEfStr ? `RD$ ${_mixtoEfStr}` : '<span class="placeholder">Toca para ingresar</span>';
+      if (dispEl) dispEl.innerHTML = _mixtoElecStr ? `RD$ ${_mixtoElecStr}` : '<span class="placeholder">Toca para ingresar</span>';
+    }
+
+    function mixtoActualizarResumen() {
+      const carrito = getCarrito();
+      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+      const itbisPct = config.itbisPct || 18;
+      const itbisCliente = config.itbisCliente !== false;
+      const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
+      const ef = parseFloat(_mixtoEfStr) || 0;
+      const elec = parseFloat(_mixtoElecStr) || 0;
+      const totalPagado = ef + elec;
+      const cambio = totalPagado - total;
+      document.getElementById('mixto-res-ef').textContent = fmt(ef);
+      document.getElementById('mixto-res-elec').textContent = fmt(elec);
+      document.getElementById('mixto-res-total').textContent = fmt(totalPagado);
+      const cambioRow = document.getElementById('mixto-res-cambio-row');
+      if (cambioRow) {
+        cambioRow.style.display = 'flex';
+        if (cambio >= 0) {
+          cambioRow.className = 'mixto-resumen-row cambio-ok';
+          cambioRow.innerHTML = `<span class="lbl">✅ Cambio</span><span class="val">${fmt(cambio)}</span>`;
+        } else {
+          cambioRow.className = 'mixto-resumen-row cambio-falta';
+          cambioRow.innerHTML = `<span class="lbl">❌ Falta</span><span class="val">${fmt(Math.abs(cambio))}</span>`;
+        }
+      }
+      // Botones resto
+      const btnRE = document.getElementById('mixto-btn-resto-ef');
+      const btnREl = document.getElementById('mixto-btn-resto-elec');
+      const restoEf = Math.max(0, total - (parseFloat(_mixtoElecStr) || 0));
+      const restoEl = Math.max(0, total - ef);
+      if (btnRE) btnRE.textContent = `↑ ${fmt(restoEf)}`;
+      if (btnREl) btnREl.textContent = `↑ ${fmt(restoEl)}`;
+      actualizarBtnConfirmar();
+    }
+
+    function mixtoResetear() {
+      _mixtoEfStr = '';
+      _mixtoElecStr = '';
+      _mixtoActivo = 'efectivo';
+      _mixtoSubMetodo = 'transferencia';
+      _mixtoRefrescarDisplays();
+    }
 
     window.setEstadoFactura = (estado) => { estadoFacturaSeleccionado = estado; document.getElementById('btn-estado-pagada').classList.toggle('selected', estado === 'pagada'); document.getElementById('btn-estado-pendiente').classList.toggle('selected', estado === 'pendiente'); };
 
-    window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente !== false ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); if (recibido > 0) { disp.style.display = 'flex'; document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { disp.style.display = 'none'; } };
+    // ==================== CONFIRMAR FACTURA — LÓGICA DEL BOTÓN VERDE ====================
+    function _facturaListaParaPagar() {
+      const carrito = getCarrito();
+      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+      const itbisPct = config.itbisPct || 18;
+      const itbisCliente = config.itbisCliente !== false;
+      const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
+      if (metodoPagoSeleccionado === 'efectivo') {
+        const recibido = parseFloat(document.getElementById('monto-recibido')?.value) || 0;
+        return recibido >= total;
+      }
+      if (metodoPagoSeleccionado === 'mixto') {
+        const ef = parseFloat(_mixtoEfStr) || 0;
+        const elec = parseFloat(_mixtoElecStr) || 0;
+        return (ef > 0 || elec > 0) && (ef + elec) >= total;
+      }
+      // transferencia / tarjeta — siempre listo
+      return (metodoPagoSeleccionado === 'transferencia' || metodoPagoSeleccionado === 'tarjeta');
+    }
+
+    window.actualizarBtnConfirmar = () => {
+      const btn = document.getElementById('btn-confirmar-factura');
+      if (!btn) return;
+      if (_facturaListaParaPagar()) {
+        btn.classList.add('listo');
+      } else {
+        btn.classList.remove('listo');
+      }
+    };
+
+    window.procesarComoPendiente = async () => {
+      estadoFacturaSeleccionado = 'pendiente';
+      await confirmarFactura();
+    };
+
+    window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente !== false ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); if (recibido > 0) { disp.style.display = 'flex'; document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { disp.style.display = 'none'; } actualizarBtnConfirmar(); };
 
     window.tecNumero = (val) => { const inp = document.getElementById('monto-recibido'); if (val === 'C') { inp.value = ''; } else if (val === '⌫') { inp.value = inp.value.slice(0, -1); } else if (val === 'OK') { calcularCambio(); return; } else { inp.value += val; } calcularCambio(); };
 
     window.confirmarFactura = async () => {
-      if (!estadoFacturaSeleccionado) {
-        toast('Selecciona si el pago es Confirmado o Pendiente', 'error');
-        return;
-      }
+      if (!estadoFacturaSeleccionado) estadoFacturaSeleccionado = 'pagada';
       if (estadoFacturaSeleccionado === 'pagada' && metodoPagoSeleccionado === 'efectivo') {
         const montoRec = parseFloat(document.getElementById('monto-recibido').value);
         if (!montoRec || montoRec <= 0) {
           toast('Ingresa el monto recibido en efectivo para confirmar la factura', 'error');
           return;
         }
+      }
+      // Validar pago mixto
+      if (estadoFacturaSeleccionado === 'pagada' && metodoPagoSeleccionado === 'mixto') {
+        const ef = parseFloat(_mixtoEfStr) || 0;
+        const elec = parseFloat(_mixtoElecStr) || 0;
+        const subtotal = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+        const itbisPct = config.itbisPct || 18;
+        const itbisCliente = config.itbisCliente !== false;
+        const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
+        if (ef <= 0 && elec <= 0) { toast('Ingresa los montos del pago mixto', 'error'); return; }
+        if ((ef + elec) < total) { toast('El total pagado no cubre el monto de la factura', 'error'); return; }
       }
       const btn = document.getElementById('btn-confirmar-factura');
       btn.innerHTML = '<span class="loader"></span> Procesando...';
@@ -3362,8 +4404,15 @@
         const notaDibujo = (signaturePad && !signaturePad.isEmpty()) ? signaturePad.toDataURL() : null;
         const direccionCliente = document.getElementById('pos-direccion-cliente')?.value.trim() || '';
 
-        const facturaData = { numero: numFactura, ncf, fecha: serverTimestamp(), items: getCarrito().map(i => { const pb = i._precioBase || i.precio; return { id: i.id, nombre: i.nombre, precio: pb, qty: i.qty, unidad: i.unidad || null, subtotal: pb * i.qty }; }), subtotal, itbis, itbisPct, total, metodoPago: metodoPagoSeleccionado, montoRecibido: parseFloat(document.getElementById('monto-recibido').value) || total, estado: estadoFacturaSeleccionado, empleadoId: empId, empleadoNombre: empNombre, cajaId: cajaActual.id, uid: currentUser.uid, dibujoNota: notaDibujo, ...(direccionCliente ? { direccionCliente } : {}) };
-        const factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaData);
+        const facturaData = { numero: numFactura, ncf, fecha: serverTimestamp(), items: getCarrito().map(i => { const pb = i._precioBase || i.precio; return { id: i.id, nombre: i.nombre, precio: pb, qty: i.qty, unidad: i.unidad || null, subtotal: pb * i.qty }; }), subtotal, itbis, itbisPct, total, metodoPago: metodoPagoSeleccionado, montoRecibido: parseFloat(document.getElementById('monto-recibido').value) || total, estado: estadoFacturaSeleccionado, empleadoId: empId, empleadoNombre: empNombre, cajaId: cajaActual.id, uid: currentUser.uid, dibujoNota: notaDibujo, ...(direccionCliente ? { direccionCliente } : {}), ...(metodoPagoSeleccionado === 'mixto' ? { mixtoEfectivo: parseFloat(_mixtoEfStr) || 0, mixtoElectronico: parseFloat(_mixtoElecStr) || 0, mixtoSubMetodo: _mixtoSubMetodo } : {}) };
+
+        // Guardar en la colección correcta según el estado
+        let factRef;
+        if (estadoFacturaSeleccionado === 'pendiente') {
+          factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas-pendientes'), facturaData);
+        } else {
+          factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaData);
+        }
         if (estadoFacturaSeleccionado === 'pagada') {
           await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'ingreso', descripcion: `Venta ${numFactura}`, monto: total, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, facturaId: factRef.id, cajaId: cajaActual.id });
           await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { ingresos: (cajaActual.ingresos || 0) + total });
@@ -3403,9 +4452,21 @@
       const fecha = factura.fecha?.toDate ? factura.fecha.toDate() : new Date();
       let dibujoHtml = '';
       if (factura.dibujoNota) {
-        dibujoHtml = `<div style="margin-top:12px; border-top:1px dashed #ccc; padding-top:8px;"><strong>📝 Nota / Dibujo:</strong><br><img src="${factura.dibujoNota}" style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:8px; margin-top:6px;"></div>`;
+        dibujoHtml = `<div style="margin-top:12px; border-top:1px dashed #ccc; padding-top:8px;"><strong>📝 Nota:</strong><br><img src="${factura.dibujoNota}" style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:8px; margin-top:6px;"></div>`;
       }
-      return `<div class="ticket"><div class="ticket-header"><div style="font-size:16px;font-weight:800;">${negocioData?.nombre || 'Colmado'}</div><div>${negocioData?.direccion || ''}</div><div>${negocioData?.telefono || ''}</div>${negocioData?.rnc ? `<div>RNC: ${negocioData.rnc}</div>` : ''}<div style="margin-top:6px;">━━━━━━━━━━━━━━━━━━━━━━</div><div>Factura: ${factura.numero}</div>${factura.ncf ? `<div>NCF: ${factura.ncf}</div>` : ''}<div>${fecha.toLocaleString('es-DO')}</div><div>Empleado: ${factura.empleadoNombre || '-'}</div>${factura.direccionCliente ? `<div style="margin-top:4px;"><strong>📍 Entrega:</strong> ${factura.direccionCliente}</div>` : ''}</div><div>${(factura.items || []).map(i => { const qtyLabel = (i.unidad && esUnidadDetallable(i.unidad)) ? `${parseFloat(i.qty).toFixed(3)} ${labelUnidad(i.unidad)}` : `x${i.qty}`; return `<div class="ticket-row"><span>${i.nombre} ${qtyLabel}</span><span>${fmt(i.subtotal)}</span></div>`; }).join('')}</div><div class="ticket-total"><div class="ticket-row"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div><div class="ticket-row"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div><div class="ticket-row" style="font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div><div class="ticket-row"><span>Método</span><span>${factura.metodoPago}</span></div>${factura.metodoPago === 'efectivo' ? `<div class="ticket-row"><span>Recibido</span><span>${fmt(factura.montoRecibido)}</span></div><div class="ticket-row"><span>Cambio</span><span>${fmt(Math.max(0, (factura.montoRecibido || 0) - factura.total))}</span></div>` : ''}</div>${dibujoHtml}<div style="text-align:center;margin-top:12px;font-size:11px;">¡Gracias por su compra!<br>Estado: <strong>${factura.estado === 'pagada' ? '✅ PAGADA' : '⏳ PENDIENTE'}</strong></div></div>`;
+      // Método de pago — texto legible
+      const metodoLabel = { efectivo: '💵 Efectivo', transferencia: '🏦 Transferencia', tarjeta: '💳 Tarjeta', mixto: '💵+💳 Mixto' }[factura.metodoPago] || factura.metodoPago;
+      // Bloque de pago según método
+      let pagoHtml = `<div class="ticket-row"><span>Método</span><span>${metodoLabel}</span></div>`;
+      if (factura.metodoPago === 'efectivo') {
+        pagoHtml += `<div class="ticket-row"><span>Recibido</span><span>${fmt(factura.montoRecibido)}</span></div><div class="ticket-row"><span>Cambio</span><span>${fmt(Math.max(0, (factura.montoRecibido || 0) - factura.total))}</span></div>`;
+      } else if (factura.metodoPago === 'mixto') {
+        const subLbl = { transferencia: '🏦 Transferencia', tarjeta: '💳 Tarjeta' }[factura.mixtoSubMetodo] || factura.mixtoSubMetodo || 'Electrónico';
+        const cambioMixto = ((factura.mixtoEfectivo || 0) + (factura.mixtoElectronico || 0)) - factura.total;
+        pagoHtml += `<div class="ticket-row"><span>💵 Efectivo</span><span>${fmt(factura.mixtoEfectivo || 0)}</span></div><div class="ticket-row"><span>${subLbl}</span><span>${fmt(factura.mixtoElectronico || 0)}</span></div>`;
+        if (cambioMixto > 0) pagoHtml += `<div class="ticket-row"><span>Cambio</span><span>${fmt(cambioMixto)}</span></div>`;
+      }
+      return `<div class="ticket"><div class="ticket-header"><div style="font-size:16px;font-weight:800;">${negocioData?.nombre || 'Colmado'}</div><div>${negocioData?.direccion || ''}</div><div>${negocioData?.telefono || ''}</div>${negocioData?.rnc ? `<div>RNC: ${negocioData.rnc}</div>` : ''}<div style="margin-top:6px;">━━━━━━━━━━━━━━━━━━━━━━</div><div>Factura: ${factura.numero}</div>${factura.ncf ? `<div>NCF: ${factura.ncf}</div>` : ''}<div>${fecha.toLocaleString('es-DO')}</div><div>Empleado: ${factura.empleadoNombre || '-'}</div>${factura.direccionCliente ? `<div style="margin-top:4px;"><strong>📍 Entrega:</strong> ${factura.direccionCliente}</div>` : ''}</div><div>${(factura.items || []).map(i => { const qtyLabel = (i.unidad && esUnidadDetallable(i.unidad)) ? `${parseFloat(i.qty).toFixed(3)} ${labelUnidad(i.unidad)}` : `x${i.qty}`; return `<div class="ticket-row"><span>${i.nombre} ${qtyLabel}</span><span>${fmt(i.subtotal)}</span></div>`; }).join('')}</div><div class="ticket-total"><div class="ticket-row"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div><div class="ticket-row"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div><div class="ticket-row" style="font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div>${pagoHtml}</div>${dibujoHtml}<div style="text-align:center;margin-top:12px;font-size:11px;">¡Gracias por su compra!<br>Estado: <strong>${factura.estado === 'pagada' ? '✅ PAGADA' : '⏳ PENDIENTE'}</strong></div></div>`;
     }
 
     window.imprimirTicket = () => { const content = document.getElementById('modal-ticket-body').innerHTML; const w = window.open('', '_blank'); w.document.write(`<html><head><title>Ticket</title><style>body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;}.ticket-row{display:flex;justify-content:space-between;margin-bottom:4px;}.ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}.ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}</style></head><body>${content}<script>window.print();window.close();<\/script></body></html>`); w.document.close(); };
@@ -3425,17 +4486,393 @@
     window.confirmarVaciarCarrito = () => { setCarrito([]); renderCarrito(); cerrarModal('modal-vaciar-carrito'); toast('Carrito vaciado', 'info'); };
 
     // ==================== FACTURAS PAGE ====================
-    async function cargarFacturas() { const q = query(collection(db, 'negocios', negocioId, 'facturas'), orderBy('fecha', 'desc'), limit(100)); const snap = await getDocs(q); facturasCache = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaFacturas(facturasCache); }
+    let facturasTabActual = 'pendientes'; // 'pendientes' | 'pagadas'
+    let facturasPendientesCache = [];
 
-    function renderTablaFacturas(facturas) { const tbody = document.getElementById('tbody-facturas'); if (!tbody) return; if (!facturas.length) { tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-file-invoice"></i><p>Sin facturas</p></div></td></tr>`; return; } tbody.innerHTML = facturas.map(f => { const fecha = f.fecha?.toDate ? f.fecha.toDate().toLocaleString('es-DO') : '-'; return `<tr><td style="font-family:var(--font-mono);font-weight:700;">${f.numero || '-'}</td><td style="font-family:var(--font-mono);font-size:11px;">${f.ncf || '-'}</td><td>${fecha}</td><td>${f.empleadoNombre || '-'}</td><td>${f.metodoPago || '-'}</td><td style="font-family:var(--font-mono);font-weight:700;">${fmt(f.total)}</td><td><span class="badge ${f.estado}">${f.estado === 'pagada' ? '✅ Pagada' : '⏳ Pendiente'}</span></td><td><button class="btn-sm gris" onclick="verFactura('${f.id}')" style="padding:6px 10px;font-size:12px;"><i class="fas fa-eye"></i></button>${f.estado === 'pendiente' ? `<button class="btn-sm verde" onclick="marcarPagada('${f.id}')" style="padding:6px 10px;font-size:12px;margin-left:4px;"><i class="fas fa-check"></i> Pagar</button>` : ''}</td></tr>`; }).join(''); }
+    // Cambiar tab visible
+    window.switchFacturasTab = (tab) => {
+      facturasTabActual = tab;
+      const btnPend = document.getElementById('btn-tab-pendientes');
+      const btnPag = document.getElementById('btn-tab-pagadas');
+      if (tab === 'pendientes') {
+        btnPend.style.background = '#f59f00';
+        btnPend.style.borderColor = '#f59f00';
+        btnPend.style.color = '#fff';
+        btnPend.style.boxShadow = '0 2px 10px rgba(245,159,0,0.3)';
+        btnPag.style.background = 'white';
+        btnPag.style.borderColor = '#aab4c8';
+        btnPag.style.color = '#4a5568';
+        btnPag.style.boxShadow = 'none';
+        renderTablaFacturas(filtrarCache(facturasPendientesCache));
+      } else {
+        btnPag.style.background = '#28a745';
+        btnPag.style.borderColor = '#28a745';
+        btnPag.style.color = '#fff';
+        btnPag.style.boxShadow = '0 2px 10px rgba(40,167,69,0.3)';
+        btnPend.style.background = 'white';
+        btnPend.style.borderColor = '#aab4c8';
+        btnPend.style.color = '#4a5568';
+        btnPend.style.boxShadow = 'none';
+        renderTablaFacturas(filtrarCache(facturasCache));
+      }
+    };
 
-    window.filtrarFacturas = () => { const buscar = document.getElementById('fact-buscar').value.toLowerCase(); const estado = document.getElementById('fact-estado').value; const metodo = document.getElementById('fact-metodo').value; const fechaIni = document.getElementById('fact-fecha-ini').value; const fechaFin = document.getElementById('fact-fecha-fin').value; let filtradas = facturasCache.filter(f => { if (buscar && !f.numero?.toLowerCase().includes(buscar)) return false; if (estado && f.estado !== estado) return false; if (metodo && f.metodoPago !== metodo) return false; if (fechaIni || fechaFin) { const fecha = f.fecha?.toDate ? f.fecha.toDate() : null; if (!fecha) return false; if (fechaIni && fecha < new Date(fechaIni)) return false; if (fechaFin && fecha > new Date(fechaFin + 'T23:59:59')) return false; } return true; }); renderTablaFacturas(filtradas); };
+    function filtrarCache(lista) {
+      const buscar = (document.getElementById('fact-buscar')?.value || '').toLowerCase();
+      const metodo = document.getElementById('fact-metodo')?.value || '';
+      const fechaIni = document.getElementById('fact-fecha-ini')?.value || '';
+      const fechaFin = document.getElementById('fact-fecha-fin')?.value || '';
+      return lista.filter(f => {
+        if (buscar && !f.numero?.toLowerCase().includes(buscar)) return false;
+        if (metodo && f.metodoPago !== metodo) return false;
+        if (fechaIni || fechaFin) {
+          const fecha = f.fecha?.toDate ? f.fecha.toDate() : null;
+          if (!fecha) return false;
+          if (fechaIni && fecha < new Date(fechaIni)) return false;
+          if (fechaFin && fecha > new Date(fechaFin + 'T23:59:59')) return false;
+        }
+        return true;
+      });
+    }
 
-    window.limpiarFiltrosFacturas = () => { document.getElementById('fact-buscar').value = ''; document.getElementById('fact-fecha-ini').value = ''; document.getElementById('fact-fecha-fin').value = ''; document.getElementById('fact-estado').value = ''; document.getElementById('fact-metodo').value = ''; renderTablaFacturas(facturasCache); };
+    async function cargarFacturas() {
+      // Cargar facturas pagadas
+      const qPag = query(collection(db, 'negocios', negocioId, 'facturas'), orderBy('fecha', 'desc'), limit(100));
+      const snapPag = await getDocs(qPag);
+      facturasCache = snapPag.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    window.verFactura = (id) => { const f = facturasCache.find(f => f.id === id); if (!f) return; document.getElementById('modal-ver-factura-body').innerHTML = generarHTMLTicket(f); abrirModal('modal-ver-factura'); };
+      // Cargar facturas pendientes
+      const qPend = query(collection(db, 'negocios', negocioId, 'facturas-pendientes'), orderBy('fecha', 'desc'), limit(100));
+      const snapPend = await getDocs(qPend);
+      facturasPendientesCache = snapPend.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    window.marcarPagada = async (id) => { try { await updateDoc(doc(db, 'negocios', negocioId, 'facturas', id), { estado: 'pagada' }); const f = facturasCache.find(f => f.id === id); if (f && cajaActual) { await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'ingreso', descripcion: `Pago factura ${f.numero}`, monto: f.total, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: await getEmpNombre(), facturaId: id, cajaId: cajaActual.id }); await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { ingresos: (cajaActual.ingresos || 0) + f.total }); } toast('Factura marcada como pagada', 'success'); await cargarFacturas(); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+      // Actualizar badge
+      const badge = document.getElementById('badge-pendientes');
+      if (badge) badge.textContent = facturasPendientesCache.length;
+
+      // Render según tab activa
+      if (facturasTabActual === 'pendientes') {
+        renderTablaFacturas(filtrarCache(facturasPendientesCache));
+      } else {
+        renderTablaFacturas(filtrarCache(facturasCache));
+      }
+    }
+
+    function renderTablaFacturas(facturas) {
+      const tbody = document.getElementById('tbody-facturas');
+      if (!tbody) return;
+      const esPendientes = facturasTabActual === 'pendientes';
+      if (!facturas.length) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-file-invoice"></i><p>${esPendientes ? 'Sin facturas pendientes' : 'Sin facturas pagadas'}</p></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = facturas.map(f => {
+        const fecha = f.fecha?.toDate ? f.fecha.toDate().toLocaleString('es-DO') : '-';
+        const accionPagar = esPendientes
+          ? `<button class="btn-sm verde" onclick="abrirModalPagarPendiente('${f.id}')" style="padding:6px 12px;font-size:12px;margin-left:4px;display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-cash-register"></i> Pagar factura</button>`
+          : '';
+        return `<tr>
+          <td style="font-family:var(--font-mono);font-weight:700;">${f.numero || '-'}</td>
+          <td style="font-family:var(--font-mono);font-size:11px;">${f.ncf || '-'}</td>
+          <td>${fecha}</td>
+          <td>${f.empleadoNombre || '-'}</td>
+          <td>${f.metodoPago || '-'}</td>
+          <td style="font-family:var(--font-mono);font-weight:700;">${fmt(f.total)}</td>
+          <td><span class="badge ${esPendientes ? 'pendiente' : 'pagada'}">${esPendientes ? '⏳ Pendiente' : '✅ Pagada'}</span></td>
+          <td>
+            <button class="btn-sm gris" onclick="verFactura('${f.id}','${esPendientes ? 'pend' : 'pag'}')" style="padding:6px 10px;font-size:12px;"><i class="fas fa-eye"></i></button>
+            ${accionPagar}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    window.filtrarFacturas = () => {
+      if (facturasTabActual === 'pendientes') {
+        renderTablaFacturas(filtrarCache(facturasPendientesCache));
+      } else {
+        renderTablaFacturas(filtrarCache(facturasCache));
+      }
+    };
+
+    window.limpiarFiltrosFacturas = () => {
+      document.getElementById('fact-buscar').value = '';
+      document.getElementById('fact-fecha-ini').value = '';
+      document.getElementById('fact-fecha-fin').value = '';
+      document.getElementById('fact-metodo').value = '';
+      window.filtrarFacturas();
+    };
+
+    window.verFactura = (id, tipo) => {
+      const lista = tipo === 'pend' ? facturasPendientesCache : facturasCache;
+      const f = lista.find(f => f.id === id);
+      if (!f) return;
+      document.getElementById('modal-ver-factura-body').innerHTML = generarHTMLTicket(f);
+      abrirModal('modal-ver-factura');
+    };
+
+    // ===== MODAL PAGAR FACTURA PENDIENTE =====
+    let pfpFacturaId = null;
+    let pfpMetodo = 'efectivo';
+    let pfpMontoStr = '';
+
+    window.abrirModalPagarPendiente = (id) => {
+      pfpFacturaId = id;
+      pfpMetodo = 'efectivo';
+      pfpMontoStr = '';
+      const f = facturasPendientesCache.find(x => x.id === id);
+      if (!f) return;
+      const infoEl = document.getElementById('pfp-info');
+      infoEl.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:800;font-size:15px;color:#1a2135;">${f.numero || '-'}</div>
+            <div style="color:#666;font-size:12px;">${f.fecha?.toDate ? f.fecha.toDate().toLocaleString('es-DO') : '-'} • ${f.empleadoNombre || '-'}</div>
+          </div>
+          <div style="font-family:var(--font-mono);font-weight:800;font-size:1.3rem;color:#00b341;">${fmt(f.total)}</div>
+        </div>`;
+      pfpActualizarDisplay();
+      pfpSelMetodo('efectivo');
+      pfpMixtoResetear();
+      const cambioDis = document.getElementById('pfp-cambio-display');
+      if (cambioDis) cambioDis.style.display = 'none';
+      abrirModal('modal-pagar-factura-pendiente');
+    };
+
+    window.pfpSelMetodo = (metodo) => {
+      pfpMetodo = metodo;
+      const colores = { efectivo: '#28a745', transferencia: '#1971c2', tarjeta: '#6f42c1', mixto: '#e67700' };
+      ['efectivo', 'transferencia', 'tarjeta', 'mixto'].forEach(m => {
+        const btn = document.getElementById(`pfp-btn-${m}`);
+        if (btn) {
+          if (m === metodo) {
+            btn.style.background = colores[m];
+            btn.style.borderColor = colores[m];
+            btn.style.color = 'white';
+          } else {
+            btn.style.background = '#e2e8f0';
+            btn.style.borderColor = '#e2e8f0';
+            btn.style.color = '#4a5568';
+          }
+        }
+      });
+      const sec = document.getElementById('pfp-efectivo-section');
+      const mixtoSec = document.getElementById('pfp-mixto-section');
+      if (sec) sec.style.display = metodo === 'efectivo' ? 'block' : 'none';
+      if (mixtoSec) { mixtoSec.style.display = metodo === 'mixto' ? 'block' : 'none'; }
+      if (metodo === 'mixto') { pfpMixtoActivar('efectivo'); pfpMixtoActualizarResumen(); }
+    };
+
+    // ==================== PAGO MIXTO (FACTURAS PENDIENTES) ====================
+    let _pfpMixtoActivo = 'efectivo';
+    let _pfpMixtoEfStr = '';
+    let _pfpMixtoElecStr = '';
+    let _pfpMixtoSub = 'transferencia';
+
+    window.pfpMixtoSelSub = (sub) => {
+      _pfpMixtoSub = sub;
+      document.getElementById('pfp-sub-trans').classList.toggle('activo', sub === 'transferencia');
+      document.getElementById('pfp-sub-tarj').classList.toggle('activo', sub === 'tarjeta');
+      const lbl = document.getElementById('pfp-mixto-elec-lbl');
+      const resLbl = document.getElementById('pfp-mx-res-el-lbl');
+      if (sub === 'transferencia') { if (lbl) lbl.textContent = '🏦 TRANSFERENCIA'; if (resLbl) resLbl.textContent = '🏦 Transferencia'; }
+      else { if (lbl) lbl.textContent = '💳 TARJETA'; if (resLbl) resLbl.textContent = '💳 Tarjeta'; }
+    };
+
+    window.pfpMixtoActivar = (campo) => {
+      _pfpMixtoActivo = campo;
+      document.getElementById('pfp-mixto-campo-ef').classList.toggle('mixto-campo-activo', campo === 'efectivo');
+      document.getElementById('pfp-mixto-campo-elec').classList.toggle('mixto-campo-activo', campo === 'elec');
+    };
+
+    window.pfpMixtoResto = (campo) => {
+      const f = facturasPendientesCache.find(x => x.id === pfpFacturaId);
+      if (!f) return;
+      const total = f.total;
+      if (campo === 'efectivo') { const elec = parseFloat(_pfpMixtoElecStr) || 0; _pfpMixtoEfStr = Math.max(0, total - elec).toFixed(2); }
+      else { const ef = parseFloat(_pfpMixtoEfStr) || 0; _pfpMixtoElecStr = Math.max(0, total - ef).toFixed(2); }
+      pfpMixtoActivar(campo);
+      _pfpMixtoRefrescar();
+      pfpMixtoActualizarResumen();
+    };
+
+    window.pfpMixtoTecla = (val) => {
+      let str = _pfpMixtoActivo === 'efectivo' ? _pfpMixtoEfStr : _pfpMixtoElecStr;
+      if (val === '⌫') str = str.slice(0, -1);
+      else if (val === '.') { if (!str.includes('.')) str += '.'; }
+      else if (val === 'OK') { pfpMixtoActualizarResumen(); return; }
+      else { if (str.length < 10) str += val; }
+      if (_pfpMixtoActivo === 'efectivo') _pfpMixtoEfStr = str; else _pfpMixtoElecStr = str;
+      _pfpMixtoRefrescar();
+      pfpMixtoActualizarResumen();
+    };
+
+    function _pfpMixtoRefrescar() {
+      const dE = document.getElementById('pfp-mixto-disp-ef');
+      const dEl = document.getElementById('pfp-mixto-disp-el');
+      if (dE) dE.innerHTML = _pfpMixtoEfStr ? `RD$ ${_pfpMixtoEfStr}` : '<span class="placeholder">Toca para ingresar</span>';
+      if (dEl) dEl.innerHTML = _pfpMixtoElecStr ? `RD$ ${_pfpMixtoElecStr}` : '<span class="placeholder">Toca para ingresar</span>';
+    }
+
+    function pfpMixtoActualizarResumen() {
+      const f = facturasPendientesCache.find(x => x.id === pfpFacturaId);
+      if (!f) return;
+      const ef = parseFloat(_pfpMixtoEfStr) || 0;
+      const elec = parseFloat(_pfpMixtoElecStr) || 0;
+      const tot = ef + elec;
+      const cambio = tot - f.total;
+      const rEf = document.getElementById('pfp-mx-res-ef');
+      const rEl = document.getElementById('pfp-mx-res-el');
+      const rTot = document.getElementById('pfp-mx-res-tot');
+      const rCambio = document.getElementById('pfp-mx-cambio-row');
+      if (rEf) rEf.textContent = fmt(ef);
+      if (rEl) rEl.textContent = fmt(elec);
+      if (rTot) rTot.textContent = fmt(tot);
+      if (rCambio) {
+        rCambio.style.display = 'flex';
+        if (cambio >= 0) { rCambio.className = 'mixto-resumen-row cambio-ok'; rCambio.innerHTML = `<span class="lbl">✅ Cambio</span><span class="val">${fmt(cambio)}</span>`; }
+        else { rCambio.className = 'mixto-resumen-row cambio-falta'; rCambio.innerHTML = `<span class="lbl">❌ Falta</span><span class="val">${fmt(Math.abs(cambio))}</span>`; }
+      }
+    }
+
+    function pfpMixtoResetear() {
+      _pfpMixtoEfStr = ''; _pfpMixtoElecStr = ''; _pfpMixtoActivo = 'efectivo'; _pfpMixtoSub = 'transferencia';
+      _pfpMixtoRefrescar();
+    }
+
+    window.pfpTecla = (val) => {
+      if (val === '⌫') {
+        pfpMontoStr = pfpMontoStr.slice(0, -1);
+      } else if (val === '.') {
+        if (!pfpMontoStr.includes('.')) pfpMontoStr += '.';
+      } else {
+        if (pfpMontoStr.length < 10) pfpMontoStr += val;
+      }
+      pfpActualizarDisplay();
+    };
+
+    function pfpActualizarDisplay() {
+      const val = parseFloat(pfpMontoStr) || 0;
+      const disp = document.getElementById('pfp-monto-display');
+      if (disp) disp.textContent = pfpMontoStr ? `RD$ ${pfpMontoStr}` : 'RD$ 0.00';
+      // Calcular cambio
+      const f = facturasPendientesCache.find(x => x.id === pfpFacturaId);
+      if (f && val > 0) {
+        const cambio = val - f.total;
+        const cambioDis = document.getElementById('pfp-cambio-display');
+        if (cambioDis) {
+          cambioDis.style.display = 'block';
+          if (cambio >= 0) {
+            cambioDis.style.background = '#d4edda';
+            cambioDis.style.color = '#155724';
+            cambioDis.textContent = `✅ Cambio: ${fmt(cambio)}`;
+          } else {
+            cambioDis.style.background = '#f8d7da';
+            cambioDis.style.color = '#721c24';
+            cambioDis.textContent = `❌ Falta: ${fmt(Math.abs(cambio))}`;
+          }
+        }
+      } else {
+        const cambioDis = document.getElementById('pfp-cambio-display');
+        if (cambioDis) cambioDis.style.display = 'none';
+      }
+    }
+
+    window.confirmarPagarFacturaPendiente = async () => {
+      if (!pfpFacturaId) return;
+      const f = facturasPendientesCache.find(x => x.id === pfpFacturaId);
+      if (!f) return;
+      if (pfpMetodo === 'efectivo') {
+        const montoRec = parseFloat(pfpMontoStr) || 0;
+        if (montoRec <= 0) { toast('Ingresa el monto recibido en efectivo', 'error'); return; }
+        if (montoRec < f.total) { toast('El monto recibido es menor al total', 'error'); return; }
+      }
+      if (pfpMetodo === 'mixto') {
+        const ef = parseFloat(_pfpMixtoEfStr) || 0;
+        const elec = parseFloat(_pfpMixtoElecStr) || 0;
+        if (ef <= 0 && elec <= 0) { toast('Ingresa los montos del pago mixto', 'error'); return; }
+        if ((ef + elec) < f.total) { toast('El total pagado no cubre el monto de la factura', 'error'); return; }
+      }
+      const btn = document.getElementById('btn-confirmar-pagar-pendiente');
+      btn.innerHTML = '<span class="loader"></span> Procesando...';
+      btn.disabled = true;
+      try {
+        const montoRec = pfpMetodo === 'efectivo' ? (parseFloat(pfpMontoStr) || f.total) : f.total;
+        const cambio = pfpMetodo === 'efectivo' ? Math.max(0, montoRec - f.total) : 0;
+        const empNombre = await getEmpNombre();
+        const fechaPago = serverTimestamp();
+
+        // Construir datos de la factura pagada
+        const facturaPageData = {
+          ...f,
+          id: undefined,
+          estado: 'pagada',
+          metodoPago: pfpMetodo,
+          montoRecibido: montoRec,
+          cambio,
+          fechaPago,
+          ...(pfpMetodo === 'mixto' ? {
+            mixtoEfectivo: parseFloat(_pfpMixtoEfStr) || 0,
+            mixtoElectronico: parseFloat(_pfpMixtoElecStr) || 0,
+            mixtoSubMetodo: _pfpMixtoSub
+          } : {})
+        };
+        delete facturaPageData.id;
+
+        // Guardar en colección 'facturas' (pagadas)
+        const newFactRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaPageData);
+
+        // Eliminar de 'facturas-pendientes'
+        await deleteDoc(doc(db, 'negocios', negocioId, 'facturas-pendientes', pfpFacturaId));
+
+        // Afectar caja si hay caja abierta
+        if (cajaActual) {
+          // Registrar ingreso
+          await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), {
+            tipo: 'ingreso',
+            descripcion: `Pago factura ${f.numero}`,
+            monto: f.total,
+            fecha: fechaPago,
+            uid: currentUser.uid,
+            empleadoNombre: empNombre,
+            facturaId: newFactRef.id,
+            cajaId: cajaActual.id
+          });
+          let newIngresos = (cajaActual.ingresos || 0) + f.total;
+          let newGastos = cajaActual.gastos || 0;
+          // Si hay cambio en efectivo, registrarlo como gasto (dinero devuelto)
+          if (pfpMetodo === 'efectivo' && cambio > 0) {
+            await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), {
+              tipo: 'gasto',
+              descripcion: `Cambio devuelto factura ${f.numero}`,
+              monto: cambio,
+              fecha: fechaPago,
+              uid: currentUser.uid,
+              empleadoNombre: empNombre,
+              facturaId: newFactRef.id,
+              cajaId: cajaActual.id
+            });
+            newGastos += cambio;
+          }
+          await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), {
+            ingresos: newIngresos,
+            gastos: newGastos
+          });
+        }
+
+        cerrarModal('modal-pagar-factura-pendiente');
+        toast('Factura pagada exitosamente ✅', 'success');
+        await cargarFacturas();
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+        console.error(e);
+      }
+      btn.innerHTML = '<i class="fas fa-check"></i> Confirmar Pago';
+      btn.disabled = false;
+    };
+
+    // Mantener compatibilidad con marcarPagada (por si se llama desde algún lado)
+    window.marcarPagada = (id) => window.abrirModalPagarPendiente(id);
 
     // ==================== INVENTARIO - NUEVA VERSIÓN CON BÚSQUEDA, DRAG TÁCTIL Y MOVER PRODUCTO ENTRE CATEGORÍAS ====================
     function renderInventario() {
@@ -3569,7 +5006,7 @@
       const header = `<div class="productos-header-inv">
         <button class="back-btn" onclick="volverCategoriasInventario()"><i class="fas fa-arrow-left"></i> Categorías</button>
         <strong>⭐ Más Vendidos</strong>
-        <span style="font-size:12px;color:#888;margin-left:8px;">${masVendidosProds.length} producto${masVendidosProds.length!==1?'s':''}</span>
+        <span style="font-size:12px;color:#888;margin-left:8px;">${masVendidosProds.length} producto${masVendidosProds.length !== 1 ? 's' : ''}</span>
         <span style="font-size:11px;color:#aaa;margin-left:8px;">Activa "Ordenar" para reorganizar</span>
       </div>`;
 
@@ -3756,7 +5193,7 @@
         ${mvBg ? `<img src="${mvBg}" alt="Más Vendidos" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px 10px 0 0;display:block;" onerror="this.src='./img/backgrounds/masvendidos_1.jpg'">` : `<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:52px;background:linear-gradient(135deg,#f59f00,#e67700);border-radius:10px 10px 0 0;">⭐</div>`}
         <div class="cat-info-inv">
           <div class="cat-nombre-inv" style="color:#e67700;">⭐ Más Vendidos</div>
-          <div class="cat-stats-inv">${mvCount} producto${mvCount!==1?'s':''} destacados</div>
+          <div class="cat-stats-inv">${mvCount} producto${mvCount !== 1 ? 's' : ''} destacados</div>
         </div>
         <div class="cat-actions-inv">
           <button class="icon-btn-sm" onclick="event.stopPropagation();editarImagenMasVendidos(event)" title="Cambiar imagen de fondo" style="background:#fff3bf;color:#e67700;"><i class="fas fa-image"></i></button>
@@ -4475,7 +5912,7 @@
       }
     }
     // ==================== SYNC CLEAR BUTTONS ====================
-    window._syncClearBtn = function(inputId, btnId) {
+    window._syncClearBtn = function (inputId, btnId) {
       const inp = document.getElementById(inputId);
       const btn = document.getElementById(btnId);
       if (!inp || !btn) return;
