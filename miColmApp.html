@@ -3177,12 +3177,7 @@ background: #ffffff00;
     window.logout = async () => {
       unsubscribers.forEach(u => u && u());
       unsubscribers = [];
-      if (unsubCategorias) { unsubCategorias(); unsubCategorias = null; }
-      // Cancelar suscripciones de productos por categoría
-      Object.values(_unsubProductos).forEach(u => u && u());
-      Object.keys(_unsubProductos).forEach(k => delete _unsubProductos[k]);
-      // Limpiar cache en memoria de imágenes
-      Object.keys(_imgCache).forEach(k => delete _imgCache[k]);
+      if (unsubCategorias) unsubCategorias();
       await signOut(auth);
     };
 
@@ -3207,42 +3202,28 @@ background: #ffffff00;
 
     async function loadNegocio(user) {
       try {
-        const cachedNegId = localStorage.getItem(`negocio_${user.uid}`);
-        const cachedNegData = localStorage.getItem(`negocioData_${user.uid}`);
-        const cachedRol = localStorage.getItem(`empRol_${user.uid}`);
-
-        // Restaurar estado mínimo desde cache para que initApp pueda leer el cache de productos/cats
-        if (cachedNegId && cachedNegData) {
-          negocioId = cachedNegId;
-          negocioData = JSON.parse(cachedNegData);
-          if (cachedRol) userRole = cachedRol;
-        }
-
-        // Verificar en Firebase (una sola llamada, sin bloquear la UI más de lo necesario)
         let negRef = doc(db, 'negocios', user.uid);
         let negSnap = await getDoc(negRef);
         if (negSnap.exists()) {
           negocioId = user.uid;
-        } else if (cachedNegId) {
-          negRef = doc(db, 'negocios', cachedNegId);
-          negSnap = await getDoc(negRef);
-          if (!negSnap.exists()) { showScreen('auth'); showAuthMsg('Negocio no encontrado', 'error'); return; }
         } else {
-          showScreen('auth');
-          showAuthMsg('No perteneces a ningún negocio', 'error');
-          return;
+          const cachedNeg = localStorage.getItem(`negocio_${user.uid}`);
+          if (cachedNeg) {
+            negocioId = cachedNeg;
+            negRef = doc(db, 'negocios', negocioId);
+            negSnap = await getDoc(negRef);
+            if (!negSnap.exists()) { showScreen('auth'); showAuthMsg('Negocio no encontrado', 'error'); return; }
+          } else {
+            showScreen('auth');
+            showAuthMsg('No perteneces a ningún negocio', 'error');
+            return;
+          }
         }
-
-        // Actualizar datos frescos de Firebase
         negocioData = negSnap.data();
-        localStorage.setItem(`negocioData_${user.uid}`, JSON.stringify(negocioData));
         const empSnap = await getDoc(doc(db, 'negocios', negocioId, 'empleados', user.uid));
         if (empSnap.exists()) { userRole = empSnap.data().rol; }
         else { userRole = negocioData.propietarioUid === user.uid ? 'admin' : 'empleado'; }
         localStorage.setItem(`negocio_${user.uid}`, negocioId);
-        localStorage.setItem(`empRol_${user.uid}`, userRole);
-
-        // Iniciar la app UNA sola vez, con todos los datos ya listos
         await initApp();
       } catch (e) {
         console.error(e);
@@ -3257,26 +3238,23 @@ background: #ffffff00;
       if (cfgSnap.exists()) config = { ...config, ...cfgSnap.data() };
       document.getElementById('nav-negocio-nombre').textContent = negocioData.nombre || 'Mi Colmado';
       buildNavbar();
+      suscribirCaja();
+      suscribirInventario();
+      await loadEmpleados();
 
       // Inicializar sistema multi-factura
       _cargarTabsDeStorage();
       if (!facturasTabs.length) { _crearNuevaTab('Factura 1'); facturaTabActiva = facturasTabs[0].id; }
       if (!facturaTabActiva) facturaTabActiva = facturasTabs[0].id;
 
-      // ① Cargar cache local PRIMERO, antes de renderizar nada,
-      //    para que la UI aparezca completa desde el primer frame sin parpadeo
-      _cargarCacheLocal();
-
       // Restaurar dibujo de la tab activa al cargar
       const tabInicial = _getTabActiva();
       if (tabInicial?.dibujoDataURL) { dibujoDataURL = tabInicial.dibujoDataURL; }
 
-      // ② Mostrar la app con datos del cache ya en memoria (sin parpadeo)
-      showScreen('app');
-      showPage('pos');
-
       inicializarSignaturePad();
+      // Restaurar estado del panel de dibujo DESPUÉS de inicializar el pad y cargar el dibujo
       restaurarEstadoDibujo();
+      // Actualizar color del botón limpiar según si hay dibujo guardado
       _actualizarBtnLimpiar();
 
       // Restaurar botones de grid según preferencia guardada
@@ -3284,6 +3262,9 @@ background: #ffffff00;
       const bp = document.getElementById('btn-grid-peq');
       if (bg) bg.classList.toggle('active', gridSize === 'grande');
       if (bp) bp.classList.toggle('active', gridSize === 'pequena');
+
+      showScreen('app');
+      showPage('pos');
 
       // Restaurar dirección del cliente de la tab activa al refrescar
       const dirInputInit = document.getElementById('pos-direccion-cliente');
@@ -3294,11 +3275,6 @@ background: #ffffff00;
       }
       _syncClearBtn('pos-direccion-cliente', 'pos-dir-clear');
       _syncClearBtn('pos-buscar', 'pos-buscar-clear');
-
-      // ③ Conectar Firebase EN BACKGROUND — solo actualizará la UI si hay cambios reales
-      suscribirCaja();
-      await loadEmpleados();
-      suscribirInventario();
 
       // Verificar si hay pedido entrante en la URL
       setTimeout(() => { manejarPedidoEntrante(); }, 800);
@@ -3337,234 +3313,45 @@ background: #ffffff00;
       if (pageId === 'config') { renderConfig(); renderEmpleados(); }
       if (pageId === 'facturas') { cargarFacturas(); }
       if (pageId === 'caja') { renderCaja(); }
-      if (pageId === 'pos') { renderFacturasTabs(); renderCarrito(); if (categorias.length || productos.length) renderCategoriasPos(); }
+      if (pageId === 'pos') { renderFacturasTabs(); renderCarrito(); }
     };
 
-    // ==================== INDEXEDDB PARA IMÁGENES ====================
-    let _idb = null;
-    function _abrirIDB() {
-      if (_idb) return Promise.resolve(_idb);
-      return new Promise((res, rej) => {
-        const req = indexedDB.open('miColmApp_cache', 1);
-        req.onupgradeneeded = e => {
-          const db2 = e.target.result;
-          if (!db2.objectStoreNames.contains('imagenes')) db2.createObjectStore('imagenes');
-          if (!db2.objectStoreNames.contains('productos')) db2.createObjectStore('productos');
-        };
-        req.onsuccess = e => { _idb = e.target.result; res(_idb); };
-        req.onerror = () => rej(req.error);
-      });
-    }
-    async function _idbGet(store, key) {
-      try {
-        const db2 = await _abrirIDB();
-        return new Promise((res) => {
-          const tx = db2.transaction(store, 'readonly');
-          const req = tx.objectStore(store).get(key);
-          req.onsuccess = () => res(req.result ?? null);
-          req.onerror = () => res(null);
-        });
-      } catch (e) { return null; }
-    }
-    async function _idbSet(store, key, value) {
-      try {
-        const db2 = await _abrirIDB();
-        return new Promise((res) => {
-          const tx = db2.transaction(store, 'readwrite');
-          tx.objectStore(store).put(value, key);
-          tx.oncomplete = () => res(true);
-          tx.onerror = () => res(false);
-        });
-      } catch (e) { return false; }
-    }
-
-    // Cache de imágenes en memoria para el render más rápido
-    const _imgCache = {};
-    async function _precargarImagen(url) {
-      if (!url || _imgCache[url]) return;
-      try {
-        // Intentar desde IndexedDB primero
-        const cached = await _idbGet('imagenes', url);
-        if (cached) { _imgCache[url] = cached; return; }
-        // Descargar y guardar
-        const resp = await fetch(url);
-        const blob = await resp.blob();
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const b64 = reader.result;
-          _imgCache[url] = b64;
-          await _idbSet('imagenes', url, b64);
-        };
-        reader.readAsDataURL(blob);
-      } catch (e) { /* silencioso */ }
-    }
-    function _getSrcCacheado(url) {
-      return _imgCache[url] || url;
-    }
-
-    // ==================== INVENTARIO SUSCRIPCION (CACHE-FIRST + REALTIME SIN PARPADEO) ====================
-    let _unsubProductos = {};      // unsub por categoría
-    let _prodHashPorCat = {};      // hash de productos por categoría para detectar cambios reales
-
-    // Hash rápido de un array de objetos (solo compara JSON)
-    function _hashArr(arr) {
-      return JSON.stringify(arr);
-    }
-
-    // ── PASO 1: Cargar desde localStorage/IndexedDB ANTES de mostrar la UI ──
-    function _cargarCacheLocal() {
-      try {
-        const rawCats = localStorage.getItem(`cats_${negocioId}`);
-        if (rawCats) {
-          const parsed = JSON.parse(rawCats);
-          if (Array.isArray(parsed) && parsed.length) categorias = parsed;
-        }
-        const rawProds = localStorage.getItem(`prods_${negocioId}`);
-        if (rawProds) {
-          const parsed = JSON.parse(rawProds);
-          if (Array.isArray(parsed)) {
-            productos = parsed;
-            // Inicializar hashes desde cache para que la primera emisión de Firebase
-            // no cause re-render cuando los datos son idénticos
-            categorias.forEach(cat => {
-              const prodsDeEsaCat = productos.filter(p => p.categoriaId === cat.id);
-              prodsDeEsaCat.sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
-              _prodHashPorCat[cat.id] = _hashArr(prodsDeEsaCat.map(p => ({
-                id: p.id, nombre: p.nombre, precio: p.precio, stock: p.stock,
-                imagen: p.imagen, orden: p.orden, masVendidos: p.masVendidos,
-                costo: p.costo, codigoBarras: p.codigoBarras, unidad: p.unidad,
-                stockMin: p.stockMin, itbis: p.itbis, ordenMV: p.ordenMV
-              })));
-            });
-          }
-        }
-        // Pre-cargar imágenes en background (sin bloquear render)
-        categorias.forEach(c => { if (c.imagen) _precargarImagen(c.imagen); });
-        productos.forEach(p => { if (p.imagen) _precargarImagen(p.imagen); });
-      } catch (e) { /* silencioso */ }
-    }
-
-    // ── PASO 2: Suscribir Firebase DESPUÉS de que la UI ya está estable ──
+    // ==================== INVENTARIO SUSCRIPCION ====================
     function suscribirInventario() {
-      // Primero cargamos el cache para que la UI muestre datos inmediatamente
-      _cargarCacheLocal();
-
-      // Luego nos suscribimos a Firebase en background
       if (unsubCategorias) unsubCategorias();
       const catsRef = collection(db, 'negocios', negocioId, 'categorias');
-
-      let _catHashAnterior = _hashArr(categorias.map(c => ({ id: c.id, nombre: c.nombre, imagen: c.imagen, emoji: c.emoji, orden: c.orden })));
-      let _primeraEmisionCats = true;
-
       unsubCategorias = onSnapshot(catsRef, async (snap) => {
-        const nuevasCats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        nuevasCats.sort((a, b) => {
-          const oa = a.orden ?? 9999, ob = b.orden ?? 9999;
+        categorias = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        categorias.sort((a, b) => {
+          const oa = a.orden ?? 9999;
+          const ob = b.orden ?? 9999;
           if (oa !== ob) return oa - ob;
           return (a.nombre || '').localeCompare(b.nombre || '');
         });
-
-        const catHashNuevo = _hashArr(nuevasCats.map(c => ({ id: c.id, nombre: c.nombre, imagen: c.imagen, emoji: c.emoji, orden: c.orden })));
-        const cambioCats = catHashNuevo !== _catHashAnterior;
-
-        if (cambioCats || _primeraEmisionCats) {
-          _catHashAnterior = catHashNuevo;
-          categorias = nuevasCats;
-          try { localStorage.setItem(`cats_${negocioId}`, JSON.stringify(categorias)); } catch (e) {}
-          categorias.forEach(c => { if (c.imagen) _precargarImagen(c.imagen); });
-
-          // Solo renderizar categorías si realmente cambiaron (no en la primera emisión si el cache ya las tiene)
-          if (cambioCats) {
-            renderCategoriasPos();
-            populateCatSelects();
-          }
-        }
-        _primeraEmisionCats = false;
-
-        // Gestionar suscripciones de productos por categoría
-        _sincronizarSuscripcionesProductos();
+        localStorage.setItem(`cats_${negocioId}`, JSON.stringify(categorias));
+        renderCategoriasPos();
+        populateCatSelects();
+        await cargarTodosProductos();
       });
     }
 
-    function _sincronizarSuscripcionesProductos() {
-      // Cancelar suscripciones de categorías que ya no existen
-      const catIds = new Set(categorias.map(c => c.id));
-      Object.keys(_unsubProductos).forEach(catId => {
-        if (!catIds.has(catId)) {
-          _unsubProductos[catId]();
-          delete _unsubProductos[catId];
-          delete _prodHashPorCat[catId];
-        }
+    async function cargarTodosProductos() {
+      const nuevosProductos = [];
+      for (const cat of categorias) {
+        const prodsRef = collection(db, 'negocios', negocioId, 'categorias', cat.id, 'productos');
+        const snap = await getDocs(prodsRef);
+        snap.docs.forEach(d => { nuevosProductos.push({ id: d.id, categoriaId: cat.id, categoriaNombre: cat.nombre, ...d.data() }); });
+      }
+      productos = nuevosProductos;
+      productos.sort((a, b) => {
+        if (a.categoriaId !== b.categoriaId) return 0;
+        return (a.orden ?? 9999) - (b.orden ?? 9999);
       });
-      // Crear suscripciones nuevas solo para categorías sin suscripción activa
-      categorias.forEach(cat => {
-        if (!_unsubProductos[cat.id]) {
-          _suscribirProductosCategoria(cat);
-        }
-      });
-    }
-
-    function _suscribirProductosCategoria(cat) {
-      const prodsRef = collection(db, 'negocios', negocioId, 'categorias', cat.id, 'productos');
-      let _primeraEmision = true;
-
-      const unsub = onSnapshot(prodsRef, (snap) => {
-        const prodsCategoria = snap.docs.map(d => ({
-          id: d.id, categoriaId: cat.id, categoriaNombre: cat.nombre, ...d.data()
-        }));
-        prodsCategoria.sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
-
-        // Calcular hash de los campos relevantes para detectar cambios reales
-        const hashNuevo = _hashArr(prodsCategoria.map(p => ({
-          id: p.id, nombre: p.nombre, precio: p.precio, stock: p.stock,
-          imagen: p.imagen, orden: p.orden, masVendidos: p.masVendidos,
-          costo: p.costo, codigoBarras: p.codigoBarras, unidad: p.unidad,
-          stockMin: p.stockMin, itbis: p.itbis, ordenMV: p.ordenMV
-        })));
-        const hashAnterior = _prodHashPorCat[cat.id];
-        const huboCambio = hashNuevo !== hashAnterior;
-
-        _prodHashPorCat[cat.id] = hashNuevo;
-
-        // Si es la primera emisión y los datos son idénticos al cache → NO renderizar
-        if (_primeraEmision && !huboCambio) {
-          _primeraEmision = false;
-          return; // datos idénticos al cache, la UI ya está bien
-        }
-        _primeraEmision = false;
-
-        // Si no hubo cambio real en emisiones posteriores → NO renderizar
-        if (!huboCambio) return;
-
-        // ── Hubo un cambio real: actualizar estado y vistas ──
-        prodsCategoria.forEach(p => { if (p.imagen) _precargarImagen(p.imagen); });
-
-        // Actualizar el array global de productos para esta categoría
-        productos = productos.filter(p => p.categoriaId !== cat.id).concat(prodsCategoria);
-        productos.sort((a, b) => {
-          if (a.categoriaId !== b.categoriaId) return 0;
-          return (a.orden ?? 9999) - (b.orden ?? 9999);
-        });
-        try { localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos)); } catch (e) {}
-
-        // Actualizar conteos de categorías (número de productos)
-        actualizarConteosCategorias();
-
-        // Actualizar POS solo si el usuario está viendo esa categoría
-        if (categoriaActual === cat.id || categoriaActual === '__mas_vendidos__') {
-          renderProductosCategoria(categoriaActual);
-        }
-
-        // Actualizar inventario solo si está activo y muestra esa categoría
-        if (document.getElementById('page-inventario')?.classList.contains('active')) {
-          if (!inventarioCategoriaActual || inventarioCategoriaActual === cat.id || inventarioCategoriaActual === '__mas_vendidos__') {
-            renderInventario();
-          }
-        }
-      });
-
-      _unsubProductos[cat.id] = unsub;
-      unsubscribers.push(unsub);
+      localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos));
+      actualizarConteosCategorias();
+      if (categoriaActual) { renderProductosCategoria(categoriaActual); }
+      else { renderCategoriasPos(); }
+      renderInventario();
     }
 
     // ==================== CAJA ====================
@@ -3752,7 +3539,7 @@ background: #ffffff00;
         const numProds = c._count;
         const esMasVendidos = c._virtual;
         const bgContent = c.imagen
-          ? `<img class="cat-bg-img" src="${_getSrcCacheado(c.imagen)}" alt="${c.nombre}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          ? `<img class="cat-bg-img" src="${c.imagen}" alt="${c.nombre}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
           : '';
         const emojiFallback = `<div class="cat-bg-emoji" ${c.imagen ? 'style="display:none"' : ''}>${c.emoji || '📦'}</div>`;
         return `<div class="pos-cat-card${esMasVendidos ? ' mas-vendidos-cat' : ''}" id="pos-cat-${c.id}" onclick="verProductosCategoria('${c.id}')">${bgContent}${emojiFallback}<span class="cat-label">${c.nombre}</span><span class="cat-count">${numProds} producto${numProds !== 1 ? 's' : ''}</span></div>`;
@@ -3810,9 +3597,8 @@ background: #ffffff00;
         : fmt(p.precio);
       const unidadBadge = esDetallable ? ` <span style="background:#1971c2;color:white;border-radius:4px;padding:1px 5px;font-size:10px;font-weight:700;">${unidadLabel}</span>` : '';
       const stockHtml = `Stock: ${p.stock}${unidadBadge}`;
-      const imgSrc = p.imagen ? _getSrcCacheado(p.imagen) : null;
-      const imagenHtml = imgSrc
-        ? `<img src="${imgSrc}" alt="${escapeHtml(p.nombre || '')}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">`
+      const imagenHtml = p.imagen
+        ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">`
         : `<div class="prod-emoji">📦</div>`;
       return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')"><div class="product-image">${imagenHtml}</div>${bajoStock ? `<div class="stock-badge">⚠️ Bajo</div>` : ''}${sinStock ? `<div class="stock-badge">Sin stock</div>` : ''}<div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
     }
@@ -4728,9 +4514,50 @@ background: #ffffff00;
       </div>`;
     }
 
-    window.imprimirTicket = () => { const content = document.getElementById('modal-ticket-body').innerHTML; const w = window.open('', '_blank'); w.document.write(`<html><head><title>Ticket</title><style>body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;}.ticket-row{display:flex;justify-content:space-between;margin-bottom:4px;}.ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}.ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}</style></head><body>${content}<script>window.print();window.close();<\/script></body></html>`); w.document.close(); };
+    // ── Función interna de impresión via iframe (compatible con HTTP y HTTPS) ──
+    function _imprimirContenido(content, titulo) {
+      const estilos = `
+        body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;}
+        .ticket-row{display:flex;justify-content:space-between;margin-bottom:4px;}
+        .ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}
+        .ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}
+      `;
+      // Intentar primero con window.open (si el navegador lo permite)
+      const w = window.open('', '_blank', 'width=400,height=600');
+      if (w && !w.closed) {
+        w.document.open();
+        w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo}</title><style>${estilos}</style></head><body>${content}</body></html>`);
+        w.document.close();
+        w.focus();
+        setTimeout(() => { try { w.print(); } catch(e) {} }, 400);
+        return;
+      }
+      // Fallback: iframe oculto (funciona siempre en HTTPS sin popups)
+      let iframe = document.getElementById('_print_iframe_hidden');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = '_print_iframe_hidden';
+        iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;';
+        document.body.appendChild(iframe);
+      }
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo}</title><style>${estilos}@media print{body{max-width:100%;}}</style></head><body>${content}</body></html>`);
+      doc.close();
+      setTimeout(() => {
+        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) { window.print(); }
+      }, 400);
+    }
 
-    window.imprimirFacturaActual = () => { const content = document.getElementById('modal-ver-factura-body').innerHTML; const w = window.open('', '_blank'); w.document.write(`<html><head><title>Factura</title><style>body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;}.ticket-row{display:flex;justify-content:space-between;margin-bottom:4px;}.ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}.ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}</style></head><body>${content}<script>window.print();window.close();<\/script></body></html>`); w.document.close(); };
+    window.imprimirTicket = () => {
+      const content = document.getElementById('modal-ticket-body').innerHTML;
+      _imprimirContenido(content, 'Ticket');
+    };
+
+    window.imprimirFacturaActual = () => {
+      const content = document.getElementById('modal-ver-factura-body').innerHTML;
+      _imprimirContenido(content, 'Factura');
+    };
 
     window.nuevaVenta = () => {
       cerrarModal('modal-ticket');
@@ -5336,7 +5163,7 @@ background: #ffffff00;
         card.innerHTML = `
           <span class="orden-badge" style="background:#e67700;">${index + 1}</span>
           <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
-          ${p.imagen ? `<img src="${_getSrcCacheado(p.imagen)}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'">` : `<div class="prod-emoji-inv">📦</div>`}
+          ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'">` : `<div class="prod-emoji-inv">📦</div>`}
           ${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${p.stock}</div>` : ''}
           ${sinStock ? `<div class="stock-badge-inv danger">Sin stock</div>` : ''}
           <div class="prod-info-inv">
@@ -5447,10 +5274,9 @@ background: #ffffff00;
       mvCard.dataset.id = '__mas_vendidos__';
       const mvCount = productos.filter(p => p.masVendidos).length;
       const mvBg = negocioData?.masVendidosBg || './img/backgrounds/masvendidos_1.jpg';
-      const mvBgSrc = _getSrcCacheado(mvBg);
       mvCard.innerHTML = `
         <div class="drag-grip-overlay" style="display:none;"></div>
-        ${mvBg ? `<img src="${mvBgSrc}" alt="Más Vendidos" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px 10px 0 0;display:block;" onerror="this.src='./img/backgrounds/masvendidos_1.jpg'">` : `<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:52px;background:linear-gradient(135deg,#f59f00,#e67700);border-radius:10px 10px 0 0;">⭐</div>`}
+        ${mvBg ? `<img src="${mvBg}" alt="Más Vendidos" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px 10px 0 0;display:block;" onerror="this.src='./img/backgrounds/masvendidos_1.jpg'">` : `<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:52px;background:linear-gradient(135deg,#f59f00,#e67700);border-radius:10px 10px 0 0;">⭐</div>`}
         <div class="cat-info-inv">
           <div class="cat-nombre-inv" style="color:#e67700;">⭐ Más Vendidos</div>
           <div class="cat-stats-inv">${mvCount} producto${mvCount !== 1 ? 's' : ''} destacados</div>
@@ -5476,7 +5302,7 @@ background: #ffffff00;
         card.dataset.id = cat.id;
 
         const imgHtml = cat.imagen
-          ? `<img src="${_getSrcCacheado(cat.imagen)}" alt="${cat.nombre}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px 10px 0 0;display:block;" onerror="this.style.display='none'">`
+          ? `<img src="${cat.imagen}" alt="${cat.nombre}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px 10px 0 0;display:block;" onerror="this.style.display='none'">`
           : `<span class="cat-emoji-inv">${cat.emoji || '📦'}</span>`;
 
         card.innerHTML = `
@@ -5615,7 +5441,7 @@ background: #ffffff00;
         card.innerHTML = `
           <span class="orden-badge" style="background:#00b341;">${index + 1}</span>
           <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
-          ${p.imagen ? `<img src="${_getSrcCacheado(p.imagen)}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'">` : `<div class="prod-emoji-inv">📦</div>`}
+          ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'">` : `<div class="prod-emoji-inv">📦</div>`}
           ${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${p.stock}</div>` : ''}
           ${sinStock ? `<div class="stock-badge-inv danger">Sin stock</div>` : ''}
           <div class="prod-info-inv">
@@ -5877,7 +5703,8 @@ background: #ffffff00;
           toast('Producto creado', 'success');
         }
         cerrarModal('modal-producto');
-        // onSnapshot detectará los cambios automáticamente
+        await cargarTodosProductos();
+        renderInventario();
       } catch (e) {
         toast('Error: ' + e.message, 'error');
       } finally {
@@ -5885,22 +5712,9 @@ background: #ffffff00;
       }
     };
 
-    window.eliminarProducto = async (id) => { if (!confirm('¿Eliminar este producto?')) return; const p = productos.find(pr => pr.id === id); if (!p) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id)); toast('Producto eliminado', 'success'); /* onSnapshot actualiza automáticamente */ } catch (e) { toast('Error: ' + e.message, 'error'); } };
+    window.eliminarProducto = async (id) => { if (!confirm('¿Eliminar este producto?')) return; const p = productos.find(pr => pr.id === id); if (!p) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id)); toast('Producto eliminado', 'success'); await cargarTodosProductos(); renderInventario(); } catch (e) { toast('Error: ' + e.message, 'error'); } };
 
-    async function subirImagenBase64(dataUrl, path) {
-      try {
-        const imgRef = ref(storage, path);
-        await uploadString(imgRef, dataUrl, 'data_url');
-        const url = await getDownloadURL(imgRef);
-        // Guardar en IndexedDB y en memoria para acceso inmediato futuro
-        _imgCache[url] = dataUrl;
-        await _idbSet('imagenes', url, dataUrl);
-        return url;
-      } catch (e) {
-        console.warn('Error subiendo imagen:', e);
-        return dataUrl;
-      }
-    }
+    async function subirImagenBase64(dataUrl, path) { try { const imgRef = ref(storage, path); await uploadString(imgRef, dataUrl, 'data_url'); return await getDownloadURL(imgRef); } catch (e) { console.warn('Error subiendo imagen:', e); return dataUrl; } }
 
     function comprimirImagen(file, maxHeight = 175, quality = 0.94) {
       return new Promise((resolve, reject) => {
@@ -6267,3 +6081,5 @@ background: #ffffff00;
 </body>
 
 </html>
+
+<!-- 1 -->
