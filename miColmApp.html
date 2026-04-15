@@ -4454,19 +4454,19 @@ background: #ffffff00;
       const fecha = factura.fecha?.toDate ? factura.fecha.toDate() : new Date();
       let dibujoHtml = '';
       if (factura.dibujoNota) {
-        dibujoHtml = `<div style="margin-top:12px; border-top:1px dashed #ccc; padding-top:8px;"><strong>📝 Nota:</strong><br><img src="${factura.dibujoNota}" style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:8px; margin-top:6px;"></div>`;
+        dibujoHtml = `<div style="margin-top:12px; border-top:1px dashed #ccc; padding-top:8px;"><strong>Nota:</strong><br><img src="${factura.dibujoNota}" style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:8px; margin-top:6px;"></div>`;
       }
       // Método de pago — texto legible
-      const metodoLabel = { efectivo: '💵 Efectivo', transferencia: '🏦 Transferencia', tarjeta: '💳 Tarjeta', mixto: '💵+💳 Mixto' }[factura.metodoPago] || factura.metodoPago;
+      const metodoLabel = { efectivo: 'Efectivo', transferencia: 'Transferencia', tarjeta: 'Tarjeta', mixto: 'Mixto' }[factura.metodoPago] || factura.metodoPago;
       // Bloque de pago según método
-      let pagoHtml = `<div class="ticket-row"><span>Método</span><span>${metodoLabel}</span></div>`;
+      let pagoHtml = `<div class="ticket-row" style="padding:2px 8px 2px 0px;"><span>Método</span><span>${metodoLabel}</span></div>`;
       if (factura.metodoPago === 'efectivo') {
-        pagoHtml += `<div class="ticket-row"><span>Recibido</span><span>${fmt(factura.montoRecibido)}</span></div><div class="ticket-row"><span>Cambio</span><span>${fmt(Math.max(0, (factura.montoRecibido || 0) - factura.total))}</span></div>`;
+        pagoHtml += `<div class="ticket-row"  style="padding:2px 8px 2px 0px;"><span>Recibido</span><span>${fmt(factura.montoRecibido)}</span></div><div class="ticket-row"  style="padding:2px 8px 2px 0px;"><span>Cambio</span><span>${fmt(Math.max(0, (factura.montoRecibido || 0) - factura.total))}</span></div>`;
       } else if (factura.metodoPago === 'mixto') {
-        const subLbl = { transferencia: '🏦 Transferencia', tarjeta: '💳 Tarjeta' }[factura.mixtoSubMetodo] || factura.mixtoSubMetodo || 'Electrónico';
+        const subLbl = { transferencia: 'Transferencia', tarjeta: 'Tarjeta' }[factura.mixtoSubMetodo] || factura.mixtoSubMetodo || 'Electrónico';
         const cambioMixto = ((factura.mixtoEfectivo || 0) + (factura.mixtoElectronico || 0)) - factura.total;
-        pagoHtml += `<div class="ticket-row"><span>💵 Efectivo</span><span>${fmt(factura.mixtoEfectivo || 0)}</span></div><div class="ticket-row"><span>${subLbl}</span><span>${fmt(factura.mixtoElectronico || 0)}</span></div>`;
-        if (cambioMixto > 0) pagoHtml += `<div class="ticket-row"><span>Cambio</span><span>${fmt(cambioMixto)}</span></div>`;
+        pagoHtml += `<div class="ticket-row"><span> Efectivo</span><span>${fmt(factura.mixtoEfectivo || 0)}</span></div><div class="ticket-row"><span>${subLbl}</span><span>${fmt(factura.mixtoElectronico || 0)}</span></div>`;
+        if (cambioMixto > 0) pagoHtml += `<div class="ticket-row" style="padding:2px 8px 2px 0px;"><span>Cambio</span><span>${fmt(cambioMixto)}</span></div>`;
       }
       const itemsHtml = (factura.items || []).map(i => {
         const precioBase = i._precioBase || i.precio;
@@ -4475,7 +4475,7 @@ background: #ffffff00;
         const qtyStr = (i.unidad && esUnidadDetallable(i.unidad))
           ? `${parseFloat(qty).toFixed(3)} ${labelUnidad(i.unidad)} x ${fmt(precioBase)}`
           : `Cant. ${qty} x  ${precioBase.toFixed(2)}`;
-        return `<div style="padding:3px 4px 5px;border-bottom:1px dashed #e0e0e0;">
+        return `<div style="padding:2px 8px 2px 4px;border-bottom:1px dashed #e0e0e0;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <span style="font-weight:700;font-size:12px;">${i.nombre}</span>
             <span style="font-family:monospace;font-size:12px;font-weight:700;white-space:nowrap;margin-left:8px;">${fmt(subtotal)}</span>
@@ -4497,16 +4497,16 @@ background: #ffffff00;
         </div>
         <div style="margin:6px 4px 0;">
           <div style="font-size:11px;color:#999;letter-spacing:0.5px;">--------------------------------</div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:2px 0;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:2px 8px 2px 0px;">
             <span>PRODUCTO</span><span>PRECIO</span>
           </div>
           <div style="font-size:11px;color:#999;letter-spacing:0.5px;">--------------------------------</div>
           ${itemsHtml}
         </div>
         <div class="ticket-total">
-          <div class="ticket-row"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div>
-          <div class="ticket-row"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div>
-          <div class="ticket-row" style="font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div>
+          <div class="ticket-row" style="padding:2px 8px 2px 0px;"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div>
+          <div class="ticket-row"style="padding:2px 8px 2px 0px;"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div>
+          <div class="ticket-row" style="padding:2px 8px 2px 0px; font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div>
           ${pagoHtml}
         </div>
         ${dibujoHtml}
