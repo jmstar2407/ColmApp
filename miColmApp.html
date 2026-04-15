@@ -4515,24 +4515,8 @@ background: #ffffff00;
     }
 
     // ── Función interna de impresión via iframe (compatible con HTTP y HTTPS) ──
-    function _imprimirContenido(content, titulo) {
-      const estilos = `
-        body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;}
-        .ticket-row{display:flex;justify-content:space-between;margin-bottom:4px;}
-        .ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}
-        .ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}
-      `;
-      // Intentar primero con window.open (si el navegador lo permite)
-      const w = window.open('', '_blank', 'width=400,height=600');
-      if (w && !w.closed) {
-        w.document.open();
-        w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo}</title><style>${estilos}</style></head><body>${content}</body></html>`);
-        w.document.close();
-        w.focus();
-        setTimeout(() => { try { w.print(); } catch(e) {} }, 400);
-        return;
-      }
-      // Fallback: iframe oculto (funciona siempre en HTTPS sin popups)
+    function _imprimirContenido(content) {
+      const estilos = `body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;}.ticket-row{display:flex;justify-content:space-between;margin-bottom:4px;}.ticket-header{text-align:center;border-bottom:1px dashed #ccc;padding-bottom:8px;margin-bottom:8px;}.ticket-total{border-top:1px dashed #ccc;padding-top:6px;margin-top:6px;font-weight:700;}`;
       let iframe = document.getElementById('_print_iframe_hidden');
       if (!iframe) {
         iframe = document.createElement('iframe');
@@ -4542,21 +4526,17 @@ background: #ffffff00;
       }
       const doc = iframe.contentWindow.document;
       doc.open();
-      doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo}</title><style>${estilos}@media print{body{max-width:100%;}}</style></head><body>${content}</body></html>`);
+      doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${estilos}</style></head><body>${content}</body></html>`);
       doc.close();
-      setTimeout(() => {
-        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) { window.print(); }
-      }, 400);
+      setTimeout(() => { iframe.contentWindow.focus(); iframe.contentWindow.print(); }, 300);
     }
 
     window.imprimirTicket = () => {
-      const content = document.getElementById('modal-ticket-body').innerHTML;
-      _imprimirContenido(content, 'Ticket');
+      _imprimirContenido(document.getElementById('modal-ticket-body').innerHTML);
     };
 
     window.imprimirFacturaActual = () => {
-      const content = document.getElementById('modal-ver-factura-body').innerHTML;
-      _imprimirContenido(content, 'Factura');
+      _imprimirContenido(document.getElementById('modal-ver-factura-body').innerHTML);
     };
 
     window.nuevaVenta = () => {
