@@ -3207,19 +3207,18 @@ background: #ffffff00;
 
     async function loadNegocio(user) {
       try {
-        // Intentar cargar datos cacheados del negocio para mostrar rápido
         const cachedNegId = localStorage.getItem(`negocio_${user.uid}`);
         const cachedNegData = localStorage.getItem(`negocioData_${user.uid}`);
+        const cachedRol = localStorage.getItem(`empRol_${user.uid}`);
+
+        // Restaurar estado mínimo desde cache para que initApp pueda leer el cache de productos/cats
         if (cachedNegId && cachedNegData) {
           negocioId = cachedNegId;
           negocioData = JSON.parse(cachedNegData);
-          const empSnap2 = localStorage.getItem(`empRol_${user.uid}`);
-          if (empSnap2) userRole = empSnap2;
-          // Iniciar app con datos cacheados mientras verificamos Firebase
-          initApp();
+          if (cachedRol) userRole = cachedRol;
         }
 
-        // Verificar/actualizar desde Firebase en background
+        // Verificar en Firebase (una sola llamada, sin bloquear la UI más de lo necesario)
         let negRef = doc(db, 'negocios', user.uid);
         let negSnap = await getDoc(negRef);
         if (negSnap.exists()) {
@@ -3234,6 +3233,7 @@ background: #ffffff00;
           return;
         }
 
+        // Actualizar datos frescos de Firebase
         negocioData = negSnap.data();
         localStorage.setItem(`negocioData_${user.uid}`, JSON.stringify(negocioData));
         const empSnap = await getDoc(doc(db, 'negocios', negocioId, 'empleados', user.uid));
@@ -3242,20 +3242,12 @@ background: #ffffff00;
         localStorage.setItem(`negocio_${user.uid}`, negocioId);
         localStorage.setItem(`empRol_${user.uid}`, userRole);
 
-        // Si no había cache previo, iniciar app ahora
-        if (!cachedNegId || !cachedNegData) {
-          initApp();
-        } else {
-          // Actualizar el nombre del negocio si cambió
-          const nombreEl = document.getElementById('nav-negocio-nombre');
-          if (nombreEl) nombreEl.textContent = negocioData.nombre || 'Mi Colmado';
-        }
+        // Iniciar la app UNA sola vez, con todos los datos ya listos
+        await initApp();
       } catch (e) {
         console.error(e);
-        if (!negocioId) {
-          showScreen('auth');
-          showAuthMsg('Error al cargar el negocio: ' + e.message, 'error');
-        }
+        showScreen('auth');
+        showAuthMsg('Error al cargar el negocio: ' + e.message, 'error');
       }
     }
 
@@ -3271,11 +3263,15 @@ background: #ffffff00;
       if (!facturasTabs.length) { _crearNuevaTab('Factura 1'); facturaTabActiva = facturasTabs[0].id; }
       if (!facturaTabActiva) facturaTabActiva = facturasTabs[0].id;
 
+      // ① Cargar cache local PRIMERO, antes de renderizar nada,
+      //    para que la UI aparezca completa desde el primer frame sin parpadeo
+      _cargarCacheLocal();
+
       // Restaurar dibujo de la tab activa al cargar
       const tabInicial = _getTabActiva();
       if (tabInicial?.dibujoDataURL) { dibujoDataURL = tabInicial.dibujoDataURL; }
 
-      // ⚡ Mostrar la app INMEDIATAMENTE con datos del cache
+      // ② Mostrar la app con datos del cache ya en memoria (sin parpadeo)
       showScreen('app');
       showPage('pos');
 
@@ -3299,11 +3295,9 @@ background: #ffffff00;
       _syncClearBtn('pos-direccion-cliente', 'pos-dir-clear');
       _syncClearBtn('pos-buscar', 'pos-buscar-clear');
 
-      // Suscribir caja y empleados en paralelo (no bloqueante)
+      // ③ Conectar Firebase EN BACKGROUND — solo actualizará la UI si hay cambios reales
       suscribirCaja();
       await loadEmpleados();
-
-      // Suscribir inventario (cache-first + realtime)
       suscribirInventario();
 
       // Verificar si hay pedido entrante en la URL
@@ -3343,7 +3337,7 @@ background: #ffffff00;
       if (pageId === 'config') { renderConfig(); renderEmpleados(); }
       if (pageId === 'facturas') { cargarFacturas(); }
       if (pageId === 'caja') { renderCaja(); }
-      if (pageId === 'pos') { renderFacturasTabs(); renderCarrito(); }
+      if (pageId === 'pos') { renderFacturasTabs(); renderCarrito(); if (categorias.length || productos.length) renderCategoriasPos(); }
     };
 
     // ==================== INDEXEDDB PARA IMÁGENES ====================
@@ -3408,134 +3402,168 @@ background: #ffffff00;
       return _imgCache[url] || url;
     }
 
-    // ==================== INVENTARIO SUSCRIPCION (CACHE-FIRST + REALTIME) ====================
-    let _unsubProductos = {}; // unsub por categoría
+    // ==================== INVENTARIO SUSCRIPCION (CACHE-FIRST + REALTIME SIN PARPADEO) ====================
+    let _unsubProductos = {};      // unsub por categoría
+    let _prodHashPorCat = {};      // hash de productos por categoría para detectar cambios reales
 
+    // Hash rápido de un array de objetos (solo compara JSON)
+    function _hashArr(arr) {
+      return JSON.stringify(arr);
+    }
+
+    // ── PASO 1: Cargar desde localStorage/IndexedDB ANTES de mostrar la UI ──
     function _cargarCacheLocal() {
-      // Cargar categorías desde localStorage instantáneamente
       try {
         const rawCats = localStorage.getItem(`cats_${negocioId}`);
         if (rawCats) {
-          const cached = JSON.parse(rawCats);
-          if (Array.isArray(cached) && cached.length) {
-            categorias = cached;
-          }
+          const parsed = JSON.parse(rawCats);
+          if (Array.isArray(parsed) && parsed.length) categorias = parsed;
         }
         const rawProds = localStorage.getItem(`prods_${negocioId}`);
         if (rawProds) {
-          const cached = JSON.parse(rawProds);
-          if (Array.isArray(cached)) {
-            productos = cached;
+          const parsed = JSON.parse(rawProds);
+          if (Array.isArray(parsed)) {
+            productos = parsed;
+            // Inicializar hashes desde cache para que la primera emisión de Firebase
+            // no cause re-render cuando los datos son idénticos
+            categorias.forEach(cat => {
+              const prodsDeEsaCat = productos.filter(p => p.categoriaId === cat.id);
+              prodsDeEsaCat.sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
+              _prodHashPorCat[cat.id] = _hashArr(prodsDeEsaCat.map(p => ({
+                id: p.id, nombre: p.nombre, precio: p.precio, stock: p.stock,
+                imagen: p.imagen, orden: p.orden, masVendidos: p.masVendidos,
+                costo: p.costo, codigoBarras: p.codigoBarras, unidad: p.unidad,
+                stockMin: p.stockMin, itbis: p.itbis, ordenMV: p.ordenMV
+              })));
+            });
           }
         }
-        if (categorias.length || productos.length) {
-          renderCategoriasPos();
-          populateCatSelects();
-          actualizarConteosCategorias();
-          // Pre-cargar imágenes de categorías en background
-          categorias.forEach(c => { if (c.imagen) _precargarImagen(c.imagen); });
-          productos.forEach(p => { if (p.imagen) _precargarImagen(p.imagen); });
-        }
+        // Pre-cargar imágenes en background (sin bloquear render)
+        categorias.forEach(c => { if (c.imagen) _precargarImagen(c.imagen); });
+        productos.forEach(p => { if (p.imagen) _precargarImagen(p.imagen); });
       } catch (e) { /* silencioso */ }
     }
 
+    // ── PASO 2: Suscribir Firebase DESPUÉS de que la UI ya está estable ──
     function suscribirInventario() {
-      // 1) Cargar cache local instantáneamente
+      // Primero cargamos el cache para que la UI muestre datos inmediatamente
       _cargarCacheLocal();
 
-      // 2) Suscribirse a cambios en Firebase (onSnapshot = tiempo real)
+      // Luego nos suscribimos a Firebase en background
       if (unsubCategorias) unsubCategorias();
       const catsRef = collection(db, 'negocios', negocioId, 'categorias');
+
+      let _catHashAnterior = _hashArr(categorias.map(c => ({ id: c.id, nombre: c.nombre, imagen: c.imagen, emoji: c.emoji, orden: c.orden })));
+      let _primeraEmisionCats = true;
+
       unsubCategorias = onSnapshot(catsRef, async (snap) => {
         const nuevasCats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         nuevasCats.sort((a, b) => {
-          const oa = a.orden ?? 9999;
-          const ob = b.orden ?? 9999;
+          const oa = a.orden ?? 9999, ob = b.orden ?? 9999;
           if (oa !== ob) return oa - ob;
           return (a.nombre || '').localeCompare(b.nombre || '');
         });
 
-        // Detectar si hubo cambios reales en categorías
-        const catsStr = JSON.stringify(nuevasCats);
-        const catsStrAnterior = JSON.stringify(categorias);
-        const huboCambio = catsStr !== catsStrAnterior;
+        const catHashNuevo = _hashArr(nuevasCats.map(c => ({ id: c.id, nombre: c.nombre, imagen: c.imagen, emoji: c.emoji, orden: c.orden })));
+        const cambioCats = catHashNuevo !== _catHashAnterior;
 
-        categorias = nuevasCats;
-        localStorage.setItem(`cats_${negocioId}`, catsStr);
+        if (cambioCats || _primeraEmisionCats) {
+          _catHashAnterior = catHashNuevo;
+          categorias = nuevasCats;
+          try { localStorage.setItem(`cats_${negocioId}`, JSON.stringify(categorias)); } catch (e) {}
+          categorias.forEach(c => { if (c.imagen) _precargarImagen(c.imagen); });
 
-        // Pre-cargar imágenes de categorías en background
-        categorias.forEach(c => { if (c.imagen) _precargarImagen(c.imagen); });
-
-        if (huboCambio) {
-          renderCategoriasPos();
-          populateCatSelects();
+          // Solo renderizar categorías si realmente cambiaron (no en la primera emisión si el cache ya las tiene)
+          if (cambioCats) {
+            renderCategoriasPos();
+            populateCatSelects();
+          }
         }
+        _primeraEmisionCats = false;
 
-        // Suscribirse a productos de cada categoría en tiempo real
-        await _suscribirProductosTodos(snap.docChanges());
+        // Gestionar suscripciones de productos por categoría
+        _sincronizarSuscripcionesProductos();
       });
     }
 
-    // Suscripciones activas por categoría
-    async function _suscribirProductosTodos(changes) {
-      // Si hay cambios en categorías, re-suscribir las afectadas
-      const todasLasCats = categorias;
-
-      // Cancelar suscripciones de categorías eliminadas
-      const catIds = new Set(todasLasCats.map(c => c.id));
+    function _sincronizarSuscripcionesProductos() {
+      // Cancelar suscripciones de categorías que ya no existen
+      const catIds = new Set(categorias.map(c => c.id));
       Object.keys(_unsubProductos).forEach(catId => {
         if (!catIds.has(catId)) {
           _unsubProductos[catId]();
           delete _unsubProductos[catId];
+          delete _prodHashPorCat[catId];
         }
       });
-
-      // Crear suscripciones para categorías nuevas
-      for (const cat of todasLasCats) {
+      // Crear suscripciones nuevas solo para categorías sin suscripción activa
+      categorias.forEach(cat => {
         if (!_unsubProductos[cat.id]) {
           _suscribirProductosCategoria(cat);
         }
-      }
+      });
     }
 
     function _suscribirProductosCategoria(cat) {
       const prodsRef = collection(db, 'negocios', negocioId, 'categorias', cat.id, 'productos');
-      const unsub = onSnapshot(prodsRef, (snap) => {
-        // Actualizar solo los productos de esta categoría
-        const prodsCategoria = snap.docs.map(d => ({
-          id: d.id,
-          categoriaId: cat.id,
-          categoriaNombre: cat.nombre,
-          ...d.data()
-        }));
+      let _primeraEmision = true;
 
-        // Pre-cargar imágenes en background
+      const unsub = onSnapshot(prodsRef, (snap) => {
+        const prodsCategoria = snap.docs.map(d => ({
+          id: d.id, categoriaId: cat.id, categoriaNombre: cat.nombre, ...d.data()
+        }));
+        prodsCategoria.sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
+
+        // Calcular hash de los campos relevantes para detectar cambios reales
+        const hashNuevo = _hashArr(prodsCategoria.map(p => ({
+          id: p.id, nombre: p.nombre, precio: p.precio, stock: p.stock,
+          imagen: p.imagen, orden: p.orden, masVendidos: p.masVendidos,
+          costo: p.costo, codigoBarras: p.codigoBarras, unidad: p.unidad,
+          stockMin: p.stockMin, itbis: p.itbis, ordenMV: p.ordenMV
+        })));
+        const hashAnterior = _prodHashPorCat[cat.id];
+        const huboCambio = hashNuevo !== hashAnterior;
+
+        _prodHashPorCat[cat.id] = hashNuevo;
+
+        // Si es la primera emisión y los datos son idénticos al cache → NO renderizar
+        if (_primeraEmision && !huboCambio) {
+          _primeraEmision = false;
+          return; // datos idénticos al cache, la UI ya está bien
+        }
+        _primeraEmision = false;
+
+        // Si no hubo cambio real en emisiones posteriores → NO renderizar
+        if (!huboCambio) return;
+
+        // ── Hubo un cambio real: actualizar estado y vistas ──
         prodsCategoria.forEach(p => { if (p.imagen) _precargarImagen(p.imagen); });
 
-        // Reemplazar productos de esta categoría en el array global
+        // Actualizar el array global de productos para esta categoría
         productos = productos.filter(p => p.categoriaId !== cat.id).concat(prodsCategoria);
         productos.sort((a, b) => {
           if (a.categoriaId !== b.categoriaId) return 0;
           return (a.orden ?? 9999) - (b.orden ?? 9999);
         });
+        try { localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos)); } catch (e) {}
 
-        // Guardar en localStorage
-        try { localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos)); } catch (e) { }
-
-        // Re-renderizar solo las vistas afectadas
+        // Actualizar conteos de categorías (número de productos)
         actualizarConteosCategorias();
+
+        // Actualizar POS solo si el usuario está viendo esa categoría
         if (categoriaActual === cat.id || categoriaActual === '__mas_vendidos__') {
           renderProductosCategoria(categoriaActual);
         }
-        // Actualizar inventario si está en esa categoría
+
+        // Actualizar inventario solo si está activo y muestra esa categoría
         if (document.getElementById('page-inventario')?.classList.contains('active')) {
-          if (!inventarioCategoriaActual || inventarioCategoriaActual === cat.id) {
+          if (!inventarioCategoriaActual || inventarioCategoriaActual === cat.id || inventarioCategoriaActual === '__mas_vendidos__') {
             renderInventario();
           }
         }
       });
+
       _unsubProductos[cat.id] = unsub;
-      // Guardar el unsub en el array global para limpieza al logout
       unsubscribers.push(unsub);
     }
 
