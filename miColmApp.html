@@ -2476,7 +2476,7 @@ background: #ffffff00;
           <div>
             <div class="form-group"><label>Nombre del Producto</label><input type="text" id="prod-nombre"
                 placeholder="Ej: Arroz Superior 5lb"></div>
-            <div class="form-group" style="display: none;"><label>Código de Barras</label>
+            <div class="form-group"><label>Código de Barras</label>
               <div style="display:flex;gap:8px;"><input type="text" id="prod-barcode"
                   placeholder="Escanear o escribir..." style="flex:1;"><button class="icon-btn scan-btn"
                   onclick="escanearBarcodeProducto()" title="Escanear"><i class="fas fa-barcode"></i></button></div>
@@ -4459,14 +4459,20 @@ background: #ffffff00;
       // Método de pago — texto legible
       const metodoLabel = { efectivo: 'Efectivo', transferencia: 'Transferencia', tarjeta: 'Tarjeta', mixto: 'Mixto' }[factura.metodoPago] || factura.metodoPago;
       // Bloque de pago según método
-      let pagoHtml = `<div class="ticket-row" style="padding:2px 8px 2px 0px;"><span>Método</span><span>${metodoLabel}</span></div>`;
-      if (factura.metodoPago === 'efectivo') {
-        pagoHtml += `<div class="ticket-row"  style="padding:2px 8px 2px 0px;"><span>Recibido</span><span>${fmt(factura.montoRecibido)}</span></div><div class="ticket-row"  style="padding:2px 8px 2px 0px;"><span>Cambio</span><span>${fmt(Math.max(0, (factura.montoRecibido || 0) - factura.total))}</span></div>`;
-      } else if (factura.metodoPago === 'mixto') {
-        const subLbl = { transferencia: 'Transferencia', tarjeta: 'Tarjeta' }[factura.mixtoSubMetodo] || factura.mixtoSubMetodo || 'Electrónico';
-        const cambioMixto = ((factura.mixtoEfectivo || 0) + (factura.mixtoElectronico || 0)) - factura.total;
-        pagoHtml += `<div class="ticket-row"><span> Efectivo</span><span>${fmt(factura.mixtoEfectivo || 0)}</span></div><div class="ticket-row"><span>${subLbl}</span><span>${fmt(factura.mixtoElectronico || 0)}</span></div>`;
-        if (cambioMixto > 0) pagoHtml += `<div class="ticket-row" style="padding:2px 8px 2px 0px;"><span>Cambio</span><span>${fmt(cambioMixto)}</span></div>`;
+      let pagoHtml = '';
+      if (factura.estado === 'pendiente') {
+        // Pago pendiente: solo mostrar "Pago pendiente" como método, sin recibido ni cambio
+        pagoHtml = `<div class="ticket-row" style="padding:0px 8px 0px 0px;"><span>Método</span><span>Pago pendiente</span></div>`;
+      } else {
+        pagoHtml = `<div class="ticket-row" style="padding:0px 8px 0px 0px;"><span>Método</span><span>${metodoLabel}</span></div>`;
+        if (factura.metodoPago === 'efectivo') {
+          pagoHtml += `<div class="ticket-row"  style="padding:0px 8px 0px 0px;"><span>Recibido</span><span>${fmt(factura.montoRecibido)}</span></div><div class="ticket-row"  style="padding:0px 8px 0px 0px;"><span>Cambio</span><span>${fmt(Math.max(0, (factura.montoRecibido || 0) - factura.total))}</span></div>`;
+        } else if (factura.metodoPago === 'mixto') {
+          const subLbl = { transferencia: 'Transferencia', tarjeta: 'Tarjeta' }[factura.mixtoSubMetodo] || factura.mixtoSubMetodo || 'Electrónico';
+          const cambioMixto = ((factura.mixtoEfectivo || 0) + (factura.mixtoElectronico || 0)) - factura.total;
+          pagoHtml += `<div class="ticket-row"><span> Efectivo</span><span>${fmt(factura.mixtoEfectivo || 0)}</span></div><div class="ticket-row"><span>${subLbl}</span><span>${fmt(factura.mixtoElectronico || 0)}</span></div>`;
+          if (cambioMixto > 0) pagoHtml += `<div class="ticket-row" style="padding:0px 8px 0px 0px;"><span>Cambio</span><span>${fmt(cambioMixto)}</span></div>`;
+        }
       }
       const itemsHtml = (factura.items || []).map(i => {
         const precioBase = i._precioBase || i.precio;
@@ -4496,21 +4502,21 @@ background: #ffffff00;
           ${factura.direccionCliente ? `<div style="margin-top:4px;"><strong>📍 Entrega:</strong> ${factura.direccionCliente}</div>` : ''}
         </div>
         <div style="margin:6px 4px 0;">
-          <div style="font-size:11px;color:#999;letter-spacing:0.5px;">--------------------------------</div>
+          <div style="font-size:11px;color:#999;letter-spacing:0.5px;">--------------------------------------</div>
           <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:2px 8px 2px 0px;">
             <span>PRODUCTO</span><span>PRECIO</span>
           </div>
-          <div style="font-size:11px;color:#999;letter-spacing:0.5px;">--------------------------------</div>
+          <div style="font-size:11px;color:#999;letter-spacing:0.5px;">--------------------------------------</div>
           ${itemsHtml}
         </div>
         <div class="ticket-total">
-          <div class="ticket-row" style="padding:2px 8px 2px 0px;"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div>
-          <div class="ticket-row"style="padding:2px 8px 2px 0px;"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div>
-          <div class="ticket-row" style="padding:2px 8px 2px 0px; font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div>
+          <div class="ticket-row" style="padding:0px 8px 0px 0px;"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div>
+          <div class="ticket-row"style="padding:0px 8px 0px 0px;"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div>
+          <div class="ticket-row" style="padding:0px 8px 0px 0px; font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div>
           ${pagoHtml}
         </div>
         ${dibujoHtml}
-        <div style="text-align:center;margin-top:12px;font-size:11px;">¡Gracias por su compra!<br>Estado: <strong>${factura.estado === 'pagada' ? '✅ PAGADA' : '⏳ PENDIENTE'}</strong></div>
+        <div style="text-align:center;margin-top:12px;font-size:11px;">¡Gracias por su compra!</div>
       </div>`;
     }
 
@@ -5749,7 +5755,120 @@ background: #ffffff00;
       } catch (e) { toast('Error procesando imagen: ' + e.message, 'error'); }
     };
 
-    window.escanearBarcodeProducto = () => { const val = prompt('Ingresa el código de barras:'); if (val) document.getElementById('prod-barcode').value = val; };
+    // ==================== ESCÁNER GLOBAL DE CÓDIGO DE BARRAS ====================
+    // Detecta escaneos desde cualquier lector HID (teclado externo) en toda la app.
+    // Lógica: los lectores escriben el código muy rápido y terminan con Enter.
+    // Estado del escáner
+    const _bcScanner = {
+      buffer: '',
+      lastTime: 0,
+      SPEED_MS: 60,      // ms máximos entre caracteres de un escaneo real
+      MIN_LEN: 4,        // longitud mínima para considerarlo código de barras
+      scanBtnActive: false  // true cuando el usuario pulsó el botón de escanear en modal-editar
+    };
+
+    // El botón de escanear en el modal de producto activa el modo "permitir reemplazo"
+    window.escanearBarcodeProducto = () => {
+      _bcScanner.scanBtnActive = true;
+      toast('📷 Escanea el código de barras ahora...', 'info', 3000);
+      // Lo desactivamos después de 6 segundos por seguridad
+      setTimeout(() => { _bcScanner.scanBtnActive = false; }, 6000);
+    };
+
+    document.addEventListener('keydown', (e) => {
+      // Ignorar si el foco está en un textarea o input de texto libre
+      // (excepto el caso del scanner-input y prod-barcode que manejamos explícitamente)
+      const tag = (document.activeElement?.tagName || '').toLowerCase();
+      const type = (document.activeElement?.type || '').toLowerCase();
+      const isTextInput = (tag === 'textarea') ||
+        (tag === 'input' && !['checkbox', 'radio', 'button', 'submit', 'reset'].includes(type));
+
+      const now = Date.now();
+      const timeDiff = now - _bcScanner.lastTime;
+      _bcScanner.lastTime = now;
+
+      if (e.key === 'Enter') {
+        const code = _bcScanner.buffer.trim();
+        _bcScanner.buffer = '';
+
+        if (code.length < _bcScanner.MIN_LEN) return;
+
+        // --- DETERMINAR CONTEXTO ACTIVO ---
+        const modalProdVisible = document.getElementById('modal-producto')?.classList.contains('visible');
+        const modalScannerVisible = document.getElementById('modal-scanner')?.classList.contains('visible');
+        const pagePos = document.getElementById('page-pos')?.classList.contains('active');
+        const pageInv = document.getElementById('page-inventario')?.classList.contains('active');
+
+        // 1) Modal scanner ya abierto → comportamiento original
+        if (modalScannerVisible) {
+          document.getElementById('scanner-input').value = code;
+          buscarPorBarcode();
+          return;
+        }
+
+        // 2) Modal producto visible → llenar campo código de barras
+        if (modalProdVisible) {
+          const barcodeInput = document.getElementById('prod-barcode');
+          const esEdicion = !!productoEnEdicion; // true si hay producto en edición
+          if (esEdicion) {
+            // Solo reemplazar si el botón de escanear fue presionado O si el campo está vacío
+            if (_bcScanner.scanBtnActive || !barcodeInput.value.trim()) {
+              barcodeInput.value = code;
+              _bcScanner.scanBtnActive = false;
+              toast('✅ Código de barras capturado', 'success', 2000);
+            }
+            // Si el campo tiene valor y no se presionó el botón, ignorar silenciosamente
+          } else {
+            // Modal nuevo producto → siempre llenar
+            barcodeInput.value = code;
+            toast('✅ Código de barras capturado', 'success', 2000);
+          }
+          return;
+        }
+
+        // 3) POS (facturación) → agregar al carrito si coincide
+        if (pagePos && !modalProdVisible && !modalScannerVisible) {
+          const prod = productos.find(p => p.codigoBarras === code);
+          if (prod) {
+            agregarAlCarritoObj(prod);
+            toast(`🛒 ${prod.nombre} agregado`, 'success', 1800);
+          } else {
+            toast(`⚠️ Código "${code}" no encontrado`, 'error', 2500);
+          }
+          return;
+        }
+
+        // 4) Inventario → abrir modal de edición si coincide
+        if (pageInv && !modalProdVisible) {
+          const prod = productos.find(p => p.codigoBarras === code);
+          if (prod) {
+            editarProducto(prod.id);
+            toast(`✏️ Editando: ${prod.nombre}`, 'info', 2000);
+          } else {
+            toast(`⚠️ Código "${code}" no encontrado`, 'error', 2500);
+          }
+          return;
+        }
+
+        return;
+      }
+
+      // Acumular caracteres del buffer solo si vienen rápido (lector de barras)
+      // o si el foco NO está en un campo de texto (para no interferir con tipeo normal)
+      if (e.key.length === 1) {
+        if (timeDiff < _bcScanner.SPEED_MS || !isTextInput) {
+          // Si el foco está en un input de texto y el tipeo es lento → no acumular
+          if (isTextInput && timeDiff >= _bcScanner.SPEED_MS && _bcScanner.buffer.length === 0) {
+            return;
+          }
+          _bcScanner.buffer += e.key;
+        } else {
+          // Tipeo lento → reiniciar buffer con este caracter
+          _bcScanner.buffer = e.key;
+        }
+      }
+    });
+    // ==================== FIN ESCÁNER GLOBAL ====================
 
     // ==================== EMPLEADOS ====================
     async function loadEmpleados() { const snap = await getDocs(collection(db, 'negocios', negocioId, 'empleados')); empleadosCache = snap.docs.map(d => ({ id: d.id, ...d.data() })); }
@@ -5900,27 +6019,91 @@ background: #ffffff00;
       );
     };
 
-    // ==================== PEDIDO ENTRANTE POR URL ====================
-    // Si la URL tiene ?c=colmadoId&p=pedidoId, cargar el pedido y crear una tab con los datos
-    async function manejarPedidoEntrante() {
+    // ==================== BROADCAST CHANNEL — recibir pedido desde otra pestaña ====================
+    (function () {
+      const bc = new BroadcastChannel('micolmapp_pedido');
+      // Anunciar que esta pestaña está activa
+      bc.postMessage({ tipo: 'app_activa' });
+
+      bc.onmessage = async (ev) => {
+        const { tipo, c, p } = ev.data || {};
+        if (tipo === 'hay_alguien') {
+          // Confirmar presencia para que la pestaña nueva sepa que existe esta
+          bc.postMessage({ tipo: 'app_activa' });
+        }
+        if (tipo === 'pedido_entrante' && c && p) {
+          // Confirmar recepción para que la pestaña remitente se cierre
+          bc.postMessage({ tipo: 'pedido_recibido', p });
+          // Procesar igual que si viniera por URL
+          await window._manejarPedidoEntranteConParams(c, p);
+        }
+      };
+      window._bcColmApp = bc;
+    })();
+
+    // ==================== REDIRECCIÓN INTELIGENTE: si esta pestaña se abrió con ?c=&p= ====================
+    // y ya hay otra pestaña de miColmApp activa, le cedemos el pedido y nos cerramos.
+    (function () {
       const params = new URLSearchParams(window.location.search);
       const cParam = params.get('c');
       const pParam = params.get('p');
-      if (!cParam || !pParam) return false;
+      if (!cParam || !pParam) return; // sin params, nada que hacer
 
-      // Limpiar la URL sin recargar
-      history.replaceState({}, '', window.location.pathname);
+      // Intentar ceder el pedido a una pestaña ya activa
+      const bcCheck = new BroadcastChannel('micolmapp_pedido');
+      let cedido = false;
 
-      // Esperar a que el usuario esté autenticado y el negocio cargado
-      // Mostrar toast informativo
+      bcCheck.onmessage = (ev) => {
+        if (ev.data?.tipo === 'app_activa') {
+          // Hay otra pestaña activa — enviarle el pedido
+          bcCheck.postMessage({ tipo: 'pedido_entrante', c: cParam, p: pParam });
+        }
+        if (ev.data?.tipo === 'pedido_recibido' && ev.data?.p === pParam) {
+          cedido = true;
+          bcCheck.close();
+          // Limpiar URL y cerrar esta pestaña (o redirigir a página limpia)
+          history.replaceState({}, '', window.location.pathname);
+          // Intentar cerrar la pestaña; si no se puede, mostrar aviso
+          window.close();
+          // Fallback: si window.close() no funcionó (el browser lo bloquea),
+          // redirigir a la misma página sin params para no recargar el pedido de nuevo
+          setTimeout(() => {
+            if (!window.closed) {
+              document.body.innerHTML = `
+                <div style="font-family:sans-serif;display:flex;flex-direction:column;align-items:center;
+                  justify-content:center;min-height:100vh;gap:16px;background:#f5f7fa;color:#1a2135;">
+                  <div style="font-size:3rem;">✅</div>
+                  <div style="font-weight:700;font-size:1.1rem;">Pedido enviado a miColmApp</div>
+                  <div style="color:#475569;font-size:.9rem;">Puedes cerrar esta pestaña.</div>
+                </div>`;
+            }
+          }, 500);
+        }
+      };
+
+      // Preguntar si hay alguien escuchando
+      bcCheck.postMessage({ tipo: 'hay_alguien' });
+
+      // Si en 800ms nadie respondió, no hay pestaña activa → cargar normalmente
+      setTimeout(() => {
+        if (!cedido) {
+          bcCheck.close();
+          // La función manejarPedidoEntrante normal tomará el control desde los params de URL
+        }
+      }, 800);
+    })();
+
+    // ==================== PEDIDO ENTRANTE POR URL ====================
+    // Si la URL tiene ?c=colmadoId&p=pedidoId, cargar el pedido y crear una tab con los datos
+    // Función interna reutilizable (llamada desde URL o desde BroadcastChannel)
+    async function _cargarPedidoConParams(cParam, pParam) {
       toast('📦 Cargando pedido entrante...', 'info', 5000);
-
       try {
         const pedidoRef = doc(db, 'negocios', cParam, 'pedidos_cliente', pParam);
         const pedidoSnap = await getDoc(pedidoRef);
         if (!pedidoSnap.exists()) {
           toast('Pedido no encontrado en el enlace', 'error');
-          return true;
+          return;
         }
         const data = { id: pedidoSnap.id, ...pedidoSnap.data() };
 
@@ -5971,11 +6154,25 @@ background: #ffffff00;
         // Ir al POS
         showPage('pos');
         toast(`✅ Pedido #${pParam.toUpperCase()} de ${data.clienteNombre || 'cliente'} cargado`, 'success', 5000);
-        return true;
       } catch (e) {
         toast('Error cargando pedido: ' + e.message, 'error');
-        return true;
       }
+    }
+
+    // Exponer para que el BroadcastChannel lo pueda llamar
+    window._manejarPedidoEntranteConParams = _cargarPedidoConParams;
+
+    async function manejarPedidoEntrante() {
+      const params = new URLSearchParams(window.location.search);
+      const cParam = params.get('c');
+      const pParam = params.get('p');
+      if (!cParam || !pParam) return false;
+
+      // Limpiar la URL sin recargar
+      history.replaceState({}, '', window.location.pathname);
+
+      await _cargarPedidoConParams(cParam, pParam);
+      return true;
     }
     // ==================== SYNC CLEAR BUTTONS ====================
     window._syncClearBtn = function (inputId, btnId) {

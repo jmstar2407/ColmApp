@@ -2677,6 +2677,24 @@
       document.getElementById('link-pedido-box').style.display = 'block';
       document.getElementById('link-pedido-url').textContent = link;
       toast('Pedido enviado por WhatsApp', 'success', 4000);
+
+      // ── Intentar abrir el pedido en la pestaña de miColmApp ya abierta ──
+      // Si el dueño tiene miColmApp.html abierto en otra pestaña del mismo origen,
+      // se le enviará el pedido por BroadcastChannel y esa pestaña lo cargará
+      // sin abrir una nueva. Si no hay ninguna pestaña activa, no pasa nada.
+      try {
+        const bc = new BroadcastChannel('micolmapp_pedido');
+        let recibido = false;
+        bc.onmessage = (ev) => {
+          if (ev.data?.tipo === 'pedido_recibido' && ev.data?.p === pedidoId) {
+            recibido = true;
+            bc.close();
+          }
+        };
+        bc.postMessage({ tipo: 'pedido_entrante', c: colmadoIdActual, p: pedidoId });
+        // Cerrar el canal después de 3 s si nadie respondió
+        setTimeout(() => { if (!recibido) bc.close(); }, 3000);
+      } catch (e) { /* BroadcastChannel no disponible */ }
     };
 
     window.copiarEnlace = () => {
