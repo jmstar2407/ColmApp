@@ -271,6 +271,67 @@
 
     /* ===== FIN MODAL FACTURAR ===== */
 
+    /* ===== CARRITO ITEM — Efecto de iluminación al agregar ===== */
+    @keyframes carritoItemGlow {
+      0% {
+        box-shadow: -8px 0 24px 4px rgba(99, 179, 237, 0), inset 0 0 0px rgba(255,255,255,0);
+        border-color: transparent;
+        background-position: -200% center;
+      }
+      15% {
+        box-shadow: -4px 0 32px 8px rgba(99, 179, 237, 0.55), 0 0 18px 2px rgba(168, 85, 247, 0.3);
+        border-color: rgba(99, 179, 237, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 36px 10px rgba(168, 85, 247, 0.45), 4px 0 28px 6px rgba(99, 179, 237, 0.3);
+        border-color: rgba(168, 85, 247, 0.7);
+        background-position: 200% center;
+      }
+      80% {
+        box-shadow: 6px 0 28px 8px rgba(245, 159, 0, 0.35), 0 0 16px 4px rgba(168, 85, 247, 0.2);
+        border-color: rgba(245, 159, 0, 0.5);
+      }
+      100% {
+        box-shadow: none;
+        border-color: transparent;
+        background-position: 200% center;
+      }
+    }
+
+    @keyframes carritoItemShimmer {
+      0%   { background-position: -200% 0; opacity: 1; }
+      70%  { opacity: 1; }
+      100% { background-position: 200% 0;  opacity: 0; }
+    }
+
+    .carrito-item.item-added {
+      position: relative;
+      border: 1.5px solid transparent;
+      animation: carritoItemGlow 2s ease-out forwards;
+      overflow: hidden;
+    }
+
+    .carrito-item.item-added::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        105deg,
+        rgba(255,255,255,0) 0%,
+        rgba(99, 179, 237, 0.18) 20%,
+        rgba(168, 85, 247, 0.22) 40%,
+        rgba(255, 255, 255, 0.28) 55%,
+        rgba(245, 159, 0, 0.15) 70%,
+        rgba(255,255,255,0) 100%
+      );
+      background-size: 200% 100%;
+      animation: carritoItemShimmer 1.4s ease-in-out forwards;
+      pointer-events: none;
+      border-radius: inherit;
+      z-index: 2;
+    }
+    /* ===== FIN CARRITO ITEM GLOW ===== */
+
     /* ===== MODAL GLOBAL — Header fijo, body scroll, footer fijo ===== */
     .modal-overlay {
       display: none;
@@ -3596,7 +3657,7 @@ background: #ffffff00;
         ? `${fmt(p.precio)}/${unidadLabel}`
         : fmt(p.precio);
       const unidadBadge = esDetallable ? ` <span style="background:#1971c2;color:white;border-radius:4px;padding:1px 5px;font-size:10px;font-weight:700;">${unidadLabel}</span>` : '';
-      const stockHtml = `Stock: ${p.stock}${unidadBadge}`;
+      const stockHtml = `Stock: ${fmtNum(p.stock)}${unidadBadge}`;
       const imagenHtml = p.imagen
         ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">`
         : `<div class="prod-emoji">📦</div>`;
@@ -3689,7 +3750,7 @@ background: #ffffff00;
       } else {
         // Por precio: calcular cuántas unidades
         const cantEquiv = val / _duProd.precio;
-        res.innerHTML = `${fmt(val)} ÷ ${fmt(_duProd.precio)}/${unidadLabel} = <span class="du-resultado-valor">${cantEquiv.toFixed(3)} ${unidadLabel}</span>`;
+        res.innerHTML = `${fmt(val)} ÷ ${fmt(_duProd.precio)}/${unidadLabel} = <span class="du-resultado-valor">${cantEquiv.toFixed(2)} ${unidadLabel}</span>`;
       }
     }
 
@@ -3729,7 +3790,7 @@ background: #ffffff00;
       renderCarrito();
       cerrarModal('modal-detalle-unidad');
       const accion = _duModoEdicion ? 'actualizado' : 'agregado';
-      toast(`✅ ${qty.toFixed(3)} ${labelUnidad(_duProd.unidad)} de ${_duProd.nombre} ${accion}`, 'success');
+      toast(`✅ ${qty.toFixed(2)} ${labelUnidad(_duProd.unidad)} de ${_duProd.nombre} ${accion}`, 'success');
     };
 
     // ===== TECLADO FÍSICO + INPUT NATIVO para modal-detalle-unidad =====
@@ -3801,7 +3862,7 @@ background: #ffffff00;
       _duModoEdicion = true;
       _duTab = 'cantidad';
       const qtyActual = item.qty;
-      _duValor = Number.isInteger(qtyActual) ? String(qtyActual) : qtyActual.toFixed(3);
+      _duValor = Number.isInteger(qtyActual) ? String(qtyActual) : qtyActual.toFixed(2);
       document.getElementById('du-nombre').textContent = item.nombre;
       document.getElementById('du-precio-ref').innerHTML = `Precio: <span class="du-precio-valor">${fmt(item._precioBase || item.precio)}</span> por ${labelUnidad(item.unidad)}`;
       document.getElementById('du-valor').value = _duValor;
@@ -3823,7 +3884,7 @@ background: #ffffff00;
       const idx = carrito.findIndex(i => i.id === prodId);
       if (idx < 0) return;
       const val = parseFloat(inputEl.value);
-      if (isNaN(val) || val <= 0) { inputEl.value = carrito[idx].qty.toFixed(3); return; }
+      if (isNaN(val) || val <= 0) { inputEl.value = carrito[idx].qty.toFixed(2); return; }
       carrito[idx].qty = val;
       setCarrito(carrito);
       // Solo actualizar totales sin re-renderizar todo el carrito (para no perder el foco)
@@ -3843,7 +3904,7 @@ background: #ffffff00;
       setCarrito(carrito);
       // Actualizar campo de cantidad también
       const qtyInput = document.getElementById(`du-qty-${prodId}`);
-      if (qtyInput) qtyInput.value = nuevaQty.toFixed(3);
+      if (qtyInput) qtyInput.value = nuevaQty.toFixed(2);
       _actualizarTotalesCarrito();
     };
 
@@ -3892,6 +3953,9 @@ background: #ffffff00;
       if (_carritoQueue.length) requestAnimationFrame(_procesarColaCarrito);
     }
 
+    // Guarda el ID del último producto agregado para aplicar el efecto de glow
+    let _ultimoItemAgregado = null;
+
     window.agregarAlCarrito = (prodId) => {
       if (!cajaActual) { toast('⚠️ La caja no está abierta', 'error'); return; }
       const prod = productos.find(p => p.id === prodId);
@@ -3907,9 +3971,11 @@ background: #ffffff00;
           carrito.push({ ...prod, qty: 1, _precioBase: prod.precio });
         }
         setCarrito(carrito);
+        _ultimoItemAgregado = prod.id;
         renderCarrito();
         return;
       }
+      _ultimoItemAgregado = prodId;
       _carritoQueue.push(prodId);
       requestAnimationFrame(_procesarColaCarrito);
     };
@@ -3924,6 +3990,7 @@ background: #ffffff00;
         carrito.push({ ...prod, qty: 1 });
       }
       setCarrito(carrito);
+      _ultimoItemAgregado = prod.id;
       renderCarrito();
     }
 
@@ -3945,7 +4012,7 @@ background: #ffffff00;
       const precioBase = item._precioBase || item.precio;
       const unidadLabel = labelUnidad(item.unidad || '');
       const subtotal = precioBase * item.qty;
-      const qtyDisplay = Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(3);
+      const qtyDisplay = Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(2);
       return `<div class="carrito-item">
         <div class="img-producto">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'" style="">` : `<div class="item-emoji" style="width:44px;height:44px;font-size:20px;">📦</div>`}</div>
         <div class="item-info" style="flex:1;min-width:0;">
@@ -3978,11 +4045,72 @@ background: #ffffff00;
       const carrito = getCarrito();
       // Contar productos distintos (no suma de unidades/libras/onzas)
       count.textContent = carrito.length;
+
       if (!carrito.length) {
         items.innerHTML = `<div class="carrito-empty"><i class="fas fa-shopping-cart"></i><p>Agrega productos al carrito</p></div>`;
       } else {
-        items.innerHTML = carrito.map(item => esUnidadDetallable(item.unidad) ? _renderItemDetallable(item) : _renderItemNormal(item)).join('');
+        // ── Render diferencial: preserva imágenes ya cargadas ──
+        // Eliminar nodos que NO son carrito-item (ej: carrito-empty)
+        Array.from(items.children).forEach(el => {
+          if (!el.classList.contains('carrito-item')) el.remove();
+        });
+
+        // Recopilar nodos existentes por data-item-id
+        const existingNodes = {};
+        items.querySelectorAll('.carrito-item[data-item-id]').forEach(el => {
+          existingNodes[el.dataset.itemId] = el;
+        });
+
+        const newIds = new Set(carrito.map(i => i.id));
+
+        // Eliminar nodos que ya no están en el carrito
+        Object.keys(existingNodes).forEach(id => {
+          if (!newIds.has(id)) existingNodes[id].remove();
+        });
+
+        // Recorrer el carrito en orden y actualizar/crear cada nodo
+        carrito.forEach((item, idx) => {
+          const esDetallable = esUnidadDetallable(item.unidad);
+          const existing = existingNodes[item.id];
+
+          if (existing) {
+            // ── Actualizar solo los valores dinámicos, SIN tocar la imagen ──
+            if (esDetallable) {
+              const precioBase = item._precioBase || item.precio;
+              const unidadLabel = labelUnidad(item.unidad || '');
+              const subtotal = precioBase * item.qty;
+              const qtyDisplay = Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(2);
+              const subEl = existing.querySelector('.item-subtotal');
+              if (subEl) subEl.textContent = fmt(subtotal);
+              const cantEl = existing.querySelector('.item-unidad-cantidad');
+              if (cantEl) cantEl.textContent = `${qtyDisplay} ${unidadLabel}`;
+            } else {
+              const qtyEl = existing.querySelector('.qty-num');
+              if (qtyEl) qtyEl.textContent = item.qty;
+              const subEl = existing.querySelector('.item-subtotal');
+              if (subEl) subEl.textContent = fmt(item.precio * item.qty);
+            }
+
+            // Asegurar posición correcta en el DOM
+            const currentChildren = Array.from(items.children).filter(el => el.classList.contains('carrito-item'));
+            if (currentChildren[idx] !== existing) {
+              items.insertBefore(existing, currentChildren[idx] || null);
+            }
+          } else {
+            // ── Crear nodo nuevo con atributo data-item-id ──
+            const html = esDetallable ? _renderItemDetallable(item) : _renderItemNormal(item);
+            const tpl = document.createElement('div');
+            tpl.innerHTML = html.trim();
+            const newEl = tpl.firstElementChild;
+            newEl.dataset.itemId = item.id;
+
+            // Insertar en la posición correcta
+            const currentChildren = Array.from(items.children).filter(el => el.classList.contains('carrito-item'));
+            items.insertBefore(newEl, currentChildren[idx] || null);
+          }
+        });
       }
+
       const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente !== false;
@@ -3994,6 +4122,22 @@ background: #ffffff00;
       document.getElementById('cart-total').textContent = fmt(total);
       const btnVaciar = document.getElementById('btn-vaciar-carrito');
       if (btnVaciar) btnVaciar.style.background = carrito.length ? 'var(--rojo)' : '#aab4c8';
+
+      // ── Efecto de iluminación al agregar producto ──
+      if (_ultimoItemAgregado) {
+        const idAgregado = _ultimoItemAgregado;
+        _ultimoItemAgregado = null;
+        requestAnimationFrame(() => {
+          const el = items.querySelector(`.carrito-item[data-item-id="${idAgregado}"]`);
+          if (el) {
+            el.classList.remove('item-added');
+            void el.offsetWidth;
+            el.classList.add('item-added');
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            setTimeout(() => el.classList.remove('item-added'), 2100);
+          }
+        });
+      }
     }
 
     function _actualizarBtnLimpiar() {
@@ -4177,7 +4321,7 @@ background: #ffffff00;
       document.getElementById('factura-items-lista').innerHTML = carrito.map(item => {
         const precioBase = item._precioBase || item.precio;
         const subtItem = precioBase * item.qty;
-        const qtyLabel = esUnidadDetallable(item.unidad) ? `${item.qty.toFixed(3)} ${labelUnidad(item.unidad)}` : `x${item.qty}`;
+        const qtyLabel = esUnidadDetallable(item.unidad) ? `${item.qty.toFixed(2)} ${labelUnidad(item.unidad)}` : `x${item.qty}`;
         return `<div class="factura-item-row"><span class="fi-nombre">${item.nombre}</span><span class="fi-precio">${fmt(precioBase)}</span><span class="fi-qty">${qtyLabel}</span><span class="fi-precio">${fmt(subtItem)}</span></div>`;
       }).join('');
       document.getElementById('mfact-subtotal').textContent = fmt(subtotal);
@@ -4479,7 +4623,7 @@ background: #ffffff00;
         const qty = i.qty;
         const subtotal = i.subtotal ?? (precioBase * qty);
         const qtyStr = (i.unidad && esUnidadDetallable(i.unidad))
-          ? `${parseFloat(qty).toFixed(3)} ${labelUnidad(i.unidad)} x ${fmt(precioBase)}`
+          ? `${parseFloat(qty).toFixed(2)} ${labelUnidad(i.unidad)} x ${fmt(precioBase)}`
           : `Cant. ${qty} x  ${precioBase.toFixed(2)}`;
         return `<div style="padding:2px 8px 2px 4px;border-bottom:1px dashed #e0e0e0;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -5150,13 +5294,13 @@ background: #ffffff00;
           <span class="orden-badge" style="background:#e67700;">${index + 1}</span>
           <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
           ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'">` : `<div class="prod-emoji-inv">📦</div>`}
-          ${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${p.stock}</div>` : ''}
+          ${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${fmtNum(p.stock)}</div>` : ''}
           ${sinStock ? `<div class="stock-badge-inv danger">Sin stock</div>` : ''}
           <div class="prod-info-inv">
             <div class="prod-nombre-inv">${escapeHtml(p.nombre || '')}</div>
             ${p.codigoBarras ? `<div class="prod-codigo-inv">${escapeHtml(p.codigoBarras)}</div>` : ''}
             <div class="prod-precios-inv"><span class="precio-venta">${fmt(p.precio)}</span>${p.costo ? `<span class="precio-costo">Costo: ${fmt(p.costo)}</span>` : ''}</div>
-            <div class="prod-stock-inv ${bajoStock ? 'bajo' : ''} ${sinStock ? 'sin' : ''}">Stock: ${p.stock || 0} ${p.unidad || ''}</div>
+            <div class="prod-stock-inv ${bajoStock ? 'bajo' : ''} ${sinStock ? 'sin' : ''}">Stock: ${fmtNum(p.stock || 0)} ${p.unidad || ''}</div>
             <div class="prod-actions-inv">
               <button class="btn-sm gris" onclick="editarProducto('${p.id}')"><i class="fas fa-edit"></i> Editar</button>
               <button class="btn-sm rojo" onclick="eliminarProducto('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
@@ -5428,13 +5572,13 @@ background: #ffffff00;
           <span class="orden-badge" style="background:#00b341;">${index + 1}</span>
           <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
           ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'">` : `<div class="prod-emoji-inv">📦</div>`}
-          ${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${p.stock}</div>` : ''}
+          ${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${fmtNum(p.stock)}</div>` : ''}
           ${sinStock ? `<div class="stock-badge-inv danger">Sin stock</div>` : ''}
           <div class="prod-info-inv">
             <div class="prod-nombre-inv">${nombreResaltado}</div>
             ${p.codigoBarras ? `<div class="prod-codigo-inv">${barcodeResaltado}</div>` : ''}
             <div class="prod-precios-inv"><span class="precio-venta">${fmt(p.precio)}</span>${p.costo ? `<span class="precio-costo">Costo: ${fmt(p.costo)}</span>` : ''}</div>
-            <div class="prod-stock-inv ${bajoStock ? 'bajo' : ''} ${sinStock ? 'sin' : ''}">Stock: ${p.stock || 0} ${p.unidad || ''}</div>
+            <div class="prod-stock-inv ${bajoStock ? 'bajo' : ''} ${sinStock ? 'sin' : ''}">Stock: ${fmtNum(p.stock || 0)} ${p.unidad || ''}</div>
             <div class="prod-actions-inv">
               ${p.masVendidos ? `<span style="font-size:10px;background:#fff3bf;color:#e67700;border-radius:20px;padding:2px 8px;font-weight:700;">⭐ Más Vendidos</span>` : ''}
               <button class="btn-sm gris" onclick="editarProducto('${p.id}')"><i class="fas fa-edit"></i> Editar</button>
@@ -5498,7 +5642,7 @@ background: #ffffff00;
               ${p.imagen ? `<img src="${p.imagen}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.outerHTML='<span style=&quot;font-size:22px&quot;>📦</span>'">` : `<span style="font-size:22px">📦</span>`}
               <div style="flex:1;min-width:0;">
                 <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nombreH}</div>
-                <div style="font-size:11px;color:var(--gris-suave);">${cat ? cat.nombre : ''} • ${sinStock ? '<span style="color:#e03131">Sin stock</span>' : `Stock: ${p.stock}`}</div>
+                <div style="font-size:11px;color:var(--gris-suave);">${cat ? cat.nombre : ''} • ${sinStock ? '<span style="color:#e03131">Sin stock</span>' : `Stock: ${fmtNum(p.stock)}`}</div>
               </div>
               <div style="font-weight:700;color:#00b341;font-size:13px;flex-shrink:0;">${fmt(p.precio)}</div>
             </div>`;
@@ -5924,6 +6068,7 @@ background: #ffffff00;
 
     // ==================== HELPERS ====================
     function fmt(val) { return `RD$ ${(val || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; }
+    function fmtNum(val) { const n = parseFloat(val) || 0; if (Number.isInteger(n)) return n; const r = parseFloat(n.toFixed(2)); return Number.isInteger(r) ? r : r.toFixed(2); }
 
     window.abrirModal = (id) => document.getElementById(id)?.classList.add('visible');
     window.cerrarModal = (id) => document.getElementById(id)?.classList.remove('visible');
