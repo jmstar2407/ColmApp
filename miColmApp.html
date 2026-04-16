@@ -6019,78 +6019,76 @@ background: #ffffff00;
       );
     };
 
-    // ==================== BROADCAST CHANNEL — recibir pedido desde otra pestaña ====================
-    (function () {
-      const bc = new BroadcastChannel('micolmapp_pedido');
-      // Anunciar que esta pestaña está activa
-      bc.postMessage({ tipo: 'app_activa' });
-
-      bc.onmessage = async (ev) => {
-        const { tipo, c, p } = ev.data || {};
-        if (tipo === 'hay_alguien') {
-          // Confirmar presencia para que la pestaña nueva sepa que existe esta
-          bc.postMessage({ tipo: 'app_activa' });
-        }
-        if (tipo === 'pedido_entrante' && c && p) {
-          // Confirmar recepción para que la pestaña remitente se cierre
-          bc.postMessage({ tipo: 'pedido_recibido', p });
-          // Procesar igual que si viniera por URL
-          await window._manejarPedidoEntranteConParams(c, p);
-        }
-      };
-      window._bcColmApp = bc;
-    })();
-
-    // ==================== REDIRECCIÓN INTELIGENTE: si esta pestaña se abrió con ?c=&p= ====================
-    // y ya hay otra pestaña de miColmApp activa, le cedemos el pedido y nos cerramos.
+    // ==================== BROADCAST CHANNEL ====================
+    // Un único canal compartido. Dos roles según si esta pestaña tiene ?c=&p= en la URL:
+    //
+    //  A) PESTAÑA PRINCIPAL (sin params): escucha y procesa pedidos entrantes de otras pestañas.
+    //  B) PESTAÑA NUEVA (con params):     intenta ceder el pedido a la pestaña principal y cerrarse.
+    //     Si en 800 ms nadie responde, carga el pedido ella misma (fallback normal).
     (function () {
       const params = new URLSearchParams(window.location.search);
       const cParam = params.get('c');
       const pParam = params.get('p');
-      if (!cParam || !pParam) return; // sin params, nada que hacer
+      const esPestañaNueva = !!(cParam && pParam); // esta pestaña se abrió con el enlace
 
-      // Intentar ceder el pedido a una pestaña ya activa
-      const bcCheck = new BroadcastChannel('micolmapp_pedido');
-      let cedido = false;
+      const bc = new BroadcastChannel('micolmapp_pedido');
+      window._bcColmApp = bc;
 
-      bcCheck.onmessage = (ev) => {
-        if (ev.data?.tipo === 'app_activa') {
-          // Hay otra pestaña activa — enviarle el pedido
-          bcCheck.postMessage({ tipo: 'pedido_entrante', c: cParam, p: pParam });
-        }
-        if (ev.data?.tipo === 'pedido_recibido' && ev.data?.p === pParam) {
-          cedido = true;
-          bcCheck.close();
-          // Limpiar URL y cerrar esta pestaña (o redirigir a página limpia)
-          history.replaceState({}, '', window.location.pathname);
-          // Intentar cerrar la pestaña; si no se puede, mostrar aviso
-          window.close();
-          // Fallback: si window.close() no funcionó (el browser lo bloquea),
-          // redirigir a la misma página sin params para no recargar el pedido de nuevo
-          setTimeout(() => {
-            if (!window.closed) {
-              document.body.innerHTML = `
-                <div style="font-family:sans-serif;display:flex;flex-direction:column;align-items:center;
-                  justify-content:center;min-height:100vh;gap:16px;background:#f5f7fa;color:#1a2135;">
-                  <div style="font-size:3rem;">✅</div>
-                  <div style="font-weight:700;font-size:1.1rem;">Pedido enviado a miColmApp</div>
-                  <div style="color:#475569;font-size:.9rem;">Puedes cerrar esta pestaña.</div>
-                </div>`;
-            }
-          }, 500);
-        }
-      };
+      if (!esPestañaNueva) {
+        // ── ROL A: pestaña principal ──
+        // Responde a sondeos y procesa pedidos delegados por otras pestañas.
+        bc.onmessage = async (ev) => {
+          const { tipo, c, p } = ev.data || {};
+          if (tipo === 'hay_alguien') {
+            bc.postMessage({ tipo: 'app_activa' });
+          }
+          if (tipo === 'pedido_entrante' && c && p) {
+            bc.postMessage({ tipo: 'pedido_recibido', p });
+            await window._manejarPedidoEntranteConParams(c, p);
+          }
+        };
 
-      // Preguntar si hay alguien escuchando
-      bcCheck.postMessage({ tipo: 'hay_alguien' });
+      } else {
+        // ── ROL B: pestaña nueva con ?c=&p= ──
+        // Intenta ceder el pedido a la pestaña principal antes de cargarlo aquí.
+        let cedido = false;
 
-      // Si en 800ms nadie respondió, no hay pestaña activa → cargar normalmente
-      setTimeout(() => {
-        if (!cedido) {
-          bcCheck.close();
-          // La función manejarPedidoEntrante normal tomará el control desde los params de URL
-        }
-      }, 800);
+        bc.onmessage = (ev) => {
+          if (ev.data?.tipo === 'app_activa' && !cedido) {
+            // Hay una pestaña principal activa → delegarle el pedido
+            bc.postMessage({ tipo: 'pedido_entrante', c: cParam, p: pParam });
+          }
+          if (ev.data?.tipo === 'pedido_recibido' && ev.data?.p === pParam && !cedido) {
+            cedido = true;
+            bc.close();
+            history.replaceState({}, '', window.location.pathname);
+            window.close();
+            // Fallback si el browser bloquea window.close()
+            setTimeout(() => {
+              if (!window.closed) {
+                document.body.innerHTML = `
+                  <div style="font-family:sans-serif;display:flex;flex-direction:column;align-items:center;
+                    justify-content:center;min-height:100vh;gap:16px;background:#f5f7fa;color:#1a2135;">
+                    <div style="font-size:3rem;">✅</div>
+                    <div style="font-weight:700;font-size:1.1rem;">Pedido cargado en miColmApp</div>
+                    <div style="color:#475569;font-size:.9rem;">Puedes cerrar esta pestaña.</div>
+                  </div>`;
+              }
+            }, 400);
+          }
+        };
+
+        // Sondear si hay una pestaña principal activa
+        bc.postMessage({ tipo: 'hay_alguien' });
+
+        // Si en 800 ms nadie respondió → no hay pestaña principal, cargar aquí mismo
+        setTimeout(() => {
+          if (!cedido) {
+            bc.close();
+            // manejarPedidoEntrante() leerá los params de la URL normalmente
+          }
+        }, 800);
+      }
     })();
 
     // ==================== PEDIDO ENTRANTE POR URL ====================
