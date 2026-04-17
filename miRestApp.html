@@ -3,8 +3,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>miColmApp – POS Colmados RD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>miRestApp – POS</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Nunito:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -13,24 +13,6 @@
   <!-- Signature Pad para dibujo -->
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
   <link rel="stylesheet" href="./css/styles.css" />
-  <script>
-    // Deshabilitar clic derecho en toda la aplicación
-    document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
-    // Prevenir zoom por pellizco en móviles (complementa el viewport meta)
-    document.addEventListener('touchstart', function(e) {
-      if (e.touches.length > 1) e.preventDefault();
-    }, { passive: false });
-    document.addEventListener('touchmove', function(e) {
-      if (e.touches.length > 1) e.preventDefault();
-    }, { passive: false });
-    // Prevenir doble tap zoom en iOS
-    var _lastTap = 0;
-    document.addEventListener('touchend', function(e) {
-      var now = Date.now();
-      if (now - _lastTap < 300) e.preventDefault();
-      _lastTap = now;
-    }, { passive: false });
-  </script>
   <style>
     /* ===== MÁS VENDIDOS — Categoría especial ===== */
     .pos-cat-card.mas-vendidos-cat {
@@ -1569,129 +1551,50 @@ background: #ffffff00;
     }
     #vkb-overlay.vkb-open { display: block; }
 
-    /* ===== TECLADO VIRTUAL — Responsivo + Tema claro/oscuro ===== */
-
-    /* Variables del tema oscuro (por defecto) */
-    #vkb-panel {
-      --vkb-bg: #1e2535;
-      --vkb-preview-bg: #111827;
-      --vkb-key-bg: #2d3750;
-      --vkb-key-color: #e2e8f0;
-      --vkb-key-shadow: #111827;
-      --vkb-key-pressed: #4a5568;
-      --vkb-key-num-bg: #252e43;
-      --vkb-key-num-color: #94a3b8;
-      --vkb-space-bg: #374165;
-      --vkb-space-color: #94a3b8;
-      --vkb-backspace-bg: #3b2d45;
-      --vkb-backspace-color: #e28a8a;
-      --vkb-enter-bg: #1e4a7a;
-      --vkb-enter-color: #63b3ed;
-      --vkb-shift-bg: #253045;
-      --vkb-shift-color: #94a3b8;
-      --vkb-shift-active-bg: #2d4a7a;
-      --vkb-shift-active-color: #63b3ed;
-      --vkb-toggle-bg: #253045;
-      --vkb-toggle-color: #94a3b8;
-      --vkb-theme-btn-bg: #2a3858;
-      --vkb-theme-btn-color: #f6c90e;
-      --vkb-eñe-bg: #2a3858;
-      --vkb-eñe-color: #a78bfa;
-      --vkb-accent-bg: #2a3858;
-      --vkb-accent-color: #f6ad55;
-      --vkb-close-bg: #2d3750;
-      --vkb-close-color: #94a3b8;
-      --vkb-drag-dot-color: #94a3b8;
-      --vkb-preview-icon-color: #6b7de0;
-      --vkb-preview-text-color: #e2e8f0;
-      --vkb-cursor-color: #6b7de0;
-      --vkb-field-label-color: #4a5568;
-    }
-
-    /* Tema claro */
-    #vkb-panel.vkb-dark {
-      --vkb-bg: #f0f2f7;
-      --vkb-preview-bg: #dde1ea;
-      --vkb-key-bg: #ffffff;
-      --vkb-key-color: #1a2135;
-      --vkb-key-shadow: #b0b8ca;
-      --vkb-key-pressed: #d0d5e2;
-      --vkb-key-num-bg: #e8ebf2;
-      --vkb-key-num-color: #4a5568;
-      --vkb-space-bg: #e2e6f0;
-      --vkb-space-color: #4a5568;
-      --vkb-backspace-bg: #fce4e4;
-      --vkb-backspace-color: #c0392b;
-      --vkb-enter-bg: #d6eaf8;
-      --vkb-enter-color: #1565c0;
-      --vkb-shift-bg: #e8ebf2;
-      --vkb-shift-color: #4a5568;
-      --vkb-shift-active-bg: #c5d8f5;
-      --vkb-shift-active-color: #1565c0;
-      --vkb-toggle-bg: #e8ebf2;
-      --vkb-toggle-color: #4a5568;
-      --vkb-theme-btn-bg: #fff3cd;
-      --vkb-theme-btn-color: #856404;
-      --vkb-eñe-bg: #ede9f8;
-      --vkb-eñe-color: #6b21a8;
-      --vkb-accent-bg: #fff3e0;
-      --vkb-accent-color: #b45309;
-      --vkb-close-bg: #e8ebf2;
-      --vkb-close-color: #4a5568;
-      --vkb-drag-dot-color: #94a3b8;
-      --vkb-preview-icon-color: #1565c0;
-      --vkb-preview-text-color: #1a2135;
-      --vkb-cursor-color: #1565c0;
-      --vkb-field-label-color: #64748b;
-    }
-
     #vkb-panel {
       position: fixed;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%) translateY(calc(100% + 40px));
-      width: clamp(320px, 860px, 96vw);
+      width: 860px;
       max-width: 96vw;
       min-width: 320px;
-      max-width: 1100px;
-      min-height: 240px;
-      max-height: 80vh;
+      min-height: 280px;
       z-index: 99999;
-      background: var(--vkb-bg);
+      background: #1e2535;
       border-radius: 18px;
       box-shadow: 0 8px 48px rgba(0,0,0,0.55), 0 2px 12px rgba(0,0,0,0.3);
-      padding: 0 clamp(6px, 1.2vw, 14px) clamp(8px, 1.5vh, 16px);
-      transition: transform 0.28s cubic-bezier(0.34,1.1,0.64,1), opacity 0.28s, background 0.25s;
+      padding: 0 10px 14px;
+      transition: transform 0.28s cubic-bezier(0.34,1.1,0.64,1), opacity 0.28s;
       opacity: 0;
       user-select: none;
       touch-action: none;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-sizing: border-box;
+      resize: both;
+      /* resize handle sólo en esquinas */
     }
     #vkb-panel.vkb-open {
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+    /* Cuando tiene posición guardada (left/top fijos), override el transform */
     #vkb-panel.vkb-open[style*="transform: none"] {
       transform: none !important;
       opacity: 1;
     }
+    /* Cuando está siendo arrastrado, sin transition de posición */
     #vkb-panel.vkb-dragging {
       transition: none !important;
     }
-
     /* Barra de arrastre */
     #vkb-drag-handle {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 6px 10px 3px;
+      padding: 8px 12px 4px;
       cursor: grab;
       touch-action: none;
       user-select: none;
-      flex-shrink: 0;
     }
     #vkb-drag-handle:active { cursor: grabbing; }
     #vkb-drag-dots {
@@ -1706,11 +1609,10 @@ background: #ffffff00;
       display: block;
       width: 28px;
       height: 3px;
-      background: var(--vkb-drag-dot-color);
+      background: #94a3b8;
       border-radius: 2px;
     }
-
-    /* Handle de resize */
+    /* Handle de resize visible en esquina inferior derecha */
     #vkb-resize-handle {
       position: absolute;
       bottom: 0;
@@ -1735,23 +1637,21 @@ background: #ffffff00;
       display: flex;
       align-items: center;
       gap: 8px;
-      background: var(--vkb-preview-bg);
-      border-radius: 10px;
-      padding: clamp(5px, 1vh, 10px) clamp(8px, 1.5vw, 16px);
-      margin-bottom: clamp(5px, 1vh, 10px);
-      flex-shrink: 0;
-      transition: background 0.25s;
+      background: #111827;
+      border-radius: 12px;
+      padding: 8px 14px;
+      margin-bottom: 10px;
     }
     #vkb-preview-icon {
       font-size: 13px;
-      color: var(--vkb-preview-icon-color);
+      color: #6b7de0;
       flex-shrink: 0;
     }
     #vkb-preview-text {
       flex: 1;
-      font-size: clamp(0.85rem, 1.5vw, 1rem);
+      font-size: 1rem;
       font-weight: 600;
-      color: var(--vkb-preview-text-color);
+      color: #e2e8f0;
       font-family: var(--font-body, 'Nunito', sans-serif);
       white-space: nowrap;
       overflow: hidden;
@@ -1763,7 +1663,7 @@ background: #ffffff00;
       display: inline-block;
       width: 2px;
       height: 1.1em;
-      background: var(--vkb-cursor-color);
+      background: #6b7de0;
       margin-left: 2px;
       vertical-align: middle;
       animation: vkbBlink 1s step-end infinite;
@@ -1771,9 +1671,9 @@ background: #ffffff00;
     }
     @keyframes vkbBlink { 0%,100%{opacity:1}50%{opacity:0} }
     #vkb-close-btn {
-      background: var(--vkb-close-bg);
+      background: #2d3750;
       border: none;
-      color: var(--vkb-close-color);
+      color: #94a3b8;
       border-radius: 8px;
       padding: 5px 10px;
       font-size: 13px;
@@ -1781,35 +1681,29 @@ background: #ffffff00;
       flex-shrink: 0;
       transition: background 0.15s;
     }
-    #vkb-close-btn:hover { filter: brightness(1.1); }
+    #vkb-close-btn:hover { background: #374165; color: #e2e8f0; }
 
-    /* ── Filas y teclas — Totalmente responsivas ── */
     .vkb-rows {
       display: flex;
       flex-direction: column;
-      gap: clamp(3px, 0.6vh, 7px);
-      flex: 1;
-      min-height: 0;
+      gap: 7px;
     }
     .vkb-row {
       display: flex;
-      gap: clamp(3px, 0.5vw, 6px);
-      justify-content: stretch;
-      flex: 1;
-      min-height: 0;
+      gap: 5px;
+      justify-content: center;
     }
 
     .vkb-key {
-      height: 100%;
-      min-height: clamp(32px, 5vh, 52px);
-      max-height: 62px;
-      min-width: 0;
+      height: 46px;
+      min-width: 36px;
       flex: 1;
+      max-width: 52px;
       border: none;
-      border-radius: clamp(6px, 0.8vw, 10px);
-      background: var(--vkb-key-bg);
-      color: var(--vkb-key-color);
-      font-size: clamp(0.7rem, 1.8vw, 1.05rem);
+      border-radius: 10px;
+      background: #2d3750;
+      color: #e2e8f0;
+      font-size: 1.05rem;
       font-weight: 600;
       font-family: var(--font-body, 'Nunito', sans-serif);
       cursor: pointer;
@@ -1817,95 +1711,223 @@ background: #ffffff00;
       align-items: center;
       justify-content: center;
       transition: background 0.1s, transform 0.08s;
-      box-shadow: 0 2px 0 var(--vkb-key-shadow);
+      box-shadow: 0 2px 0 #111827;
       -webkit-tap-highlight-color: transparent;
       position: relative;
       letter-spacing: 0.2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      box-sizing: border-box;
     }
     .vkb-key:active, .vkb-key.vkb-pressed {
-      background: var(--vkb-key-pressed) !important;
+      background: #4a5568 !important;
       transform: scale(0.93);
       box-shadow: none;
     }
 
+    /* Número row */
     .vkb-key.vkb-num {
-      background: var(--vkb-key-num-bg);
-      color: var(--vkb-key-num-color);
+      background: #252e43;
+      color: #94a3b8;
+      font-size: 0.92rem;
     }
 
+    /* Teclas especiales */
     .vkb-key.vkb-space {
       flex: 4;
-      background: var(--vkb-space-bg);
-      color: var(--vkb-space-color);
-      font-size: clamp(0.6rem, 1.2vw, 0.8rem);
+      max-width: 260px;
+      background: #374165;
+      color: #94a3b8;
+      font-size: 0.8rem;
       letter-spacing: 1px;
       text-transform: uppercase;
     }
     .vkb-key.vkb-backspace {
       flex: 1.6;
-      background: var(--vkb-backspace-bg);
-      color: var(--vkb-backspace-color);
-      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+      max-width: 72px;
+      background: #3b2d45;
+      color: #e28a8a;
+      font-size: 1.1rem;
     }
     .vkb-key.vkb-enter {
       flex: 1.8;
-      background: var(--vkb-enter-bg);
-      color: var(--vkb-enter-color);
-      font-size: clamp(0.65rem, 1.2vw, 0.78rem);
+      max-width: 80px;
+      background: #1e4a7a;
+      color: #63b3ed;
+      font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     .vkb-key.vkb-shift {
       flex: 1.6;
-      background: var(--vkb-shift-bg);
-      color: var(--vkb-shift-color);
-      font-size: clamp(0.85rem, 1.5vw, 1rem);
+      max-width: 70px;
+      background: #253045;
+      color: #94a3b8;
+      font-size: 1rem;
     }
     .vkb-key.vkb-shift.active {
-      background: var(--vkb-shift-active-bg);
-      color: var(--vkb-shift-active-color);
+      background: #2d4a7a;
+      color: #63b3ed;
     }
     .vkb-key.vkb-num-toggle {
       flex: 1.6;
-      background: var(--vkb-toggle-bg);
-      color: var(--vkb-toggle-color);
-      font-size: clamp(0.65rem, 1.2vw, 0.78rem);
+      max-width: 68px;
+      background: #253045;
+      color: #94a3b8;
+      font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.3px;
     }
-    .vkb-key.vkb-theme-toggle {
-      flex: 1.2;
-      background: var(--vkb-theme-btn-bg);
-      color: var(--vkb-theme-btn-color);
-      font-size: clamp(0.85rem, 1.4vw, 1rem);
-    }
     .vkb-key.vkb-eñe {
-      background: var(--vkb-eñe-bg);
-      color: var(--vkb-eñe-color);
+      background: #2a3858;
+      color: #a78bfa;
     }
     .vkb-key.vkb-accent {
-      background: var(--vkb-accent-bg);
-      color: var(--vkb-accent-color);
-      font-size: clamp(0.75rem, 1.3vw, 0.9rem);
+      background: #2a3858;
+      color: #f6ad55;
+      font-size: 0.9rem;
     }
 
     /* Indicador de campo activo */
     #vkb-field-label {
       font-size: 10px;
-      color: var(--vkb-field-label-color);
+      color: #4a5568;
       text-align: center;
-      margin-bottom: 3px;
+      margin-bottom: 4px;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       font-weight: 700;
-      flex-shrink: 0;
     }
 
     /* ===== FIN TECLADO TOUCH ===== */
+
+    /* ===== SISTEMA DE MESAS ===== */
+    .mesa-tab-btn {
+      display: inline-flex;
+ flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 7px 12px;
+      border-radius: 8px;
+      border: none;
+      background: #d0d8e8;
+      color: #4a5568;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+      position: relative;
+      white-space: nowrap;
+      min-width: 72px;
+      flex-shrink: 0;
+    }
+    .mesa-tab-btn .mesa-icon { font-size: 1rem; line-height: 1; }
+    .mesa-tab-btn .mesa-badge {
+      background: #fc4f62;
+      color: white;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      min-width: 14px;
+      text-align: center;
+      position: absolute;
+      top: 3px;
+      right: 3px;
+    }
+    .mesa-tab-btn.activa {
+      background: #1971c2;
+      color: white;
+      box-shadow: 0 3px 12px rgba(25,113,194,0.35);
+    }
+    .mesa-tab-btn.tiene-items {
+      border: 2px solid #43a047;
+    }
+    .mesa-tab-btn.activa.tiene-items {
+      border: 2px solid #1558a0;
+    }
+    .btn-factura-rapida {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 12px;
+      border-radius: 8px;
+      border: 2px dashed #f59f00;
+      background: #fff9db;
+      color: #7c4f00;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .btn-factura-rapida.visible { display: inline-flex; }
+    .btn-factura-rapida.activa {
+      background: #f59f00;
+      color: white;
+      border-color: #e67700;
+      box-shadow: 0 2px 10px rgba(245,159,0,0.35);
+    }
+    .carrito-header-mesa-nombre {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #1971c2;
+      background: #dce8f8;
+      border-radius: 6px;
+      padding: 2px 7px;
+      margin-left: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 110px;
+      display: none;
+    }
+    .carrito-header-mesa-nombre.visible { display: inline-block; }
+    .carrito-header-mesa-nombre.rapida { color: #7c4f00; background: #fff3bf; }
+    /* Sección mesas en inventario */
+    .inv-mesas-section {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .inv-mesas-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #1971c2 0%, #1558a0 100%);
+      color: white;
+    }
+    .inv-mesas-header h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+    }
+    .mesas-lista-inv {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      padding: 14px 16px;
+    }
+    .mesa-card-inv {
+      background: #f8f9ff;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .mesa-nombre-inv { font-weight: 700; color: #1a2135; font-size: 0.88rem; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .btn-mesa-del { background:#ffe0e3;border:none;color:#e03131;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;flex-shrink:0; }
+    .toggle-mesas-wrap { display:flex;align-items:center;gap:8px; }
+    .toggle-mesas-label { font-size:0.82rem;font-weight:700;color:rgba(255,255,255,0.92); }
+    /* ===== FIN SISTEMA DE MESAS ===== */
 
   </style>
 </head>
@@ -1915,7 +1937,7 @@ background: #ffffff00;
   <!-- LOADING SCREEN -->
   <div id="loading-screen">
     <div class="ls-icon">🏪</div>
-    <h2>miColmApp</h2>
+    <h2>miRestApp</h2>
     <p>Cargando sistema...</p>
     <div class="progress-bar">
       <div class="progress-fill"></div>
@@ -1927,8 +1949,8 @@ background: #ffffff00;
     <div class="auth-card">
       <div class="auth-logo">
         <div class="logo-icon">🏪</div>
-        <h1>miColmApp</h1>
-        <p>Sistema POS para Colmados RD</p>
+        <h1>miRestApp</h1>
+        <p>Sistema POS</p>
       </div>
       <div class="auth-tabs">
         <button class="auth-tab active" onclick="authTab('login')">Iniciar Sesión</button>
@@ -1967,7 +1989,7 @@ background: #ffffff00;
       <div class="navbar-brand">
         <div class="brand-icon">🏪</div>
         <div>
-          <h1><span style="color: #4a5568">mi</span><span style="color: #1a2135">Colm</span><span
+          <h1><span style="color: #4a5568">mi</span><span style="color: #1a2135">Rest</span><span
               style="color: #fc4f62;">app</span></h1>
           <div class="negocio-nombre" id="nav-negocio-nombre">Cargando...</div>
         </div>
@@ -2046,6 +2068,9 @@ background: #ffffff00;
               <div class="facturas-tabs-bar" id="facturas-tabs-bar">
                 <!-- tabs rendered by JS -->
               </div>
+              <button id="btn-factura-rapida" class="btn-factura-rapida" onclick="mesaSeleccionarRapida()" title="Factura Rápida — no se guarda en la nube">
+                <i class="fas fa-bolt"></i> Factura Rápida
+              </button>
               <button class="tabs-scroll-btn right" id="tabs-scroll-right" onclick="scrollTabs(1)"
                 aria-label="Scroll derecha">&#8250;</button>
             </div>
@@ -2060,6 +2085,7 @@ background: #ffffff00;
           <div class="pos-right" id="pos-right">
             <div class="carrito-header">
               <h3><i class="fas fa-shopping-cart"></i> Carrito</h3>
+              <span id="carrito-mesa-nombre-badge" class="carrito-header-mesa-nombre"></span>
               <span class="carrito-count" id="carrito-count">0</span>
             </div>
             <div class="carrito-items" id="carrito-items">
@@ -2227,6 +2253,32 @@ background: #ffffff00;
                 Categoría</button>
             </div>
           </div>
+
+          <!-- SECCIÓN ACTIVAR MESAS -->
+          <div class="inv-mesas-section">
+            <div class="inv-mesas-header">
+              <h3><i class="fas fa-utensils"></i> Mesas del Restaurante</h3>
+              <div class="toggle-mesas-wrap">
+                <span class="toggle-mesas-label">Activar Mesas</span>
+                <label class="toggle" style="margin:0;">
+                  <input type="checkbox" id="toggle-mesas-activas" onchange="mesaToggleSistema(this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div id="mesas-panel-inv" style="display:none;">
+              <div style="padding:12px 16px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input type="text" id="nueva-mesa-nombre" placeholder="Ej: Mesa 1, Mesa frente, Terraza..."
+                  style="flex:1;min-width:180px;max-width:320px;" maxlength="40"
+                  onkeydown="if(event.key==='Enter')mesaAgregar()">
+                <button class="btn-sm verde" onclick="mesaAgregar()"><i class="fas fa-plus"></i> Agregar Mesa</button>
+              </div>
+              <div class="mesas-lista-inv" id="mesas-lista-inv">
+                <div style="color:#aab4c8;font-size:13px;padding:4px;">Agrega tu primera mesa arriba.</div>
+              </div>
+            </div>
+          </div>
+
           <div class="inv-controles"
             style="margin-bottom:16px;display:flex;gap:12px;align-items:center;position:relative;">
             <input type="text" id="inv-buscar" placeholder="Buscar productos..."
@@ -3277,6 +3329,20 @@ background: #ffffff00;
     const db = getFirestore(app);
     const storage = getStorage(app);
 
+    // ── Exponer a window para scripts externos (sistema de mesas) ──
+    window.db = db;
+    window.getDoc = getDoc;
+    window.getDocs = getDocs;
+    window.setDoc = setDoc;
+    window.addDoc = addDoc;
+    window.updateDoc = updateDoc;
+    window.deleteDoc = deleteDoc;
+    window.collection = collection;
+    window.doc = doc;
+    window.query = query;
+    window.orderBy = orderBy;
+    window.where = where;
+
     // ==================== STATE ====================
     let negocioId = null;
     let negocioData = null;
@@ -3393,11 +3459,33 @@ background: #ffffff00;
       return facturasTabs.find(t => t.id === facturaTabActiva) || null;
     }
 
-    // Getter/setter del carrito que ahora apunta a la tab activa
+    // Getter/setter del carrito que ahora apunta a la tab activa.
+    // En modo mesas, apunta al carrito de la mesa seleccionada.
     function getCarrito() {
+      if (window._mesasSistemaActivo && window._mesaSeleccionada) {
+        if (window._mesaSeleccionada === 'rapida') {
+          return window._carritoRapida || [];
+        }
+        const mesa = window._mesasCache && window._mesasCache.find(m => m.id === window._mesaSeleccionada);
+        if (mesa) return Array.isArray(mesa.carrito) ? mesa.carrito : [];
+      }
       return _getTabActiva()?.carrito || [];
     }
     function setCarrito(arr) {
+      if (window._mesasSistemaActivo && window._mesaSeleccionada) {
+        if (window._mesaSeleccionada === 'rapida') {
+          window._carritoRapida = arr.slice();
+          return;
+        }
+        const mesa = window._mesasCache && window._mesasCache.find(m => m.id === window._mesaSeleccionada);
+        if (mesa) {
+          mesa.carrito = arr.slice();
+          if (typeof window._mesaGuardarCarritoActual === 'function') {
+            window._mesaGuardarCarritoActual();
+          }
+          return;
+        }
+      }
       const tab = _getTabActiva();
       if (tab) { tab.carrito = arr; _guardarTabsEnStorage(); }
     }
@@ -3676,6 +3764,13 @@ background: #ffffff00;
       if (!facturasTabs.length) { _crearNuevaTab('Factura 1'); facturaTabActiva = facturasTabs[0].id; }
       if (!facturaTabActiva) facturaTabActiva = facturasTabs[0].id;
 
+      // ── Exponer a window para sistema de mesas ──
+      window.negocioId = negocioId;
+      window.getCarrito = getCarrito;
+      window.setCarrito = setCarrito;
+      window.renderFacturasTabs = renderFacturasTabs;
+      window.renderCarrito = renderCarrito;
+
       // Restaurar dibujo de la tab activa al cargar
       const tabInicial = _getTabActiva();
       if (tabInicial?.dibujoDataURL) { dibujoDataURL = tabInicial.dibujoDataURL; }
@@ -3742,7 +3837,7 @@ background: #ffffff00;
       if (pageId === 'config') { renderConfig(); renderEmpleados(); }
       if (pageId === 'facturas') { cargarFacturas(); }
       if (pageId === 'caja') { renderCaja(); }
-      if (pageId === 'pos') { renderFacturasTabs(); renderCarrito(); }
+      if (pageId === 'pos') { (window.renderFacturasTabs || renderFacturasTabs)(); renderCarrito(); }
     };
 
     // ==================== INVENTARIO SUSCRIPCION ====================
@@ -4407,7 +4502,7 @@ background: #ffffff00;
     };
 
     function renderCarrito() {
-      renderFacturasTabs();
+      (window.renderFacturasTabs || renderFacturasTabs)();
       const items = document.getElementById('carrito-items');
       const count = document.getElementById('carrito-count');
       const carrito = getCarrito();
@@ -4950,6 +5045,10 @@ background: #ffffff00;
         if (tabActual) { tabActual.carrito = []; tabActual.direccion = ''; tabActual.dibujoDataURL = null; }
         _guardarTabsEnStorage();
         renderCarrito();
+        // ── Vaciar carrito de mesa en Firestore si aplica ──
+        if (window._mesaVaciarCarritoEnFirestore && window._mesaSeleccionada) {
+          window._mesaVaciarCarritoEnFirestore(window._mesaSeleccionada);
+        }
         const dirInput = document.getElementById('pos-direccion-cliente');
         if (dirInput) dirInput.value = '';
         if (signaturePad) signaturePad.clear();
@@ -5059,9 +5158,17 @@ background: #ffffff00;
 
     window.nuevaVenta = () => {
       cerrarModal('modal-ticket');
-      const tabActual = _getTabActiva();
-      if (tabActual) { tabActual.carrito = []; tabActual.direccion = ''; tabActual.dibujoDataURL = null; _guardarTabsEnStorage(); }
-      renderFacturasTabs(); renderCarrito(); categoriaActual = null; renderCategoriasPos();
+      // Vaciar según contexto: mesa o tab de factura
+      if (window._mesasSistemaActivo && window._mesaSeleccionada) {
+        setCarrito([]);
+        if (window._mesaSeleccionada !== 'rapida' && typeof window._mesaVaciarCarritoEnFirestore === 'function') {
+          window._mesaVaciarCarritoEnFirestore(window._mesaSeleccionada);
+        }
+      } else {
+        const tabActual = _getTabActiva();
+        if (tabActual) { tabActual.carrito = []; tabActual.direccion = ''; tabActual.dibujoDataURL = null; _guardarTabsEnStorage(); }
+      }
+      (window.renderFacturasTabs || renderFacturasTabs)(); renderCarrito(); categoriaActual = null; renderCategoriasPos();
       const dirInput = document.getElementById('pos-direccion-cliente');
       if (dirInput) dirInput.value = '';
     };
@@ -6583,7 +6690,7 @@ background: #ffffff00;
                   <div style="font-family:sans-serif;display:flex;flex-direction:column;align-items:center;
                     justify-content:center;min-height:100vh;gap:16px;background:#f5f7fa;color:#1a2135;">
                     <div style="font-size:3rem;">✅</div>
-                    <div style="font-weight:700;font-size:1.1rem;">Pedido cargado en miColmApp</div>
+                    <div style="font-weight:700;font-size:1.1rem;">Pedido cargado en miRestApp</div>
                     <div style="color:#475569;font-size:.9rem;">Puedes cerrar esta pestaña.</div>
                   </div>`;
               }
@@ -6765,7 +6872,334 @@ background: #ffffff00;
     })();
 
     window._manejarPedidoEntrante = manejarPedidoEntrante;
+
   </script>
+
+  <!-- ===== SISTEMA DE MESAS ===== -->
+  <script>
+  // Este bloque se ejecuta DESPUÉS del módulo ES6 principal, por lo que
+  // las variables db, negocioId, etc. son accesibles via window (definidas en el módulo)
+
+  // ── Estado ──
+  let _mesasSistemaActivo = false;
+  let _mesaSeleccionada = null;  // null=modo tabs normal, 'rapida'=factura rápida, string=id de mesa
+  let _mesasCache = [];          // cache local de mesas [{id, nombre, carrito:[]}]
+  let _carritoRapida = [];       // carrito efímero de factura rápida
+
+  // Exponer estado en window para que getCarrito/setCarrito del módulo principal puedan accederlo
+  Object.defineProperty(window, '_mesasSistemaActivo', {
+    get() { return _mesasSistemaActivo; },
+    set(v) { _mesasSistemaActivo = v; },
+    configurable: true
+  });
+  Object.defineProperty(window, '_mesaSeleccionada', {
+    get() { return _mesaSeleccionada; },
+    set(v) { _mesaSeleccionada = v; },
+    configurable: true
+  });
+  Object.defineProperty(window, '_mesasCache', {
+    get() { return _mesasCache; },
+    set(v) { _mesasCache = v; },
+    configurable: true
+  });
+  Object.defineProperty(window, '_carritoRapida', {
+    get() { return _carritoRapida; },
+    set(v) { _carritoRapida = v; },
+    configurable: true
+  });
+
+  // ── Helpers para acceder a variables del módulo principal ──
+  function _db()      { return window.db; }
+  function _negId()   { return window.negocioId; }
+
+  // ── Cargar configuración de mesas desde Firestore ──
+  async function mesaCargarConfig() {
+    try {
+      const nid = _negId();
+      if (!nid || !_db()) return;
+      const snap = await window.getDoc(window.doc(_db(), 'negocios', nid, 'configuraciones', 'mesas'));
+      const data = snap.exists() ? snap.data() : {};
+      _mesasSistemaActivo = !!data.activas;
+
+      // Sync toggle en inventario
+      const toggle = document.getElementById('toggle-mesas-activas');
+      if (toggle) toggle.checked = _mesasSistemaActivo;
+      const panel = document.getElementById('mesas-panel-inv');
+      if (panel) panel.style.display = _mesasSistemaActivo ? 'block' : 'none';
+
+      // Cargar lista de mesas
+      await mesaCargarLista();
+      mesaRenderTabs();
+    } catch(e) { console.warn('mesaCargarConfig', e); }
+  }
+
+  async function mesaCargarLista() {
+    try {
+      const nid = _negId();
+      if (!nid || !_db()) return;
+      const snap = await window.getDocs(
+        window.query(window.collection(_db(), 'negocios', nid, 'mesas'), window.orderBy('orden'))
+      );
+      _mesasCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      mesaRenderInventario();
+    } catch(e) { console.warn('mesaCargarLista', e); }
+  }
+
+  // ── Toggle activar/desactivar sistema de mesas ──
+  window.mesaToggleSistema = async function(activo) {
+    try {
+      const nid = _negId();
+      if (!nid || !_db()) return;
+      _mesasSistemaActivo = activo;
+      await window.setDoc(
+        window.doc(_db(), 'negocios', nid, 'configuraciones', 'mesas'),
+        { activas: activo },
+        { merge: true }
+      );
+      const panel = document.getElementById('mesas-panel-inv');
+      if (panel) panel.style.display = activo ? 'block' : 'none';
+      if (!activo) {
+        _mesaSeleccionada = null;
+        _actualizarBadgeMesa();
+        // Restaurar tabs normales
+        if (typeof renderFacturasTabs === 'function') renderFacturasTabs();
+      }
+      mesaRenderTabs();
+    } catch(e) { console.warn('mesaToggleSistema', e); }
+  };
+
+  // ── Agregar mesa ──
+  window.mesaAgregar = async function() {
+    const inp = document.getElementById('nueva-mesa-nombre');
+    if (!inp) return;
+    const nombre = inp.value.trim();
+    if (!nombre) { inp.focus(); return; }
+    try {
+      const nid = _negId();
+      if (!nid || !_db()) return;
+      await window.addDoc(window.collection(_db(), 'negocios', nid, 'mesas'), {
+        nombre,
+        orden: Date.now(),
+        carrito: []
+      });
+      inp.value = '';
+      await mesaCargarLista();
+      mesaRenderTabs();
+    } catch(e) { console.warn('mesaAgregar', e); }
+  };
+
+  // ── Eliminar mesa ──
+  window.mesaEliminar = async function(mesaId) {
+    if (!confirm('¿Eliminar esta mesa? Se borrará su carrito guardado.')) return;
+    try {
+      const nid = _negId();
+      if (!nid || !_db()) return;
+      await window.deleteDoc(window.doc(_db(), 'negocios', nid, 'mesas', mesaId));
+      if (_mesaSeleccionada === mesaId) {
+        _mesaSeleccionada = null;
+        _actualizarBadgeMesa();
+        if (typeof renderFacturasTabs === 'function') renderFacturasTabs();
+      }
+      await mesaCargarLista();
+      mesaRenderTabs();
+    } catch(e) { console.warn('mesaEliminar', e); }
+  };
+
+  // ── Renderizar lista de mesas en Inventario ──
+  function mesaRenderInventario() {
+    const cont = document.getElementById('mesas-lista-inv');
+    if (!cont) return;
+    if (_mesasCache.length === 0) {
+      cont.innerHTML = '<div style="color:#aab4c8;font-size:13px;padding:4px;">Agrega tu primera mesa arriba.</div>';
+      return;
+    }
+    cont.innerHTML = _mesasCache.map(m => `
+      <div class="mesa-card-inv">
+        <span class="mesa-nombre-inv">🪑 ${m.nombre}</span>
+        <button class="btn-mesa-del" onclick="mesaEliminar('${m.id}')" title="Eliminar">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  // ── Renderizar tabs de mesas en el POS ──
+  function mesaRenderTabs() {
+    const bar = document.getElementById('facturas-tabs-bar');
+    const btnRapida = document.getElementById('btn-factura-rapida');
+    if (!bar) return;
+
+    if (!_mesasSistemaActivo) {
+      // Modo normal: mostrar tabs de factura originales
+      if (btnRapida) btnRapida.classList.remove('visible');
+      if (typeof renderFacturasTabs === 'function') renderFacturasTabs();
+      return;
+    }
+
+    // Modo mesas activo — reemplazar tabs con botones de mesa
+    if (btnRapida) btnRapida.classList.add('visible');
+
+    bar.innerHTML = _mesasCache.map(m => {
+      const itemCount = Array.isArray(m.carrito) ? m.carrito.length : 0;
+      const tieneItems = itemCount > 0;
+      const esActiva = _mesaSeleccionada === m.id;
+      return `
+        <button class="mesa-tab-btn${esActiva ? ' activa' : ''}${tieneItems ? ' tiene-items' : ''}"
+          onclick="mesaSeleccionar('${m.id}')">
+          <span class="mesa-icon">🪑</span>
+          <span>${m.nombre}</span>
+          ${tieneItems ? `<span class="mesa-badge">${itemCount}</span>` : ''}
+        </button>
+      `;
+    }).join('');
+
+    // Estado botón factura rápida
+    if (btnRapida) {
+      if (_mesaSeleccionada === 'rapida') btnRapida.classList.add('activa');
+      else btnRapida.classList.remove('activa');
+    }
+  }
+
+  // ── Seleccionar una mesa ──
+  window.mesaSeleccionar = async function(mesaId) {
+    const mesa = _mesasCache.find(m => m.id === mesaId);
+    if (!mesa) return;
+
+    // Si había una mesa antes, guardar su carrito
+    await _mesaGuardarCarritoActual();
+
+    _mesaSeleccionada = mesaId;
+
+    // Cargar carrito guardado de esta mesa
+    // setCarrito y getCarrito ya leen de _mesasCache cuando _mesaSeleccionada está asignado
+    if (typeof renderCarrito === 'function') renderCarrito();
+
+    _actualizarBadgeMesa(mesa.nombre, false);
+    mesaRenderTabs();
+  };
+
+  // ── Seleccionar Factura Rápida ──
+  window.mesaSeleccionarRapida = async function() {
+    // Guardar carrito de la mesa actual si aplica
+    await _mesaGuardarCarritoActual();
+
+    _mesaSeleccionada = 'rapida';
+
+    // getCarrito() ya retorna _carritoRapida cuando _mesaSeleccionada === 'rapida'
+    if (typeof renderCarrito === 'function') renderCarrito();
+
+    _actualizarBadgeMesa('Factura Rápida', true);
+    mesaRenderTabs();
+  };
+
+  // ── Guardar carrito de la mesa actualmente seleccionada en Firestore ──
+  async function _mesaGuardarCarritoActual() {
+    if (!_mesaSeleccionada || _mesaSeleccionada === 'rapida') return;
+    try {
+      const nid = _negId();
+      if (!nid || !_db()) return;
+      const carrito = (typeof getCarrito === 'function') ? getCarrito() : [];
+      await window.updateDoc(
+        window.doc(_db(), 'negocios', nid, 'mesas', _mesaSeleccionada),
+        { carrito: carrito.slice() }
+      );
+      // Actualizar cache local
+      const idx = _mesasCache.findIndex(m => m.id === _mesaSeleccionada);
+      if (idx >= 0) _mesasCache[idx].carrito = carrito.slice();
+    } catch(e) { console.warn('_mesaGuardarCarritoActual', e); }
+  }
+
+  // ── Vaciar carrito de mesa en Firestore (llamar al facturar o vaciar) ──
+  async function _mesaVaciarCarritoEnFirestore(mesaId) {
+    if (!mesaId || mesaId === 'rapida') return;
+    try {
+      const nid = _negId();
+      if (!nid || !_db()) return;
+      await window.updateDoc(
+        window.doc(_db(), 'negocios', nid, 'mesas', mesaId),
+        { carrito: [] }
+      );
+      const idx = _mesasCache.findIndex(m => m.id === mesaId);
+      if (idx >= 0) _mesasCache[idx].carrito = [];
+      mesaRenderTabs();
+    } catch(e) { console.warn('_mesaVaciarCarritoEnFirestore', e); }
+  }
+  window._mesaVaciarCarritoEnFirestore = _mesaVaciarCarritoEnFirestore;
+  window._mesaGuardarCarritoActual = _mesaGuardarCarritoActual;
+
+  // ── Badge de mesa en el header del carrito ──
+  function _actualizarBadgeMesa(nombre, esRapida) {
+    const badge = document.getElementById('carrito-mesa-nombre-badge');
+    if (!badge) return;
+    if (!_mesasSistemaActivo || !nombre) {
+      badge.className = 'carrito-header-mesa-nombre';
+      return;
+    }
+    badge.textContent = esRapida ? ('⚡ ' + nombre) : ('🪑 ' + nombre);
+    badge.className = 'carrito-header-mesa-nombre visible' + (esRapida ? ' rapida' : '');
+  }
+
+  // ── Hook: después de renderCarrito sincronizar carrito de mesa ──
+  // Lo hacemos lazy: se envuelve la primera vez que se llama
+  let _renderCarritoWrapped = false;
+  function _ensureRenderCarritoWrapped() {
+    if (_renderCarritoWrapped || !window.renderCarrito) return;
+    _renderCarritoWrapped = true;
+    const _orig = window.renderCarrito;
+    window.renderCarrito = function() {
+      _orig.apply(this, arguments);
+      // Actualizar tabs de mesas después de renderizar
+      if (_mesasSistemaActivo) mesaRenderTabs();
+    };
+  }
+
+  // ── Inicializar al autenticarse ──
+  function _intentarIniciarMesas() {
+    if (window.negocioId && window.db && window.renderCarrito) {
+      // Envolver renderCarrito ahora que está disponible
+      _ensureRenderCarritoWrapped();
+      // Parchar confirmarVaciarCarrito
+      const _origVaciar = window.confirmarVaciarCarrito;
+      if (_origVaciar && !window._mesasVaciarParchado) {
+        window._mesasVaciarParchado = true;
+        window.confirmarVaciarCarrito = function() {
+          if (typeof _origVaciar === 'function') _origVaciar.apply(this, arguments);
+          if (_mesasSistemaActivo) {
+            if (_mesaSeleccionada === 'rapida') _carritoRapida = [];
+            else _mesaVaciarCarritoEnFirestore(_mesaSeleccionada);
+            mesaRenderTabs();
+          }
+        };
+      }
+      // Parchar renderFacturasTabs
+      const _origRFT = window.renderFacturasTabs;
+      if (_origRFT && !window._mesasRFTParchado) {
+        window._mesasRFTParchado = true;
+        window.renderFacturasTabs = function() {
+          if (_mesasSistemaActivo) mesaRenderTabs();
+          else if (typeof _origRFT === 'function') _origRFT.apply(this, arguments);
+        };
+      }
+      mesaCargarConfig();
+      // Forzar render correcto inmediatamente después de parchear
+      if (_mesasSistemaActivo) mesaRenderTabs();
+    } else {
+      setTimeout(_intentarIniciarMesas, 300);
+    }
+  }
+
+  // Exponer funciones globales requeridas por el HTML inline
+  window.mesaRenderTabs = mesaRenderTabs;
+  window.mesaCargarConfig = mesaCargarConfig;
+
+  // Esperar a que el DOM y el módulo estén listos
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(_intentarIniciarMesas, 800));
+  } else {
+    setTimeout(_intentarIniciarMesas, 800);
+  }
+  </script>
+  <!-- ===== FIN SISTEMA DE MESAS ===== -->
 
   <!-- ===== TECLADO TOUCH VIRTUAL ===== -->
   <div id="vkb-overlay"></div>
@@ -6794,18 +7228,15 @@ background: #ffffff00;
     let vkbShift = false;
     let vkbCaps = false;
     let vkbNumMode = false;
-    let vkbSymMode = false;
-    let vkbDarkTheme = false;
     let vkbCursorPos = 0;
     let vkbLastShiftTap = 0;
 
     // ── Layouts ──
     const LAYOUT_ES = [
-      // Fila números — backspace al lado del 0
+      // Fila números
       [
         {l:'1',s:'!'},{l:'2',s:'"'},{l:'3',s:'#'},{l:'4',s:'$'},{l:'5',s:'%'},
-        {l:'6',s:'&'},{l:'7',s:'/'},{l:'8',s:'('},{l:'9',s:')'},{l:'0',s:'='},
-        {action:'backspace',label:'⌫',cls:'vkb-backspace'}
+        {l:'6',s:'&'},{l:'7',s:'/'},{l:'8',s:'('},{l:'9',s:')'},{l:'0',s:'='}
       ],
       // Fila 1
       [{l:'q'},{l:'w'},{l:'e'},{l:'r'},{l:'t'},{l:'y'},{l:'u'},{l:'i'},{l:'o'},{l:'p'},
@@ -6816,29 +7247,12 @@ background: #ffffff00;
       // Fila 3
       [{action:'shift',label:'⇧',cls:'vkb-shift',id:'vkb-shift-btn'},
        {l:'z'},{l:'x'},{l:'c'},{l:'v'},{l:'b'},{l:'n'},{l:'m'},
-       {l:',',s:';'},{l:'.',s:':'}],
+       {l:',',s:';'},{l:'.',s:':'},
+       {action:'backspace',label:'⌫',cls:'vkb-backspace'}],
       // Fila 4
-      [{action:'symToggle',label:'#+=',cls:'vkb-num-toggle'},
-       {action:'themeToggle',label:'🌙',cls:'vkb-theme-toggle'},
+      [{action:'numToggle',label:'123',cls:'vkb-num-toggle'},
        {action:'space',label:'Espacio',cls:'vkb-space'},
        {l:'-'},{l:'@'},
-       {action:'enter',label:'↵ OK',cls:'vkb-enter'}]
-    ];
-
-    const LAYOUT_SYM = [
-      // Fila 1 símbolos
-      [{l:'!'},{l:'"'},{l:'#'},{l:'$'},{l:'%'},{l:'&'},{l:'/'},{l:'('},{l:')'},{l:'='},
-       {action:'backspace',label:'⌫',cls:'vkb-backspace'}],
-      // Fila 2 símbolos
-      [{l:'@'},{l:'_'},{l:'-'},{l:'+'},{l:'*'},{l:'/'},{l:'\\'},{l:'|'},{l:'<'},{l:'>'}],
-      // Fila 3 símbolos
-      [{l:'['},{l:']'},{l:'{'},{l:'}'},{l:'^'},{l:'~'},{l:'`'},{l:'\''},{l:'"'},{l:';'}],
-      // Fila 4 símbolos
-      [{l:','},{l:'.'},{l:':'},{l:'?'},{l:'¿'},{l:'¡'},{l:'°'},{l:'©'},{l:'®'},{l:'€'}],
-      // Fila 5 símbolos
-      [{action:'symToggle',label:'ABC',cls:'vkb-num-toggle'},
-       {action:'themeToggle',label:'🌙',cls:'vkb-theme-toggle'},
-       {action:'space',label:'Espacio',cls:'vkb-space'},
        {action:'enter',label:'↵ OK',cls:'vkb-enter'}]
     ];
 
@@ -6848,7 +7262,6 @@ background: #ffffff00;
       [{l:'7'},{l:'8'},{l:'9'},{l:'-'}],
       [{l:'0'},{l:','},{l:'@'},{action:'enter',label:'↵ OK',cls:'vkb-enter'}],
       [{action:'numToggle',label:'ABC',cls:'vkb-num-toggle',id:'vkb-num-toggle-btn'},
-       {action:'themeToggle',label:'🌙',cls:'vkb-theme-toggle'},
        {action:'space',label:'Espacio',cls:'vkb-space'}]
     ];
 
@@ -6856,10 +7269,7 @@ background: #ffffff00;
     function renderKeyboard() {
       const rows = document.getElementById('vkb-rows');
       rows.innerHTML = '';
-      let layout;
-      if (vkbNumMode) layout = LAYOUT_NUM;
-      else if (vkbSymMode) layout = LAYOUT_SYM;
-      else layout = LAYOUT_ES;
+      const layout = vkbNumMode ? LAYOUT_NUM : LAYOUT_ES;
       layout.forEach(rowKeys => {
         const row = document.createElement('div');
         row.className = 'vkb-row';
@@ -6869,10 +7279,6 @@ background: #ffffff00;
           if (k.id) btn.id = k.id;
 
           let label = k.label || k.l || '';
-          // Actualizar label del botón de tema según estado
-          if (k.action === 'themeToggle') {
-            label = vkbDarkTheme ? '☀️' : '🌙';
-          }
           if (!k.action && (vkbShift || vkbCaps) && k.l) {
             label = (k.s || k.l).toUpperCase();
             if (k.s && (vkbShift || vkbCaps)) label = k.s;
@@ -6927,24 +7333,6 @@ background: #ffffff00;
       }
       if (k.action === 'numToggle') {
         vkbNumMode = !vkbNumMode;
-        vkbSymMode = false;
-        renderKeyboard();
-        return;
-      }
-      if (k.action === 'symToggle') {
-        vkbSymMode = !vkbSymMode;
-        vkbNumMode = false;
-        renderKeyboard();
-        return;
-      }
-      if (k.action === 'themeToggle') {
-        vkbDarkTheme = !vkbDarkTheme;
-        const panel = document.getElementById('vkb-panel');
-        if (vkbDarkTheme) {
-          panel.classList.add('vkb-dark');
-        } else {
-          panel.classList.remove('vkb-dark');
-        }
         renderKeyboard();
         return;
       }
@@ -7014,8 +7402,8 @@ background: #ffffff00;
     function applyLayout(panel, layout) {
       // Clamp dentro de la ventana
       const vw = window.innerWidth, vh = window.innerHeight;
-      const w = Math.max(340, Math.min(layout.width || 860, Math.min(vw - 10, 1100)));
-      const h = Math.max(240, Math.min(layout.height || 320, 650));
+      const w = Math.max(320, Math.min(layout.width || 860, vw - 10));
+      const h = Math.max(280, layout.height || 'auto');
       let left = Math.max(0, Math.min(layout.left, vw - w));
       let top = Math.max(0, Math.min(layout.top, vh - 80));
 
@@ -7125,8 +7513,8 @@ background: #ffffff00;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         const dx = clientX - rStartX;
         const dy = clientY - rStartY;
-        const newW = Math.max(340, Math.min(rOrigW + dx, Math.min(window.innerWidth - 10, 1100)));
-        const newH = Math.max(240, Math.min(rOrigH + dy, Math.min(window.innerHeight - 20, 650)));
+        const newW = Math.max(320, Math.min(rOrigW + dx, window.innerWidth - 10));
+        const newH = Math.max(280, rOrigH + dy);
         panel.style.width = newW + 'px';
         panel.style.height = newH + 'px';
       }
@@ -7165,7 +7553,6 @@ background: #ffffff00;
       vkbShift = false;
       vkbCaps = false;
       vkbNumMode = false;
-      vkbSymMode = false;
       vkbPendingAccent = false;
 
       const label = document.getElementById('vkb-field-label');
@@ -7252,6 +7639,8 @@ background: #ffffff00;
   })();
   </script>
   <!-- ===== FIN TECLADO TOUCH VIRTUAL ===== -->
+   <script src="miRestApp.js"></script>
+
 </body>
 
 </html>
