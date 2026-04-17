@@ -1539,6 +1539,265 @@ background: #ffffff00;
     }
 
     /* ===== FIN VISTA PEQUEÑA ===== */
+
+
+    /* ===== TECLADO TOUCH VIRTUAL ===== */
+    #vkb-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99998;
+      background: transparent;
+    }
+    #vkb-overlay.vkb-open { display: block; }
+
+    #vkb-panel {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(calc(100% + 40px));
+      width: 860px;
+      max-width: 96vw;
+      min-width: 320px;
+      min-height: 280px;
+      z-index: 99999;
+      background: #1e2535;
+      border-radius: 18px;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.55), 0 2px 12px rgba(0,0,0,0.3);
+      padding: 0 10px 14px;
+      transition: transform 0.28s cubic-bezier(0.34,1.1,0.64,1), opacity 0.28s;
+      opacity: 0;
+      user-select: none;
+      touch-action: none;
+      overflow: hidden;
+      resize: both;
+      /* resize handle sólo en esquinas */
+    }
+    #vkb-panel.vkb-open {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    /* Cuando tiene posición guardada (left/top fijos), override el transform */
+    #vkb-panel.vkb-open[style*="transform: none"] {
+      transform: none !important;
+      opacity: 1;
+    }
+    /* Cuando está siendo arrastrado, sin transition de posición */
+    #vkb-panel.vkb-dragging {
+      transition: none !important;
+    }
+    /* Barra de arrastre */
+    #vkb-drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px 4px;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+    #vkb-drag-handle:active { cursor: grabbing; }
+    #vkb-drag-dots {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      opacity: 0.35;
+      flex: 1;
+      align-items: center;
+    }
+    #vkb-drag-dots span {
+      display: block;
+      width: 28px;
+      height: 3px;
+      background: #94a3b8;
+      border-radius: 2px;
+    }
+    /* Handle de resize visible en esquina inferior derecha */
+    #vkb-resize-handle {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 22px;
+      height: 22px;
+      cursor: se-resize;
+      touch-action: none;
+      z-index: 10;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 3px;
+    }
+    #vkb-resize-handle svg {
+      opacity: 0.4;
+      transition: opacity 0.15s;
+    }
+    #vkb-resize-handle:hover svg { opacity: 0.8; }
+
+    #vkb-preview-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #111827;
+      border-radius: 12px;
+      padding: 8px 14px;
+      margin-bottom: 10px;
+    }
+    #vkb-preview-icon {
+      font-size: 13px;
+      color: #6b7de0;
+      flex-shrink: 0;
+    }
+    #vkb-preview-text {
+      flex: 1;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      font-family: var(--font-body, 'Nunito', sans-serif);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+      letter-spacing: 0.3px;
+    }
+    #vkb-preview-text .vkb-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.1em;
+      background: #6b7de0;
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: vkbBlink 1s step-end infinite;
+      border-radius: 1px;
+    }
+    @keyframes vkbBlink { 0%,100%{opacity:1}50%{opacity:0} }
+    #vkb-close-btn {
+      background: #2d3750;
+      border: none;
+      color: #94a3b8;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    #vkb-close-btn:hover { background: #374165; color: #e2e8f0; }
+
+    .vkb-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .vkb-row {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+    }
+
+    .vkb-key {
+      height: 46px;
+      min-width: 36px;
+      flex: 1;
+      max-width: 52px;
+      border: none;
+      border-radius: 10px;
+      background: #2d3750;
+      color: #e2e8f0;
+      font-size: 1.05rem;
+      font-weight: 600;
+      font-family: var(--font-body, 'Nunito', sans-serif);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.1s, transform 0.08s;
+      box-shadow: 0 2px 0 #111827;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      letter-spacing: 0.2px;
+    }
+    .vkb-key:active, .vkb-key.vkb-pressed {
+      background: #4a5568 !important;
+      transform: scale(0.93);
+      box-shadow: none;
+    }
+
+    /* Número row */
+    .vkb-key.vkb-num {
+      background: #252e43;
+      color: #94a3b8;
+      font-size: 0.92rem;
+    }
+
+    /* Teclas especiales */
+    .vkb-key.vkb-space {
+      flex: 4;
+      max-width: 260px;
+      background: #374165;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .vkb-key.vkb-backspace {
+      flex: 1.6;
+      max-width: 72px;
+      background: #3b2d45;
+      color: #e28a8a;
+      font-size: 1.1rem;
+    }
+    .vkb-key.vkb-enter {
+      flex: 1.8;
+      max-width: 80px;
+      background: #1e4a7a;
+      color: #63b3ed;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .vkb-key.vkb-shift {
+      flex: 1.6;
+      max-width: 70px;
+      background: #253045;
+      color: #94a3b8;
+      font-size: 1rem;
+    }
+    .vkb-key.vkb-shift.active {
+      background: #2d4a7a;
+      color: #63b3ed;
+    }
+    .vkb-key.vkb-num-toggle {
+      flex: 1.6;
+      max-width: 68px;
+      background: #253045;
+      color: #94a3b8;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .vkb-key.vkb-eñe {
+      background: #2a3858;
+      color: #a78bfa;
+    }
+    .vkb-key.vkb-accent {
+      background: #2a3858;
+      color: #f6ad55;
+      font-size: 0.9rem;
+    }
+
+    /* Indicador de campo activo */
+    #vkb-field-label {
+      font-size: 10px;
+      color: #4a5568;
+      text-align: center;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 700;
+    }
+
+    /* ===== FIN TECLADO TOUCH ===== */
+
   </style>
 </head>
 
@@ -6398,6 +6657,445 @@ background: #ffffff00;
 
     window._manejarPedidoEntrante = manejarPedidoEntrante;
   </script>
+
+  <!-- ===== TECLADO TOUCH VIRTUAL ===== -->
+  <div id="vkb-overlay"></div>
+  <div id="vkb-panel" role="dialog" aria-label="Teclado virtual">
+    <div id="vkb-drag-handle" title="Arrastrar para mover">
+      <div id="vkb-drag-dots"><span></span><span></span></div>
+    </div>
+    <div id="vkb-field-label">Escribiendo en campo</div>
+    <div id="vkb-preview-bar">
+      <i class="fas fa-keyboard" id="vkb-preview-icon"></i>
+      <div id="vkb-preview-text"><span id="vkb-text-before"></span><span class="vkb-cursor"></span><span id="vkb-text-after"></span></div>
+      <button id="vkb-close-btn" onclick="vkbClose()">Listo ✓</button>
+    </div>
+    <div class="vkb-rows" id="vkb-rows"></div>
+    <div id="vkb-resize-handle" title="Redimensionar">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M11 1L1 11M11 6L6 11M11 11L11 11" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    // ── State ──
+    let vkbTarget = null;
+    let vkbShift = false;
+    let vkbCaps = false;
+    let vkbNumMode = false;
+    let vkbCursorPos = 0;
+    let vkbLastShiftTap = 0;
+
+    // ── Layouts ──
+    const LAYOUT_ES = [
+      // Fila números
+      [
+        {l:'1',s:'!'},{l:'2',s:'"'},{l:'3',s:'#'},{l:'4',s:'$'},{l:'5',s:'%'},
+        {l:'6',s:'&'},{l:'7',s:'/'},{l:'8',s:'('},{l:'9',s:')'},{l:'0',s:'='}
+      ],
+      // Fila 1
+      [{l:'q'},{l:'w'},{l:'e'},{l:'r'},{l:'t'},{l:'y'},{l:'u'},{l:'i'},{l:'o'},{l:'p'},
+       {l:'´',cls:'vkb-accent',action:'accent'}],
+      // Fila 2
+      [{l:'a'},{l:'s'},{l:'d'},{l:'f'},{l:'g'},{l:'h'},{l:'j'},{l:'k'},{l:'l'},
+       {l:'ñ',cls:'vkb-eñe'}],
+      // Fila 3
+      [{action:'shift',label:'⇧',cls:'vkb-shift',id:'vkb-shift-btn'},
+       {l:'z'},{l:'x'},{l:'c'},{l:'v'},{l:'b'},{l:'n'},{l:'m'},
+       {l:',',s:';'},{l:'.',s:':'},
+       {action:'backspace',label:'⌫',cls:'vkb-backspace'}],
+      // Fila 4
+      [{action:'numToggle',label:'123',cls:'vkb-num-toggle'},
+       {action:'space',label:'Espacio',cls:'vkb-space'},
+       {l:'-'},{l:'@'},
+       {action:'enter',label:'↵ OK',cls:'vkb-enter'}]
+    ];
+
+    const LAYOUT_NUM = [
+      [{l:'1'},{l:'2'},{l:'3'},{action:'backspace',label:'⌫',cls:'vkb-backspace'}],
+      [{l:'4'},{l:'5'},{l:'6'},{l:'.',s:','}],
+      [{l:'7'},{l:'8'},{l:'9'},{l:'-'}],
+      [{l:'0'},{l:','},{l:'@'},{action:'enter',label:'↵ OK',cls:'vkb-enter'}],
+      [{action:'numToggle',label:'ABC',cls:'vkb-num-toggle',id:'vkb-num-toggle-btn'},
+       {action:'space',label:'Espacio',cls:'vkb-space'}]
+    ];
+
+    // ── Render teclado ──
+    function renderKeyboard() {
+      const rows = document.getElementById('vkb-rows');
+      rows.innerHTML = '';
+      const layout = vkbNumMode ? LAYOUT_NUM : LAYOUT_ES;
+      layout.forEach(rowKeys => {
+        const row = document.createElement('div');
+        row.className = 'vkb-row';
+        rowKeys.forEach(k => {
+          const btn = document.createElement('button');
+          btn.className = 'vkb-key ' + (k.cls || '');
+          if (k.id) btn.id = k.id;
+
+          let label = k.label || k.l || '';
+          if (!k.action && (vkbShift || vkbCaps) && k.l) {
+            label = (k.s || k.l).toUpperCase();
+            if (k.s && (vkbShift || vkbCaps)) label = k.s;
+            else label = k.l.toUpperCase();
+          }
+          btn.textContent = label;
+          if (k.action === 'shift' && (vkbShift || vkbCaps)) btn.classList.add('active');
+
+          btn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            btn.classList.add('vkb-pressed');
+            handleKey(k);
+            setTimeout(() => btn.classList.remove('vkb-pressed'), 120);
+          });
+          row.appendChild(btn);
+        });
+        rows.appendChild(row);
+      });
+    }
+
+    // ── Manejar tecla ──
+    function handleKey(k) {
+      if (!vkbTarget) return;
+
+      if (k.action === 'backspace') {
+        if (vkbCursorPos > 0) {
+          const val = vkbTarget.value;
+          vkbTarget.value = val.slice(0, vkbCursorPos - 1) + val.slice(vkbCursorPos);
+          vkbCursorPos--;
+          triggerInput(vkbTarget);
+        }
+        updatePreview();
+        return;
+      }
+      if (k.action === 'enter') { vkbClose(); return; }
+      if (k.action === 'space') {
+        insertChar(' ');
+        return;
+      }
+      if (k.action === 'shift') {
+        const now = Date.now();
+        if (now - vkbLastShiftTap < 350) {
+          vkbCaps = !vkbCaps;
+          vkbShift = false;
+        } else {
+          vkbShift = !vkbShift;
+          vkbCaps = false;
+        }
+        vkbLastShiftTap = now;
+        renderKeyboard();
+        return;
+      }
+      if (k.action === 'numToggle') {
+        vkbNumMode = !vkbNumMode;
+        renderKeyboard();
+        return;
+      }
+      if (k.action === 'accent') {
+        vkbPendingAccent = true;
+        return;
+      }
+
+      let char = (vkbShift || vkbCaps) ? (k.s || k.l).toUpperCase() : (k.l || '');
+      if ((vkbShift || vkbCaps) && k.s) char = k.s;
+
+      if (vkbPendingAccent) {
+        const acentos = {a:'á',e:'é',i:'í',o:'ó',u:'ú',A:'Á',E:'É',I:'Í',O:'Ó',U:'Ú'};
+        char = acentos[char] || char;
+        vkbPendingAccent = false;
+      }
+
+      insertChar(char);
+
+      if (vkbShift && !vkbCaps) {
+        vkbShift = false;
+        renderKeyboard();
+      }
+    }
+
+    let vkbPendingAccent = false;
+
+    function insertChar(char) {
+      if (!vkbTarget) return;
+      const val = vkbTarget.value;
+      vkbTarget.value = val.slice(0, vkbCursorPos) + char + val.slice(vkbCursorPos);
+      vkbCursorPos++;
+      triggerInput(vkbTarget);
+      updatePreview();
+    }
+
+    function triggerInput(el) {
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    // ── Preview ──
+    function updatePreview() {
+      if (!vkbTarget) return;
+      const val = vkbTarget.value;
+      document.getElementById('vkb-text-before').textContent = val.slice(0, vkbCursorPos);
+      document.getElementById('vkb-text-after').textContent = val.slice(vkbCursorPos);
+    }
+
+    // ═══════════════════════════════════════════
+    //  DRAG & RESIZE + PERSISTENCIA
+    // ═══════════════════════════════════════════
+    const STORAGE_KEY = 'vkb_layout';
+
+    function saveLayout() {
+      const p = document.getElementById('vkb-panel');
+      const rect = p.getBoundingClientRect();
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height
+        }));
+      } catch(e) {}
+    }
+
+    function applyLayout(panel, layout) {
+      // Clamp dentro de la ventana
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const w = Math.max(320, Math.min(layout.width || 860, vw - 10));
+      const h = Math.max(280, layout.height || 'auto');
+      let left = Math.max(0, Math.min(layout.left, vw - w));
+      let top = Math.max(0, Math.min(layout.top, vh - 80));
+
+      panel.style.left = left + 'px';
+      panel.style.top = top + 'px';
+      panel.style.bottom = 'auto';
+      panel.style.width = w + 'px';
+      if (layout.height) panel.style.height = h + 'px';
+      panel.style.transform = 'none';
+      panel.style.transition = 'none';
+    }
+
+    function loadLayout(panel) {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const layout = JSON.parse(raw);
+        if (typeof layout.left === 'number') {
+          applyLayout(panel, layout);
+          return true;
+        }
+      } catch(e) {}
+      return false;
+    }
+
+    function initDragAndResize() {
+      const panel = document.getElementById('vkb-panel');
+      const dragHandle = document.getElementById('vkb-drag-handle');
+      const resizeHandle = document.getElementById('vkb-resize-handle');
+
+      // ── DRAG ──
+      let dragging = false, dStartX, dStartY, dOrigLeft, dOrigTop;
+
+      function onDragStart(e) {
+        dragging = true;
+        panel.classList.add('vkb-dragging');
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const rect = panel.getBoundingClientRect();
+        // Normalizar a posición absoluta si aún usa transform
+        panel.style.left = rect.left + 'px';
+        panel.style.top = rect.top + 'px';
+        panel.style.bottom = 'auto';
+        panel.style.transform = 'none';
+        panel.style.transition = 'none';
+        dStartX = clientX;
+        dStartY = clientY;
+        dOrigLeft = rect.left;
+        dOrigTop = rect.top;
+        e.preventDefault();
+      }
+
+      function onDragMove(e) {
+        if (!dragging) return;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - dStartX;
+        const dy = clientY - dStartY;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const w = panel.offsetWidth, h = panel.offsetHeight;
+        let newLeft = Math.max(0, Math.min(dOrigLeft + dx, vw - w));
+        let newTop = Math.max(0, Math.min(dOrigTop + dy, vh - 60));
+        panel.style.left = newLeft + 'px';
+        panel.style.top = newTop + 'px';
+      }
+
+      function onDragEnd() {
+        if (!dragging) return;
+        dragging = false;
+        panel.classList.remove('vkb-dragging');
+        saveLayout();
+      }
+
+      dragHandle.addEventListener('mousedown', onDragStart);
+      document.addEventListener('mousemove', (e) => { if (dragging) onDragMove(e); });
+      document.addEventListener('mouseup', onDragEnd);
+      dragHandle.addEventListener('touchstart', onDragStart, { passive: false });
+      document.addEventListener('touchmove', (e) => { if (dragging) onDragMove(e); }, { passive: false });
+      document.addEventListener('touchend', onDragEnd);
+
+      // ── RESIZE ──
+      let resizing = false, rStartX, rStartY, rOrigW, rOrigH;
+
+      function onResizeStart(e) {
+        resizing = true;
+        panel.classList.add('vkb-dragging');
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        // Fijar posición absoluta antes de redimensionar
+        const rect = panel.getBoundingClientRect();
+        panel.style.left = rect.left + 'px';
+        panel.style.top = rect.top + 'px';
+        panel.style.bottom = 'auto';
+        panel.style.transform = 'none';
+        panel.style.transition = 'none';
+        rStartX = clientX;
+        rStartY = clientY;
+        rOrigW = rect.width;
+        rOrigH = rect.height;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      function onResizeMove(e) {
+        if (!resizing) return;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - rStartX;
+        const dy = clientY - rStartY;
+        const newW = Math.max(320, Math.min(rOrigW + dx, window.innerWidth - 10));
+        const newH = Math.max(280, rOrigH + dy);
+        panel.style.width = newW + 'px';
+        panel.style.height = newH + 'px';
+      }
+
+      function onResizeEnd() {
+        if (!resizing) return;
+        resizing = false;
+        panel.classList.remove('vkb-dragging');
+        saveLayout();
+      }
+
+      resizeHandle.addEventListener('mousedown', onResizeStart);
+      document.addEventListener('mousemove', (e) => { if (resizing) onResizeMove(e); });
+      document.addEventListener('mouseup', onResizeEnd);
+      resizeHandle.addEventListener('touchstart', onResizeStart, { passive: false });
+      document.addEventListener('touchmove', (e) => { if (resizing) onResizeMove(e); }, { passive: false });
+      document.addEventListener('touchend', onResizeEnd);
+    }
+
+    // ── Cerrar al hacer click fuera ──
+    function initOutsideClick() {
+      document.addEventListener('mousedown', (e) => {
+        const panel = document.getElementById('vkb-panel');
+        if (!panel.classList.contains('vkb-open')) return;
+        // Si el click es en el panel o en el input activo → ignorar
+        if (panel.contains(e.target)) return;
+        if (vkbTarget && vkbTarget.contains(e.target)) return;
+        vkbClose();
+      }, true);
+    }
+
+    // ── Abrir / Cerrar ──
+    function vkbOpen(inputEl) {
+      vkbTarget = inputEl;
+      vkbCursorPos = inputEl.value.length;
+      vkbShift = false;
+      vkbCaps = false;
+      vkbNumMode = false;
+      vkbPendingAccent = false;
+
+      const label = document.getElementById('vkb-field-label');
+      if (inputEl.id === 'pos-buscar') {
+        label.textContent = '🔍 Buscar productos';
+        label.style.display = 'block';
+      } else if (inputEl.id === 'pos-direccion-cliente') {
+        label.textContent = '📍 Dirección del cliente';
+        label.style.display = 'block';
+      } else {
+        label.style.display = 'none';
+      }
+
+      const icon = document.getElementById('vkb-preview-icon');
+      icon.className = inputEl.id === 'pos-buscar' ? 'fas fa-search' : 'fas fa-map-marker-alt';
+
+      renderKeyboard();
+      updatePreview();
+
+      const panel = document.getElementById('vkb-panel');
+      // Restaurar posición/tamaño guardado
+      const hadLayout = loadLayout(panel);
+      if (!hadLayout) {
+        // Posición por defecto: centrado horizontalmente, cerca de la parte inferior
+        panel.style.transform = '';
+        panel.style.left = '50%';
+        panel.style.top = '';
+        panel.style.bottom = '20px';
+        panel.style.width = '860px';
+        panel.style.height = '';
+        // Reactivar transition para la animación de apertura
+        panel.style.transition = '';
+      } else {
+        panel.style.transition = 'opacity 0.22s';
+      }
+
+      document.getElementById('vkb-overlay').classList.add('vkb-open');
+      panel.classList.add('vkb-open');
+    }
+
+    window.vkbClose = function() {
+      document.getElementById('vkb-overlay').classList.remove('vkb-open');
+      document.getElementById('vkb-panel').classList.remove('vkb-open');
+      vkbTarget = null;
+    };
+
+    // ── Detectar foco en los dos inputs ──
+    function attachVkbToInput(inputId) {
+      const el = document.getElementById(inputId);
+      if (!el) return;
+      el.addEventListener('focus', (e) => {
+        e.preventDefault();
+        el.setAttribute('readonly', 'readonly');
+        requestAnimationFrame(() => {
+          el.removeAttribute('readonly');
+          vkbOpen(el);
+        });
+      });
+      el.addEventListener('touchstart', (e) => {
+        if (document.getElementById('vkb-panel').classList.contains('vkb-open') && vkbTarget === el) return;
+        e.preventDefault();
+        el.setAttribute('readonly', 'readonly');
+        requestAnimationFrame(() => {
+          el.removeAttribute('readonly');
+          vkbOpen(el);
+        });
+      }, { passive: false });
+    }
+
+    function initVkb() {
+      attachVkbToInput('pos-buscar');
+      attachVkbToInput('pos-direccion-cliente');
+      initDragAndResize();
+      initOutsideClick();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initVkb);
+    } else {
+      initVkb();
+    }
+    setTimeout(initVkb, 1500);
+
+  })();
+  </script>
+  <!-- ===== FIN TECLADO TOUCH VIRTUAL ===== -->
 </body>
 
 </html>
