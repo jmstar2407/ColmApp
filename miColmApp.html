@@ -54,6 +54,95 @@
       justify-content: center;
       padding: 20px;
     }
+
+    /* ── NAV 3-DOT MENU ─────────────────────────────────────────── */
+    .nav-menu-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-left: 6px;
+    }
+.nav-menu-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: none;
+    background: rgb(255 78 99);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.18s;
+    flex-shrink: 0;
+}
+
+    .nav-menu-btn:hover { background: rgb(255 78 99); }
+    .nav-menu-btn span {
+display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #ffffff;
+    transition: background 0.18s;
+    }
+    .nav-menu-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      min-width: 230px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(26,33,53,0.18), 0 2px 8px rgba(0,0,0,0.10);
+      z-index: 2000;
+      overflow: hidden;
+      animation: menuFadeIn 0.15s ease;
+    }
+    .nav-menu-dropdown.open { display: block; }
+    @keyframes menuFadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .nav-menu-email {
+      padding: 14px 16px 10px;
+      font-size: 12px;
+      color: #718096;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      word-break: break-all;
+    }
+    .nav-menu-email i { font-size: 18px; color: #aab4c8; flex-shrink: 0; }
+    .nav-menu-divider {
+      height: 1px;
+      background: #e2e8f0;
+      margin: 0 12px 4px;
+    }
+    .nav-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 16px;
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a2135;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.14s;
+      font-family: var(--font-body, inherit);
+    }
+    .nav-menu-item:last-child { margin-bottom: 6px; }
+    .nav-menu-item:hover { background: #f0f4ff; }
+    .nav-menu-item.danger { color: #e03131; }
+    .nav-menu-item.danger:hover { background: #fff5f5; }
+    .nav-menu-item i { width: 16px; text-align: center; font-size: 14px; }
   </style>
 </head>
 
@@ -89,8 +178,17 @@
         <button class="btn-primary" onclick="login()"><i class="fas fa-sign-in-alt"></i> Entrar al Sistema</button>
       </div>
       <div id="auth-registro" style="display:none;">
-        <div class="form-group"><label>Nombre del Colmado</label><input type="text" id="reg-nombre"
+        <div class="form-group"><label>Nombre del Negocio</label><input type="text" id="reg-nombre"
             placeholder="Colmado El Buen Precio"></div>
+        <div class="form-group">
+          <label>Tipo de Negocio</label>
+          <div id="reg-tipo-btns" style="display:flex;gap:8px;margin-top:4px;">
+            <button type="button" class="tipo-negocio-btn activo" data-tipo="colmado" onclick="selTipoNegocio('reg','colmado')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #1971c2;background:#eff6ff;color:#1971c2;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🏪</span>Colmado</button>
+            <button type="button" class="tipo-negocio-btn" data-tipo="restaurante" onclick="selTipoNegocio('reg','restaurante')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #e2e8f0;background:#f8f9ff;color:#4a5568;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🍽️</span>Restaurante</button>
+            <button type="button" class="tipo-negocio-btn" data-tipo="bebida" onclick="selTipoNegocio('reg','bebida')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #e2e8f0;background:#f8f9ff;color:#4a5568;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🍹</span>Bebidas</button>
+          </div>
+          <input type="hidden" id="reg-tipo" value="colmado">
+        </div>
         <div class="form-group"><label>RNC (opcional)</label><input type="text" id="reg-rnc" placeholder="101-12345-6">
         </div>
         <div class="form-group"><label>Dirección</label><input type="text" id="reg-direccion"
@@ -101,7 +199,7 @@
             placeholder="admin@tucolmado.com"></div>
         <div class="form-group"><label>Contraseña</label><input type="password" id="reg-pass"
             placeholder="Mínimo 6 caracteres"></div>
-        <button class="btn-primary" onclick="registrar()"><i class="fas fa-store"></i> Registrar Colmado</button>
+        <button class="btn-primary" onclick="registrar()"><i class="fas fa-store"></i> Registrar Negocio</button>
       </div>
       <div id="auth-msg"></div>
     </div>
@@ -133,7 +231,16 @@
         <div class="logo-icon" style="font-size:1.8rem;">🏪</div>
         <h2 style="font-size:1.3rem;margin:4px 0;">Registrar Nuevo Negocio</h2>
       </div>
-      <div class="form-group"><label>Nombre del Colmado</label><input type="text" id="ns-reg-nombre" placeholder="Colmado El Buen Precio"></div>
+      <div class="form-group"><label>Nombre del Negocio</label><input type="text" id="ns-reg-nombre" placeholder="Colmado El Buen Precio"></div>
+      <div class="form-group">
+        <label>Tipo de Negocio</label>
+        <div id="ns-reg-tipo-btns" style="display:flex;gap:8px;margin-top:4px;">
+          <button type="button" class="tipo-negocio-btn activo" data-tipo="colmado" onclick="selTipoNegocio('ns','colmado')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #1971c2;background:#eff6ff;color:#1971c2;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🏪</span>Colmado</button>
+          <button type="button" class="tipo-negocio-btn" data-tipo="restaurante" onclick="selTipoNegocio('ns','restaurante')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #e2e8f0;background:#f8f9ff;color:#4a5568;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🍽️</span>Restaurante</button>
+          <button type="button" class="tipo-negocio-btn" data-tipo="bebida" onclick="selTipoNegocio('ns','bebida')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #e2e8f0;background:#f8f9ff;color:#4a5568;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🍹</span>Bebidas</button>
+        </div>
+        <input type="hidden" id="ns-reg-tipo" value="colmado">
+      </div>
       <div class="form-group"><label>RNC (opcional)</label><input type="text" id="ns-reg-rnc" placeholder="101-12345-6"></div>
       <div class="form-group"><label>Dirección</label><input type="text" id="ns-reg-direccion" placeholder="Calle Duarte #5, Santo Domingo"></div>
       <div class="form-group"><label>Teléfono</label><input type="text" id="ns-reg-telefono" placeholder="809-555-0000"></div>
@@ -157,8 +264,19 @@
       <div class="nav-spacer"></div>
       <div class="nav-datetime" id="nav-datetime"></div>
       <div class="nav-buttons" id="nav-buttons"></div>
-      <button class="nav-btn" onclick="cambiarNegocio()" style="background:linear-gradient(135deg,#1971c2,#1864ab);color:#fff;border:none;" title="Mis negocios"><i class="fas fa-store"></i> Mis Negocios</button>
-      <button class="nav-btn logout" onclick="logoutTotal()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+
+      <!-- MENÚ 3 PUNTOS -->
+      <div class="nav-menu-wrap" id="nav-menu-wrap">
+        <button class="nav-menu-btn" id="nav-menu-btn" onclick="toggleNavMenu(event)" title="Opciones">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="nav-menu-dropdown" id="nav-menu-dropdown">
+          <div class="nav-menu-email" id="nav-menu-email"><i class="fas fa-user-circle"></i> <span id="nav-email-txt">—</span></div>
+          <div class="nav-menu-divider"></div>
+          <button class="nav-menu-item" onclick="closeNavMenu();cambiarNegocio()"><i class="fas fa-store"></i> Mis Negocios</button>
+          <button class="nav-menu-item danger" onclick="closeNavMenu();logoutTotal()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+        </div>
+      </div>
     </nav>
 
     <!-- CAJA PENDIENTE BANNER -->
@@ -1470,6 +1588,7 @@
     let productoEnEdicion = null;
     let facturaActualParaImprimir = null;
     let unsubCategorias = null;
+    let _unsubProductos = {}; // suscripciones en tiempo real por categoría
 
     // NUEVAS VARIABLES PARA DIBUJO
     let signaturePad = null;
@@ -1717,6 +1836,23 @@
 
     // Actualizar botones scroll al cambiar tamaño de ventana
     window.addEventListener('resize', _actualizarBotonesScroll);
+
+    // ==================== NAV MENU ====================
+    window.toggleNavMenu = (e) => {
+      e.stopPropagation();
+      const dd = document.getElementById('nav-menu-dropdown');
+      dd.classList.toggle('open');
+    };
+    window.closeNavMenu = () => {
+      const dd = document.getElementById('nav-menu-dropdown');
+      if (dd) dd.classList.remove('open');
+    };
+    // Cerrar al hacer clic fuera
+    document.addEventListener('click', (e) => {
+      const wrap = document.getElementById('nav-menu-wrap');
+      if (wrap && !wrap.contains(e.target)) closeNavMenu();
+    });
+
     function updateDatetime() {
       const now = new Date();
       const opts = { timeZone: 'America/Santo_Domingo', hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' };
@@ -1746,9 +1882,32 @@
       }
     };
 
+
+    // ==================== SELECTOR TIPO NEGOCIO ====================
+    window.selTipoNegocio = (prefix, tipo) => {
+      const container = document.getElementById(`${prefix}-reg-tipo-btns`);
+      const hidden = document.getElementById(`${prefix}-reg-tipo`);
+      if (!container || !hidden) return;
+      hidden.value = tipo;
+      const colores = {
+        colmado:    { border: '#1971c2', bg: '#eff6ff', color: '#1971c2' },
+        restaurante:{ border: '#e67700', bg: '#fff9db', color: '#e67700' },
+        bebida:     { border: '#2f9e44', bg: '#ebfbee', color: '#2f9e44' },
+      };
+      container.querySelectorAll('.tipo-negocio-btn').forEach(btn => {
+        const t = btn.dataset.tipo;
+        const activo = t === tipo;
+        const c = activo ? colores[t] : null;
+        btn.style.border    = activo ? `2px solid ${c.border}` : '2px solid #e2e8f0';
+        btn.style.background = activo ? c.bg : '#f8f9ff';
+        btn.style.color      = activo ? c.color : '#4a5568';
+      });
+    };
+
     // Registrar primer negocio (desde pantalla de auth, usuario nuevo)
     window.registrar = async () => {
       const nombre = document.getElementById('reg-nombre').value.trim();
+      const tipo = document.getElementById('reg-tipo').value || 'colmado';
       const rnc = document.getElementById('reg-rnc').value.trim();
       const direccion = document.getElementById('reg-direccion').value.trim();
       const telefono = document.getElementById('reg-telefono').value.trim();
@@ -1757,12 +1916,12 @@
       if (!nombre || !email || !pass) { showAuthMsg('Nombre, email y contraseña son requeridos', 'error'); return; }
       if (pass.length < 6) { showAuthMsg('La contraseña debe tener mínimo 6 caracteres', 'error'); return; }
       try {
-        showAuthMsg('Registrando colmado...', 'success');
+        showAuthMsg('Registrando negocio...', 'success');
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
         const uid = cred.user.uid;
         // Crear negocio con ID único (no el UID del usuario para soportar múltiples negocios)
         const negRef = await addDoc(collection(db, 'negocios'), {
-          nombre, rnc, direccion, telefono,
+          nombre, tipo, rnc, direccion, telefono,
           propietarioUid: uid,
           administradores: [uid],
           plan: 'basico',
@@ -1802,6 +1961,12 @@
       unsubscribers.forEach(u => u && u());
       unsubscribers = [];
       if (unsubCategorias) { unsubCategorias(); unsubCategorias = null; }
+      // Cancelar todas las suscripciones de productos por categoría
+      Object.values(_unsubProductos).forEach(u => u && u());
+      _unsubProductos = {};
+      // Limpiar caché de grids DOM
+      Object.keys(_gridCache).forEach(k => delete _gridCache[k]);
+      categoriaActual = null;
       negocioId = null;
       negocioData = null;
       // Limpiar el negocio activo en cache
@@ -1907,6 +2072,7 @@
     // Abrir modal para agregar nuevo negocio desde el selector
     window.abrirAgregarNegocio = () => {
       ['ns-reg-nombre','ns-reg-rnc','ns-reg-direccion','ns-reg-telefono'].forEach(id => document.getElementById(id).value = '');
+      selTipoNegocio('ns', 'colmado'); // resetear tipo al abrir
       document.getElementById('ns-reg-msg').textContent = '';
       document.getElementById('ns-modal-nuevo').style.display = 'flex';
     };
@@ -1916,6 +2082,7 @@
 
     window.registrarNuevoNegocio = async () => {
       const nombre = document.getElementById('ns-reg-nombre').value.trim();
+      const tipo = document.getElementById('ns-reg-tipo').value || 'colmado';
       const rnc = document.getElementById('ns-reg-rnc').value.trim();
       const direccion = document.getElementById('ns-reg-direccion').value.trim();
       const telefono = document.getElementById('ns-reg-telefono').value.trim();
@@ -1925,7 +2092,7 @@
       try {
         const uid = currentUser.uid;
         const negRef = await addDoc(collection(db, 'negocios'), {
-          nombre, rnc, direccion, telefono,
+          nombre, tipo, rnc, direccion, telefono,
           propietarioUid: uid,
           administradores: [uid],
           plan: 'basico',
@@ -1982,6 +2149,26 @@
       if (cfgSnap.exists()) config = { ...config, ...cfgSnap.data() };
       document.getElementById('nav-negocio-nombre').textContent = negocioData.nombre || 'Mi Colmado';
       buildNavbar();
+
+      // ── CARGA INSTANTÁNEA DESDE CACHÉ LOCAL ──────────────────────────────
+      // Renderizar categorías y productos al instante sin esperar a Firebase
+      try {
+        const catsCached = localStorage.getItem(`cats_${negocioId}`);
+        const prodsCached = localStorage.getItem(`prods_${negocioId}`);
+        if (catsCached) {
+          categorias = JSON.parse(catsCached);
+          renderCategoriasPos();
+          populateCatSelects();
+        }
+        if (prodsCached) {
+          productos = JSON.parse(prodsCached);
+          actualizarConteosCategorias();
+          if (categoriaActual) renderProductosCategoria(categoriaActual);
+          else renderCategoriasPos();
+        }
+      } catch (e) { /* ignorar errores de caché */ }
+      // ─────────────────────────────────────────────────────────────────────
+
       suscribirCaja();
       suscribirInventario();
       await loadEmpleados();
@@ -2034,6 +2221,9 @@
 
     // ==================== NAVBAR ====================
     function buildNavbar() {
+      // Mostrar email del usuario en el menú
+      const emailEl = document.getElementById('nav-email-txt');
+      if (emailEl && currentUser) emailEl.textContent = currentUser.email;
       const btns = document.getElementById('nav-buttons');
       const pages = [
         { id: 'pos', label: 'Facturación', icon: 'fa-cash-register', roles: ['admin', 'empleado'] },
@@ -2058,44 +2248,115 @@
       if (pageId === 'config') { renderConfig(); renderEmpleados(); }
       if (pageId === 'facturas') { cargarFacturas(); }
       if (pageId === 'caja') { renderCaja(); }
-      if (pageId === 'pos') { renderFacturasTabs(); renderCarrito(); }
+      if (pageId === 'pos') {
+        renderFacturasTabs();
+        renderCarrito();
+        // Asegurar que el grid de la categoría activa sea visible
+        if (categoriaActual && _gridCache[categoriaActual]) {
+          _mostrarGrid(categoriaActual);
+        } else if (categoriaActual) {
+          _llenarGrid(categoriaActual);
+          _mostrarGrid(categoriaActual);
+        }
+      }
     };
 
     // ==================== INVENTARIO SUSCRIPCION ====================
     function suscribirInventario() {
       if (unsubCategorias) unsubCategorias();
       const catsRef = collection(db, 'negocios', negocioId, 'categorias');
-      unsubCategorias = onSnapshot(catsRef, async (snap) => {
-        categorias = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        categorias.sort((a, b) => {
+      unsubCategorias = onSnapshot(catsRef, (snap) => {
+        const nuevasCats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        nuevasCats.sort((a, b) => {
           const oa = a.orden ?? 9999;
           const ob = b.orden ?? 9999;
           if (oa !== ob) return oa - ob;
           return (a.nombre || '').localeCompare(b.nombre || '');
         });
+
+        // Detectar si las categorías realmente cambiaron antes de re-renderizar
+        const catsStr = JSON.stringify(nuevasCats);
+        const catsAnteriorStr = JSON.stringify(categorias);
+        const catsChanged = catsStr !== catsAnteriorStr;
+
+        categorias = nuevasCats;
         localStorage.setItem(`cats_${negocioId}`, JSON.stringify(categorias));
-        renderCategoriasPos();
-        populateCatSelects();
-        await cargarTodosProductos();
+
+        if (catsChanged) {
+          renderCategoriasPos();
+          populateCatSelects();
+        }
+
+        // Suscribir productos de categorías nuevas, desuscribir las eliminadas
+        _sincronizarSuscripcionesProductos();
       });
     }
 
-    async function cargarTodosProductos() {
-      const nuevosProductos = [];
-      for (const cat of categorias) {
+    function _sincronizarSuscripcionesProductos() {
+      const catIds = new Set(categorias.map(c => c.id));
+
+      // Desuscribir categorías eliminadas
+      Object.keys(_unsubProductos).forEach(catId => {
+        if (!catIds.has(catId)) {
+          _unsubProductos[catId]();
+          delete _unsubProductos[catId];
+          // Eliminar productos de esa categoría
+          productos = productos.filter(p => p.categoriaId !== catId);
+        }
+      });
+
+      // Suscribir categorías nuevas
+      categorias.forEach(cat => {
+        if (_unsubProductos[cat.id]) return; // ya suscrita
         const prodsRef = collection(db, 'negocios', negocioId, 'categorias', cat.id, 'productos');
-        const snap = await getDocs(prodsRef);
-        snap.docs.forEach(d => { nuevosProductos.push({ id: d.id, categoriaId: cat.id, categoriaNombre: cat.nombre, ...d.data() }); });
-      }
-      productos = nuevosProductos;
+        _unsubProductos[cat.id] = onSnapshot(prodsRef, (snap) => {
+          _actualizarProductosDeCat(cat.id, snap);
+        });
+      });
+    }
+
+    function _actualizarProductosDeCat(catId, snap) {
+      const cat = categorias.find(c => c.id === catId);
+      const catNombre = cat ? cat.nombre : '';
+
+      const nuevosDeEstaCat = snap.docs.map(d => ({
+        id: d.id,
+        categoriaId: catId,
+        categoriaNombre: catNombre,
+        ...d.data()
+      }));
+
+      // Detectar si algo realmente cambió para esta categoría
+      const anterioresDeEstaCat = productos.filter(p => p.categoriaId === catId);
+      const anteriorStr = JSON.stringify(anterioresDeEstaCat.map(p => ({ ...p })).sort((a,b) => a.id.localeCompare(b.id)));
+      const nuevoStr = JSON.stringify(nuevosDeEstaCat.map(p => ({ ...p })).sort((a,b) => a.id.localeCompare(b.id)));
+
+      if (anteriorStr === nuevoStr) return; // Sin cambios reales, no re-renderizar
+
+      // Reemplazar productos de esta categoría
+      productos = productos.filter(p => p.categoriaId !== catId).concat(nuevosDeEstaCat);
       productos.sort((a, b) => {
         if (a.categoriaId !== b.categoriaId) return 0;
         return (a.orden ?? 9999) - (b.orden ?? 9999);
       });
+
       localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos));
       actualizarConteosCategorias();
-      if (categoriaActual) { renderProductosCategoria(categoriaActual); }
-      else { renderCategoriasPos(); }
+
+      // Actualizar contenido del grid de la categoría que cambió (sin eliminarlo del DOM)
+      // Esto evita parpadeos y problemas de visibilidad
+      _llenarGrid(catId);
+
+      // Si "más vendidos" puede verse afectada, actualizarla también
+      if (catId !== '__mas_vendidos__') {
+        _llenarGrid('__mas_vendidos__');
+      }
+
+      // Garantizar que el grid activo siga visible (nunca quitar visibilidad al activo)
+      if (categoriaActual) {
+        _mostrarGrid(categoriaActual);
+      }
+
       renderInventario();
     }
 
@@ -2301,25 +2562,97 @@
       }
     }
 
-    window.verProductosCategoria = (catId) => {
-      categoriaActual = catId;
-      document.querySelectorAll('.pos-cat-card').forEach(el => el.classList.remove('activa'));
-      const activeCard = document.getElementById(`pos-cat-${catId}`);
-      if (activeCard) activeCard.classList.add('activa');
-      renderProductosCategoria(catId);
-    };
+    // ── CACHÉ DE GRIDS POR CATEGORÍA ─────────────────────────────────────────
+    // Cada categoría tiene su propio div.productos-grid en el DOM.
+    // Al cambiar de categoría solo se muestra/oculta — sin destruir ni recrear.
+    const _gridCache = {};
 
-    function renderProductosCategoria(catId, busqueda = '') {
+    function _getOrCreateGrid(catId) {
       const area = document.getElementById('pos-productos-area');
+      if (!area) return null;
+      if (_gridCache[catId] && area.contains(_gridCache[catId])) {
+        return _gridCache[catId];
+      }
+      const grid = document.createElement('div');
+      grid.className = `productos-grid ${gridSize}`;
+      grid.id = `productos-grid-${catId}`;
+      grid.style.display = 'none';
+      area.appendChild(grid);
+      _gridCache[catId] = grid;
+      return grid;
+    }
+
+    function _llenarGrid(catId, busqueda = '') {
+      const grid = _getOrCreateGrid(catId);
+      if (!grid) return;
       let prods;
       if (catId === '__mas_vendidos__') {
         prods = productos.filter(p => p.masVendidos);
       } else {
         prods = productos.filter(p => p.categoriaId === catId);
       }
-      if (busqueda) prods = prods.filter(p => p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigoBarras || '').includes(busqueda));
+      if (busqueda) prods = prods.filter(p =>
+        p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        (p.codigoBarras || '').includes(busqueda)
+      );
+      grid.className = `productos-grid ${gridSize}`;
+      grid.innerHTML = prods.length
+        ? prods.map(p => renderProdCard(p, busqueda)).join('')
+        : '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin productos en esta categoría</p></div>';
+    }
+
+    function _mostrarGrid(catId) {
+      const area = document.getElementById('pos-productos-area');
       if (!area) return;
-      area.innerHTML = `<div class="productos-grid ${gridSize}" id="productos-grid">${prods.length ? prods.map(p => renderProdCard(p, busqueda)).join('') : '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin productos en esta categoría</p></div>'}</div>`;
+      // Ocultar todos los grids cacheados y el de búsqueda
+      Array.from(area.children).forEach(el => { el.style.display = 'none'; });
+      // Mostrar el de esta categoría (crearlo si no existe)
+      const grid = _getOrCreateGrid(catId);
+      if (grid) grid.style.display = '';
+    }
+
+    window.verProductosCategoria = (catId) => {
+      categoriaActual = catId;
+      document.querySelectorAll('.pos-cat-card').forEach(el => el.classList.remove('activa'));
+      const activeCard = document.getElementById(`pos-cat-${catId}`);
+      if (activeCard) activeCard.classList.add('activa');
+      if (!_gridCache[catId]) {
+        // Primera visita: construir el grid
+        _llenarGrid(catId);
+      }
+      _mostrarGrid(catId);
+    };
+
+    function renderProductosCategoria(catId, busqueda = '') {
+      if (busqueda) {
+        // Con búsqueda: grid temporal, no entra en caché
+        const area = document.getElementById('pos-productos-area');
+        if (!area) return;
+        Array.from(area.children).forEach(el => { el.style.display = 'none'; });
+        let searchGrid = document.getElementById('productos-grid-busqueda');
+        if (!searchGrid) {
+          searchGrid = document.createElement('div');
+          searchGrid.id = 'productos-grid-busqueda';
+          area.appendChild(searchGrid);
+        }
+        let prods = catId === '__mas_vendidos__'
+          ? productos.filter(p => p.masVendidos)
+          : productos.filter(p => p.categoriaId === catId);
+        prods = prods.filter(p =>
+          p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+          (p.codigoBarras || '').includes(busqueda)
+        );
+        searchGrid.className = `productos-grid ${gridSize}`;
+        searchGrid.style.display = '';
+        searchGrid.innerHTML = prods.length
+          ? prods.map(p => renderProdCard(p, busqueda)).join('')
+          : '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin productos en esta categoría</p></div>';
+        return;
+      }
+      // Sin búsqueda: reconstruir el grid cacheado de esta categoría
+      // (llamado por Firebase cuando hay un cambio real)
+      _llenarGrid(catId);
+      _mostrarGrid(catId);
     }
 
     function escapeHtml(str) { return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
@@ -2345,13 +2678,26 @@
       const stockValDisplay = stockHab ? fmtNum(p.stock) : '∞';
       const stockHtml = `Stock: ${stockValDisplay}${unidadBadge}`;
       const imagenHtml = p.imagen
-        ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">`
+        ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">`
         : `<div class="prod-emoji">📦</div>`;
       return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')"><div class="product-image">${imagenHtml}</div>${bajoStock ? `<div class="stock-badge">⚠️ Bajo</div>` : ''}${sinStock ? `<div class="stock-badge">Sin stock</div>` : ''}<div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
     }
 
     window.buscarProductos = (q) => {
-      if (!q) { if (categoriaActual) { renderProductosCategoria(categoriaActual); } else { renderCategoriasPos(); } return; }
+      if (!q) {
+        // Limpiar grids de búsqueda y volver a mostrar la categoría cacheada
+        const sg = document.getElementById('productos-grid-busqueda');
+        if (sg) sg.style.display = 'none';
+        const gs = document.getElementById('productos-grid-global-search');
+        if (gs) gs.style.display = 'none';
+        if (categoriaActual) {
+          if (!_gridCache[categoriaActual]) _llenarGrid(categoriaActual);
+          _mostrarGrid(categoriaActual);
+        } else {
+          renderCategoriasPos();
+        }
+        return;
+      }
       // Deduplicar por id para evitar mostrar el mismo producto dos veces
       const seenIds = new Set();
       const found = productos.filter(p => {
@@ -2363,10 +2709,29 @@
       const area = document.getElementById('pos-productos-area');
       if (!area) return;
       document.querySelectorAll('.pos-cat-card').forEach(el => el.classList.remove('activa'));
-      area.innerHTML = `<div style="padding:0 0 12px;font-size:13px;color:var(--gris-suave);font-weight:600;">${found.length} resultado(s) para "<strong>${escapeHtml(q)}</strong>"</div><div class="productos-grid ${gridSize}">${found.length ? found.map(p => renderProdCard(p, q)).join('') : '<div class="empty-state"><p>Sin resultados</p></div>'}</div>`;
+      // Ocultar todos los grids cacheados (no destruirlos)
+      Object.values(_gridCache).forEach(el => { el.style.display = 'none'; });
+      // Usar un div persistente para resultados globales
+      let globalSearch = document.getElementById('productos-grid-global-search');
+      if (!globalSearch) {
+        globalSearch = document.createElement('div');
+        globalSearch.id = 'productos-grid-global-search';
+        area.appendChild(globalSearch);
+      }
+      globalSearch.style.display = '';
+      globalSearch.innerHTML = `<div style="padding:0 0 12px;font-size:13px;color:var(--gris-suave);font-weight:600;">${found.length} resultado(s) para "<strong>${escapeHtml(q)}</strong>"</div><div class="productos-grid ${gridSize}">${found.length ? found.map(p => renderProdCard(p, q)).join('') : '<div class="empty-state"><p>Sin resultados</p></div>'}</div>`;
     };
 
-    window.setGridSize = (size) => { gridSize = size; localStorage.setItem('pos_grid_size', size); document.getElementById('btn-grid-grande').classList.toggle('active', size === 'grande'); document.getElementById('btn-grid-peq').classList.toggle('active', size === 'pequena'); const grid = document.getElementById('productos-grid'); if (grid) { grid.className = `productos-grid ${size}`; } };
+    window.setGridSize = (size) => {
+      gridSize = size;
+      localStorage.setItem('pos_grid_size', size);
+      document.getElementById('btn-grid-grande').classList.toggle('active', size === 'grande');
+      document.getElementById('btn-grid-peq').classList.toggle('active', size === 'pequena');
+      // Actualizar clase en todos los grids cacheados
+      Object.values(_gridCache).forEach(el => { el.className = `productos-grid ${size}`; });
+      const sg = document.getElementById('productos-grid-busqueda');
+      if (sg) sg.className = `productos-grid ${size}`;
+    };
     // Restaurar tamaño de grid guardado
     (function () { const saved = localStorage.getItem('pos_grid_size'); if (saved === 'pequena' || saved === 'grande') { gridSize = saved; document.addEventListener('DOMContentLoaded', () => { const bg = document.getElementById('btn-grid-grande'); const bp = document.getElementById('btn-grid-peq'); if (bg) bg.classList.toggle('active', saved === 'grande'); if (bp) bp.classList.toggle('active', saved === 'pequena'); }); } })();
 
