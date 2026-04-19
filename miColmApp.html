@@ -213,6 +213,379 @@ display: block;
       background: #ffe3e3;
       color: #c92a2a;
     }
+
+    /* ══════════════════════════════════════════════════
+       MOBILE NAVBAR — barra superior compacta + nav inferior
+    ══════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      /* Header superior: solo logo + menú */
+      .navbar {
+        padding: 0 12px !important;
+        height: 52px !important;
+        min-height: 52px !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 500 !important;
+      }
+      .navbar-brand .brand-icon {
+        font-size: 1.2rem !important;
+        width: 32px !important;
+        height: 32px !important;
+      }
+      .navbar-brand h1 { font-size: 1rem !important; }
+      .negocio-nombre {
+        font-size: 10px !important;
+        max-width: 120px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      /* Ocultar elementos que no caben */
+      .nav-datetime { display: none !important; }
+      .nav-spacer   { display: none !important; }
+      /* Los botones de nav se ocultan del header — van a la barra inferior */
+      #nav-buttons  { display: none !important; }
+      /* Botón menú 3 puntos: mantener visible */
+      .nav-menu-btn { width: 34px !important; height: 34px !important; }
+      /* Desplazar el contenido principal para no quedar detrás del header fijo */
+      .content { padding-top: 52px !important; padding-bottom: 64px !important; }
+      /* Banner caja pendiente */
+      #caja-pendiente-banner { top: 52px !important; }
+    }
+
+    /* ── BARRA DE NAVEGACIÓN INFERIOR (mobile) ─────────────────── */
+    #mobile-bottom-nav {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      #mobile-bottom-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 60px;
+        background: #fff;
+        border-top: 1px solid #e2e8f0;
+        box-shadow: 0 -4px 20px rgba(26,33,53,0.10);
+        z-index: 500;
+        align-items: stretch;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+      }
+      #mobile-bottom-nav::-webkit-scrollbar { display: none; }
+      .mob-nav-btn {
+        flex: 1;
+        min-width: 52px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        border: none;
+        background: none;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 6px 4px 4px;
+        transition: color 0.18s, background 0.18s;
+        border-top: 2px solid transparent;
+        white-space: nowrap;
+        font-family: inherit;
+        position: relative;
+      }
+      .mob-nav-btn i {
+        font-size: 18px;
+        line-height: 1;
+        transition: transform 0.18s;
+      }
+      .mob-nav-btn.active {
+        color: #fc4f62;
+        border-top-color: #fc4f62;
+        background: #fff5f6;
+      }
+      .mob-nav-btn.active i { transform: translateY(-1px); }
+      .mob-nav-btn:active { background: #f0f4ff; }
+      /* Badge de estado caja en mobile */
+      .mob-caja-dot {
+        position: absolute;
+        top: 6px; right: calc(50% - 12px);
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        border: 1.5px solid #fff;
+      }
+      .mob-caja-dot.abierta { background: #2f9e44; }
+      .mob-caja-dot.cerrada { background: #c92a2a; }
+    }
+
+    /* ══════════════════════════════════════════════════
+       INVENTARIO RESPONSIVE — CATEGORÍAS 3 POR FILA
+    ══════════════════════════════════════════════════ */
+    .categorias-grid-inv {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 14px !important;
+    }
+    @media (max-width: 600px) {
+      .categorias-grid-inv {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+      }
+      .cat-card-inv {
+        border-radius: 12px !important;
+      }
+      .cat-card-inv img,
+      .cat-card-inv .cat-emoji-inv {
+        font-size: 2rem !important;
+      }
+      .cat-nombre-inv { font-size: 12px !important; }
+      .cat-stats-inv  { font-size: 10px !important; }
+      .cat-actions-inv { gap: 2px !important; }
+      .icon-btn-sm { width: 26px !important; height: 26px !important; font-size: 11px !important; }
+    }
+
+    /* ══════════════════════════════════════════════════
+       INVENTARIO RESPONSIVE — PRODUCTOS 3 POR FILA
+    ══════════════════════════════════════════════════ */
+    .productos-grid-inv {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 14px !important;
+    }
+    @media (max-width: 600px) {
+      .productos-grid-inv {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+      }
+      .prod-card-inv { border-radius: 12px !important; }
+      .prod-nombre-inv { font-size: 11px !important; line-height: 1.3 !important; }
+      .prod-precios-inv { font-size: 11px !important; flex-wrap: wrap !important; }
+      .prod-stock-inv { font-size: 10px !important; }
+      .prod-actions-inv .btn-sm { font-size: 10px !important; padding: 4px 7px !important; }
+      .prod-codigo-inv { font-size: 9px !important; }
+      .productos-header-inv { flex-wrap: wrap !important; gap: 6px !important; font-size: 13px !important; }
+    }
+
+    /* ══════════════════════════════════════════════════
+       CÁMARA / ESCÁNER MODAL
+    ══════════════════════════════════════════════════ */
+    #modal-camara-scanner {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    #modal-camara-scanner.visible { display: flex; }
+
+    .cam-scanner-wrap {
+      position: relative;
+      width: min(95vw, 440px);
+      background: #0d1117;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+    }
+    .cam-scanner-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 12px;
+      background: #0d1117;
+    }
+    .cam-scanner-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      font-family: inherit;
+    }
+    .cam-scanner-title i { color: #fc4f62; font-size: 18px; }
+    .cam-close-btn {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .cam-close-btn:hover { background: rgba(255,255,255,0.2); }
+
+    .cam-video-area {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #000;
+      overflow: hidden;
+    }
+    #cam-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .cam-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    /* Dim the area outside the scan box */
+    .cam-dim-top, .cam-dim-bottom, .cam-dim-left, .cam-dim-right {
+      position: absolute;
+      background: rgba(0,0,0,0.50);
+    }
+    .cam-dim-top    { top:0; left:0; right:0; height: 20%; }
+    .cam-dim-bottom { bottom:0; left:0; right:0; height: 20%; }
+    .cam-dim-left   { top:20%; bottom:20%; left:0; width: 10%; }
+    .cam-dim-right  { top:20%; bottom:20%; right:0; width: 10%; }
+
+    /* The scan frame */
+    .cam-scan-frame {
+      position: absolute;
+      top: 20%; left: 10%; right: 10%; bottom: 20%;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+    }
+    /* Corner brackets */
+    .cam-scan-frame::before,
+    .cam-scan-frame::after {
+      content: '';
+      position: absolute;
+      width: 28px; height: 28px;
+      border-color: #fc4f62;
+      border-style: solid;
+    }
+    .cam-scan-frame::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 10px 0 0 0; }
+    .cam-scan-frame::after  { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 10px 0; }
+    .cam-corner-br, .cam-corner-tr, .cam-corner-bl {
+      position: absolute;
+      width: 28px; height: 28px;
+      border-color: #fc4f62;
+      border-style: solid;
+    }
+    .cam-corner-tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-radius: 0 10px 0 0; }
+    .cam-corner-bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-radius: 0 0 0 10px; }
+    .cam-corner-br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 10px 0; }
+
+    /* Laser scan line */
+    @keyframes scanLine {
+      0%   { top: 8%; opacity: 1; }
+      48%  { opacity: 1; }
+      50%  { top: 88%; opacity: 0.6; }
+      100% { top: 8%; opacity: 1; }
+    }
+    .cam-laser {
+      position: absolute;
+      left: 6%; right: 6%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #fc4f62, #ff8096, #fc4f62, transparent);
+      border-radius: 2px;
+      animation: scanLine 2s ease-in-out infinite;
+      box-shadow: 0 0 8px 2px rgba(252,79,98,0.5);
+    }
+
+    .cam-status {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0d1117;
+    }
+    .cam-status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #fc4f62;
+      animation: pulse 1.4s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+    .cam-status-text {
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .cam-status-text strong { color: #e2e8f0; }
+
+    .cam-manual-row {
+      padding: 0 20px 16px;
+      display: flex;
+      gap: 8px;
+      background: #0d1117;
+    }
+    .cam-manual-input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 2px solid #2d3748;
+      background: #1a2135;
+      color: #e2e8f0;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .cam-manual-input::placeholder { color: #4a5568; }
+    .cam-manual-input:focus { border-color: #fc4f62; }
+    .cam-confirm-btn {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      background: #fc4f62;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.18s;
+      white-space: nowrap;
+    }
+    .cam-confirm-btn:hover { background: #e03a52; }
+
+    .cam-result-banner {
+      display: none;
+      margin: 0 20px 16px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: #1a3a2a;
+      border: 2px solid #2f9e44;
+      color: #6fcf97;
+      font-weight: 700;
+      font-size: 14px;
+      gap: 10px;
+      align-items: center;
+    }
+    .cam-result-banner.visible { display: flex; }
+    .cam-result-banner i { font-size: 18px; color: #2f9e44; }
+
+    .cam-error-banner {
+      display: none;
+      margin: 0 20px 16px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #3a1a1a;
+      border: 2px solid #c92a2a;
+      color: #f87171;
+      font-size: 13px;
+      gap: 8px;
+      align-items: center;
+    }
+    .cam-error-banner.visible { display: flex; }
   </style>
 </head>
 
@@ -349,7 +722,8 @@ display: block;
       </div>
     </nav>
 
-    <!-- CAJA PENDIENTE BANNER -->
+    <!-- BARRA DE NAVEGACIÓN INFERIOR MOBILE -->
+    <div id="mobile-bottom-nav"></div>
     <div id="caja-pendiente-banner">
       <i class="fas fa-exclamation-triangle"></i>
       <span>⚠️ La caja no está abierta. No se pueden realizar ventas.</span>
@@ -822,13 +1196,6 @@ display: block;
       </div>
     </div>
   </div>
-
-  <!-- ===== BOTTOM NAV MÓVIL ===== -->
-  <nav id="mobile-bottom-nav" role="navigation" aria-label="Navegación principal">
-    <div class="mbn-inner" id="mbn-inner">
-      <!-- Generado por JS -->
-    </div>
-  </nav>
 
   <!-- MODALES -->
   <div class="modal-overlay" id="modal-facturar">
@@ -1324,7 +1691,7 @@ display: block;
             <div id="stock-fields-wrap">
               <div class="two-col">
                 <div class="form-group"><label>Stock Actual</label><input type="number" id="prod-stock" placeholder="0" min="0"></div>
-                <div class="form-group"><label>Stock Mínimo (Alerta)</label><input type="number" id="prod-stock-min" placeholder="5" min="0"></div>
+                <div class="form-group"><label>Stock Mínimo</label><input type="number" id="prod-stock-min" placeholder="5" min="0"></div>
               </div>
             </div>
             <div class="form-group">
@@ -1335,7 +1702,7 @@ display: block;
                   <span id="prod-detalle-track" style="position:absolute;inset:0;border-radius:22px;background:#cbd5e0;transition:background 0.2s;"></span>
                   <span id="prod-detalle-thumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.18);transition:transform 0.2s;"></span>
                 </span>
-                <span style="font-weight:600;font-size:13px;color:#4a5568;">Activar el detalle de este producto</span>
+                <span style="font-weight:600;font-size:13px;color:#4a5568;">Activar detalle de este producto</span>
               </label>
               <select id="prod-unidad" style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
                 <option>Unidad</option>
@@ -2399,12 +2766,15 @@ display: block;
         { id: 'caja', label: 'Caja', icon: 'fa-cash-register', roles: ['admin', 'empleado'] },
         { id: 'facturas', label: 'Facturas', icon: 'fa-file-invoice', roles: ['admin', 'empleado'] },
         { id: 'inventario', label: 'Inventario', icon: 'fa-boxes', roles: ['admin'] },
-        { id: 'estadisticas', label: 'Estadísticas', icon: 'fa-chart-line', roles: ['admin'] },
-        { id: 'config', label: 'Configuración', icon: 'fa-cog', roles: ['admin'] },
+        { id: 'estadisticas', label: 'Stats', icon: 'fa-chart-line', roles: ['admin'] },
+        { id: 'config', label: 'Config', icon: 'fa-cog', roles: ['admin'] },
       ];
-      btns.innerHTML = pages.filter(p => p.roles.includes(userRole)).map(p => {
+      const visiblePages = pages.filter(p => p.roles.includes(userRole));
+      const abierta = !!cajaActual;
+
+      // Desktop nav buttons (unchanged)
+      btns.innerHTML = visiblePages.map(p => {
         if (p.id === 'caja') {
-          const abierta = !!cajaActual;
           const statusLabel = abierta
             ? `<span class="caja-nav-status abierta">Caja abierta</span>`
             : `<span class="caja-nav-status cerrada">Caja cerrada</span>`;
@@ -2412,57 +2782,30 @@ display: block;
         }
         return `<button class="nav-btn" id="navbtn-${p.id}" onclick="showPage('${p.id}')"><i class="fas ${p.icon}"></i> ${p.label}</button>`;
       }).join('');
-      // Build mobile bottom nav
-      buildMobileBottomNav(pages);
-    }
 
-    // ── MOBILE BOTTOM NAV builder ──────────────────────────────────────
-    function buildMobileBottomNav(pages) {
-      const inner = document.getElementById('mbn-inner');
-      if (!inner) return;
-
-      // Iconos distintos para evitar duplicar fa-cash-register
-      const mobileIcons = {
-        'pos':          'fa-store',
-        'caja':         'fa-cash-register',
-        'facturas':     'fa-file-invoice',
-        'inventario':   'fa-boxes',
-        'estadisticas': 'fa-chart-line',
-        'config':       'fa-cog',
-      };
-      const mobileLabels = {
-        'pos':          'POS',
-        'caja':         'Caja',
-        'facturas':     'Facturas',
-        'inventario':   'Inventario',
-        'estadisticas': 'Estadísticas',
-        'config':       'Config.',
-      };
-
-      inner.innerHTML = pages.filter(p => p.roles.includes(userRole)).map(p => {
-        let extraContent = '';
-        if (p.id === 'caja') {
-          const abierta = !!cajaActual;
-          extraContent = `<span class="mbn-caja-dot ${abierta ? 'abierta' : 'cerrada'}"></span>`;
-        }
-        return `<button class="mbn-btn" id="mbn-btn-${p.id}" onclick="showPage('${p.id}')" title="${p.label}">
-          ${extraContent}
-          <span class="mbn-icon"><i class="fas ${mobileIcons[p.id] || p.icon}"></i></span>
-          <span class="mbn-label">${mobileLabels[p.id] || p.label}</span>
-        </button>`;
-      }).join('');
+      // Mobile bottom nav
+      const mobNav = document.getElementById('mobile-bottom-nav');
+      if (mobNav) {
+        mobNav.innerHTML = visiblePages.map(p => {
+          const dot = p.id === 'caja'
+            ? `<span class="mob-caja-dot ${abierta ? 'abierta' : 'cerrada'}"></span>` : '';
+          return `<button class="mob-nav-btn" id="mob-navbtn-${p.id}" onclick="showPage('${p.id}')">
+            ${dot}<i class="fas ${p.icon}"></i><span>${p.label}</span>
+          </button>`;
+        }).join('');
+      }
     }
 
     window.showPage = (pageId) => {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.mbn-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('active'));
       const page = document.getElementById(`page-${pageId}`);
       if (page) page.classList.add('active');
       const btn = document.getElementById(`navbtn-${pageId}`);
       if (btn) btn.classList.add('active');
-      const mbnBtn = document.getElementById(`mbn-btn-${pageId}`);
-      if (mbnBtn) mbnBtn.classList.add('active');
+      const mobBtn = document.getElementById(`mob-navbtn-${pageId}`);
+      if (mobBtn) mobBtn.classList.add('active');
       if (pageId === 'estadisticas') { estadisticasHoy(); }
       if (pageId === 'inventario') { renderInventario(); populateCatSelects(); }
       if (pageId === 'config') { renderConfig(); renderEmpleados(); }
@@ -5245,7 +5588,12 @@ display: block;
     // El botón de escanear en el modal de producto activa el modo "permitir reemplazo"
     window.escanearBarcodeProducto = () => {
       _bcScanner.scanBtnActive = true;
-      toast('📷 Escanea el código de barras ahora...', 'info', 3000);
+      // Si hay cámara disponible, abrir el modal de cámara
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        abrirCamaraScanner('prod-barcode');
+      } else {
+        toast('📷 Escanea el código de barras ahora...', 'info', 3000);
+      }
       // Lo desactivamos después de 6 segundos por seguridad
       setTimeout(() => { _bcScanner.scanBtnActive = false; }, 6000);
     };
@@ -5800,9 +6148,198 @@ display: block;
     window._manejarPedidoEntrante = manejarPedidoEntrante;
   </script>
 
+  <!-- ===== CÁMARA ESCÁNER MODAL ===== -->
+  <div id="modal-camara-scanner">
+    <div class="cam-scanner-wrap">
+      <div class="cam-scanner-header">
+        <div class="cam-scanner-title">
+          <i class="fas fa-barcode"></i>
+          Escanear Código de Barras
+        </div>
+        <button class="cam-close-btn" onclick="cerrarCamaraScanner()" title="Cerrar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="cam-video-area">
+        <video id="cam-video" autoplay playsinline muted></video>
+        <div class="cam-overlay">
+          <div class="cam-dim-top"></div>
+          <div class="cam-dim-bottom"></div>
+          <div class="cam-dim-left"></div>
+          <div class="cam-dim-right"></div>
+          <div class="cam-scan-frame">
+            <span class="cam-corner-tr"></span>
+            <span class="cam-corner-bl"></span>
+            <div class="cam-laser"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cam-status">
+        <div class="cam-status-dot"></div>
+        <div class="cam-status-text" id="cam-status-text">
+          <strong>Apunta la cámara al código de barras</strong>
+        </div>
+      </div>
+
+      <div class="cam-result-banner" id="cam-result-banner">
+        <i class="fas fa-check-circle"></i>
+        <span id="cam-result-text">Código capturado</span>
+      </div>
+      <div class="cam-error-banner" id="cam-error-banner">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="cam-error-text">No se pudo acceder a la cámara</span>
+      </div>
+
+      <div class="cam-manual-row">
+        <input type="text" class="cam-manual-input" id="cam-manual-input"
+          placeholder="O escribe el código aquí..."
+          onkeydown="if(event.key==='Enter') confirmarCodigoCamara()">
+        <button class="cam-confirm-btn" onclick="confirmarCodigoCamara()">
+          <i class="fas fa-check"></i> OK
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== TECLADO TOUCH VIRTUAL (modular) ===== -->
   <script src="./js/virtualKeyboard.js"></script>
   <!-- ===== FIN TECLADO TOUCH VIRTUAL ===== -->
+
+  <script>
+  // ══════════════════════════════════════════════
+  //  CÁMARA ESCÁNER — lógica
+  // ══════════════════════════════════════════════
+  (function() {
+    let _camStream   = null;
+    let _barDetector = null;
+    let _scanLoop    = null;
+    let _scanning    = false;
+    let _destino     = null; // 'prod-barcode' | callback fn
+
+    // Abrir cámara y dirigir resultado a un input
+    window.abrirCamaraScanner = function(destinoInputId) {
+      _destino = destinoInputId || 'prod-barcode';
+      document.getElementById('modal-camara-scanner').classList.add('visible');
+      document.getElementById('cam-result-banner').classList.remove('visible');
+      document.getElementById('cam-error-banner').classList.remove('visible');
+      document.getElementById('cam-manual-input').value = '';
+      _setStatus('Iniciando cámara...');
+      _iniciarCamara();
+    };
+
+    window.cerrarCamaraScanner = function() {
+      _detenerCamara();
+      document.getElementById('modal-camara-scanner').classList.remove('visible');
+    };
+
+    window.confirmarCodigoCamara = function() {
+      const val = document.getElementById('cam-manual-input').value.trim();
+      if (!val) return;
+      _entregarCodigo(val);
+    };
+
+    function _setStatus(msg) {
+      const el = document.getElementById('cam-status-text');
+      if (el) el.innerHTML = msg;
+    }
+
+    function _mostrarResultado(code) {
+      const banner = document.getElementById('cam-result-banner');
+      const txt    = document.getElementById('cam-result-text');
+      if (txt) txt.textContent = '✅ Código: ' + code;
+      if (banner) banner.classList.add('visible');
+    }
+
+    function _mostrarError(msg) {
+      const banner = document.getElementById('cam-error-banner');
+      const txt    = document.getElementById('cam-error-text');
+      if (txt) txt.textContent = msg;
+      if (banner) banner.classList.add('visible');
+      _setStatus('Ingresa el código manualmente ↓');
+    }
+
+    async function _iniciarCamara() {
+      try {
+        _camStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        const vid = document.getElementById('cam-video');
+        vid.srcObject = _camStream;
+        await vid.play();
+        _setStatus('<strong>Apunta al código de barras</strong>');
+
+        // Usar BarcodeDetector si está disponible (Chrome Android / algunos iOS)
+        if ('BarcodeDetector' in window) {
+          _barDetector = new BarcodeDetector({ formats: [
+            'code_128','code_39','ean_13','ean_8','upc_a','upc_e',
+            'qr_code','data_matrix','codabar','itf'
+          ]});
+          _scanning = true;
+          _loopDetect();
+        } else {
+          // Fallback: solo entrada manual
+          _setStatus('Tu navegador no soporta escaneo automático.<br><strong>Usa el campo manual ↓</strong>');
+        }
+      } catch(err) {
+        _mostrarError('No se pudo acceder a la cámara. Revisa los permisos.');
+        console.warn('Cam error:', err);
+      }
+    }
+
+    function _loopDetect() {
+      if (!_scanning) return;
+      const vid = document.getElementById('cam-video');
+      if (!vid || vid.readyState < 2) { _scanLoop = requestAnimationFrame(_loopDetect); return; }
+      _barDetector.detect(vid).then(codes => {
+        if (codes.length > 0) {
+          const code = codes[0].rawValue;
+          _scanning = false;
+          cancelAnimationFrame(_scanLoop);
+          _entregarCodigo(code);
+        } else {
+          _scanLoop = requestAnimationFrame(_loopDetect);
+        }
+      }).catch(() => {
+        _scanLoop = requestAnimationFrame(_loopDetect);
+      });
+    }
+
+    function _entregarCodigo(code) {
+      _mostrarResultado(code);
+      // Poner en el input destino
+      const inp = document.getElementById(_destino);
+      if (inp) {
+        inp.value = code;
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      // Activar modo "scanBtnActive" del escáner global si aplica
+      if (window._bcScanner) window._bcScanner.scanBtnActive = false;
+      // Toast y cerrar después de un momento
+      setTimeout(() => {
+        if (window.toast) toast('✅ Código capturado: ' + code, 'success', 2500);
+        cerrarCamaraScanner();
+      }, 700);
+    }
+
+    function _detenerCamara() {
+      _scanning = false;
+      if (_scanLoop) { cancelAnimationFrame(_scanLoop); _scanLoop = null; }
+      if (_camStream) {
+        _camStream.getTracks().forEach(t => t.stop());
+        _camStream = null;
+      }
+      const vid = document.getElementById('cam-video');
+      if (vid) { vid.srcObject = null; }
+    }
+
+    // Cerrar al hacer clic en el fondo oscuro
+    document.getElementById('modal-camara-scanner').addEventListener('click', function(e) {
+      if (e.target === this) cerrarCamaraScanner();
+    });
+  })();
+  </script>
 </body>
 
 </html>
