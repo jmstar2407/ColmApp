@@ -360,6 +360,7 @@ body {
   display: none;
   height: calc(100vh - var(--nav-h));
   overflow: hidden;
+  border-radius: 7px;
 }
 
 .page.active {
@@ -499,14 +500,14 @@ body {
 }
 
 .icon-btn.scan-btn {
-    background: var(--verde);
-    color: white;
-    padding: 0.5rem 0.8rem;
-    border: none;
-    border-radius: 9px;
-    font-size: 1.4rem;
-    display: inline-flex;
-    align-items: center;
+  background: var(--verde);
+  color: white;
+  padding: 0.5rem 0.8rem;
+  border: none;
+  border-radius: 9px;
+  font-size: 1.4rem;
+  display: inline-flex;
+  align-items: center;
 }
 
 .icon-btn.grid-btn {
@@ -677,15 +678,16 @@ body {
 }
 
 .prod-card .prod-nombre {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--negro);
-  line-height: 1.3;
-  font-size: 1rem;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+    color: var(--negro);
+    line-height: 1.3;
+    font-size: 1rem;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: calc(1.3em * 2);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .prod-card .prod-precio {
@@ -1258,7 +1260,7 @@ body {
 #page-inventario {
   flex-direction: column;
   overflow-y: auto;
-  padding: 24px;
+  padding: 1rem;
   gap: 20px;
   background: #e0e6ee;
 }
@@ -1279,6 +1281,7 @@ body {
   font-family: var(--font-body);
   outline: none;
   transition: border-color .2s;
+  width: 100%;
 }
 
 .inv-controles input:focus {
@@ -2462,11 +2465,13 @@ body {
 /* ==================== INVENTARIO - PRODUCTOS ==================== */
 
 .productos-header-inv {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 0 8px;
+    flex-wrap: wrap;
+    flex-direction: row;
 }
 
 .productos-header-inv .back-btn {
@@ -2575,12 +2580,6 @@ body {
   gap: 8px;
 }
 
-.precio-venta {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--verde, #00b341);
-  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
-}
 
 .precio-costo {
   font-size: 12px;
@@ -2670,7 +2669,11 @@ body {
   }
 
   .cat-card-inv {
-    padding: 12px;
+    padding: 4px;
+  }
+
+  .cat-info-inv {
+    padding: 4px 4px;
   }
 
   .cat-emoji-inv {
@@ -2679,10 +2682,16 @@ body {
     height: 48px;
   }
 
+
   .cat-card-inv img {
-    width: 48px;
-    height: 48px;
+    height: 80px;
   }
+
+  .categorias-grid-inv {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
 
   .cat-nombre-inv {
     font-size: 15px;
@@ -3389,11 +3398,11 @@ body {
 
 
 .categorias-grid-inv {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(302px, 1fr));
-  gap: 14px;
-  border-radius: 12px;
-  transition: background 0.25s, padding 0.25s;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(221px, 1fr));
+    gap: 14px;
+    border-radius: 12px;
+    transition: background 0.25s, padding 0.25s;
 }
 
 .categorias-grid-inv.modo-orden {
@@ -4007,12 +4016,14 @@ body {
 
 /* Productos header inventario */
 .productos-header-inv {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding: 0 8px;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 0 8px;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 .back-btn {
@@ -4110,6 +4121,8 @@ body {
 .precio-venta {
   font-weight: 700;
   color: #00b341;
+  font-family: var(--font-mono);
+  font-size: 20px;
 }
 
 .precio-costo {
@@ -4491,6 +4504,8 @@ body {
     padding: 0 12px;
     gap: 10px;
     border-radius: 0 0 16px 16px;
+    display: inline-flex;
+        justify-content: space-between;
   }
 
   .navbar h1 {
@@ -4547,7 +4562,7 @@ body {
   z-index: 150;
   background: #ffffff;
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  box-shadow: 0 -2px 20px rgba(0,0,0,0.12);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.12);
   border-radius: 18px 18px 0 0;
 }
 
@@ -4577,12 +4592,13 @@ body {
 .mbn-btn:first-child {
   border-radius: 18px 0 0 0;
 }
+
 .mbn-btn:last-child {
   border-radius: 0 18px 0 0;
 }
 
 .mbn-btn:active {
-  background: rgba(0,0,0,0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .mbn-btn .mbn-icon {
@@ -4667,7 +4683,7 @@ body {
     min-width: unset !important;
     width: auto !important;
     border-radius: 18px !important;
-    box-shadow: 0 -4px 32px rgba(26,33,53,0.22), 0 2px 8px rgba(0,0,0,0.10) !important;
+    box-shadow: 0 -4px 32px rgba(26, 33, 53, 0.22), 0 2px 8px rgba(0, 0, 0, 0.10) !important;
   }
 
   .nav-menu-email {
@@ -4689,6 +4705,43 @@ body {
 /* ── MODAL PRODUCTO — PANTALLA COMPLETA EN MÓVIL ─────────────────────── */
 @media (max-width: 768px) {
 
+
+  #page-inventario {
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 1rem 0.4rem 2rem 0.4rem;
+    /* gap: 20px; */
+    background: #e0e6ee;
+  }
+
+  .precio-venta {
+    font-size: 0.7rem;
+  }
+
+  .prod-precios-inv {
+    margin-bottom: 0px;
+  }
+
+  
+  .cat-actions-inv {
+    margin-bottom: 0rem;
+    padding: 2px 6px 2px;
+  }
+
+  .prod-stock-inv {
+    font-size: 0.5rem;
+    border-radius: 5px;
+    padding: 2px 7px;
+    background: #e9e6e6;
+    margin-bottom: 0px;
+  }
+
+  .prod-info-inv {
+    padding: 5px;
+  }
+
+
+
   #modal-producto {
     padding: 0 !important;
     align-items: flex-end !important;
@@ -4706,12 +4759,19 @@ body {
   }
 
   @keyframes modalSlideUp {
-    from { transform: translateY(40px); opacity: 0; }
-    to   { transform: translateY(0);   opacity: 1; }
+    from {
+      transform: translateY(40px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   #modal-producto .modal-header {
-    padding: 14px 56px !important;
+    padding: 7px 12px !important;
     flex-shrink: 0;
     border-radius: 0 !important;
     background: linear-gradient(135deg, #1a2135, #243050) !important;
@@ -4724,7 +4784,7 @@ body {
   }
 
   #modal-producto .modal-close {
-    background: rgba(255,255,255,0.15) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
     color: white !important;
     width: 36px !important;
     height: 36px !important;
@@ -4733,7 +4793,7 @@ body {
   }
 
   #modal-producto .modal-close:hover {
-    background: rgba(255,255,255,0.25) !important;
+    background: rgba(255, 255, 255, 0.25) !important;
   }
 
   #modal-producto .modal-body {
@@ -4745,7 +4805,7 @@ body {
 
   #modal-producto .modal-footer {
     flex-shrink: 0;
-    padding: 12px 16px !important;
+    padding: 9px 12px !important;
     padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
     gap: 10px !important;
     background: #f4f6f9 !important;
@@ -4758,7 +4818,7 @@ body {
   }
 
   /* Override the nested two-col for nombre+peso */
-  #modal-producto .modal-body > .two-col > div:first-child > .two-col:first-child {
+  #modal-producto .modal-body>.two-col>div:first-child>.two-col:first-child {
     grid-template-columns: 1fr 90px !important;
   }
 
@@ -4823,4 +4883,3 @@ body {
     max-height: 92dvh !important;
   }
 }
-

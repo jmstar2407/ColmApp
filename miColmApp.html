@@ -144,26 +144,73 @@ display: block;
     .nav-menu-item.danger:hover { background: #fff5f5; }
     .nav-menu-item i { width: 16px; text-align: center; font-size: 14px; }
 
-    /* ── PROD-NOMBRE 2-LINE CLAMP ───────────────────────────────────── */
-    .prod-nombre {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      word-break: break-word;
-      line-height: 1.3;
-      max-height: calc(1.3em * 2);
+
+
+    /* ── DOT ESTADO CAJA (desktop + mobile) ─────────────────── */
+    .caja-status-dot {
+      position: absolute;
+      top: 4px;
+      right: 2px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      pointer-events: none;
     }
-    .productos-grid.pequena .prod-nombre {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+    .caja-status-dot.abierta { background: #2f9e44; }
+    .caja-status-dot.cerrada { background: #c92a2a; }
+
+    /* ── STOCK BAJO / SIN STOCK — texto en color ─────────────── */
+    .prod-card .prod-stock.stock-bajo {
+      color: #e67700 !important;
+      font-weight: 700;
+    }
+    .prod-card .prod-stock.sin-stock-txt {
+      color: #c92a2a !important;
+      font-weight: 700;
+    }
+
+    /* ── BADGE PESO NETO ─────────────────────────────────────── */
+.peso-neto-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgb(0 169 61);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 6px 0px;
+    line-height: 1.3;
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+    letter-spacing: 0.2px;
+}
+    /* ── BOTÓN AMARILLO ─────────────────────────────────────── */
+    .btn-sm.amarillo {
+      background: #f59f00;
+      color: #fff;
+      padding: 10px 18px;
+    }
+    .btn-sm.amarillo:hover {
+      background: #e67700;
+    }
+
+    /* Guardando dentro del botón ordenar */
+    #btn-modo-ordenar .guardando-orden {
+      max-width: 0;
       overflow: hidden;
-      text-overflow: ellipsis;
-      word-break: break-word;
-      line-height: 1.3;
-      max-height: calc(1.3em * 2);
+      margin-left: 0;
+      transition: opacity 0.3s, max-width 0.3s;
+      white-space: nowrap;
+      color: #1971c2;
+    }
+    #btn-modo-ordenar .guardando-orden.visible {
+      max-width: 160px;
+      margin-left: 6px;
+    }
+    #btn-modo-ordenar.activo .guardando-orden {
+      color: #fff;
     }
 
     /* ── TECLADO VIRTUAL TOGGLE BTN ─────────────────────────────────── */
@@ -219,10 +266,10 @@ display: block;
     ══════════════════════════════════════════════════ */
     @media (max-width: 768px) {
       /* Header superior: solo logo + menú */
-      .navbar {
+    .navbar {
         padding: 0 12px !important;
-        height: 52px !important;
-        min-height: 52px !important;
+        height: 46px !important;
+        min-height: 46px !important;
         gap: 8px !important;
         flex-wrap: nowrap !important;
         position: fixed !important;
@@ -230,7 +277,7 @@ display: block;
         left: 0 !important;
         right: 0 !important;
         z-index: 500 !important;
-      }
+    }
       .navbar-brand .brand-icon {
         font-size: 1.2rem !important;
         width: 32px !important;
@@ -252,7 +299,13 @@ display: block;
       /* Botón menú 3 puntos: mantener visible */
       .nav-menu-btn { width: 34px !important; height: 34px !important; }
       /* Desplazar el contenido principal para no quedar detrás del header fijo */
-      .content { padding-top: 52px !important; padding-bottom: 64px !important; }
+    .content {
+        margin-top: 56px;
+        margin-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+        margin-left: 0rem;
+        margin-right: 0rem;
+        border-radius: 14px;
+    }
       /* Banner caja pendiente */
       #caja-pendiente-banner { top: 52px !important; }
     }
@@ -266,7 +319,7 @@ display: block;
         display: flex !important;
         position: fixed;
         bottom: 0; left: 0; right: 0;
-        height: 60px;
+        height: 54px;
         background: #fff;
         border-top: 1px solid #e2e8f0;
         box-shadow: 0 -4px 20px rgba(26,33,53,0.10);
@@ -325,16 +378,9 @@ display: block;
     /* ══════════════════════════════════════════════════
        INVENTARIO RESPONSIVE — CATEGORÍAS 3 POR FILA
     ══════════════════════════════════════════════════ */
-    .categorias-grid-inv {
-      display: grid !important;
-      grid-template-columns: repeat(3, 1fr) !important;
-      gap: 14px !important;
-    }
+
     @media (max-width: 600px) {
-      .categorias-grid-inv {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 8px !important;
-      }
+
       .cat-card-inv {
         border-radius: 12px !important;
       }
@@ -344,18 +390,13 @@ display: block;
       }
       .cat-nombre-inv { font-size: 12px !important; }
       .cat-stats-inv  { font-size: 10px !important; }
-      .cat-actions-inv { gap: 2px !important; }
       .icon-btn-sm { width: 26px !important; height: 26px !important; font-size: 11px !important; }
     }
 
     /* ══════════════════════════════════════════════════
        INVENTARIO RESPONSIVE — PRODUCTOS 3 POR FILA
     ══════════════════════════════════════════════════ */
-    .productos-grid-inv {
-      display: grid !important;
-      grid-template-columns: repeat(3, 1fr) !important;
-      gap: 14px !important;
-    }
+
     @media (max-width: 600px) {
       .productos-grid-inv {
         grid-template-columns: repeat(3, 1fr) !important;
@@ -363,8 +404,6 @@ display: block;
       }
       .prod-card-inv { border-radius: 12px !important; }
       .prod-nombre-inv { font-size: 11px !important; line-height: 1.3 !important; }
-      .prod-precios-inv { font-size: 11px !important; flex-wrap: wrap !important; }
-      .prod-stock-inv { font-size: 10px !important; }
       .prod-actions-inv .btn-sm { font-size: 10px !important; padding: 4px 7px !important; }
       .prod-codigo-inv { font-size: 9px !important; }
       .productos-header-inv { flex-wrap: wrap !important; gap: 6px !important; font-size: 13px !important; }
@@ -953,11 +992,8 @@ display: block;
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
               <button class="btn-ordenar" id="btn-modo-ordenar" onclick="toggleModoOrden()"><i
-                  class="fas fa-arrows-alt"></i> Ordenar</button>
-              <span class="guardando-orden" id="guardando-orden-indicator"><i class="fas fa-circle-notch fa-spin"></i>
-                Guardando...</span>
-              <button class="btn-sm verde" onclick="abrirModalCategoria()"><i class="fas fa-folder-plus"></i>
-                Categoría</button>
+                  class="fas fa-arrows-alt"></i> Ordenar<span class="guardando-orden" id="guardando-orden-indicator" style="margin-left:6px;"><i class="fas fa-circle-notch fa-spin"></i> Guardando...</span></button>
+              <button class="btn-sm verde" id="btn-cat-accion" onclick="abrirModalCategoria()"><i class="fas fa-folder-plus"></i> Categoría</button>
             </div>
           </div>
           <div class="inv-controles"
@@ -1664,8 +1700,8 @@ display: block;
         <div class="two-col">
           <div>
             <div class="two-col" style="grid-template-columns:1fr 100px;">
-              <div class="form-group"><label>Nombre del Producto</label><input type="text" id="prod-nombre" placeholder="Ej: Arroz Superior 5lb"></div>
-              <div class="form-group"><label>Peso Neto</label><input type="text" id="prod-peso-neto" placeholder="5lb" style="width:100%;" title="Peso neto del producto (ej: 500g, 1kg, 5lb)"></div>
+              <div class="form-group"><label>Nombre del Producto</label><input type="text" id="prod-nombre" placeholder="Ej: Arroz Superior"></div>
+              <div class="form-group"><label>Peso Neto</label><input type="text" id="prod-peso-neto" placeholder="75g" style="width:100%;" title="Peso neto del producto (ej: 500g, 1kg, 5lb)"></div>
             </div>
             <div class="form-group"><label>Código de Barras</label>
               <div style="display:flex;gap:8px;"><input type="text" id="prod-barcode"
@@ -1702,7 +1738,7 @@ display: block;
                   <span id="prod-detalle-track" style="position:absolute;inset:0;border-radius:22px;background:#cbd5e0;transition:background 0.2s;"></span>
                   <span id="prod-detalle-thumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.18);transition:transform 0.2s;"></span>
                 </span>
-                <span style="font-weight:600;font-size:13px;color:#4a5568;">Activar detalle de este producto</span>
+                <span style="font-weight:600;font-size:13px;color:#4a5568;">Activar el detalle de este producto</span>
               </label>
               <select id="prod-unidad" style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
                 <option>Unidad</option>
@@ -1751,7 +1787,7 @@ display: block;
           onclick="eliminarProductoDesdeModal()"><i class="fas fa-trash"></i> Eliminar</button>
         <button class="btn-sm gris"
           onclick="cerrarModal('modal-producto')">Cancelar</button><button class="btn-sm verde"
-          onclick="guardarProducto()"><i class="fas fa-save"></i> Guardar Producto</button>
+          onclick="guardarProducto()"><i class="fas fa-save"></i> Guardar</button>
       </div>
     </div>
   </div>
@@ -2772,13 +2808,11 @@ display: block;
       const visiblePages = pages.filter(p => p.roles.includes(userRole));
       const abierta = !!cajaActual;
 
-      // Desktop nav buttons (unchanged)
+      // Desktop nav buttons
       btns.innerHTML = visiblePages.map(p => {
         if (p.id === 'caja') {
-          const statusLabel = abierta
-            ? `<span class="caja-nav-status abierta">Caja abierta</span>`
-            : `<span class="caja-nav-status cerrada">Caja cerrada</span>`;
-          return `<div class="nav-btn-wrap"><button class="nav-btn" id="navbtn-${p.id}" onclick="showPage('${p.id}')"><i class="fas ${p.icon}"></i> ${p.label}</button>${statusLabel}</div>`;
+          const dot = `<span class="caja-status-dot ${abierta ? 'abierta' : 'cerrada'}"></span>`;
+          return `<div style="position:relative;display:inline-flex;align-items:center;"><button class="nav-btn" id="navbtn-${p.id}" onclick="showPage('${p.id}')"><i class="fas ${p.icon}"></i> ${p.label}</button>${dot}</div>`;
         }
         return `<button class="nav-btn" id="navbtn-${p.id}" onclick="showPage('${p.id}')"><i class="fas ${p.icon}"></i> ${p.label}</button>`;
       }).join('');
@@ -2940,17 +2974,11 @@ display: block;
       const banner = document.getElementById('caja-pendiente-banner');
       if (!cajaActual) { banner.classList.add('visible'); }
       else { banner.classList.remove('visible'); }
-      // Actualizar etiqueta de estado de caja en el navbar
-      const statusEl = document.querySelector('.caja-nav-status');
-      if (statusEl) {
-        if (cajaActual) {
-          statusEl.textContent = 'Caja abierta';
-          statusEl.className = 'caja-nav-status abierta';
-        } else {
-          statusEl.textContent = 'Caja cerrada';
-          statusEl.className = 'caja-nav-status cerrada';
-        }
-      }
+      // Actualizar dot de estado de caja en desktop y mobile
+      document.querySelectorAll('.caja-status-dot, .mob-caja-dot').forEach(el => {
+        el.className = el.className.replace(/\b(abierta|cerrada)\b/g, '');
+        el.classList.add(cajaActual ? 'abierta' : 'cerrada');
+      });
     }
 
     window.abrirModalAbrirCaja = () => {
@@ -3242,7 +3270,7 @@ display: block;
       const sinStock = stockHab && p.stock <= 0;
       const bajoStock = stockHab && p.stock > 0 && p.stock <= (p.stockMin || 5);
       const nombreHtml = resaltarTexto(p.nombre || '', busqueda);
-      const stockClass = bajoStock ? ' stock-bajo' : '';
+      const stockClass = bajoStock ? ' stock-bajo' : (sinStock ? ' sin-stock-txt' : '');
       const esDetallable = esUnidadDetallable(p.unidad);
       const unidadLabel = esDetallable ? labelUnidad(p.unidad) : '';
       const precioHtml = esDetallable
@@ -3254,7 +3282,8 @@ display: block;
       const imagenHtml = p.imagen
         ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">`
         : `<div class="prod-emoji">📦</div>`;
-      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')"><div class="product-image">${imagenHtml}</div>${bajoStock ? `<div class="stock-badge">⚠️ Bajo</div>` : ''}${sinStock ? `<div class="stock-badge">Sin stock</div>` : ''}<div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
+      const pesoNetoHtml = p.pesoNeto ? `<span class="peso-neto-badge">${escapeHtml(p.pesoNeto)}</span>` : '';
+      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')"><div class="product-image" style="position:relative;">${imagenHtml}${pesoNetoHtml}</div><div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
     }
 
     window.buscarProductos = (q) => {
@@ -3630,7 +3659,8 @@ display: block;
     };
 
     function _renderItemNormal(item) {
-      return `<div class="carrito-item"><div class="img-producto">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
+      const pesoNeto = item.pesoNeto ? `<span class="peso-neto-badge">${item.pesoNeto}</span>` : '';
+      return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
     }
 
     function _renderItemDetallable(item) {
@@ -3638,8 +3668,9 @@ display: block;
       const unidadLabel = labelUnidad(item.unidad || '');
       const subtotal = precioBase * item.qty;
       const qtyDisplay = Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(2);
+      const pesoNeto = item.pesoNeto ? `<span class="peso-neto-badge">${item.pesoNeto}</span>` : '';
       return `<div class="carrito-item">
-        <div class="img-producto">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'" style="">` : `<div class="item-emoji" style="width:44px;height:44px;font-size:20px;">📦</div>`}</div>
+        <div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'" style="">` : `<div class="item-emoji" style="width:44px;height:44px;font-size:20px;">📦</div>`}${pesoNeto}</div>
         <div class="item-info" style="flex:1;min-width:0;">
           <div class="item-nombre">${item.nombre}</div>
           <div class="item-precio">${fmt(precioBase)}/${unidadLabel}</div>
@@ -4716,6 +4747,24 @@ display: block;
     window.marcarPagada = (id) => window.abrirModalPagarPendiente(id);
 
     // ==================== INVENTARIO - NUEVA VERSIÓN CON BÚSQUEDA, DRAG TÁCTIL Y MOVER PRODUCTO ENTRE CATEGORÍAS ====================
+    function _actualizarBtnCatAccion(modo, catId) {
+      const btn = document.getElementById('btn-cat-accion');
+      if (!btn) return;
+      if (modo === 'lista') {
+        btn.className = 'btn-sm verde';
+        btn.onclick = abrirModalCategoria;
+        btn.innerHTML = '<i class="fas fa-folder-plus"></i> Categoría';
+      } else if (modo === 'categoria') {
+        btn.className = 'btn-sm amarillo';
+        btn.onclick = () => editarCategoria(catId);
+        btn.innerHTML = '<i class="fas fa-edit"></i> Editar categoría';
+      } else if (modo === 'masvendidos') {
+        btn.className = 'btn-sm amarillo';
+        btn.onclick = (e) => editarImagenMasVendidos(e);
+        btn.innerHTML = '<i class="fas fa-image"></i> Editar imagen';
+      }
+    }
+
     function renderInventario() {
       if (inventarioCategoriaActual === '__mas_vendidos__') {
         renderMasVendidosInventario();
@@ -4839,6 +4888,7 @@ display: block;
     };
 
     function renderMasVendidosInventario() {
+      _actualizarBtnCatAccion('masvendidos');
       const area = document.getElementById('inv-contenido');
       if (!area) return;
       const masVendidosProds = productos.filter(p => p.masVendidos);
@@ -4920,18 +4970,22 @@ display: block;
         card.innerHTML = `
           <span class="orden-badge" style="background:#e67700;">${index + 1}</span>
           <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
-          ${p.imagen ? `<div class="img-producto-inv"><img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'"></div>` : `<div class="img-producto-inv"><div class="prod-emoji-inv">📦</div></div>`}
-          ${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${fmtNum(p.stock)}</div>` : ''}
-          ${sinStock ? `<div class="stock-badge-inv danger">Sin stock</div>` : ''}
+          <div class="img-producto-inv" style="position:relative;">
+            ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : `<div class="prod-emoji-inv">📦</div>`}
+            ${p.pesoNeto ? `<span class="peso-neto-badge">${escapeHtml(p.pesoNeto)}</span>` : ''}
+          </div>
           <div class="prod-info-inv">
             <div class="prod-nombre-inv">${escapeHtml(p.nombre || '')}</div>
             ${p.codigoBarras ? `<div class="prod-codigo-inv">${escapeHtml(p.codigoBarras)}</div>` : ''}
             <div class="prod-precios-inv"><span class="precio-venta">${fmt(p.precio)}</span>${p.costo ? `<span class="precio-costo">Costo: ${fmt(p.costo)}</span>` : ''}</div>
             <div class="prod-stock-inv ${bajoStock ? 'bajo' : ''} ${sinStock ? 'sin' : ''}">Stock: ${stockValDisplay} ${p.unidad || ''}</div>
-            <div class="prod-actions-inv">
-              <button class="btn-sm gris" onclick="editarProducto('${p.id}')"><i class="fas fa-edit"></i> Editar</button>
-            </div>
           </div>`;
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', (e) => {
+          if (modoOrdenActivo) return;
+          if (e.target.closest('.drag-grip-overlay')) return;
+          editarProducto(p.id);
+        });
         attachMVDragEvents(card, p);
         grid.appendChild(card);
       });
@@ -4961,6 +5015,7 @@ display: block;
     // ===== FIN MÁS VENDIDOS INVENTARIO =====
 
     function renderCategoriasInventario() {
+      _actualizarBtnCatAccion('lista');
       const area = document.getElementById('inv-contenido');
       if (!area) return;
       if (!categorias.length) {
@@ -5036,9 +5091,6 @@ display: block;
         <div class="cat-info-inv">
           <div class="cat-nombre-inv" style="color:#e67700;">⭐ Más Vendidos</div>
           <div class="cat-stats-inv">${mvCount} producto${mvCount !== 1 ? 's' : ''} destacados</div>
-        </div>
-        <div class="cat-actions-inv">
-          <button class="icon-btn-sm" onclick="event.stopPropagation();editarImagenMasVendidos(event)" title="Cambiar imagen de fondo" style="background:#fff3bf;color:#e67700;"><i class="fas fa-image"></i></button>
         </div>`;
       mvCard.style.cursor = 'pointer';
       mvCard.style.border = '2px solid #f59f00';
@@ -5068,9 +5120,6 @@ display: block;
           <div class="cat-info-inv">
             <div class="cat-nombre-inv">${cat.nombre}</div>
             <div class="cat-stats-inv">${productos.filter(p => p.categoriaId === cat.id).length} productos</div>
-          </div>
-          <div class="cat-actions-inv">
-            <button class="icon-btn-sm" onclick="event.stopPropagation();editarCategoria('${cat.id}')" title="Editar"><i class="fas fa-edit"></i></button>
           </div>`;
 
         card.style.cursor = 'pointer';
@@ -5112,6 +5161,7 @@ display: block;
     }
 
     function renderProductosInventario(categoriaId, busqueda = '') {
+      _actualizarBtnCatAccion('categoria', categoriaId);
       const area = document.getElementById('inv-contenido');
       const categoria = categorias.find(c => c.id === categoriaId);
       let prods = productos.filter(p => p.categoriaId === categoriaId);
@@ -5198,19 +5248,24 @@ display: block;
         card.innerHTML = `
           <span class="orden-badge" style="background:#00b341;">${index + 1}</span>
           <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
-          ${p.imagen ? `<div class="img-producto-inv"><img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'"></div>` : `<div class="img-producto-inv"><div class="prod-emoji-inv">📦</div></div>`}
-          ${bajoStock ? `<div class="stock-badge-inv warning">⚠️ Stock bajo: ${fmtNum(p.stock)}</div>` : ''}
-          ${sinStock ? `<div class="stock-badge-inv danger">Sin stock</div>` : ''}
+          <div class="img-producto-inv" style="position:relative;">
+            ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : `<div class="prod-emoji-inv">📦</div>`}
+            ${p.pesoNeto ? `<span class="peso-neto-badge">${escapeHtml(p.pesoNeto)}</span>` : ''}
+          </div>
           <div class="prod-info-inv">
             <div class="prod-nombre-inv">${nombreResaltado}</div>
             ${p.codigoBarras ? `<div class="prod-codigo-inv">${barcodeResaltado}</div>` : ''}
             <div class="prod-precios-inv"><span class="precio-venta">${fmt(p.precio)}</span>${p.costo ? `<span class="precio-costo">Costo: ${fmt(p.costo)}</span>` : ''}</div>
             <div class="prod-stock-inv ${bajoStock ? 'bajo' : ''} ${sinStock ? 'sin' : ''}">Stock: ${stockValDisplay} ${p.unidad || ''}</div>
-            <div class="prod-actions-inv">
-              ${p.masVendidos ? `<span style="font-size:10px;background:#fff3bf;color:#e67700;border-radius:20px;padding:2px 8px;font-weight:700;">⭐ Más Vendidos</span>` : ''}
-              <button class="btn-sm gris" onclick="editarProducto('${p.id}')"><i class="fas fa-edit"></i> Editar</button>
-            </div>
+            ${p.masVendidos ? `<div class="prod-actions-inv"><span style="font-size:10px;background:#fff3bf;color:#e67700;border-radius:20px;padding:2px 8px;font-weight:700;">⭐ Más Vendidos</span></div>` : ''}
           </div>`;
+
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', (e) => {
+          if (modoOrdenActivo) return;
+          if (e.target.closest('.drag-grip-overlay')) return;
+          editarProducto(p.id);
+        });
 
         attachProdDragEvents(card, p);
         grid.appendChild(card);
@@ -5512,7 +5567,7 @@ display: block;
       } catch (e) {
         toast('Error: ' + e.message, 'error');
       } finally {
-        if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Producto'; }
+        if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar'; }
       }
     };
 
