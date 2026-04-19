@@ -499,8 +499,14 @@ body {
 }
 
 .icon-btn.scan-btn {
-  background: var(--verde);
-  color: white;
+    background: var(--verde);
+    color: white;
+    padding: 0.5rem 0.8rem;
+    border: none;
+    border-radius: 9px;
+    font-size: 1.4rem;
+    display: inline-flex;
+    align-items: center;
 }
 
 .icon-btn.grid-btn {
@@ -2247,13 +2253,13 @@ body {
 }
 
 .modal.large {
-  max-width: 780px;
+  max-width: 848px;
 }
 
 .two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 10px;
 }
 
 .file-upload-area {
@@ -4467,3 +4473,354 @@ body {
 }
 
 /* ===== FIN VISTA PEQUEÑA ===== */
+/* =====================================================================
+   RESPONSIVE MOBILE — MENÚ NAVBAR + MODAL PRODUCTO
+   ===================================================================== */
+
+/* ── BOTTOM NAV BAR (móvil) ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Ocultar nav-buttons del navbar en móvil (se pasan a bottom-nav) */
+  .nav-buttons {
+    display: none !important;
+  }
+
+  /* Navbar más compacta */
+  .navbar {
+    height: 58px;
+    padding: 0 12px;
+    gap: 10px;
+    border-radius: 0 0 16px 16px;
+  }
+
+  .navbar h1 {
+    font-size: 1.3rem;
+  }
+
+  .navbar-brand .brand-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+  }
+
+  .navbar-brand .negocio-nombre {
+    font-size: 11px;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-datetime {
+    display: none !important;
+  }
+
+  /* Caja status pill más pequeño */
+  .caja-nav-status {
+    font-size: 9px;
+    padding: 1px 5px;
+  }
+
+  /* ── BOTTOM NAVIGATION BAR ────────────────────────────────────────── */
+  #mobile-bottom-nav {
+    display: flex !important;
+  }
+
+  /* Ajuste del contenido para que no quede tapado por el bottom nav */
+  .content {
+    margin-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* El banner de caja pendiente sube por encima del bottom nav */
+  #caja-pendiente-banner {
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── BOTTOM NAV COMPONENT ────────────────────────────────────────────── */
+#mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 150;
+  background: #ffffff;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -2px 20px rgba(0,0,0,0.12);
+  border-radius: 18px 18px 0 0;
+}
+
+#mobile-bottom-nav .mbn-inner {
+  display: flex;
+  align-items: stretch;
+  height: 62px;
+}
+
+.mbn-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px 4px 4px;
+  position: relative;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 0;
+}
+
+.mbn-btn:first-child {
+  border-radius: 18px 0 0 0;
+}
+.mbn-btn:last-child {
+  border-radius: 0 18px 0 0;
+}
+
+.mbn-btn:active {
+  background: rgba(0,0,0,0.05);
+}
+
+.mbn-btn .mbn-icon {
+  font-size: 18px;
+  color: #aab4c8;
+  line-height: 1;
+  transition: color 0.15s, transform 0.15s;
+}
+
+.mbn-btn .mbn-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #aab4c8;
+  font-family: var(--font-body);
+  letter-spacing: 0.2px;
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+
+.mbn-btn.active .mbn-icon,
+.mbn-btn.active .mbn-label {
+  color: #fc4f62;
+}
+
+.mbn-btn.active .mbn-icon {
+  transform: translateY(-1px);
+}
+
+/* Pill indicador activo */
+.mbn-btn.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 3px;
+  background: #fc4f62;
+  border-radius: 0 0 4px 4px;
+}
+
+/* Badge en nav items (ej: caja status) */
+.mbn-badge {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 16px);
+  background: #fc4f62;
+  color: white;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 8px;
+  line-height: 1.3;
+}
+
+.mbn-caja-dot {
+  position: absolute;
+  top: 8px;
+  right: calc(50% - 14px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid white;
+}
+
+.mbn-caja-dot.abierta {
+  background: #2f9e44;
+}
+
+.mbn-caja-dot.cerrada {
+  background: #c92a2a;
+}
+
+/* ── MENÚ 3-PUNTOS DROPDOWN — MÓVIL ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .nav-menu-dropdown {
+    position: fixed !important;
+    top: auto !important;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px) + 10px) !important;
+    right: 12px !important;
+    left: 12px !important;
+    min-width: unset !important;
+    width: auto !important;
+    border-radius: 18px !important;
+    box-shadow: 0 -4px 32px rgba(26,33,53,0.22), 0 2px 8px rgba(0,0,0,0.10) !important;
+  }
+
+  .nav-menu-email {
+    padding: 16px 18px 12px !important;
+    font-size: 13px !important;
+  }
+
+  .nav-menu-item {
+    padding: 14px 18px !important;
+    font-size: 15px !important;
+  }
+
+  .nav-menu-item i {
+    font-size: 16px !important;
+    width: 20px !important;
+  }
+}
+
+/* ── MODAL PRODUCTO — PANTALLA COMPLETA EN MÓVIL ─────────────────────── */
+@media (max-width: 768px) {
+
+  #modal-producto {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  #modal-producto .modal.large {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: 100dvh !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+    display: flex;
+    flex-direction: column;
+    animation: modalSlideUp 0.28s cubic-bezier(0.34, 1.08, 0.64, 1) !important;
+  }
+
+  @keyframes modalSlideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
+
+  #modal-producto .modal-header {
+    padding: 14px 56px !important;
+    flex-shrink: 0;
+    border-radius: 0 !important;
+    background: linear-gradient(135deg, #1a2135, #243050) !important;
+    border-bottom: none !important;
+  }
+
+  #modal-producto .modal-header h3 {
+    color: white !important;
+    font-size: 1.05rem !important;
+  }
+
+  #modal-producto .modal-close {
+    background: rgba(255,255,255,0.15) !important;
+    color: white !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    font-size: 18px !important;
+  }
+
+  #modal-producto .modal-close:hover {
+    background: rgba(255,255,255,0.25) !important;
+  }
+
+  #modal-producto .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #modal-producto .modal-footer {
+    flex-shrink: 0;
+    padding: 12px 16px !important;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    gap: 10px !important;
+    background: #f4f6f9 !important;
+    border-top: 1px solid #e2e8f0 !important;
+  }
+
+  /* Stack columns as rows on mobile */
+  #modal-producto .two-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Override the nested two-col for nombre+peso */
+  #modal-producto .modal-body > .two-col > div:first-child > .two-col:first-child {
+    grid-template-columns: 1fr 90px !important;
+  }
+
+  /* Imagen area más compacta */
+  #modal-producto .file-upload-area {
+    min-height: 120px !important;
+    padding: 16px !important;
+  }
+
+  /* Botones del footer a full width en móvil */
+  #modal-producto .modal-footer .btn-sm {
+    flex: 1;
+    padding: 13px 10px !important;
+    font-size: 14px !important;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    max-width: none !important;
+  }
+
+  /* Botón eliminar a la izquierda full-width en su propio row */
+  #modal-producto .modal-footer #btn-eliminar-producto {
+    flex: none !important;
+    width: 46px !important;
+    padding: 13px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Ajustar toggle stock/detalle */
+  #modal-producto .mv-toggle-wrap {
+    flex-wrap: wrap;
+  }
+
+  /* Más espacio entre form-groups */
+  #modal-producto .form-group {
+    margin-bottom: 14px;
+  }
+
+  /* Inputs más grandes para táctil */
+  #modal-producto .form-group input,
+  #modal-producto .form-group select {
+    padding: 13px 16px;
+    font-size: 15px;
+  }
+
+  #mas-vendidos-toggle-wrap {
+    margin-bottom: 8px;
+  }
+}
+
+/* ── AJUSTE GLOBAL MODALES EN MÓVIL (border-radius responsive) ─────── */
+@media (max-width: 480px) {
+  .modal-overlay:not(#modal-producto) {
+    padding: 12px !important;
+    align-items: flex-end !important;
+  }
+
+  .modal:not(.large) {
+    border-radius: 20px 20px 12px 12px !important;
+    max-height: 92dvh !important;
+  }
+}
+

@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="./css/styles.css" />
   <link rel="stylesheet" href="./css/virtualKeyboard.css" />
   <script>
-    // Deshabilitar clic derecho en toda la aplicación
+   /* // Deshabilitar clic derecho en toda la aplicación
     document.addEventListener('contextmenu', function (e) { e.preventDefault(); return false; });
     // Prevenir zoom por pellizco en móviles (complementa el viewport meta)
     document.addEventListener('touchstart', function (e) {
@@ -31,7 +31,7 @@
       var now = Date.now();
       if (now - _lastTap < 300) e.preventDefault();
       _lastTap = now;
-    }, { passive: false });
+    }, { passive: false });*/
   </script>
   <style>
     #negocio-selector-screen {
@@ -143,6 +143,76 @@ display: block;
     .nav-menu-item.danger { color: #e03131; }
     .nav-menu-item.danger:hover { background: #fff5f5; }
     .nav-menu-item i { width: 16px; text-align: center; font-size: 14px; }
+
+    /* ── PROD-NOMBRE 2-LINE CLAMP ───────────────────────────────────── */
+    .prod-nombre {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
+      line-height: 1.3;
+      max-height: calc(1.3em * 2);
+    }
+    .productos-grid.pequena .prod-nombre {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
+      line-height: 1.3;
+      max-height: calc(1.3em * 2);
+    }
+
+    /* ── TECLADO VIRTUAL TOGGLE BTN ─────────────────────────────────── */
+    .vk-toggle-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 2px solid #e2e8f0;
+      background: #f8f9ff;
+      color: #aab4c8;
+      cursor: pointer;
+      font-size: 17px;
+      transition: all 0.18s;
+      flex-shrink: 0;
+    }
+    .vk-toggle-btn.active {
+      background: #1971c2;
+      border-color: #1971c2;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(25,113,194,0.3);
+    }
+    .vk-toggle-btn:hover { opacity: 0.85; }
+
+    /* ── CAJA STATUS EN NAVBAR ──────────────────────────────────────── */
+    .nav-btn-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .caja-nav-status {
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.3px;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+    .caja-nav-status.abierta {
+      background: #d3f9d8;
+      color: #2f9e44;
+    }
+    .caja-nav-status.cerrada {
+      background: #ffe3e3;
+      color: #c92a2a;
+    }
   </style>
 </head>
 
@@ -324,6 +394,7 @@ display: block;
               <button class="icon-btn grid-btn" id="btn-grid-peq" onclick="setGridSize('pequena')">
                 <img src="./img/icons/list.png">
               </button>
+              <button class="vk-toggle-btn" id="btn-vk-toggle" onclick="toggleVirtualKeyboard()" title="Activar/desactivar teclado virtual"><i class="fas fa-keyboard"></i></button>
               <button class="icon-btn scan-btn" onclick="abrirScaner()"><i class="fas fa-barcode"></i></button>
             </div>
             <div class="pos-productos-area" id="pos-productos-area"></div>
@@ -751,6 +822,13 @@ display: block;
       </div>
     </div>
   </div>
+
+  <!-- ===== BOTTOM NAV MÓVIL ===== -->
+  <nav id="mobile-bottom-nav" role="navigation" aria-label="Navegación principal">
+    <div class="mbn-inner" id="mbn-inner">
+      <!-- Generado por JS -->
+    </div>
+  </nav>
 
   <!-- MODALES -->
   <div class="modal-overlay" id="modal-facturar">
@@ -1218,8 +1296,10 @@ display: block;
       <div class="modal-body">
         <div class="two-col">
           <div>
-            <div class="form-group"><label>Nombre del Producto</label><input type="text" id="prod-nombre"
-                placeholder="Ej: Arroz Superior 5lb"></div>
+            <div class="two-col" style="grid-template-columns:1fr 100px;">
+              <div class="form-group"><label>Nombre del Producto</label><input type="text" id="prod-nombre" placeholder="Ej: Arroz Superior 5lb"></div>
+              <div class="form-group"><label>Peso Neto</label><input type="text" id="prod-peso-neto" placeholder="5lb" style="width:100%;" title="Peso neto del producto (ej: 500g, 1kg, 5lb)"></div>
+            </div>
             <div class="form-group"><label>Código de Barras</label>
               <div style="display:flex;gap:8px;"><input type="text" id="prod-barcode"
                   placeholder="Escanear o escribir..." style="flex:1;"><button class="icon-btn scan-btn"
@@ -1229,10 +1309,10 @@ display: block;
                 style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
                 <option value="">Selecciona categoría...</option>
               </select></div>
-            <div class="form-group"><label>Precio Venta (RD$)</label><input type="number" id="prod-precio"
-                placeholder="0.00" min="0" step="0.01"></div>
-            <div class="form-group"><label>Precio Compra / Costo (RD$)</label><input type="number" id="prod-costo"
-                placeholder="0.00" min="0" step="0.01" value="0"></div>
+            <div class="two-col">
+              <div class="form-group"><label>Precio Venta (RD$)</label><input type="number" id="prod-precio" placeholder="0.00" min="0" step="0.01"></div>
+              <div class="form-group"><label>Precio Compra / Costo (RD$)</label><input type="number" id="prod-costo" placeholder="0.00" min="0" step="0.01" value="0"></div>
+            </div>
             <!-- Toggle stock -->
             <div id="stock-toggle-wrap">
               <label class="mv-toggle-wrap" for="prod-stock-enabled">
@@ -1242,25 +1322,29 @@ display: block;
               </label>
             </div>
             <div id="stock-fields-wrap">
-            <div class="two-col">
-              <div class="form-group"><label>Stock Actual</label><input type="number" id="prod-stock" placeholder="0"
-                  min="0"></div>
-              <div class="form-group"><label>Stock Mínimo</label><input type="number" id="prod-stock-min"
-                  placeholder="5" min="0"></div>
+              <div class="two-col">
+                <div class="form-group"><label>Stock Actual</label><input type="number" id="prod-stock" placeholder="0" min="0"></div>
+                <div class="form-group"><label>Stock Mínimo (Alerta)</label><input type="number" id="prod-stock-min" placeholder="5" min="0"></div>
+              </div>
             </div>
-            </div>
-            <div class="form-group"><label>Unidad</label><select id="prod-unidad"
-                style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
+            <div class="form-group">
+              <label>Unidad</label>
+              <label for="prod-detalle-enabled" id="prod-detalle-label" style="display:flex;align-items:center;gap:10px;margin-top:6px;margin-bottom:8px;padding:8px 12px;border-radius:10px;background:#f1f3f9;cursor:pointer;user-select:none;transition:background 0.2s;">
+                <span style="position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0;">
+                  <input type="checkbox" id="prod-detalle-enabled" onchange="toggleDetalleUnidad()" style="opacity:0;width:0;height:0;position:absolute;">
+                  <span id="prod-detalle-track" style="position:absolute;inset:0;border-radius:22px;background:#cbd5e0;transition:background 0.2s;"></span>
+                  <span id="prod-detalle-thumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.18);transition:transform 0.2s;"></span>
+                </span>
+                <span style="font-weight:600;font-size:13px;color:#4a5568;">Activar el detalle de este producto</span>
+              </label>
+              <select id="prod-unidad" style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
                 <option>Unidad</option>
-                <option>Libra</option>
-                <option>Kilogramo</option>
-                <option>Onza</option>
-                <option>Litro</option>
                 <option>Galón</option>
                 <option>Caja</option>
                 <option>Paquete</option>
                 <option>Docena</option>
-              </select></div>
+              </select>
+            </div>
             <div class="form-group"><label>ITBIS aplica</label><select id="prod-itbis"
                 style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
                 <option value="1">Sí, aplica ITBIS</option>
@@ -1853,6 +1937,91 @@ display: block;
       if (wrap && !wrap.contains(e.target)) closeNavMenu();
     });
 
+    // ==================== TECLADO VIRTUAL TOGGLE ====================
+    (function () {
+      const STORAGE_KEY = 'vk_enabled';
+      window._vkEnabled = localStorage.getItem(STORAGE_KEY) !== 'false'; // default ON
+
+      function updateBtn() {
+        const btn = document.getElementById('btn-vk-toggle');
+        if (!btn) return;
+        if (window._vkEnabled) {
+          btn.classList.add('active');
+          btn.title = 'Teclado virtual: ACTIVO (clic para desactivar)';
+        } else {
+          btn.classList.remove('active');
+          btn.title = 'Teclado virtual: INACTIVO (clic para activar)';
+        }
+      }
+
+      // Parchear vkbOpen: esperar a que virtualKeyboard.js lo defina y luego envolverlo
+      function patchVkbOpen() {
+        // Si ya está parchado, salir
+        if (window._vkbOpenOriginal) return;
+        if (typeof window.vkbClose !== 'function') return; // aún no cargó el módulo
+
+        // En este punto el módulo ya cargó — buscamos vkbOpen dentro del closure
+        // La forma más directa: sobreescribir attachVkbToInput para que los nuevos
+        // listeners respeten la bandera, y además parchamos vkbOpen si está expuesto.
+        // Como vkbOpen NO está expuesta globalmente, usamos otro truco:
+        // guardamos el attachVkbToInput original y lo envolvemos.
+        const origAttach = window.attachVkbToInput;
+        window.attachVkbToInput = function (inputId) {
+          if (!window._vkEnabled) return; // no conectar si está desactivado
+          origAttach(inputId);
+        };
+
+        // Para los inputs YA conectados (pos-buscar, pos-direccion-cliente),
+        // bloqueamos el teclado interceptando el focus/touchstart en la fase de captura
+        ['pos-buscar', 'pos-direccion-cliente'].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.addEventListener('focus', (e) => {
+            if (!window._vkEnabled) {
+              // Cerrar el teclado si llegara a abrirse
+              if (typeof window.vkbClose === 'function') window.vkbClose();
+            }
+          }, true); // captura = antes que el listener del módulo
+          el.addEventListener('touchstart', (e) => {
+            if (!window._vkEnabled) {
+              if (typeof window.vkbClose === 'function') window.vkbClose();
+            }
+          }, { capture: true, passive: true });
+        });
+
+        window._vkbOpenOriginal = true; // marcado como parchado
+      }
+
+      window.toggleVirtualKeyboard = function () {
+        window._vkEnabled = !window._vkEnabled;
+        localStorage.setItem(STORAGE_KEY, window._vkEnabled);
+        updateBtn();
+        // Si se desactiva, cerrar el teclado si está abierto
+        if (!window._vkEnabled && typeof window.vkbClose === 'function') {
+          window.vkbClose();
+        }
+      };
+
+      // Aplicar botón y parche cuando el DOM esté listo
+      function init() {
+        updateBtn();
+        patchVkbOpen();
+        // Reintentar el parche por si virtualKeyboard.js carga después
+        if (!window._vkbOpenOriginal) {
+          setTimeout(() => { patchVkbOpen(); updateBtn(); }, 200);
+          setTimeout(() => { patchVkbOpen(); updateBtn(); }, 800);
+          setTimeout(() => { patchVkbOpen(); updateBtn(); }, 2000);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+      window.addEventListener('load', init);
+    })();
+
     function updateDatetime() {
       const now = new Date();
       const opts = { timeZone: 'America/Santo_Domingo', hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' };
@@ -2233,16 +2402,67 @@ display: block;
         { id: 'estadisticas', label: 'Estadísticas', icon: 'fa-chart-line', roles: ['admin'] },
         { id: 'config', label: 'Configuración', icon: 'fa-cog', roles: ['admin'] },
       ];
-      btns.innerHTML = pages.filter(p => p.roles.includes(userRole)).map(p => `<button class="nav-btn" id="navbtn-${p.id}" onclick="showPage('${p.id}')"><i class="fas ${p.icon}"></i> ${p.label}</button>`).join('');
+      btns.innerHTML = pages.filter(p => p.roles.includes(userRole)).map(p => {
+        if (p.id === 'caja') {
+          const abierta = !!cajaActual;
+          const statusLabel = abierta
+            ? `<span class="caja-nav-status abierta">Caja abierta</span>`
+            : `<span class="caja-nav-status cerrada">Caja cerrada</span>`;
+          return `<div class="nav-btn-wrap"><button class="nav-btn" id="navbtn-${p.id}" onclick="showPage('${p.id}')"><i class="fas ${p.icon}"></i> ${p.label}</button>${statusLabel}</div>`;
+        }
+        return `<button class="nav-btn" id="navbtn-${p.id}" onclick="showPage('${p.id}')"><i class="fas ${p.icon}"></i> ${p.label}</button>`;
+      }).join('');
+      // Build mobile bottom nav
+      buildMobileBottomNav(pages);
+    }
+
+    // ── MOBILE BOTTOM NAV builder ──────────────────────────────────────
+    function buildMobileBottomNav(pages) {
+      const inner = document.getElementById('mbn-inner');
+      if (!inner) return;
+
+      // Iconos distintos para evitar duplicar fa-cash-register
+      const mobileIcons = {
+        'pos':          'fa-store',
+        'caja':         'fa-cash-register',
+        'facturas':     'fa-file-invoice',
+        'inventario':   'fa-boxes',
+        'estadisticas': 'fa-chart-line',
+        'config':       'fa-cog',
+      };
+      const mobileLabels = {
+        'pos':          'POS',
+        'caja':         'Caja',
+        'facturas':     'Facturas',
+        'inventario':   'Inventario',
+        'estadisticas': 'Estadísticas',
+        'config':       'Config.',
+      };
+
+      inner.innerHTML = pages.filter(p => p.roles.includes(userRole)).map(p => {
+        let extraContent = '';
+        if (p.id === 'caja') {
+          const abierta = !!cajaActual;
+          extraContent = `<span class="mbn-caja-dot ${abierta ? 'abierta' : 'cerrada'}"></span>`;
+        }
+        return `<button class="mbn-btn" id="mbn-btn-${p.id}" onclick="showPage('${p.id}')" title="${p.label}">
+          ${extraContent}
+          <span class="mbn-icon"><i class="fas ${mobileIcons[p.id] || p.icon}"></i></span>
+          <span class="mbn-label">${mobileLabels[p.id] || p.label}</span>
+        </button>`;
+      }).join('');
     }
 
     window.showPage = (pageId) => {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.mbn-btn').forEach(b => b.classList.remove('active'));
       const page = document.getElementById(`page-${pageId}`);
       if (page) page.classList.add('active');
       const btn = document.getElementById(`navbtn-${pageId}`);
       if (btn) btn.classList.add('active');
+      const mbnBtn = document.getElementById(`mbn-btn-${pageId}`);
+      if (mbnBtn) mbnBtn.classList.add('active');
       if (pageId === 'estadisticas') { estadisticasHoy(); }
       if (pageId === 'inventario') { renderInventario(); populateCatSelects(); }
       if (pageId === 'config') { renderConfig(); renderEmpleados(); }
@@ -2377,6 +2597,17 @@ display: block;
       const banner = document.getElementById('caja-pendiente-banner');
       if (!cajaActual) { banner.classList.add('visible'); }
       else { banner.classList.remove('visible'); }
+      // Actualizar etiqueta de estado de caja en el navbar
+      const statusEl = document.querySelector('.caja-nav-status');
+      if (statusEl) {
+        if (cajaActual) {
+          statusEl.textContent = 'Caja abierta';
+          statusEl.className = 'caja-nav-status abierta';
+        } else {
+          statusEl.textContent = 'Caja cerrada';
+          statusEl.className = 'caja-nav-status cerrada';
+        }
+      }
     }
 
     window.abrirModalAbrirCaja = () => {
@@ -4731,7 +4962,7 @@ display: block;
     window.abrirModalProductoDesdeCategoria = (categoriaId) => {
       productoEnEdicion = null;
       document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-box"></i> Nuevo Producto';
-      ['prod-nombre', 'prod-barcode', 'prod-precio', 'prod-stock', 'prod-stock-min'].forEach(id => document.getElementById(id).value = '');
+      ['prod-nombre', 'prod-peso-neto', 'prod-barcode', 'prod-precio', 'prod-stock', 'prod-stock-min'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('prod-costo').value = '';
       document.getElementById('prod-id').value = '';
       document.getElementById('prod-img-preview').src = '';
@@ -4744,7 +4975,7 @@ display: block;
       if (h1) h1.style.display = 'block';
       if (h2) h2.style.display = 'block';
       if (rh) rh.style.display = 'none';
-      document.getElementById('prod-unidad').value = 'Unidad';
+      document.getElementById('prod-detalle-enabled').checked = false; _syncDetalleToggleUI(false); const _selU = document.getElementById('prod-unidad'); _selU.innerHTML = '<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; _selU.value = 'Unidad';
       document.getElementById('prod-itbis').value = '1';
       // Reset stock toggle
       document.getElementById('prod-stock-enabled').checked = true;
@@ -4824,7 +5055,7 @@ display: block;
     window.abrirModalProducto = () => {
       productoEnEdicion = null;
       document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-box"></i> Nuevo Producto';
-      ['prod-nombre', 'prod-barcode', 'prod-precio', 'prod-stock', 'prod-stock-min'].forEach(id => document.getElementById(id).value = '');
+      ['prod-nombre', 'prod-peso-neto', 'prod-barcode', 'prod-precio', 'prod-stock', 'prod-stock-min'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('prod-costo').value = '';
       document.getElementById('prod-id').value = '';
       document.getElementById('prod-img-preview').src = '';
@@ -4837,7 +5068,7 @@ display: block;
       if (h1) h1.style.display = 'block';
       if (h2) h2.style.display = 'block';
       if (rh) rh.style.display = 'none';
-      document.getElementById('prod-unidad').value = 'Unidad';
+      document.getElementById('prod-detalle-enabled').checked = false; _syncDetalleToggleUI(false); const _selU = document.getElementById('prod-unidad'); _selU.innerHTML = '<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; _selU.value = 'Unidad';
       document.getElementById('prod-itbis').value = '1';
       // Reset stock toggle
       document.getElementById('prod-stock-enabled').checked = true;
@@ -4852,13 +5083,34 @@ display: block;
       abrirModal('modal-producto');
     };
 
-    window.editarProducto = (id) => { const p = productos.find(pr => pr.id === id); if (!p) return; productoEnEdicion = p; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Producto'; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-barcode').value = p.codigoBarras || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-costo').value = p.costo || ''; const stockHab = p.stockHabilitado !== false; document.getElementById('prod-stock-enabled').checked = stockHab; document.getElementById('stock-fields-wrap').style.display = stockHab ? 'block' : 'none'; document.getElementById('prod-stock').value = stockHab ? (p.stock >= 0 ? p.stock : '') : ''; document.getElementById('prod-stock-min').value = p.stockMin || ''; document.getElementById('prod-unidad').value = p.unidad || 'Unidad'; document.getElementById('prod-itbis').value = p.itbis !== false ? '1' : '0'; setMasVendidosToggle(!!p.masVendidos); populateCatSelects(); document.getElementById('prod-categoria').value = p.categoriaId || ''; const icon = document.getElementById('prod-img-icon'); const h1 = document.getElementById('prod-img-hint1'); const h2 = document.getElementById('prod-img-hint2'); const rh = document.getElementById('prod-img-replace-hint'); if (p.imagen) { document.getElementById('prod-img-preview').src = p.imagen; document.getElementById('prod-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (h1) h1.style.display = 'none'; if (h2) h2.style.display = 'none'; if (rh) rh.style.display = 'block'; } else { document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (h1) h1.style.display = 'block'; if (h2) h2.style.display = 'block'; if (rh) rh.style.display = 'none'; } const btnElimP = document.getElementById('btn-eliminar-producto'); if (btnElimP) btnElimP.style.display = 'inline-flex'; abrirModal('modal-producto'); };
+    window.editarProducto = (id) => { const p = productos.find(pr => pr.id === id); if (!p) return; productoEnEdicion = p; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Producto'; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-peso-neto').value = p.pesoNeto || ''; document.getElementById('prod-barcode').value = p.codigoBarras || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-costo').value = p.costo || ''; const stockHab = p.stockHabilitado !== false; document.getElementById('prod-stock-enabled').checked = stockHab; document.getElementById('stock-fields-wrap').style.display = stockHab ? 'block' : 'none'; document.getElementById('prod-stock').value = stockHab ? (p.stock >= 0 ? p.stock : '') : ''; document.getElementById('prod-stock-min').value = p.stockMin || ''; const detalleActivo = !!p.productoDetalle; document.getElementById('prod-detalle-enabled').checked = detalleActivo; _syncDetalleToggleUI(detalleActivo); const selUnidad = document.getElementById('prod-unidad'); selUnidad.innerHTML = detalleActivo ? '<option>Libra</option><option>Kilogramo</option><option>Onza</option><option>Litro</option>' : '<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; selUnidad.value = p.unidad || (detalleActivo ? 'Libra' : 'Unidad'); document.getElementById('prod-itbis').value = p.itbis !== false ? '1' : '0'; setMasVendidosToggle(!!p.masVendidos); populateCatSelects(); document.getElementById('prod-categoria').value = p.categoriaId || ''; const icon = document.getElementById('prod-img-icon'); const h1 = document.getElementById('prod-img-hint1'); const h2 = document.getElementById('prod-img-hint2'); const rh = document.getElementById('prod-img-replace-hint'); if (p.imagen) { document.getElementById('prod-img-preview').src = p.imagen; document.getElementById('prod-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (h1) h1.style.display = 'none'; if (h2) h2.style.display = 'none'; if (rh) rh.style.display = 'block'; } else { document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (h1) h1.style.display = 'block'; if (h2) h2.style.display = 'block'; if (rh) rh.style.display = 'none'; } const btnElimP = document.getElementById('btn-eliminar-producto'); if (btnElimP) btnElimP.style.display = 'inline-flex'; abrirModal('modal-producto'); };
 
     window.toggleStockFields = function() {
       const enabled = document.getElementById('prod-stock-enabled').checked;
       const wrap = document.getElementById('stock-fields-wrap');
       if (wrap) wrap.style.display = enabled ? 'block' : 'none';
     };
+
+    window.toggleDetalleUnidad = function() {
+      const activo = document.getElementById('prod-detalle-enabled').checked;
+      _syncDetalleToggleUI(activo);
+      const sel = document.getElementById('prod-unidad');
+      const unidadActual = sel.value;
+      sel.innerHTML = activo
+        ? `<option>Libra</option><option>Kilogramo</option><option>Onza</option><option>Litro</option>`
+        : `<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>`;
+      const opts = Array.from(sel.options).map(o => o.value);
+      if (opts.includes(unidadActual)) sel.value = unidadActual;
+    };
+
+    function _syncDetalleToggleUI(activo) {
+      const track = document.getElementById('prod-detalle-track');
+      const thumb = document.getElementById('prod-detalle-thumb');
+      const lbl   = document.getElementById('prod-detalle-label');
+      if (track) track.style.background = activo ? '#2f9e44' : '#cbd5e0';
+      if (thumb) thumb.style.transform  = activo ? 'translateX(16px)' : 'translateX(0)';
+      if (lbl)   lbl.style.background   = activo ? '#d3f9d8' : '#f1f3f9';
+    }
 
     window.guardarProducto = async () => {
       const nombre = document.getElementById('prod-nombre').value.trim();
@@ -4879,6 +5131,8 @@ display: block;
         stockMin: document.getElementById('prod-stock-enabled').checked ? (parseInt(document.getElementById('prod-stock-min').value) || 5) : 0,
         stockHabilitado: document.getElementById('prod-stock-enabled').checked,
         codigoBarras: document.getElementById('prod-barcode').value.trim(),
+        pesoNeto: document.getElementById('prod-peso-neto').value.trim(),
+        productoDetalle: document.getElementById('prod-detalle-enabled').checked,
         unidad: document.getElementById('prod-unidad').value,
         itbis: document.getElementById('prod-itbis').value === '1',
         masVendidos: !!document.getElementById('prod-mas-vendidos').checked,
@@ -5008,14 +5262,53 @@ display: block;
       const timeDiff = now - _bcScanner.lastTime;
       _bcScanner.lastTime = now;
 
+      // --- DETERMINAR CONTEXTO ACTIVO ---
+      const modalProdVisible = document.getElementById('modal-producto')?.classList.contains('visible');
+
+      // Si el modal de producto está abierto y el foco NO está en prod-barcode,
+      // interceptamos el escáner de barras para redirigirlo siempre a prod-barcode
+      if (modalProdVisible && isTextInput && document.activeElement?.id !== 'prod-barcode') {
+        const activeId = document.activeElement?.id;
+        // Solo interceptar si viene de un escáner (rápido) o si acumulamos buffer
+        if (e.key.length === 1 && timeDiff < _bcScanner.SPEED_MS) {
+          // Es un carácter rápido (escáner) → acumular en buffer y bloquear el input actual
+          e.preventDefault();
+          _bcScanner.buffer += e.key;
+          return;
+        }
+        if (e.key === 'Enter' && _bcScanner.buffer.length >= _bcScanner.MIN_LEN) {
+          // Enter del escáner → no procesar en el input activo
+          e.preventDefault();
+          const code = _bcScanner.buffer.trim();
+          _bcScanner.buffer = '';
+          // Redirigir a prod-barcode
+          const barcodeInput = document.getElementById('prod-barcode');
+          const esEdicion = !!productoEnEdicion;
+          if (esEdicion) {
+            if (_bcScanner.scanBtnActive || !barcodeInput.value.trim()) {
+              barcodeInput.value = code;
+              _bcScanner.scanBtnActive = false;
+              toast('✅ Código de barras capturado', 'success', 2000);
+            }
+          } else {
+            barcodeInput.value = code;
+            toast('✅ Código de barras capturado', 'success', 2000);
+          }
+          return;
+        }
+        // Tecla lenta o no alfanumérica → dejar pasar normalmente
+        if (e.key === 'Enter') {
+          _bcScanner.buffer = '';
+        }
+        return;
+      }
+
       if (e.key === 'Enter') {
         const code = _bcScanner.buffer.trim();
         _bcScanner.buffer = '';
 
         if (code.length < _bcScanner.MIN_LEN) return;
 
-        // --- DETERMINAR CONTEXTO ACTIVO ---
-        const modalProdVisible = document.getElementById('modal-producto')?.classList.contains('visible');
         const modalScannerVisible = document.getElementById('modal-scanner')?.classList.contains('visible');
         const pagePos = document.getElementById('page-pos')?.classList.contains('active');
         const pageInv = document.getElementById('page-inventario')?.classList.contains('active');
@@ -5174,7 +5467,13 @@ display: block;
 
     window.abrirModal = (id) => document.getElementById(id)?.classList.add('visible');
     window.cerrarModal = (id) => document.getElementById(id)?.classList.remove('visible');
-    document.querySelectorAll('.modal-overlay').forEach(overlay => { overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('visible'); }); });
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        // El modal-producto NO se cierra al hacer clic afuera
+        if (overlay.id === 'modal-producto') return;
+        if (e.target === overlay) overlay.classList.remove('visible');
+      });
+    });
 
     function toast(msg, type, duration) { /* toasts desactivados */ }
     window.toast = toast;

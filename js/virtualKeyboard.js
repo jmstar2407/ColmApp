@@ -317,7 +317,7 @@
     panel.style.width     = w    + 'px';
     if (layout.height) panel.style.height = h + 'px';
     panel.style.transform  = 'none';
-    panel.style.transition = 'none';
+    panel.style.transition = ''; // ← limpiar para que el CSS tome el control
   }
 
   function loadLayout(panel) {
@@ -375,6 +375,7 @@
       if (!dragging) return;
       dragging = false;
       panel.classList.remove('vkb-dragging');
+      panel.style.transition = ''; // restaurar transición CSS
       saveLayout();
     }
 
@@ -421,6 +422,7 @@
       if (!resizing) return;
       resizing = false;
       panel.classList.remove('vkb-dragging');
+      panel.style.transition = ''; // restaurar transición CSS
       saveLayout();
     }
 
@@ -449,6 +451,8 @@
   //  Abrir / Cerrar
   // ══════════════════════════════════════════════
   function vkbOpen(inputEl) {
+    // Respetar el toggle de teclado virtual
+    if (window._vkEnabled === false) return;
     vkbTarget        = inputEl;
     vkbCursorPos     = inputEl.value.length;
     vkbShift         = inputEl.value.length === 0; // mayúscula automática si vacío
@@ -485,19 +489,22 @@
       panel.style.bottom     = '20px';
       panel.style.width      = '860px';
       panel.style.height     = '';
-      panel.style.transition = '';
-    } else {
-      panel.style.transition = 'opacity 0.22s';
+    }
+
+    // Cancelar cualquier cierre en curso
+    if (panel._closeTimer) {
+      clearTimeout(panel._closeTimer);
+      panel._closeTimer = null;
     }
 
     document.getElementById('vkb-overlay').classList.add('vkb-open');
     panel.classList.add('vkb-open');
   }
-
-  // Exponer globalmente para que el HTML pueda llamar vkbClose()
   window.vkbClose = function () {
-    document.getElementById('vkb-overlay').classList.remove('vkb-open');
-    document.getElementById('vkb-panel').classList.remove('vkb-open');
+    const panel   = document.getElementById('vkb-panel');
+    const overlay = document.getElementById('vkb-overlay');
+    panel.classList.remove('vkb-open');
+    overlay.classList.remove('vkb-open');
     vkbTarget = null;
   };
 
