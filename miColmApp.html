@@ -33,599 +33,6 @@
       _lastTap = now;
     }, { passive: false });*/
   </script>
-  <style>
-    #negocio-selector-screen {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(135deg, #1a2135 0%, #243050 100%);
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 20px;
-    }
-    #ns-modal-nuevo {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    /* ── NAV 3-DOT MENU ─────────────────────────────────────────── */
-    .nav-menu-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-      margin-left: 6px;
-    }
-.nav-menu-btn {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 4px;
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    border: none;
-    background: rgb(255 78 99);
-    cursor: pointer;
-    padding: 0;
-    transition: background 0.18s;
-    flex-shrink: 0;
-}
-
-    .nav-menu-btn:hover { background: rgb(255 78 99); }
-    .nav-menu-btn span {
-display: block;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: #ffffff;
-    transition: background 0.18s;
-    }
-    .nav-menu-dropdown {
-      display: none;
-      position: absolute;
-      top: calc(100% + 10px);
-      right: 0;
-      min-width: 230px;
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 8px 32px rgba(26,33,53,0.18), 0 2px 8px rgba(0,0,0,0.10);
-      z-index: 2000;
-      overflow: hidden;
-      animation: menuFadeIn 0.15s ease;
-    }
-    .nav-menu-dropdown.open { display: block; }
-    @keyframes menuFadeIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .nav-menu-email {
-      padding: 14px 16px 10px;
-      font-size: 12px;
-      color: #718096;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 600;
-      word-break: break-all;
-    }
-    .nav-menu-email i { font-size: 18px; color: #aab4c8; flex-shrink: 0; }
-    .nav-menu-divider {
-      height: 1px;
-      background: #e2e8f0;
-      margin: 0 12px 4px;
-    }
-    .nav-menu-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-      padding: 11px 16px;
-      border: none;
-      background: none;
-      font-size: 14px;
-      font-weight: 600;
-      color: #1a2135;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.14s;
-      font-family: var(--font-body, inherit);
-    }
-    .nav-menu-item:last-child { margin-bottom: 6px; }
-    .nav-menu-item:hover { background: #f0f4ff; }
-    .nav-menu-item.danger { color: #e03131; }
-    .nav-menu-item.danger:hover { background: #fff5f5; }
-    .nav-menu-item i { width: 16px; text-align: center; font-size: 14px; }
-
-
-
-    /* ── DOT ESTADO CAJA (desktop + mobile) ─────────────────── */
-    .caja-status-dot {
-      position: absolute;
-      top: 4px;
-      right: 2px;
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      border: 2px solid #fff;
-      pointer-events: none;
-    }
-    .caja-status-dot.abierta { background: #2f9e44; }
-    .caja-status-dot.cerrada { background: #c92a2a; }
-
-    /* ── STOCK BAJO / SIN STOCK — texto en color ─────────────── */
-    .prod-card .prod-stock.stock-bajo {
-      color: #e67700 !important;
-      font-weight: 700;
-    }
-    .prod-card .prod-stock.sin-stock-txt {
-      color: #c92a2a !important;
-      font-weight: 700;
-    }
-
-    /* ── BADGE PESO NETO ─────────────────────────────────────── */
-.peso-neto-badge {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    background: rgb(0 169 61);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-    padding: 2px 5px;
-    border-radius: 6px 0px;
-    line-height: 1.3;
-    pointer-events: none;
-    backdrop-filter: blur(2px);
-    letter-spacing: 0.2px;
-}
-    /* ── BOTÓN AMARILLO ─────────────────────────────────────── */
-    .btn-sm.amarillo {
-      background: #f59f00;
-      color: #fff;
-      padding: 10px 18px;
-    }
-    .btn-sm.amarillo:hover {
-      background: #e67700;
-    }
-
-    /* Guardando dentro del botón ordenar */
-    #btn-modo-ordenar .guardando-orden {
-      max-width: 0;
-      overflow: hidden;
-      margin-left: 0;
-      transition: opacity 0.3s, max-width 0.3s;
-      white-space: nowrap;
-      color: #1971c2;
-    }
-    #btn-modo-ordenar .guardando-orden.visible {
-      max-width: 160px;
-      margin-left: 6px;
-    }
-    #btn-modo-ordenar.activo .guardando-orden {
-      color: #fff;
-    }
-
-    /* ── TECLADO VIRTUAL TOGGLE BTN ─────────────────────────────────── */
-    .vk-toggle-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      border: 2px solid #e2e8f0;
-      background: #f8f9ff;
-      color: #aab4c8;
-      cursor: pointer;
-      font-size: 17px;
-      transition: all 0.18s;
-      flex-shrink: 0;
-    }
-    .vk-toggle-btn.active {
-      background: #1971c2;
-      border-color: #1971c2;
-      color: #fff;
-      box-shadow: 0 2px 8px rgba(25,113,194,0.3);
-    }
-    .vk-toggle-btn:hover { opacity: 0.85; }
-
-    /* ── CAJA STATUS EN NAVBAR ──────────────────────────────────────── */
-    .nav-btn-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-    .caja-nav-status {
-      font-size: 10px;
-      font-weight: 700;
-      line-height: 1;
-      letter-spacing: 0.3px;
-      padding: 2px 7px;
-      border-radius: 20px;
-    }
-    .caja-nav-status.abierta {
-      background: #d3f9d8;
-      color: #2f9e44;
-    }
-    .caja-nav-status.cerrada {
-      background: #ffe3e3;
-      color: #c92a2a;
-    }
-
-    /* ══════════════════════════════════════════════════
-       MOBILE NAVBAR — barra superior compacta + nav inferior
-    ══════════════════════════════════════════════════ */
-    @media (max-width: 768px) {
-      /* Header superior: solo logo + menú */
-    .navbar {
-        padding: 0 12px !important;
-        height: 46px !important;
-        min-height: 46px !important;
-        gap: 8px !important;
-        flex-wrap: nowrap !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        z-index: 500 !important;
-    }
-      .navbar-brand .brand-icon {
-        font-size: 1.2rem !important;
-        width: 32px !important;
-        height: 32px !important;
-      }
-      .navbar-brand h1 { font-size: 1rem !important; }
-      .negocio-nombre {
-        font-size: 10px !important;
-        max-width: 120px !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-      }
-      /* Ocultar elementos que no caben */
-      .nav-datetime { display: none !important; }
-      .nav-spacer   { display: none !important; }
-      /* Los botones de nav se ocultan del header — van a la barra inferior */
-      #nav-buttons  { display: none !important; }
-      /* Botón menú 3 puntos: mantener visible */
-      .nav-menu-btn { width: 34px !important; height: 34px !important; }
-      /* Desplazar el contenido principal para no quedar detrás del header fijo */
-    .content {
-        margin-top: 56px;
-        margin-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
-        margin-left: 0rem;
-        margin-right: 0rem;
-        border-radius: 14px;
-    }
-      /* Banner caja pendiente */
-      #caja-pendiente-banner { top: 52px !important; }
-    }
-
-    /* ── BARRA DE NAVEGACIÓN INFERIOR (mobile) ─────────────────── */
-    #mobile-bottom-nav {
-      display: none;
-    }
-    @media (max-width: 768px) {
-      #mobile-bottom-nav {
-        display: flex !important;
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        height: 54px;
-        background: #fff;
-        border-top: 1px solid #e2e8f0;
-        box-shadow: 0 -4px 20px rgba(26,33,53,0.10);
-        z-index: 500;
-        align-items: stretch;
-        overflow-x: auto;
-        overflow-y: hidden;
-        scrollbar-width: none;
-      }
-      #mobile-bottom-nav::-webkit-scrollbar { display: none; }
-      .mob-nav-btn {
-        flex: 1;
-        min-width: 52px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        border: none;
-        background: none;
-        color: #94a3b8;
-        font-size: 10px;
-        font-weight: 600;
-        cursor: pointer;
-        padding: 6px 4px 4px;
-        transition: color 0.18s, background 0.18s;
-        border-top: 2px solid transparent;
-        white-space: nowrap;
-        font-family: inherit;
-        position: relative;
-      }
-      .mob-nav-btn i {
-        font-size: 18px;
-        line-height: 1;
-        transition: transform 0.18s;
-      }
-      .mob-nav-btn.active {
-        color: #fc4f62;
-        border-top-color: #fc4f62;
-        background: #fff5f6;
-      }
-      .mob-nav-btn.active i { transform: translateY(-1px); }
-      .mob-nav-btn:active { background: #f0f4ff; }
-      /* Badge de estado caja en mobile */
-      .mob-caja-dot {
-        position: absolute;
-        top: 6px; right: calc(50% - 12px);
-        width: 7px; height: 7px;
-        border-radius: 50%;
-        border: 1.5px solid #fff;
-      }
-      .mob-caja-dot.abierta { background: #2f9e44; }
-      .mob-caja-dot.cerrada { background: #c92a2a; }
-    }
-
-    /* ══════════════════════════════════════════════════
-       INVENTARIO RESPONSIVE — CATEGORÍAS 3 POR FILA
-    ══════════════════════════════════════════════════ */
-
-    @media (max-width: 600px) {
-
-      .cat-card-inv {
-        border-radius: 12px !important;
-      }
-      .cat-card-inv img,
-      .cat-card-inv .cat-emoji-inv {
-        font-size: 2rem !important;
-      }
-      .cat-nombre-inv { font-size: 12px !important; }
-      .cat-stats-inv  { font-size: 10px !important; }
-      .icon-btn-sm { width: 26px !important; height: 26px !important; font-size: 11px !important; }
-    }
-
-    /* ══════════════════════════════════════════════════
-       INVENTARIO RESPONSIVE — PRODUCTOS 3 POR FILA
-    ══════════════════════════════════════════════════ */
-
-    @media (max-width: 600px) {
-      .productos-grid-inv {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 8px !important;
-      }
-      .prod-card-inv { border-radius: 12px !important; }
-      .prod-nombre-inv { font-size: 11px !important; line-height: 1.3 !important; }
-      .prod-actions-inv .btn-sm { font-size: 10px !important; padding: 4px 7px !important; }
-      .prod-codigo-inv { font-size: 9px !important; }
-      .productos-header-inv { flex-wrap: wrap !important; gap: 6px !important; font-size: 13px !important; }
-    }
-
-    /* ══════════════════════════════════════════════════
-       CÁMARA / ESCÁNER MODAL
-    ══════════════════════════════════════════════════ */
-    #modal-camara-scanner {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.92);
-      z-index: 99999;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-    }
-    #modal-camara-scanner.visible { display: flex; }
-
-    .cam-scanner-wrap {
-      position: relative;
-      width: min(95vw, 440px);
-      background: #0d1117;
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.7);
-    }
-    .cam-scanner-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px 12px;
-      background: #0d1117;
-    }
-    .cam-scanner-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #fff;
-      font-weight: 700;
-      font-size: 16px;
-      font-family: inherit;
-    }
-    .cam-scanner-title i { color: #fc4f62; font-size: 18px; }
-    .cam-close-btn {
-      background: rgba(255,255,255,0.1);
-      border: none;
-      color: #fff;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-    }
-    .cam-close-btn:hover { background: rgba(255,255,255,0.2); }
-
-    .cam-video-area {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: #000;
-      overflow: hidden;
-    }
-    #cam-video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .cam-overlay {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-    /* Dim the area outside the scan box */
-    .cam-dim-top, .cam-dim-bottom, .cam-dim-left, .cam-dim-right {
-      position: absolute;
-      background: rgba(0,0,0,0.50);
-    }
-    .cam-dim-top    { top:0; left:0; right:0; height: 20%; }
-    .cam-dim-bottom { bottom:0; left:0; right:0; height: 20%; }
-    .cam-dim-left   { top:20%; bottom:20%; left:0; width: 10%; }
-    .cam-dim-right  { top:20%; bottom:20%; right:0; width: 10%; }
-
-    /* The scan frame */
-    .cam-scan-frame {
-      position: absolute;
-      top: 20%; left: 10%; right: 10%; bottom: 20%;
-      border: 2px solid rgba(255,255,255,0.15);
-      border-radius: 12px;
-    }
-    /* Corner brackets */
-    .cam-scan-frame::before,
-    .cam-scan-frame::after {
-      content: '';
-      position: absolute;
-      width: 28px; height: 28px;
-      border-color: #fc4f62;
-      border-style: solid;
-    }
-    .cam-scan-frame::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 10px 0 0 0; }
-    .cam-scan-frame::after  { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 10px 0; }
-    .cam-corner-br, .cam-corner-tr, .cam-corner-bl {
-      position: absolute;
-      width: 28px; height: 28px;
-      border-color: #fc4f62;
-      border-style: solid;
-    }
-    .cam-corner-tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-radius: 0 10px 0 0; }
-    .cam-corner-bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-radius: 0 0 0 10px; }
-    .cam-corner-br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 10px 0; }
-
-    /* Laser scan line */
-    @keyframes scanLine {
-      0%   { top: 8%; opacity: 1; }
-      48%  { opacity: 1; }
-      50%  { top: 88%; opacity: 0.6; }
-      100% { top: 8%; opacity: 1; }
-    }
-    .cam-laser {
-      position: absolute;
-      left: 6%; right: 6%;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #fc4f62, #ff8096, #fc4f62, transparent);
-      border-radius: 2px;
-      animation: scanLine 2s ease-in-out infinite;
-      box-shadow: 0 0 8px 2px rgba(252,79,98,0.5);
-    }
-
-    .cam-status {
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #0d1117;
-    }
-    .cam-status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #fc4f62;
-      animation: pulse 1.4s ease-in-out infinite;
-      flex-shrink: 0;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.4; transform: scale(0.7); }
-    }
-    .cam-status-text {
-      color: #94a3b8;
-      font-size: 13px;
-      font-weight: 500;
-    }
-    .cam-status-text strong { color: #e2e8f0; }
-
-    .cam-manual-row {
-      padding: 0 20px 16px;
-      display: flex;
-      gap: 8px;
-      background: #0d1117;
-    }
-    .cam-manual-input {
-      flex: 1;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 2px solid #2d3748;
-      background: #1a2135;
-      color: #e2e8f0;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .cam-manual-input::placeholder { color: #4a5568; }
-    .cam-manual-input:focus { border-color: #fc4f62; }
-    .cam-confirm-btn {
-      padding: 10px 18px;
-      border-radius: 10px;
-      border: none;
-      background: #fc4f62;
-      color: #fff;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.18s;
-      white-space: nowrap;
-    }
-    .cam-confirm-btn:hover { background: #e03a52; }
-
-    .cam-result-banner {
-      display: none;
-      margin: 0 20px 16px;
-      padding: 12px 16px;
-      border-radius: 12px;
-      background: #1a3a2a;
-      border: 2px solid #2f9e44;
-      color: #6fcf97;
-      font-weight: 700;
-      font-size: 14px;
-      gap: 10px;
-      align-items: center;
-    }
-    .cam-result-banner.visible { display: flex; }
-    .cam-result-banner i { font-size: 18px; color: #2f9e44; }
-
-    .cam-error-banner {
-      display: none;
-      margin: 0 20px 16px;
-      padding: 10px 14px;
-      border-radius: 10px;
-      background: #3a1a1a;
-      border: 2px solid #c92a2a;
-      color: #f87171;
-      font-size: 13px;
-      gap: 8px;
-      align-items: center;
-    }
-    .cam-error-banner.visible { display: flex; }
-  </style>
 </head>
 
 <body>
@@ -641,7 +48,7 @@ display: block;
   </div>
 
   <!-- AUTH SCREEN -->
-  <div id="auth-screen" style="display:none;">
+  <div id="auth-screen">
     <div class="auth-card">
       <div class="auth-logo">
         <div class="logo-icon">🏪</div>
@@ -664,10 +71,10 @@ display: block;
             placeholder="Colmado El Buen Precio"></div>
         <div class="form-group">
           <label>Tipo de Negocio</label>
-          <div id="reg-tipo-btns" style="display:flex;gap:8px;margin-top:4px;">
-            <button type="button" class="tipo-negocio-btn activo" data-tipo="colmado" onclick="selTipoNegocio('reg','colmado')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #1971c2;background:#eff6ff;color:#1971c2;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🏪</span>Colmado</button>
-            <button type="button" class="tipo-negocio-btn" data-tipo="restaurante" onclick="selTipoNegocio('reg','restaurante')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #e2e8f0;background:#f8f9ff;color:#4a5568;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🍽️</span>Restaurante</button>
-            <button type="button" class="tipo-negocio-btn" data-tipo="bebida" onclick="selTipoNegocio('reg','bebida')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #e2e8f0;background:#f8f9ff;color:#4a5568;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🍹</span>Bebidas</button>
+          <div id="reg-tipo-btns" class="tipo-negocio-btns">
+            <button type="button" class="tipo-negocio-btn activo" data-tipo="colmado" onclick="selTipoNegocio('reg','colmado')"><span style="font-size:1.4rem;">🏪</span>Colmado</button>
+            <button type="button" class="tipo-negocio-btn" data-tipo="restaurante" onclick="selTipoNegocio('reg','restaurante')"><span style="font-size:1.4rem;">🍽️</span>Restaurante</button>
+            <button type="button" class="tipo-negocio-btn" data-tipo="bebida" onclick="selTipoNegocio('reg','bebida')"><span style="font-size:1.4rem;">🍹</span>Bebidas</button>
           </div>
           <input type="hidden" id="reg-tipo" value="colmado">
         </div>
@@ -688,45 +95,45 @@ display: block;
   </div>
 
   <!-- NEGOCIO SELECTOR SCREEN -->
-  <div id="negocio-selector-screen" style="display:none;">
+  <div id="negocio-selector-screen">
     <div class="auth-card" style="max-width:520px;">
       <div class="auth-logo">
         <div class="logo-icon">🏪</div>
         <h1>miColmApp</h1>
         <p id="ns-bienvenida">Selecciona un negocio para administrar</p>
       </div>
-      <div id="ns-lista" style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px;"></div>
-      <button class="btn-primary" onclick="abrirAgregarNegocio()" style="background:linear-gradient(135deg,#1971c2,#1864ab);margin-bottom:10px;">
+      <div id="ns-lista" class="ns-lista"></div>
+      <button class="btn-primary btn-primary-azul" onclick="abrirAgregarNegocio()">
         <i class="fas fa-plus-circle"></i> Agregar otro negocio
       </button>
-      <button onclick="logoutTotal()" style="background:none;border:none;color:#aab4c8;font-size:13px;cursor:pointer;width:100%;padding:8px;text-align:center;">
+      <button onclick="logoutTotal()" class="btn-logout-total">
         <i class="fas fa-sign-out-alt"></i> Cerrar sesión completamente
       </button>
     </div>
   </div>
 
   <!-- AGREGAR NEGOCIO MODAL (en selector) -->
-  <div id="ns-modal-nuevo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
-    <div class="auth-card" style="max-width:480px;width:90%;max-height:90vh;overflow-y:auto;position:relative;">
-      <button onclick="cerrarAgregarNegocio()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#aaa;">✕</button>
-      <div class="auth-logo" style="margin-bottom:16px;">
+  <div id="ns-modal-nuevo">
+    <div class="auth-card ns-modal-card">
+      <button onclick="cerrarAgregarNegocio()" class="ns-modal-close">✕</button>
+      <div class="auth-logo ns-modal-logo">
         <div class="logo-icon" style="font-size:1.8rem;">🏪</div>
         <h2 style="font-size:1.3rem;margin:4px 0;">Registrar Nuevo Negocio</h2>
       </div>
       <div class="form-group"><label>Nombre del Negocio</label><input type="text" id="ns-reg-nombre" placeholder="Colmado El Buen Precio"></div>
       <div class="form-group">
         <label>Tipo de Negocio</label>
-        <div id="ns-reg-tipo-btns" style="display:flex;gap:8px;margin-top:4px;">
-          <button type="button" class="tipo-negocio-btn activo" data-tipo="colmado" onclick="selTipoNegocio('ns','colmado')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #1971c2;background:#eff6ff;color:#1971c2;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🏪</span>Colmado</button>
-          <button type="button" class="tipo-negocio-btn" data-tipo="restaurante" onclick="selTipoNegocio('ns','restaurante')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #e2e8f0;background:#f8f9ff;color:#4a5568;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🍽️</span>Restaurante</button>
-          <button type="button" class="tipo-negocio-btn" data-tipo="bebida" onclick="selTipoNegocio('ns','bebida')" style="flex:1;padding:10px 6px;border-radius:10px;border:2px solid #e2e8f0;background:#f8f9ff;color:#4a5568;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:1.4rem;">🍹</span>Bebidas</button>
+        <div id="ns-reg-tipo-btns" class="tipo-negocio-btns">
+          <button type="button" class="tipo-negocio-btn activo" data-tipo="colmado" onclick="selTipoNegocio('ns','colmado')"><span style="font-size:1.4rem;">🏪</span>Colmado</button>
+          <button type="button" class="tipo-negocio-btn" data-tipo="restaurante" onclick="selTipoNegocio('ns','restaurante')"><span style="font-size:1.4rem;">🍽️</span>Restaurante</button>
+          <button type="button" class="tipo-negocio-btn" data-tipo="bebida" onclick="selTipoNegocio('ns','bebida')"><span style="font-size:1.4rem;">🍹</span>Bebidas</button>
         </div>
         <input type="hidden" id="ns-reg-tipo" value="colmado">
       </div>
       <div class="form-group"><label>RNC (opcional)</label><input type="text" id="ns-reg-rnc" placeholder="101-12345-6"></div>
       <div class="form-group"><label>Dirección</label><input type="text" id="ns-reg-direccion" placeholder="Calle Duarte #5, Santo Domingo"></div>
       <div class="form-group"><label>Teléfono</label><input type="text" id="ns-reg-telefono" placeholder="809-555-0000"></div>
-      <div id="ns-reg-msg" style="margin-bottom:8px;font-size:13px;min-height:20px;"></div>
+      <div id="ns-reg-msg" class="ns-reg-msg"></div>
       <button class="btn-primary" onclick="registrarNuevoNegocio()"><i class="fas fa-store"></i> Crear Negocio</button>
     </div>
   </div>
@@ -779,7 +186,7 @@ display: block;
         </div>
         <!-- COLUMNA CENTRAL: Productos -->
 
-        <div style="display: inline-flex;width: 100%;gap: 0.3rem;">
+        <div id="pos-main-wrapper">
           <div class="pos-center">
             <div class="pos-search-bar">
               <div style="position:relative;display:flex;align-items:center;flex:1;min-width:0;">
@@ -798,7 +205,7 @@ display: block;
                   oninput="_getTabActiva()&&(_getTabActiva().direccion=this.value,_guardarTabsEnStorage());_syncClearBtn('pos-direccion-cliente','pos-dir-clear');">
                 <button id="pos-dir-clear"
                   onclick="document.getElementById('pos-direccion-cliente').value='';_getTabActiva()&&(_getTabActiva().direccion='',_guardarTabsEnStorage());_syncClearBtn('pos-direccion-cliente','pos-dir-clear');"
-                  style="display:none;background:none;border:none;cursor:pointer;color:#aaa;font-size:15px;padding:0 4px;align-items:center;justify-content:center;line-height:1;flex-shrink:0;"
+                  class="pos-dir-clear"
                   title="Limpiar dirección">&#x2715;</button>
               </div>
               <button class="icon-btn grid-btn" id="btn-grid-grande" onclick="setGridSize('grande')">
@@ -831,6 +238,7 @@ display: block;
           <!-- COLUMNA DERECHA: Carrito -->
           <div class="pos-right" id="pos-right">
             <div class="carrito-header">
+              <button id="mob-btn-volver-productos" onclick="mobToggleCarrito()" title="Volver a productos"><i class="fas fa-arrow-left"></i> Productos</button>
               <h3><i class="fas fa-shopping-cart"></i> Carrito</h3>
               <span class="carrito-count" id="carrito-count">0</span>
             </div>
@@ -845,11 +253,10 @@ display: block;
                   0.00</span>
               </div>
               <div class="totales-row total"><span>Total</span><span id="cart-total">RD$ 0.00</span></div>
-              <div style="display:flex;gap:8px;">
-                <button class="btn-facturar" id="btn-vaciar-carrito"
-                  style="background:#aab4c8;flex:0 0 auto;padding:0 18px;width: 120px;transition:background 0.18s ease,box-shadow 0.18s ease;"
+              <div class="btn-facturar-row">
+                <button class="btn-facturar btn-vaciar-carrito" id="btn-vaciar-carrito"
                   onclick="abrirModalVaciarCarrito()"><i class="fas fa-trash"></i> Vaciar</button>
-                <button class="btn-facturar" style="flex:1;" onclick="abrirModalFacturar()"><i
+                <button class="btn-facturar" onclick="abrirModalFacturar()"><i
                     class="fas fa-receipt"></i>
                   Facturar</button>
               </div>
@@ -858,12 +265,10 @@ display: block;
                   <canvas id="firmaCanvas" class="dibujo-canvas"></canvas>
                 </div>
               </div>
-              <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
-                <button class="btn-dibujo-principal" id="btn-toggle-dibujo" onclick="toggleDibujo()"
-                  style="margin-top:0;flex:1;"><i id="icon-toggle-dibujo" class="fas fa-arrow-up"></i> Agregar
+              <div class="dibujo-btn-row">
+                <button class="btn-dibujo-principal" id="btn-toggle-dibujo" onclick="toggleDibujo()"><i id="icon-toggle-dibujo" class="fas fa-arrow-up"></i> Agregar
                   Nota</button>
-                <button class="btn-dibujo-sm rojo" onclick="limpiarDibujo()"
-                  style="height:100%;padding:12px 16px;border-radius:40px;"><i class="fas fa-trash-alt"></i>
+                <button class="btn-dibujo-sm rojo" onclick="limpiarDibujo()"><i class="fas fa-trash-alt"></i>
                   Limpiar</button>
               </div>
             </div>
@@ -874,13 +279,13 @@ display: block;
 
       <!-- CAJA PAGE -->
       <div class="page" id="page-caja">
-        <div style="max-width:900px;width:100%;">
-          <div style="margin-bottom:20px;">
+        <div class="page-inner-caja">
+          <div class="page-head-simple">
             <div class="page-title">Sistema de Caja</div>
             <div class="page-subtitle">Control de apertura, cierre y movimientos</div>
           </div>
           <div class="caja-estado-card" id="caja-estado-card"></div>
-          <div class="caja-movimientos" style="margin-top:20px;">
+          <div class="caja-movimientos mt-20">
             <div class="section-header">
               <h3><i class="fas fa-list"></i> Movimientos de Hoy</h3><button class="btn-sm verde"
                 onclick="exportarMovimientos()"><i class="fas fa-download"></i> Exportar</button>
@@ -900,7 +305,7 @@ display: block;
               </table>
             </div>
           </div>
-          <div class="caja-movimientos" style="margin-top:20px;">
+          <div class="caja-movimientos mt-20">
             <div class="section-header">
               <h3><i class="fas fa-history"></i> Historial de Cajas</h3>
             </div>
@@ -925,9 +330,8 @@ display: block;
 
       <!-- FACTURAS PAGE -->
       <div class="page" id="page-facturas">
-        <div style="width:100%;">
-          <div
-            style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div class="page-inner-full">
+          <div class="page-head">
             <div>
               <div class="page-title">Facturas</div>
               <div class="page-subtitle">Consulta y gestión de facturas</div>
@@ -935,20 +339,17 @@ display: block;
           </div>
 
           <!-- TABS PENDIENTES / PAGADAS -->
-          <div style="display:flex;gap:10px;margin-bottom:18px;">
-            <button id="btn-tab-pendientes" onclick="switchFacturasTab('pendientes')"
-              style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:40px;border:2px solid #f59f00;background:#f59f00;color:#fff;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.18s;box-shadow:0 2px 10px rgba(245,159,0,0.3);">
+          <div class="facturas-tabs-row">
+            <button id="btn-tab-pendientes" class="tab-btn-pendientes" onclick="switchFacturasTab('pendientes')">
               <i class="fas fa-clock"></i> Pagos Pendientes
-              <span id="badge-pendientes"
-                style="background:white;color:#e67700;border-radius:10px;font-size:12px;font-weight:800;padding:1px 8px;min-width:20px;text-align:center;">0</span>
+              <span id="badge-pendientes" class="badge-pendientes-count">0</span>
             </button>
-            <button id="btn-tab-pagadas" onclick="switchFacturasTab('pagadas')"
-              style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:40px;border:2px solid #aab4c8;background:white;color:#4a5568;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.18s;">
+            <button id="btn-tab-pagadas" class="tab-btn-pagadas" onclick="switchFacturasTab('pagadas')">
               <i class="fas fa-check-circle"></i> Facturas Pagadas
             </button>
           </div>
 
-          <div class="facturas-filtros" style="margin-bottom:16px;">
+          <div class="facturas-filtros mb-20">
             <input type="text" id="fact-buscar" placeholder="Buscar por # o cliente..." oninput="filtrarFacturas()">
             <input type="date" id="fact-fecha-ini" onchange="filtrarFacturas()">
             <input type="date" id="fact-fecha-fin" onchange="filtrarFacturas()">
@@ -983,25 +384,22 @@ display: block;
 
       <!-- INVENTARIO PAGE -->
       <div class="page" id="page-inventario">
-        <div style="width:100%;">
-          <div
-            style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div class="page-inner-full">
+          <div class="page-head">
             <div>
               <div class="page-title">Inventario</div>
               <div class="page-subtitle">Gestión de productos y categorías</div>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;">
+            <div class="inv-head-actions">
               <button class="btn-ordenar" id="btn-modo-ordenar" onclick="toggleModoOrden()"><i
-                  class="fas fa-arrows-alt"></i> Ordenar<span class="guardando-orden" id="guardando-orden-indicator" style="margin-left:6px;"><i class="fas fa-circle-notch fa-spin"></i> Guardando...</span></button>
+                  class="fas fa-arrows-alt"></i> Ordenar<span class="guardando-orden" id="guardando-orden-indicator"><i class="fas fa-circle-notch fa-spin"></i> Guardando...</span></button>
               <button class="btn-sm verde" id="btn-cat-accion" onclick="abrirModalCategoria()"><i class="fas fa-folder-plus"></i> Categoría</button>
             </div>
           </div>
-          <div class="inv-controles"
-            style="margin-bottom:16px;display:flex;gap:12px;align-items:center;position:relative;">
+          <div class="inv-controles inv-controles-wrap">
             <input type="text" id="inv-buscar" placeholder="Buscar productos..."
               oninput="filtrarInventarioBusqueda(this.value)" style="flex:1;min-width:200px;" autocomplete="off">
-            <div id="inv-buscar-dropdown"
-              style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:2px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:100;max-height:320px;overflow-y:auto;margin-top:4px;">
+            <div id="inv-buscar-dropdown" class="inv-buscar-dropdown">
             </div>
           </div>
           <div id="inv-contenido"></div>
@@ -1010,9 +408,8 @@ display: block;
 
       <!-- ESTADISTICAS PAGE -->
       <div class="page" id="page-estadisticas">
-        <div style="width:100%;">
-          <div
-            style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div class="page-inner-full">
+          <div class="page-head">
             <div>
               <div class="page-title">Estadísticas & Contabilidad</div>
               <div class="page-subtitle">Análisis de ventas y balance financiero</div>
@@ -1044,7 +441,7 @@ display: block;
               <div class="stat-label">Ticket Promedio</div>
             </div>
           </div>
-          <div class="charts-grid" style="margin-top:20px;">
+          <div class="charts-grid mt-20">
             <div class="chart-card">
               <h4>Ventas por Día</h4>
               <div class="chart-wrapper"><canvas id="chart-ventas"></canvas></div>
@@ -1054,8 +451,8 @@ display: block;
               <div class="chart-wrapper"><canvas id="chart-productos"></canvas></div>
             </div>
           </div>
-          <div style="margin-top:20px;">
-            <div class="page-title" style="font-size:18px;margin-bottom:12px;">📒 Contabilidad</div>
+          <div class="contab-section">
+            <div class="page-title contab-title">📒 Contabilidad</div>
             <div class="contab-grid">
               <div class="contab-card ingreso">
                 <h4>Ingresos (Ventas)</h4>
@@ -1071,21 +468,21 @@ display: block;
               </div>
             </div>
           </div>
-          <div class="chart-card" style="margin-top:20px;">
+          <div class="chart-card metodos-chart-card">
             <h4>Métodos de Pago</h4>
-            <div style="max-width:320px;margin:0 auto;"><canvas id="chart-metodos"></canvas></div>
+            <div class="metodos-chart-inner"><canvas id="chart-metodos"></canvas></div>
           </div>
         </div>
       </div>
 
       <!-- CONFIG PAGE -->
       <div class="page" id="page-config">
-        <div style="width:100%;max-width:900px;">
-          <div style="margin-bottom:20px;">
+        <div class="page-inner-config">
+          <div class="page-head-simple">
             <div class="page-title">Configuración</div>
             <div class="page-subtitle">Datos del negocio, impuestos y empleados</div>
           </div>
-          <div class="config-section" style="margin-bottom:20px;">
+          <div class="config-section mb-20">
             <div class="section-header">
               <h3><i class="fas fa-store"></i> Datos del Negocio</h3>
             </div>
@@ -1099,40 +496,29 @@ display: block;
                   placeholder="1"></div>
             </div>
             <!-- TELÉFONO Y WHATSAPP CON SELECTOR DE PAÍS -->
-            <div style="padding:0 20px 16px;">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px;">
+            <div class="cfg-section-pad">
+              <div class="cfg-tel-grid">
                 <div>
-                  <label style="font-size:13px;font-weight:700;color:#4a5568;display:block;margin-bottom:6px;"><i
-                      class="fas fa-phone" style="color:#1971c2;margin-right:5px;"></i> Teléfono de Contacto</label>
-                  <div style="display:flex;gap:6px;align-items:stretch;">
-                    <select id="cfg-tel-pais"
-                      style="flex-shrink:0;padding:9px 4px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:12px;outline:none;background:white;cursor:pointer;max-width:120px;"
-                      onchange="onChangeTelPais(this.value,'cfg-telefono','cfg-tel-preview')"></select>
-                    <input type="tel" id="cfg-telefono" placeholder="809-555-0000" style="flex:1;min-width:0;"
-                      oninput="autoDetectPaisTel(this.value,'cfg-tel-pais','cfg-tel-preview')">
+                  <label class="cfg-tel-label"><i class="fas fa-phone" style="color:#1971c2;"></i> Teléfono de Contacto</label>
+                  <div class="cfg-tel-row">
+                    <select id="cfg-tel-pais" class="cfg-tel-select" onchange="onChangeTelPais(this.value,'cfg-telefono','cfg-tel-preview')"></select>
+                    <input type="tel" id="cfg-telefono" class="cfg-tel-input" placeholder="809-555-0000" oninput="autoDetectPaisTel(this.value,'cfg-tel-pais','cfg-tel-preview')">
                   </div>
-                  <div id="cfg-tel-preview"
-                    style="font-size:11px;color:#1971c2;margin-top:4px;font-weight:600;min-height:16px;"></div>
+                  <div id="cfg-tel-preview" class="cfg-tel-preview tel"></div>
                 </div>
                 <div>
-                  <label style="font-size:13px;font-weight:700;color:#4a5568;display:block;margin-bottom:6px;"><i
-                      class="fab fa-whatsapp" style="color:#25D366;margin-right:5px;"></i> WhatsApp del Negocio</label>
-                  <div style="display:flex;gap:6px;align-items:stretch;">
-                    <select id="cfg-ws-pais"
-                      style="flex-shrink:0;padding:9px 4px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:12px;outline:none;background:white;cursor:pointer;max-width:120px;"
-                      onchange="onChangeTelPais(this.value,'cfg-whatsapp','cfg-ws-preview')"></select>
-                    <input type="tel" id="cfg-whatsapp" placeholder="809-555-0000" style="flex:1;min-width:0;"
-                      oninput="autoDetectPaisTel(this.value,'cfg-ws-pais','cfg-ws-preview')">
+                  <label class="cfg-tel-label"><i class="fab fa-whatsapp" style="color:#25D366;"></i> WhatsApp del Negocio</label>
+                  <div class="cfg-tel-row">
+                    <select id="cfg-ws-pais" class="cfg-tel-select" onchange="onChangeTelPais(this.value,'cfg-whatsapp','cfg-ws-preview')"></select>
+                    <input type="tel" id="cfg-whatsapp" class="cfg-tel-input" placeholder="809-555-0000" oninput="autoDetectPaisTel(this.value,'cfg-ws-pais','cfg-ws-preview')">
                   </div>
-                  <div id="cfg-ws-preview"
-                    style="font-size:11px;color:#25D366;margin-top:4px;font-weight:600;min-height:16px;"></div>
+                  <div id="cfg-ws-preview" class="cfg-tel-preview ws"></div>
                 </div>
               </div>
             </div>
-            <div style="padding:0 20px 20px;"><button class="btn-sm verde" onclick="guardarConfig()"><i
-                  class="fas fa-save"></i> Guardar Configuración</button></div>
+            <div class="cfg-save-pad"><button class="btn-sm verde" onclick="guardarConfig()"><i class="fas fa-save"></i> Guardar Configuración</button></div>
           </div>
-          <div class="config-section" style="margin-bottom:20px;">
+          <div class="config-section mb-20">
             <div class="section-header">
               <h3><i class="fas fa-percent"></i> Configuración de Impuestos (ITBIS)</h3>
             </div>
@@ -1145,8 +531,7 @@ display: block;
                   cliente</small></div><label class="toggle"><input type="checkbox" id="cfg-itbis-cliente" checked><span
                   class="toggle-slider"></span></label>
             </div>
-            <div style="padding:0 20px 20px;"><button class="btn-sm verde" onclick="guardarConfig()"><i
-                  class="fas fa-save"></i> Guardar</button></div>
+            <div class="cfg-save-pad"><button class="btn-sm verde" onclick="guardarConfig()"><i class="fas fa-save"></i> Guardar</button></div>
           </div>
           <div class="config-section">
             <div class="section-header">
@@ -1167,7 +552,7 @@ display: block;
     <div class="modal">
       <div class="modal-header">
         <h3><i class="fas fa-balance-scale"></i> Cantidad a detallar</h3>
-        <button class="modal-close" onclick="cerrarModal('modal-detalle-unidad')" style="display: none;">✕</button>
+        <button class="modal-close modal-close-hidden" onclick="cerrarModal('modal-detalle-unidad')">✕</button>
       </div>
       <div class="modal-body detalle-unidad-body">
         <div class="detalle-prod-nombre" id="du-nombre"></div>
@@ -1286,8 +671,7 @@ display: block;
           <!-- SECCIÓN EFECTIVO SIMPLE -->
           <div class="efectivo-section visible" id="efectivo-section">
             <div class="mf-seccion-label">Dinero Recibido</div>
-            <input type="number" id="monto-recibido"
-              style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-size:22px;font-family:var(--font-mono);outline:none;font-weight:700;box-sizing:border-box;"
+            <input type="number" id="monto-recibido" class="monto-recibido-input"
               placeholder="0.00" oninput="calcularCambio()">
             <div class="teclado-num mf-teclado">
               <button class="tec-btn" onclick="tecNumero('1')">1</button>
@@ -1306,216 +690,14 @@ display: block;
               <button class="tec-btn" onclick="tecNumero('0')">0</button>
               <button class="tec-btn verde" style="grid-column:span 2;" onclick="tecNumero('OK')">✓ OK</button>
             </div>
-            <div class="cambio-display" id="cambio-display" style="display:none;">
+            <div class="cambio-display" id="cambio-display">
               <span>💵 Cambio a entregar:</span><span id="cambio-valor">RD$ 0.00</span>
             </div>
           </div>
 
           <!-- SECCIÓN PAGO MIXTO -->
           <div id="mixto-section" style="display:none;">
-            <style>
-              .mixto-wrapper {
-                background: linear-gradient(135deg, #f0faf3 0%, #e8f4fd 100%);
-                border-radius: 14px;
-                padding: 14px;
-                border: 2px solid #b2dfdb;
-                margin-bottom: 4px;
-              }
-
-              .mixto-split-label {
-                font-size: 11px;
-                font-weight: 800;
-                letter-spacing: 1px;
-                text-transform: uppercase;
-                color: #4a5568;
-                margin-bottom: 8px;
-              }
-
-              .mixto-campo-activo {
-                border: 2px solid #1971c2 !important;
-                background: #fff !important;
-                box-shadow: 0 0 0 3px rgba(25, 113, 194, 0.18) !important;
-              }
-
-              .mixto-campo {
-                cursor: pointer;
-                transition: all 0.18s;
-                border: 2px solid #e2e8f0;
-                border-radius: 10px;
-                padding: 10px 14px;
-                background: white;
-                margin-bottom: 10px;
-              }
-
-              .mixto-campo-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 4px;
-              }
-
-              .mixto-campo-icon {
-                font-size: 18px;
-              }
-
-              .mixto-campo-nombre {
-                font-size: 12px;
-                font-weight: 700;
-                color: #4a5568;
-              }
-
-              .mixto-campo-val {
-                font-family: var(--font-mono);
-                font-size: 1.4rem;
-                font-weight: 800;
-                color: #1a2135;
-                min-height: 32px;
-                display: flex;
-                align-items: center;
-              }
-
-              .mixto-campo-val.placeholder {
-                color: #aab4c8;
-                font-size: 1rem;
-                font-weight: 400;
-              }
-
-              .mixto-resto-badge {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                font-size: 11px;
-                font-weight: 700;
-                padding: 2px 8px;
-                border-radius: 20px;
-                cursor: pointer;
-                transition: all 0.15s;
-              }
-
-              .mixto-resto-badge.verde {
-                background: #d4edda;
-                color: #155724;
-              }
-
-              .mixto-resto-badge.rojo {
-                background: #f8d7da;
-                color: #721c24;
-              }
-
-              .mixto-teclado {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 6px;
-                margin-top: 10px;
-              }
-
-              .mixto-key {
-                height: 46px;
-                border-radius: 10px;
-                border: none;
-                font-size: 1.1rem;
-                font-weight: 700;
-                background: white;
-                color: #1a2135;
-                cursor: pointer;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-                transition: all 0.1s;
-                font-family: var(--font-mono);
-                border: 2px solid #e2e8f0;
-              }
-
-              .mixto-key:active {
-                transform: scale(0.95);
-                background: #e8f0fe;
-              }
-
-              .mixto-key.del {
-                background: #fff5f5;
-                color: #e03131;
-                border-color: #ffc9c9;
-              }
-
-              .mixto-key.ok {
-                background: linear-gradient(135deg, #00b341, #1971c2);
-                color: white;
-                grid-column: span 3;
-                height: 42px;
-                font-size: 0.95rem;
-                border: none;
-                letter-spacing: 0.5px;
-              }
-
-              .mixto-key.ok:active {
-                transform: scale(0.98);
-                opacity: 0.9;
-              }
-
-              .mixto-resumen {
-                background: white;
-                border-radius: 10px;
-                padding: 10px 12px;
-                border: 1px solid #dee2e6;
-                margin-top: 10px;
-              }
-
-              .mixto-resumen-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                font-size: 13px;
-                padding: 3px 0;
-              }
-
-              .mixto-resumen-row .lbl {
-                color: #666;
-                font-weight: 600;
-              }
-
-              .mixto-resumen-row .val {
-                font-family: var(--font-mono);
-                font-weight: 700;
-                color: #1a2135;
-              }
-
-              .mixto-resumen-row.cambio-ok {
-                background: #d4edda;
-                border-radius: 6px;
-                padding: 5px 8px;
-                margin-top: 4px;
-              }
-
-              .mixto-resumen-row.cambio-falta {
-                background: #f8d7da;
-                border-radius: 6px;
-                padding: 5px 8px;
-                margin-top: 4px;
-              }
-
-              .mixto-sub-metodo-btns {
-                display: flex;
-                gap: 8px;
-                margin-bottom: 10px;
-              }
-
-              .mixto-sub-btn {
-                flex: 1;
-                padding: 8px 0;
-                border-radius: 8px;
-                border: 2px solid #e2e8f0;
-                background: #f1f3f5;
-                font-weight: 700;
-                font-size: 13px;
-                cursor: pointer;
-                transition: all 0.15s;
-                color: #4a5568;
-              }
-
-              .mixto-sub-btn.activo {
-                background: #1971c2;
-                border-color: #1971c2;
-                color: white;
-              }
-            </style>
+            
             <div class="mixto-wrapper">
               <div class="mixto-split-label">💳 + 💵 Pago Combinado</div>
               <div style="margin-bottom:10px;">
@@ -1712,20 +894,20 @@ display: block;
                 style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
                 <option value="">Selecciona categoría...</option>
               </select></div>
-            <div class="two-col">
+            <div class="two-col" id="precio-compra-label">
               <div class="form-group"><label>Precio Venta (RD$)</label><input type="number" id="prod-precio" placeholder="0.00" min="0" step="0.01"></div>
-              <div class="form-group"><label>Precio Compra / Costo (RD$)</label><input type="number" id="prod-costo" placeholder="0.00" min="0" step="0.01" value="0"></div>
+              <div class="form-group"><label>Precio Compra/Costo (RD$)</label><input type="number" id="prod-costo" placeholder="0.00" min="0" step="0.01" value="0"></div>
             </div>
             <!-- Toggle stock -->
             <div id="stock-toggle-wrap">
               <label class="mv-toggle-wrap" for="prod-stock-enabled">
                 <input type="checkbox" id="prod-stock-enabled" checked onchange="toggleStockFields()">
                 <span class="mv-toggle-track"></span>
-                <span style="font-weight:600;font-size:13px;">📦 Habilitar stock para este producto</span>
+                <span style="font-weight:600;font-size:13px;">Habilitar stock para este producto</span>
               </label>
             </div>
             <div id="stock-fields-wrap">
-              <div class="two-col">
+              <div class="two-col" id="precio-compra-label">
                 <div class="form-group"><label>Stock Actual</label><input type="number" id="prod-stock" placeholder="0" min="0"></div>
                 <div class="form-group"><label>Stock Mínimo</label><input type="number" id="prod-stock-min" placeholder="5" min="0"></div>
               </div>
@@ -1784,7 +966,7 @@ display: block;
       </div>
       <div class="modal-footer">
         <button id="btn-eliminar-producto" class="btn-sm rojo" style="display:none;margin-right:auto;"
-          onclick="eliminarProductoDesdeModal()"><i class="fas fa-trash"></i> Eliminar</button>
+          onclick="eliminarProductoDesdeModal()"><i class="fas fa-trash"></i></button>
         <button class="btn-sm gris"
           onclick="cerrarModal('modal-producto')">Cancelar</button><button class="btn-sm verde"
           onclick="guardarProducto()"><i class="fas fa-save"></i> Guardar</button>
@@ -1812,10 +994,10 @@ display: block;
       </div>
       <div class="modal-footer">
         <button id="btn-eliminar-categoria" class="btn-sm rojo" style="display:none;margin-right:auto;"
-          onclick="eliminarCategoriaDesdeModal()"><i class="fas fa-trash"></i> Eliminar</button>
+          onclick="eliminarCategoriaDesdeModal()"><i class="fas fa-trash"></i></button>
         <button class="btn-sm gris"
           onclick="cerrarModal('modal-categoria')">Cancelar</button><button class="btn-sm verde"
-          onclick="guardarCategoria()"><i class="fas fa-save"></i> Guardar Categoría</button>
+          onclick="guardarCategoria()"><i class="fas fa-save"></i> Guardar</button>
       </div>
     </div>
   </div>
@@ -2647,9 +1829,13 @@ display: block;
       selTipoNegocio('ns', 'colmado'); // resetear tipo al abrir
       document.getElementById('ns-reg-msg').textContent = '';
       document.getElementById('ns-modal-nuevo').style.display = 'flex';
+      _modalStack.push('ns-modal-nuevo');
+      history.pushState({ modalOpen: 'ns-modal-nuevo', stackLen: _modalStack.length }, '', window.location.href);
     };
     window.cerrarAgregarNegocio = () => {
       document.getElementById('ns-modal-nuevo').style.display = 'none';
+      const idx = _modalStack.lastIndexOf('ns-modal-nuevo');
+      if (idx !== -1) _modalStack.splice(idx, 1);
     };
 
     window.registrarNuevoNegocio = async () => {
@@ -2802,8 +1988,8 @@ display: block;
         { id: 'caja', label: 'Caja', icon: 'fa-cash-register', roles: ['admin', 'empleado'] },
         { id: 'facturas', label: 'Facturas', icon: 'fa-file-invoice', roles: ['admin', 'empleado'] },
         { id: 'inventario', label: 'Inventario', icon: 'fa-boxes', roles: ['admin'] },
-        { id: 'estadisticas', label: 'Stats', icon: 'fa-chart-line', roles: ['admin'] },
-        { id: 'config', label: 'Config', icon: 'fa-cog', roles: ['admin'] },
+        { id: 'estadisticas', label: 'Contab.', icon: 'fa-chart-line', roles: ['admin'] },
+        { id: 'config', label: 'Config.', icon: 'fa-cog', roles: ['admin'] },
       ];
       const visiblePages = pages.filter(p => p.roles.includes(userRole));
       const abierta = !!cajaActual;
@@ -2840,6 +2026,9 @@ display: block;
       if (btn) btn.classList.add('active');
       const mobBtn = document.getElementById(`mob-navbtn-${pageId}`);
       if (mobBtn) mobBtn.classList.add('active');
+      // FAB solo visible en la sección de facturación (POS)
+      document.body.classList.toggle('en-pos', pageId === 'pos');
+      if (window._actualizarVisibilidadFab) window._actualizarVisibilidadFab();
       if (pageId === 'estadisticas') { estadisticasHoy(); }
       if (pageId === 'inventario') { renderInventario(); populateCatSelects(); }
       if (pageId === 'config') { renderConfig(); renderEmpleados(); }
@@ -3778,6 +2967,7 @@ display: block;
       document.getElementById('cart-total').textContent = fmt(total);
       const btnVaciar = document.getElementById('btn-vaciar-carrito');
       if (btnVaciar) btnVaciar.style.background = carrito.length ? 'var(--rojo)' : '#aab4c8';
+      if (typeof window._actualizarFabBadge === 'function') window._actualizarFabBadge(carrito.length);
 
       // ── Efecto de iluminación al agregar producto ──
       if (_ultimoItemAgregado) {
@@ -5249,7 +4439,7 @@ display: block;
           <span class="orden-badge" style="background:#00b341;">${index + 1}</span>
           <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
           <div class="img-producto-inv" style="position:relative;">
-            ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : `<div class="prod-emoji-inv">📦</div>`}
+            ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'" style="">` : `<div class="prod-emoji-inv">📦</div>`}
             ${p.pesoNeto ? `<span class="peso-neto-badge">${escapeHtml(p.pesoNeto)}</span>` : ''}
           </div>
           <div class="prod-info-inv">
@@ -5868,13 +5058,60 @@ display: block;
     function fmt(val) { return `RD$ ${(val || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; }
     function fmtNum(val) { const n = parseFloat(val) || 0; if (Number.isInteger(n)) return n; const r = parseFloat(n.toFixed(2)); return Number.isInteger(r) ? r : r.toFixed(2); }
 
-    window.abrirModal = (id) => document.getElementById(id)?.classList.add('visible');
-    window.cerrarModal = (id) => document.getElementById(id)?.classList.remove('visible');
+    // ── MODAL HISTORY MANAGER ────────────────────────────────────────────
+    // Mantiene un stack de modales abiertos. Cada vez que se abre un modal
+    // se empuja una entrada al historial del navegador, y cuando el usuario
+    // presiona "atrás" (popstate) se cierra el modal más reciente en lugar
+    // de salir de la página.
+    const _modalStack = [];
+    window._modalStack = _modalStack;
+
+    window.abrirModal = (id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('visible');
+      _modalStack.push(id);
+      // Empujamos una entrada al historial para "capturar" el botón atrás
+      history.pushState({ modalOpen: id, stackLen: _modalStack.length }, '', window.location.href);
+    };
+
+    window.cerrarModal = (id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('visible');
+      // Quitar del stack (puede estar en cualquier posición si se cerró programáticamente)
+      const idx = _modalStack.lastIndexOf(id);
+      if (idx !== -1) _modalStack.splice(idx, 1);
+    };
+
+    // Interceptar el botón atrás del navegador / gesto en móvil
+    window.addEventListener('popstate', (e) => {
+      if (_modalStack.length > 0) {
+        // Cerrar el modal más reciente
+        const topId = _modalStack[_modalStack.length - 1];
+        const el = document.getElementById(topId);
+        if (el) el.classList.remove('visible');
+        _modalStack.pop();
+        // Si todavía quedan modales en el stack, re-empujamos una entrada
+        // para que el próximo "atrás" también sea interceptado
+        if (_modalStack.length > 0) {
+          history.pushState({ modalOpen: _modalStack[_modalStack.length - 1], stackLen: _modalStack.length }, '', window.location.href);
+        }
+      }
+    });
+
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => {
         // El modal-producto NO se cierra al hacer clic afuera
         if (overlay.id === 'modal-producto') return;
-        if (e.target === overlay) overlay.classList.remove('visible');
+        if (e.target === overlay) {
+          // Usar cerrarModal para que también limpie el stack y el historial
+          if (_modalStack.length > 0) {
+            history.back(); // dispara popstate → cierra el modal
+          } else {
+            overlay.classList.remove('visible');
+          }
+        }
       });
     });
 
@@ -6282,11 +5519,19 @@ display: block;
       document.getElementById('cam-manual-input').value = '';
       _setStatus('Iniciando cámara...');
       _iniciarCamara();
+      if (window._modalStack) {
+        window._modalStack.push('modal-camara-scanner');
+        history.pushState({ modalOpen: 'modal-camara-scanner', stackLen: window._modalStack.length }, '', window.location.href);
+      }
     };
 
     window.cerrarCamaraScanner = function() {
       _detenerCamara();
       document.getElementById('modal-camara-scanner').classList.remove('visible');
+      if (window._modalStack) {
+        const idx = window._modalStack.lastIndexOf('modal-camara-scanner');
+        if (idx !== -1) window._modalStack.splice(idx, 1);
+      }
     };
 
     window.confirmarCodigoCamara = function() {
@@ -6395,6 +5640,82 @@ display: block;
     });
   })();
   </script>
+
+  <!-- ===== MOBILE FAB: toggle productos ↔ carrito ===== -->
+  <button id="mob-carrito-fab" onclick="mobToggleCarrito()">
+    <span class="fab-icon"><i id="fab-icon-i" class="fas fa-shopping-cart"></i></span>
+    <span id="fab-label">Ver Carrito</span>
+    <span class="fab-badge" id="fab-badge">0</span>
+  </button>
+
+  <script>
+  // ═══════════════════════════════════════════════
+  //  MOBILE POS TOGGLE — productos ↔ carrito
+  //  FAB solo visible en sección Facturación (POS)
+  // ═══════════════════════════════════════════════
+  (function () {
+    let _mobVistaCarrito = false;
+
+    function _esMobile() { return window.innerWidth <= 768; }
+
+    // Mostrar/ocultar FAB según la página activa
+    window._actualizarVisibilidadFab = function () {
+      const fab    = document.getElementById('mob-carrito-fab');
+      const enPos  = document.body.classList.contains('en-pos');
+      if (!fab) return;
+      fab.style.display = (_esMobile() && enPos) ? 'flex' : 'none';
+    };
+
+    window.mobToggleCarrito = function (forzar) {
+      if (typeof forzar === 'boolean') _mobVistaCarrito = forzar;
+      else _mobVistaCarrito = !_mobVistaCarrito;
+      _aplicarVista();
+    };
+
+    function _aplicarVista() {
+      if (!_esMobile()) return;
+      const posRight  = document.getElementById('pos-right');
+      const posCenter = document.querySelector('.pos-center');
+      const fab       = document.getElementById('mob-carrito-fab');
+      const fabLabel  = document.getElementById('fab-label');
+      const fabIcon   = document.getElementById('fab-icon-i');
+      if (!posRight || !posCenter || !fab) return;
+
+      if (_mobVistaCarrito) {
+        posRight.classList.add('mob-visible');
+        posCenter.classList.add('mob-hidden');
+        fab.classList.add('modo-carrito');
+        fabLabel.textContent = 'Ver Productos';
+        fabIcon.className = 'fas fa-store';
+      } else {
+        posRight.classList.remove('mob-visible');
+        posCenter.classList.remove('mob-hidden');
+        fab.classList.remove('modo-carrito');
+        fabLabel.textContent = 'Ver Carrito';
+        fabIcon.className = 'fas fa-shopping-cart';
+      }
+    }
+
+    window._actualizarFabBadge = function (n) {
+      const badge = document.getElementById('fab-badge');
+      if (!badge) return;
+      badge.textContent = n;
+      badge.classList.toggle('visible', n > 0);
+    };
+
+    window.addEventListener('resize', () => {
+      if (!_esMobile()) {
+        const posRight  = document.getElementById('pos-right');
+        const posCenter = document.querySelector('.pos-center');
+        if (posRight)  posRight.classList.remove('mob-visible');
+        if (posCenter) posCenter.classList.remove('mob-hidden');
+        _mobVistaCarrito = false;
+      }
+      window._actualizarVisibilidadFab();
+    });
+  })();
+  </script>
+
 </body>
 
 </html>
