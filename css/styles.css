@@ -2007,8 +2007,7 @@ body {
 }
 
 .cat-card-inv img {
-  width: 64px;
-  height: 64px;
+  height: 100px;
   object-fit: cover;
   border-radius: 12px;
   background: var(--gris-bg);
@@ -3834,10 +3833,6 @@ body {
 
 #btn-volver-cats {
   width: 100%;
-}
-
-.precio-venta {
-  font-size: .7rem;
 }
 
 .prod-precios-inv {
