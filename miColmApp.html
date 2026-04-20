@@ -4358,7 +4358,7 @@
       if (busqueda) prods = prods.filter(p => p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigoBarras || '').includes(busqueda));
       if (!area) return;
 
-      const header = `<div class="productos-header-inv"><button class="back-btn" onclick="volverCategoriasInventario()"><i class="fas fa-arrow-left"></i> Categorías</button><strong>${categoria?.nombre || 'Productos'}</strong><button class="btn-sm verde" onclick="abrirModalProductoDesdeCategoria('${categoriaId}')" style="margin-left:auto;"><i class="fas fa-plus"></i> Producto</button></div>`;
+      const header = `<div class="productos-header-inv"><div><button class="back-btn" onclick="volverCategoriasInventario()"><i class="fas fa-arrow-left"></i> Categorías</button></div><div style="text-align: center; width: 140px;"><strong>${categoria?.nombre || 'Productos'}</strong></div><div><button class="btn-sm verde" onclick="abrirModalProductoDesdeCategoria('${categoriaId}')" style="margin-left:auto;"><i class="fas fa-plus"></i> Producto</button></div></div>`;
 
       if (!prods.length) {
         area.innerHTML = header + `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos en esta categoría</p></div>`;
