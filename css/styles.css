@@ -1951,7 +1951,7 @@ body {
   font-size: 14px;
   outline: none;
   transition: border-color .2s;
-      width: 100%;
+  width: 100%;
 }
 
 .inv-controles select {
@@ -2090,6 +2090,20 @@ body {
 .prod-card-inv.sin-stock {
   opacity: .7;
   background: #f8f9fa;
+}
+
+.img-producto-inv {
+  flex-shrink: 0;
+  width: 100%;
+  height: 134px;
+  background: #d0d8e800;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: #a0aec0;
+  padding: 4px;
 }
 
 .prod-card-inv img {
@@ -3806,6 +3820,211 @@ body {
   display: flex;
 }
 
+
+
+.productos-header-inv .btn-sm {
+  order: 3;
+  margin-left: 0;
+  padding: 10px 10px;
+}
+
+.inv-controles {
+  flex-direction: column;
+}
+
+#btn-volver-cats {
+  width: 100%;
+}
+
+.precio-venta {
+  font-size: .7rem;
+}
+
+.prod-precios-inv {
+  margin-bottom: 0;
+}
+
+.cat-actions-inv {
+  margin-bottom: 0;
+  padding: 2px 6px;
+}
+
+.prod-stock-inv {
+  font-size: .5rem;
+  border-radius: 5px;
+  padding: 2px 7px;
+  background: #e9e6e6;
+  margin-bottom: 0;
+}
+
+.prod-info-inv {
+  padding: 5px;
+}
+
+/* ── Modal producto full screen ── */
+#modal-producto {
+  padding: 0 !important;
+  align-items: flex-end !important;
+}
+
+#modal-producto .modal.large {
+  max-width: 100% !important;
+  width: 100% !important;
+  max-height: 100dvh !important;
+  height: 100dvh !important;
+  border-radius: 0 !important;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideUp .28s cubic-bezier(.34, 1.08, .64, 1) !important;
+}
+
+#modal-producto .modal-header {
+  flex-shrink: 0;
+  border-radius: 0 !important;
+  background: linear-gradient(135deg, #1a2135, #243050) !important;
+  border-bottom: none !important;
+}
+
+#modal-producto .modal-header h3 {
+  color: white !important;
+  font-size: 1.05rem !important;
+}
+
+#modal-producto .modal-close {
+  background: rgba(255, 255, 255, .15) !important;
+  color: white !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  font-size: 18px !important;
+}
+
+#modal-producto .modal-close:hover {
+  background: rgba(255, 255, 255, .25) !important;
+}
+
+#modal-producto .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+#modal-producto .modal-footer {
+  flex-shrink: 0;
+  padding: 9px 12px !important;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+  gap: 10px !important;
+  background: #f4f6f9 !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+#modal-producto .two-col {
+  grid-template-columns: 1fr !important;
+}
+
+#modal-producto .modal-body>.two-col>div:first-child>.two-col:first-child {
+  grid-template-columns: 1fr 90px !important;
+}
+
+#modal-producto .file-upload-area {
+  min-height: 120px !important;
+  padding: 16px !important;
+}
+
+#modal-producto .modal-footer .btn-sm {
+  flex: 1;
+  padding: 13px 10px !important;
+  font-size: 14px !important;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  max-width: none !important;
+}
+
+#modal-producto .modal-footer #btn-eliminar-producto {
+  flex: none !important;
+  width: 46px !important;
+  padding: 13px !important;
+  border-radius: 10px !important;
+}
+
+#modal-producto .mv-toggle-wrap {
+  flex-wrap: wrap;
+}
+
+#modal-producto .form-group {
+  margin-bottom: 14px;
+}
+
+#modal-producto .form-group input,
+#modal-producto .form-group select {
+  padding: 13px 16px;
+  font-size: 15px;
+}
+
+#mas-vendidos-toggle-wrap {
+  margin-bottom: 8px;
+}
+
+/* ── Modales genéricos ── */
+.modal-overlay:not(#modal-producto) {
+  padding: 12px !important;
+  align-items: flex-end !important;
+}
+
+.modal:not(.large) {
+  border-radius: 20px 20px 12px 12px !important;
+  max-height: 92dvh !important;
+}
+
+.modal-overlay {
+  padding: 0;
+  align-items: flex-end;
+}
+
+.modal {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  max-height: 95dvh;
+  border-radius: 20px 20px 0 0;
+}
+
+.modal-header {
+  border-radius: 20px 20px 0 0;
+}
+
+.modal-footer {
+  border-radius: 0;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+}
+
+.modal-facturar-wide {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  border-radius: 20px 20px 0 0;
+}
+
+.modal-facturar-wide .modal-body.modal-facturar-body {
+  flex-direction: column;
+  overflow-y: auto !important;
+}
+
+.mf-col-factura {
+  border-right: none;
+  border-bottom: 2px solid #e2e8f0;
+  max-height: 280px;
+}
+
+.mf-col-pago {
+  width: 100%;
+  min-width: 0;
+}
+
+
+
 /* ════════════════════════════════════════════════════════════
    MOBILE BOTTOM NAV
    ════════════════════════════════════════════════════════════ */
@@ -4423,7 +4642,7 @@ body {
 
   /* ── Inventario ── */
   #page-inventario {
-    padding: 1rem .4rem 2rem;
+    padding: 0.4rem 0.6rem;
   }
 
   .categorias-grid-inv {
@@ -4453,219 +4672,39 @@ body {
     font-size: 15px;
   }
 
-  .productos-header-inv {
+  .page-head {
+    margin-bottom: 10px;
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
+  }
+
+  .inv-controles input {
+    padding: 9px 16px;
+  }
+
+  .inv-controles-wrap {
+    margin-bottom: 10px;
+  }
+
+  .productos-header-inv {
+    gap: 4px;
+    margin-bottom: 10px;
   }
 
   .productos-header-inv .back-btn {
     order: 1;
+    padding: 10px 10px;
   }
 
   .productos-header-inv strong {
     order: 2;
-  }
-
-  .productos-header-inv .btn-sm {
-    order: 3;
-    margin-left: 0 !important;
-  }
-
-  .inv-controles {
-    flex-direction: column;
-  }
-
-  #btn-volver-cats {
-    width: 100%;
-  }
-
-  .precio-venta {
-    font-size: .7rem;
-  }
-
-  .prod-precios-inv {
-    margin-bottom: 0;
-  }
-
-  .cat-actions-inv {
-    margin-bottom: 0;
-    padding: 2px 6px;
-  }
-
-  .prod-stock-inv {
-    font-size: .5rem;
-    border-radius: 5px;
-    padding: 2px 7px;
-    background: #e9e6e6;
-    margin-bottom: 0;
-  }
-
-  .prod-info-inv {
-    padding: 5px;
-  }
-
-  /* ── Modal producto full screen ── */
-  #modal-producto {
-    padding: 0 !important;
-    align-items: flex-end !important;
-  }
-
-  #modal-producto .modal.large {
-    max-width: 100% !important;
-    width: 100% !important;
-    max-height: 100dvh !important;
-    height: 100dvh !important;
-    border-radius: 0 !important;
-    display: flex;
-    flex-direction: column;
-    animation: modalSlideUp .28s cubic-bezier(.34, 1.08, .64, 1) !important;
-  }
-
-  #modal-producto .modal-header {
-    flex-shrink: 0;
-    border-radius: 0 !important;
-    background: linear-gradient(135deg, #1a2135, #243050) !important;
-    border-bottom: none !important;
-  }
-
-  #modal-producto .modal-header h3 {
-    color: white !important;
-    font-size: 1.05rem !important;
-  }
-
-  #modal-producto .modal-close {
-    background: rgba(255, 255, 255, .15) !important;
-    color: white !important;
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 10px !important;
-    font-size: 18px !important;
-  }
-
-  #modal-producto .modal-close:hover {
-    background: rgba(255, 255, 255, .25) !important;
-  }
-
-  #modal-producto .modal-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  #modal-producto .modal-footer {
-    flex-shrink: 0;
-    padding: 9px 12px !important;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
-    gap: 10px !important;
-    background: #f4f6f9 !important;
-    border-top: 1px solid #e2e8f0 !important;
-  }
-
-  #modal-producto .two-col {
-    grid-template-columns: 1fr !important;
-  }
-
-  #modal-producto .modal-body>.two-col>div:first-child>.two-col:first-child {
-    grid-template-columns: 1fr 90px !important;
-  }
-
-  #modal-producto .file-upload-area {
-    min-height: 120px !important;
-    padding: 16px !important;
-  }
-
-  #modal-producto .modal-footer .btn-sm {
-    flex: 1;
-    padding: 13px 10px !important;
-    font-size: 14px !important;
+    width: 147px;
     text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    max-width: none !important;
+    font-size: 1rem;
   }
 
-  #modal-producto .modal-footer #btn-eliminar-producto {
-    flex: none !important;
-    width: 46px !important;
-    padding: 13px !important;
-    border-radius: 10px !important;
-  }
-
-  #modal-producto .mv-toggle-wrap {
-    flex-wrap: wrap;
-  }
-
-  #modal-producto .form-group {
-    margin-bottom: 14px;
-  }
-
-  #modal-producto .form-group input,
-  #modal-producto .form-group select {
-    padding: 13px 16px;
-    font-size: 15px;
-  }
-
-  #mas-vendidos-toggle-wrap {
-    margin-bottom: 8px;
-  }
-
-  /* ── Modales genéricos ── */
-  .modal-overlay:not(#modal-producto) {
-    padding: 12px !important;
-    align-items: flex-end !important;
-  }
-
-  .modal:not(.large) {
-    border-radius: 20px 20px 12px 12px !important;
-    max-height: 92dvh !important;
-  }
-
-  .modal-overlay {
-    padding: 0;
-    align-items: flex-end;
-  }
-
-  .modal {
-    max-width: 100vw !important;
-    width: 100vw !important;
-    max-height: 95dvh;
-    border-radius: 20px 20px 0 0;
-  }
-
-  .modal-header {
-    border-radius: 20px 20px 0 0;
-  }
-
-  .modal-footer {
-    border-radius: 0;
-    padding-bottom: max(14px, env(safe-area-inset-bottom));
-  }
-
-  .modal-facturar-wide {
-    max-width: 100vw !important;
-    width: 100vw !important;
-    border-radius: 20px 20px 0 0;
-  }
-
-  .modal-facturar-wide .modal-body.modal-facturar-body {
-    flex-direction: column;
-    overflow-y: auto !important;
-  }
-
-  .mf-col-factura {
-    border-right: none;
-    border-bottom: 2px solid #e2e8f0;
-    max-height: 280px;
-  }
-
-  .mf-col-pago {
-    width: 100%;
-    min-width: 0;
-  }
 }
+
 
 /* ── 600px: inventario 3 por fila ── */
 @media (max-width: 600px) {
@@ -4715,11 +4754,6 @@ body {
     font-size: 9px !important;
   }
 
-  .productos-header-inv {
-    flex-wrap: wrap !important;
-    gap: 6px !important;
-    font-size: 13px !important;
-  }
 }
 
 /* ════════════════════════════════════════════════════════════
