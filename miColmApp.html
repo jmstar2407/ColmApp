@@ -151,6 +151,10 @@
         </div>
       </div>
       <div class="nav-spacer"></div>
+      <!-- MODO PRUEBA BADGE -->
+      <div id="modo-prueba-badge" style="display:none;align-items:center;gap:6px;background:#f59f00;color:#1a2135;font-weight:800;font-size:12px;padding:5px 12px;border-radius:20px;white-space:nowrap;letter-spacing:0.3px;flex-shrink:0;">
+        <i class="fas fa-flask"></i> MODO DE PRUEBA
+      </div>
       <div class="nav-datetime" id="nav-datetime"></div>
       <div class="nav-buttons" id="nav-buttons"></div>
 
@@ -533,6 +537,29 @@
             </div>
             <div class="cfg-save-pad"><button class="btn-sm verde" onclick="guardarConfig()"><i class="fas fa-save"></i> Guardar</button></div>
           </div>
+          <!-- MODO DE PRUEBA -->
+          <div class="config-section mb-20" id="cfg-modo-prueba-section">
+            <div class="section-header">
+              <h3><i class="fas fa-flask"></i> Modo de Prueba</h3>
+            </div>
+            <div class="toggle-row modo-prueba-toggle-row">
+              <div>
+                <label style="font-weight:700;font-size:14px;color:#1a2135;">Activar Modo de Prueba</label>
+                <small style="display:block;margin-top:3px;color:#718096;font-size:12px;line-height:1.5;">
+                  En modo de prueba las facturas <strong>no se guardan</strong> en la base de datos y el stock de los productos <strong>no se descuenta</strong>. Ideal para capacitar al personal o probar flujos sin afectar datos reales.
+                </small>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-modo-prueba" onchange="toggleModoPrueba(this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="modo-prueba-warning" style="display:none;margin:12px 16px 16px;padding:12px 16px;background:#fff3cd;border:1px solid #f59f00;border-radius:10px;font-size:13px;color:#7d5a00;font-weight:600;">
+              <i class="fas fa-exclamation-triangle" style="color:#f59f00;margin-right:6px;"></i>
+              Modo de prueba ACTIVO — Las facturas no se guardarán ni afectarán el inventario.
+            </div>
+          </div>
+
           <div class="config-section">
             <div class="section-header">
               <h3><i class="fas fa-users"></i> Empleados</h3><button class="btn-sm verde"
@@ -1243,6 +1270,30 @@
     let productos = [];
     let cajaActual = null;
     let config = { itbisPct: 18, itbisCliente: true, ncfPrefijo: 'B01', ncfSeq: 1 };
+    let modoPrueba = false; // Modo de prueba: no guarda facturas ni descuenta stock
+
+    window.toggleModoPrueba = (activo) => {
+      modoPrueba = activo;
+      // Guardar en localStorage para persistir por sesión
+      try { localStorage.setItem(`modo_prueba_${negocioId || 'default'}`, activo ? '1' : '0'); } catch(e) {}
+      _aplicarModoPrueba();
+    };
+
+    function _aplicarModoPrueba() {
+      const badge  = document.getElementById('modo-prueba-badge');
+      const warn   = document.getElementById('modo-prueba-warning');
+      const chk    = document.getElementById('cfg-modo-prueba');
+      if (badge) badge.style.display = modoPrueba ? 'flex' : 'none';
+      if (warn)  warn.style.display  = modoPrueba ? 'block' : 'none';
+      if (chk)   chk.checked = modoPrueba;
+      // Cambiar color del navbar brand icon para indicar modo prueba
+      const brandIcon = document.querySelector('.navbar .brand-icon');
+      if (brandIcon) {
+        brandIcon.style.background = modoPrueba
+          ? 'linear-gradient(135deg, #f59f00, #e67700)'
+          : 'var(--verde)';
+      }
+    }
     let facturasPendientes = [];
     let facturasCache = [];
     let movimientosCache = [];
@@ -1907,6 +1958,12 @@
       if (cfgSnap.exists()) config = { ...config, ...cfgSnap.data() };
       document.getElementById('nav-negocio-nombre').textContent = negocioData.nombre || 'Mi Colmado';
       buildNavbar();
+      // Restaurar modo prueba desde localStorage
+      try {
+        const savedModo = localStorage.getItem(`modo_prueba_${negocioId}`);
+        if (savedModo !== null) modoPrueba = savedModo === '1';
+      } catch(e) {}
+      _aplicarModoPrueba();
 
       // ── CARGA INSTANTÁNEA DESDE CACHÉ LOCAL ──────────────────────────────
       // Renderizar categorías y productos al instante sin esperar a Firebase
@@ -2469,8 +2526,8 @@
       const stockValDisplay = stockHab ? fmtNum(p.stock) : '∞';
       const stockHtml = `Stock: ${stockValDisplay}${unidadBadge}`;
       const imagenHtml = p.imagen
-        ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;>📦</div>'">`
-        : `<div class="prod-emoji">📦</div>`;
+        ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;><i class=&quot;fas fa-shopping-cart&quot;></i></div>'">`
+        : `<div class="prod-emoji"><i class="fas fa-shopping-cart"></i></div>`;
       const pesoNetoHtml = p.pesoNeto ? `<span class="peso-neto-badge">${escapeHtml(p.pesoNeto)}</span>` : '';
       return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')"><div class="product-image" style="position:relative;">${imagenHtml}${pesoNetoHtml}</div><div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
     }
@@ -3353,6 +3410,7 @@
     window.procesarComoPendiente = async () => {
       estadoFacturaSeleccionado = 'pendiente';
       await confirmarFactura();
+      // estadoFacturaSeleccionado se resetea a 'pagada' dentro de confirmarFactura()
     };
 
     window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente !== false ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); if (recibido > 0) { disp.style.display = 'flex'; document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { disp.style.display = 'none'; } actualizarBtnConfirmar(); };
@@ -3360,82 +3418,270 @@
     window.tecNumero = (val) => { const inp = document.getElementById('monto-recibido'); if (val === 'C') { inp.value = ''; } else if (val === '⌫') { inp.value = inp.value.slice(0, -1); } else if (val === 'OK') { calcularCambio(); return; } else { inp.value += val; } calcularCambio(); };
 
     window.confirmarFactura = async () => {
+      // ── 1. Determinar estado ──────────────────────────────────────
       if (!estadoFacturaSeleccionado) estadoFacturaSeleccionado = 'pagada';
-      if (estadoFacturaSeleccionado === 'pagada' && metodoPagoSeleccionado === 'efectivo') {
-        const montoRec = parseFloat(document.getElementById('monto-recibido').value);
-        if (!montoRec || montoRec <= 0) {
-          toast('Ingresa el monto recibido en efectivo para confirmar la factura', 'error');
-          return;
+      const esPendiente = estadoFacturaSeleccionado === 'pendiente';
+
+      // ── 2. Validaciones de carrito ────────────────────────────────
+      const carrito = getCarrito();
+      if (!carrito.length) {
+        toast('El carrito está vacío', 'error');
+        return;
+      }
+
+      // ── 3. Validaciones de pago (solo para facturas pagadas) ──────
+      if (!esPendiente) {
+        if (metodoPagoSeleccionado === 'efectivo') {
+          const montoRec = parseFloat(document.getElementById('monto-recibido').value) || 0;
+          if (montoRec <= 0) {
+            toast('Ingresa el monto recibido en efectivo', 'error');
+            return;
+          }
+          const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+          const itbisCliente = config.itbisCliente !== false;
+          const total = subtotal * (1 + (itbisCliente ? (config.itbisPct || 18) / 100 : 0));
+          if (montoRec < total) {
+            toast(`Monto insuficiente. El total es ${fmt(total)}`, 'error');
+            return;
+          }
+        }
+        if (metodoPagoSeleccionado === 'mixto') {
+          const ef   = parseFloat(_mixtoEfStr)   || 0;
+          const elec = parseFloat(_mixtoElecStr)  || 0;
+          const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+          const itbisCliente = config.itbisCliente !== false;
+          const total = subtotal * (1 + (itbisCliente ? (config.itbisPct || 18) / 100 : 0));
+          if (ef <= 0 && elec <= 0) {
+            toast('Ingresa los montos del pago mixto', 'error');
+            return;
+          }
+          if ((ef + elec) < total - 0.01) {
+            toast(`El total pagado (${fmt(ef + elec)}) no cubre el monto de la factura (${fmt(total)})`, 'error');
+            return;
+          }
         }
       }
-      // Validar pago mixto
-      if (estadoFacturaSeleccionado === 'pagada' && metodoPagoSeleccionado === 'mixto') {
-        const ef = parseFloat(_mixtoEfStr) || 0;
-        const elec = parseFloat(_mixtoElecStr) || 0;
-        const subtotal = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
-        const itbisPct = config.itbisPct || 18;
-        const itbisCliente = config.itbisCliente !== false;
-        const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
-        if (ef <= 0 && elec <= 0) { toast('Ingresa los montos del pago mixto', 'error'); return; }
-        if ((ef + elec) < total) { toast('El total pagado no cubre el monto de la factura', 'error'); return; }
-      }
-      const btn = document.getElementById('btn-confirmar-factura');
-      btn.innerHTML = '<span class="loader"></span> Procesando...';
-      btn.disabled = true;
-      try {
-        const subtotal = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+
+      // ── 4. Bloquear botones mientras se procesa ───────────────────
+      const btnConfirmar = document.getElementById('btn-confirmar-factura');
+      const btnPendiente = document.getElementById('btn-pago-pendiente');
+      const btnCancelar  = document.getElementById('modal-facturar')?.querySelector('.btn-sm.gris');
+      [btnConfirmar, btnPendiente].forEach(b => { if (b) { b.disabled = true; } });
+      if (btnConfirmar) btnConfirmar.innerHTML = '<span class="loader"></span> Procesando...';
+      if (btnPendiente) btnPendiente.innerHTML = '<span class="loader"></span> Guardando...';
+
+      // ── MODO DE PRUEBA: simular factura sin guardar ni descontar stock ──
+      if (modoPrueba) {
+        const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
         const itbisPct = config.itbisPct || 18;
         const itbisCliente = config.itbisCliente !== false;
         const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
         const total = subtotal + itbis;
-        const empId = document.getElementById('fact-empleado').value;
-        const empNombre = empleadosCache.find(e => e.id === empId)?.nombre || await getEmpNombre();
+        const numFactura = `PRUEBA-${Date.now()}`;
+        const ncf = `${config.ncfPrefijo || 'B01'}${String(config.ncfSeq || 1).padStart(8, '0')}`;
+        const notaDibujo = (signaturePad && !signaturePad.isEmpty()) ? signaturePad.toDataURL() : null;
+        const direccionCliente = document.getElementById('pos-direccion-cliente')?.value.trim() || '';
+        const empId = document.getElementById('fact-empleado')?.value || '';
+        const empNombre = empleadosCache.find(e => e.id === empId)?.nombre || 'Sistema';
+        const montoRecibido = metodoPagoSeleccionado === 'efectivo'
+          ? (parseFloat(document.getElementById('monto-recibido').value) || total)
+          : total;
+
+        const facturaSimulada = {
+          numero: numFactura, ncf,
+          fecha: { toDate: () => new Date() },
+          items: carrito.map(i => {
+            const pb = i._precioBase || i.precio;
+            return { id: i.id, nombre: i.nombre, precio: pb, qty: i.qty, unidad: i.unidad || null, subtotal: pb * i.qty };
+          }),
+          subtotal, itbis, itbisPct, total,
+          metodoPago: metodoPagoSeleccionado,
+          montoRecibido,
+          estado: estadoFacturaSeleccionado,
+          empleadoId: empId, empleadoNombre: empNombre,
+          cajaId: cajaActual?.id || '',
+          uid: currentUser?.uid || '',
+          dibujoNota: notaDibujo,
+          ...(direccionCliente ? { direccionCliente } : {}),
+          ...(metodoPagoSeleccionado === 'mixto' ? {
+            mixtoEfectivo: parseFloat(_mixtoEfStr) || 0,
+            mixtoElectronico: parseFloat(_mixtoElecStr) || 0,
+            mixtoSubMetodo: _mixtoSubMetodo
+          } : {})
+        };
+
+        // Cerrar modal y limpiar sin tocar Firebase ni stock
+        cerrarModal('modal-facturar');
+        const tabActual = _getTabActiva();
+        if (tabActual) { tabActual.carrito = []; tabActual.direccion = ''; tabActual.dibujoDataURL = null; _guardarDibujoTab(tabActual.id, null); }
+        _guardarTabsEnStorage();
+        const dirInput = document.getElementById('pos-direccion-cliente');
+        if (dirInput) dirInput.value = '';
+        if (signaturePad) signaturePad.clear();
+        dibujoDataURL = null;
+        const montoInput = document.getElementById('monto-recibido');
+        if (montoInput) montoInput.value = '';
+        const cambioDisp = document.getElementById('cambio-display');
+        if (cambioDisp) cambioDisp.style.display = 'none';
+        estadoFacturaSeleccionado = 'pagada';
+        metodoPagoSeleccionado = 'efectivo';
+        _mixtoEfStr = ''; _mixtoElecStr = '';
+        renderCarrito(); renderFacturasTabs();
+
+        facturaActualParaImprimir = { ...facturaSimulada, id: 'prueba' };
+        mostrarTicket(facturaActualParaImprimir);
+        toast('🧪 Factura de prueba generada (no guardada, stock sin cambios)', 'warning', 5000);
+
+        if (btnConfirmar) { btnConfirmar.innerHTML = '<i class="fas fa-check"></i> Confirmar Factura'; btnConfirmar.disabled = false; }
+        if (btnPendiente) { btnPendiente.innerHTML = '<i class="fas fa-clock"></i> Pago Pendiente'; btnPendiente.disabled = false; }
+        return;
+      }
+
+      try {
+        // ── 5. Calcular totales ───────────────────────────────────────
+        const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+        const itbisPct = config.itbisPct || 18;
+        const itbisCliente = config.itbisCliente !== false;
+        const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
+        const total = subtotal + itbis;
+
+        // ── 6. Datos de empleado y NCF ────────────────────────────────
+        const empId = document.getElementById('fact-empleado')?.value || '';
+        const empNombre = empleadosCache.find(e => e.id === empId)?.nombre || 'Sistema';
         const ncfSeq = config.ncfSeq || 1;
         const ncf = `${config.ncfPrefijo || 'B01'}${String(ncfSeq).padStart(8, '0')}`;
         const numFactura = `F-${Date.now()}`;
         const notaDibujo = (signaturePad && !signaturePad.isEmpty()) ? signaturePad.toDataURL() : null;
         const direccionCliente = document.getElementById('pos-direccion-cliente')?.value.trim() || '';
+        const montoRecibido = metodoPagoSeleccionado === 'efectivo'
+          ? (parseFloat(document.getElementById('monto-recibido').value) || total)
+          : total;
 
-        const facturaData = { numero: numFactura, ncf, fecha: serverTimestamp(), items: getCarrito().map(i => { const pb = i._precioBase || i.precio; return { id: i.id, nombre: i.nombre, precio: pb, qty: i.qty, unidad: i.unidad || null, subtotal: pb * i.qty }; }), subtotal, itbis, itbisPct, total, metodoPago: metodoPagoSeleccionado, montoRecibido: parseFloat(document.getElementById('monto-recibido').value) || total, estado: estadoFacturaSeleccionado, empleadoId: empId, empleadoNombre: empNombre, cajaId: cajaActual.id, uid: currentUser.uid, dibujoNota: notaDibujo, ...(direccionCliente ? { direccionCliente } : {}), ...(metodoPagoSeleccionado === 'mixto' ? { mixtoEfectivo: parseFloat(_mixtoEfStr) || 0, mixtoElectronico: parseFloat(_mixtoElecStr) || 0, mixtoSubMetodo: _mixtoSubMetodo } : {}) };
+        // ── 7. Construir objeto factura ───────────────────────────────
+        const facturaData = {
+          numero: numFactura,
+          ncf,
+          fecha: serverTimestamp(),
+          items: carrito.map(i => {
+            const pb = i._precioBase || i.precio;
+            return { id: i.id, nombre: i.nombre, precio: pb, qty: i.qty, unidad: i.unidad || null, subtotal: pb * i.qty };
+          }),
+          subtotal,
+          itbis,
+          itbisPct,
+          total,
+          metodoPago: metodoPagoSeleccionado,
+          montoRecibido,
+          estado: estadoFacturaSeleccionado,
+          empleadoId: empId,
+          empleadoNombre: empNombre,
+          cajaId: cajaActual?.id || '',
+          uid: currentUser?.uid || '',
+          dibujoNota: notaDibujo,
+          ...(direccionCliente ? { direccionCliente } : {}),
+          ...(metodoPagoSeleccionado === 'mixto' ? {
+            mixtoEfectivo: parseFloat(_mixtoEfStr) || 0,
+            mixtoElectronico: parseFloat(_mixtoElecStr) || 0,
+            mixtoSubMetodo: _mixtoSubMetodo
+          } : {})
+        };
 
-        // Guardar en la colección correcta según el estado
+        // ── 8. Guardar en Firestore ───────────────────────────────────
         let factRef;
-        if (estadoFacturaSeleccionado === 'pendiente') {
+        if (esPendiente) {
           factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas-pendientes'), facturaData);
         } else {
           factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaData);
+          // Registrar movimiento de caja solo para facturas pagadas
+          await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), {
+            tipo: 'ingreso',
+            descripcion: `Venta ${numFactura}`,
+            monto: total,
+            fecha: serverTimestamp(),
+            uid: currentUser?.uid || '',
+            empleadoNombre: empNombre,
+            facturaId: factRef.id,
+            cajaId: cajaActual?.id || ''
+          });
+          // Actualizar saldo de caja
+          if (cajaActual?.id) {
+            cajaActual.ingresos = (cajaActual.ingresos || 0) + total;
+            await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), {
+              ingresos: cajaActual.ingresos
+            });
+          }
         }
-        if (estadoFacturaSeleccionado === 'pagada') {
-          await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'ingreso', descripcion: `Venta ${numFactura}`, monto: total, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, facturaId: factRef.id, cajaId: cajaActual.id });
-          await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { ingresos: (cajaActual.ingresos || 0) + total });
-        }
+
+        // ── 9. Actualizar NCF ─────────────────────────────────────────
         await updateDoc(doc(db, 'negocios', negocioId, 'configuraciones', 'general'), { ncfSeq: ncfSeq + 1 });
         config.ncfSeq = ncfSeq + 1;
+
+        // ── 10. Descontar stock ───────────────────────────────────────
         const batch = writeBatch(db);
-        for (const item of getCarrito()) {
+        for (const item of carrito) {
+          if (!item.categoriaId || !item.id) continue;
           const prodRef = doc(db, 'negocios', negocioId, 'categorias', item.categoriaId, 'productos', item.id);
-          batch.update(prodRef, { stock: (item.stock || 0) - item.qty });
+          const nuevoStock = Math.max(0, (item.stock || 0) - item.qty);
+          batch.update(prodRef, { stock: nuevoStock });
           const pi = productos.findIndex(p => p.id === item.id);
-          if (pi >= 0) productos[pi].stock -= item.qty;
+          if (pi >= 0) productos[pi].stock = nuevoStock;
         }
         await batch.commit();
         localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos));
+
+        // ── 11. Cerrar modal y limpiar carrito ────────────────────────
         cerrarModal('modal-facturar');
-        facturaActualParaImprimir = { ...facturaData, id: factRef.id };
-        mostrarTicket(facturaActualParaImprimir);
-        // Limpiar la tab activa
+
+        // Vaciar tab activa
         const tabActual = _getTabActiva();
-        if (tabActual) { tabActual.carrito = []; tabActual.direccion = ''; tabActual.dibujoDataURL = null; }
+        if (tabActual) {
+          tabActual.carrito = [];
+          tabActual.direccion = '';
+          tabActual.dibujoDataURL = null;
+          _guardarDibujoTab(tabActual.id, null);
+        }
         _guardarTabsEnStorage();
-        renderCarrito();
+
+        // Limpiar UI
         const dirInput = document.getElementById('pos-direccion-cliente');
         if (dirInput) dirInput.value = '';
         if (signaturePad) signaturePad.clear();
         dibujoDataURL = null;
-        toast('Factura generada exitosamente ✅', 'success');
-      } catch (e) { toast('Error al procesar: ' + e.message, 'error'); console.error(e); }
-      btn.innerHTML = '<i class="fas fa-check"></i> Confirmar Factura';
-      btn.disabled = false;
+        const montoInput = document.getElementById('monto-recibido');
+        if (montoInput) montoInput.value = '';
+        const cambioDisp = document.getElementById('cambio-display');
+        if (cambioDisp) cambioDisp.style.display = 'none';
+
+        // Resetear estado para la próxima factura
+        estadoFacturaSeleccionado = 'pagada';
+        metodoPagoSeleccionado = 'efectivo';
+        _mixtoEfStr = '';
+        _mixtoElecStr = '';
+
+        renderCarrito();
+        renderFacturasTabs();
+
+        // ── 12. Mostrar ticket y notificación ─────────────────────────
+        facturaActualParaImprimir = { ...facturaData, id: factRef.id };
+        mostrarTicket(facturaActualParaImprimir);
+
+        const tipoMsg = esPendiente ? '⏳ Factura guardada como pago pendiente' : '✅ Factura procesada exitosamente';
+        toast(tipoMsg, 'success', 4000);
+
+      } catch (e) {
+        console.error('Error al procesar factura:', e);
+        toast('Error al procesar la factura: ' + (e.message || 'Error desconocido'), 'error', 5000);
+      } finally {
+        // ── 13. Siempre restaurar botones ─────────────────────────────
+        if (btnConfirmar) {
+          btnConfirmar.innerHTML = '<i class="fas fa-check"></i> Confirmar Factura';
+          btnConfirmar.disabled = false;
+        }
+        if (btnPendiente) {
+          btnPendiente.innerHTML = '<i class="fas fa-clock"></i> Pago Pendiente';
+          btnPendiente.disabled = false;
+        }
+      }
     };
 
     function mostrarTicket(factura) { const body = document.getElementById('modal-ticket-body'); body.innerHTML = generarHTMLTicket(factura); abrirModal('modal-ticket'); }
@@ -4161,7 +4407,7 @@
           <span class="orden-badge" style="background:#e67700;">${index + 1}</span>
           <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
           <div class="img-producto-inv" style="position:relative;">
-            ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : `<div class="prod-emoji-inv">📦</div>`}
+            ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;><i class=&quot;fas fa-shopping-cart&quot;></i></div>'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : `<div class="prod-emoji-inv"><i class="fas fa-shopping-cart"></i></div>`}
             ${p.pesoNeto ? `<span class="peso-neto-badge">${escapeHtml(p.pesoNeto)}</span>` : ''}
           </div>
           <div class="prod-info-inv">
@@ -4439,7 +4685,7 @@
           <span class="orden-badge" style="background:#00b341;">${index + 1}</span>
           <div class="drag-grip-overlay"><i class="fas fa-grip-lines"></i></div>
           <div class="img-producto-inv" style="position:relative;">
-            ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;>📦</div>'" style="">` : `<div class="prod-emoji-inv">📦</div>`}
+            ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.outerHTML='<div class=&quot;prod-emoji-inv&quot;><i class=&quot;fas fa-shopping-cart&quot;></i></div>'" style="">` : `<div class="prod-emoji-inv"><i class="fas fa-shopping-cart"></i></div>`}
             ${p.pesoNeto ? `<span class="peso-neto-badge">${escapeHtml(p.pesoNeto)}</span>` : ''}
           </div>
           <div class="prod-info-inv">
@@ -4752,7 +4998,6 @@
           toast('Producto creado', 'success');
         }
         cerrarModal('modal-producto');
-        await cargarTodosProductos();
         renderInventario();
       } catch (e) {
         toast('Error: ' + e.message, 'error');
@@ -4761,7 +5006,7 @@
       }
     };
 
-    window.eliminarProducto = async (id) => { if (!confirm('¿Eliminar este producto?')) return; const p = productos.find(pr => pr.id === id); if (!p) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id)); toast('Producto eliminado', 'success'); await cargarTodosProductos(); renderInventario(); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+    window.eliminarProducto = async (id) => { if (!confirm('¿Eliminar este producto?')) return; const p = productos.find(pr => pr.id === id); if (!p) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id)); toast('Producto eliminado', 'success'); renderInventario(); } catch (e) { toast('Error: ' + e.message, 'error'); } };
 
     async function subirImagenBase64(dataUrl, path) { try { const imgRef = ref(storage, path); await uploadString(imgRef, dataUrl, 'data_url'); return await getDownloadURL(imgRef); } catch (e) { console.warn('Error subiendo imagen:', e); return dataUrl; } }
 
@@ -5016,6 +5261,12 @@
     // ==================== CONFIG ====================
     function renderConfig() {
       if (!negocioData) return;
+      // Cargar estado modo prueba desde localStorage
+      try {
+        const saved = localStorage.getItem(`modo_prueba_${negocioId}`);
+        if (saved !== null) modoPrueba = saved === '1';
+      } catch(e) {}
+      _aplicarModoPrueba();
       document.getElementById('cfg-nombre').value = negocioData.nombre || '';
       document.getElementById('cfg-rnc').value = negocioData.rnc || '';
       document.getElementById('cfg-direccion').value = negocioData.direccion || '';
@@ -5115,7 +5366,56 @@
       });
     });
 
-    function toast(msg, type, duration) { /* toasts desactivados */ }
+    function toast(msg, type = 'info', duration = 3200) {
+      // Eliminar toast previo si existe
+      const prev = document.getElementById('_toast_global');
+      if (prev) prev.remove();
+
+      const colors = {
+        success: { bg: '#00b341', icon: '✅' },
+        error:   { bg: '#e03131', icon: '❌' },
+        info:    { bg: '#1971c2', icon: 'ℹ️'  },
+        warning: { bg: '#f59f00', icon: '⚠️'  },
+      };
+      const c = colors[type] || colors.info;
+
+      const el = document.createElement('div');
+      el.id = '_toast_global';
+      el.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: ${c.bg};
+        color: white;
+        padding: 12px 22px;
+        border-radius: 40px;
+        font-family: var(--font-body);
+        font-size: 14px;
+        font-weight: 700;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.22);
+        z-index: 99999;
+        max-width: 90vw;
+        text-align: center;
+        opacity: 0;
+        transition: all 0.25s ease;
+        pointer-events: none;
+        white-space: pre-line;
+      `;
+      el.textContent = `${c.icon}  ${msg}`;
+      document.body.appendChild(el);
+
+      requestAnimationFrame(() => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateX(-50%) translateY(0)';
+      });
+
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(-50%) translateY(20px)';
+        setTimeout(() => el.remove(), 300);
+      }, duration);
+    }
     window.toast = toast;
 
     setTimeout(() => { if (document.getElementById('loading-screen').style.display !== 'none') { const authState = auth.currentUser; if (!authState) showScreen('auth'); } }, 2500);
