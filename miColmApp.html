@@ -158,6 +158,13 @@
       <div class="nav-datetime" id="nav-datetime"></div>
       <div class="nav-buttons" id="nav-buttons"></div>
 
+      <!-- FAB CARRITO en navbar (solo mobile + sección POS) -->
+      <button id="mob-carrito-fab" onclick="mobToggleCarrito()">
+        <span class="fab-icon"><i id="fab-icon-i" class="fas fa-shopping-cart"></i></span>
+        <span id="fab-label">Ver Carrito</span>
+        <span class="fab-badge" id="fab-badge">0</span>
+      </button>
+
       <!-- MENÚ 3 PUNTOS -->
       <div class="nav-menu-wrap" id="nav-menu-wrap">
         <button class="nav-menu-btn" id="nav-menu-btn" onclick="toggleNavMenu(event)" title="Opciones">
@@ -242,7 +249,6 @@
           <!-- COLUMNA DERECHA: Carrito -->
           <div class="pos-right" id="pos-right">
             <div class="carrito-header">
-              <button id="mob-btn-volver-productos" onclick="mobToggleCarrito()" title="Volver a productos"><i class="fas fa-arrow-left"></i> Productos</button>
               <h3><i class="fas fa-shopping-cart"></i> Carrito</h3>
               <span class="carrito-count" id="carrito-count">0</span>
             </div>
@@ -2063,13 +2069,19 @@
       // Mobile bottom nav
       const mobNav = document.getElementById('mobile-bottom-nav');
       if (mobNav) {
-        mobNav.innerHTML = visiblePages.map(p => {
+        const pagesHtml = visiblePages.map(p => {
           const dot = p.id === 'caja'
             ? `<span class="mob-caja-dot ${abierta ? 'abierta' : 'cerrada'}"></span>` : '';
           return `<button class="mob-nav-btn" id="mob-navbtn-${p.id}" onclick="showPage('${p.id}')">
             ${dot}<i class="fas ${p.icon}"></i><span>${p.label}</span>
           </button>`;
         }).join('');
+        // Slot para el botón de menú (3 puntos) — el elemento real se mueve aquí con CSS
+        mobNav.innerHTML = pagesHtml + '<div class="mob-nav-menu-slot" id="mob-nav-menu-slot"></div>';
+        // Mover el nav-menu-wrap al slot del bottom nav en móvil
+        const menuWrap = document.getElementById('nav-menu-wrap');
+        const slot = document.getElementById('mob-nav-menu-slot');
+        if (menuWrap && slot) slot.appendChild(menuWrap);
       }
     }
 
@@ -2584,7 +2596,20 @@
     // Restaurar tamaño de grid guardado
     (function () { const saved = localStorage.getItem('pos_grid_size'); if (saved === 'pequena' || saved === 'grande') { gridSize = saved; document.addEventListener('DOMContentLoaded', () => { const bg = document.getElementById('btn-grid-grande'); const bp = document.getElementById('btn-grid-peq'); if (bg) bg.classList.toggle('active', saved === 'grande'); if (bp) bp.classList.toggle('active', saved === 'pequena'); }); } })();
 
-    window.abrirScaner = () => { document.getElementById('scanner-input').value = ''; abrirModal('modal-scanner'); setTimeout(() => document.getElementById('scanner-input').focus(), 300); };
+    window.abrirScaner = () => {
+      if (window.innerWidth <= 768) {
+        // En móvil: abrir cámara scanner y dirigir resultado al buscador de productos
+        if (window.abrirCamaraScanner) {
+          // Usar un destino especial que agrega el producto al carrito por código de barras
+          window._scannerDestinoPos = true;
+          abrirCamaraScanner('pos-buscar');
+        }
+      } else {
+        document.getElementById('scanner-input').value = '';
+        abrirModal('modal-scanner');
+        setTimeout(() => document.getElementById('scanner-input').focus(), 300);
+      }
+    };
 
     window.buscarPorBarcode = () => { const codigo = document.getElementById('scanner-input').value.trim(); if (!codigo) return; const prod = productos.find(p => p.codigoBarras === codigo); if (prod) { agregarAlCarritoObj(prod); cerrarModal('modal-scanner'); } else { toast('Producto no encontrado con ese código', 'error'); } };
 
@@ -5908,7 +5933,32 @@
 
     function _entregarCodigo(code) {
       _mostrarResultado(code);
-      // Poner en el input destino
+
+      // Si viene del scanner de POS móvil, buscar por código de barras y agregar al carrito
+      if (window._scannerDestinoPos) {
+        window._scannerDestinoPos = false;
+        setTimeout(() => {
+          cerrarCamaraScanner();
+          if (window.productos) {
+            const prod = window.productos.find(p => p.codigoBarras === code);
+            if (prod) {
+              if (window.agregarAlCarrito) window.agregarAlCarrito(prod.id);
+              if (window.toast) toast('✅ ' + prod.nombre + ' agregado al carrito', 'success', 2500);
+            } else {
+              const inp = document.getElementById('pos-buscar');
+              if (inp) {
+                inp.value = code;
+                inp.dispatchEvent(new Event('input', { bubbles: true }));
+                if (window.buscarProductos) window.buscarProductos(code);
+              }
+              if (window.toast) toast('🔍 Buscando: ' + code, 'info', 2000);
+            }
+          }
+        }, 600);
+        return;
+      }
+
+      // Poner en el input destino (comportamiento normal)
       const inp = document.getElementById(_destino);
       if (inp) {
         inp.value = code;
@@ -5940,13 +5990,6 @@
     });
   })();
   </script>
-
-  <!-- ===== MOBILE FAB: toggle productos ↔ carrito ===== -->
-  <button id="mob-carrito-fab" onclick="mobToggleCarrito()">
-    <span class="fab-icon"><i id="fab-icon-i" class="fas fa-shopping-cart"></i></span>
-    <span id="fab-label">Ver Carrito</span>
-    <span class="fab-badge" id="fab-badge">0</span>
-  </button>
 
   <script>
   // ═══════════════════════════════════════════════

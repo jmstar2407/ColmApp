@@ -4154,28 +4154,25 @@ padding: 12px;
 }
 
 /* ════════════════════════════════════════════════════════════
-   FAB: Ver Carrito (solo visible en sección Facturación)
+   FAB: Ver Carrito — navbar button (solo mobile + sección POS)
    ════════════════════════════════════════════════════════════ */
 #mob-carrito-fab {
-  display: none;
-  position: fixed;
-  bottom: calc(118px + env(safe-area-inset-bottom, 0px) + 12px);
-  right: 14px;
-  z-index: 400;
+  display: none; /* oculto por defecto; visible solo en móvil+POS via JS */
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: #1a2135;
   color: white;
   border: none;
   border-radius: 50px;
-  padding: 12px 18px 12px 14px;
-  font-size: 15px;
+  padding: 8px 14px 8px 10px;
+  font-size: 14px;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(26, 33, 53, .35);
+  box-shadow: 0 2px 10px rgba(26, 33, 53, .3);
   transition: background .18s, transform .18s;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 #mob-carrito-fab:active {
@@ -4187,7 +4184,7 @@ padding: 12px;
 }
 
 #mob-carrito-fab .fab-icon {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
 }
 
@@ -4195,10 +4192,10 @@ padding: 12px;
   background: #fc4f62;
   color: white;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
-  padding: 1px 7px;
-  min-width: 20px;
+  padding: 1px 6px;
+  min-width: 18px;
   text-align: center;
   line-height: 1.6;
   display: none;
@@ -4537,9 +4534,45 @@ padding: 12px;
     width: 20px;
   }
 
-  /* ── Volver btn carrito ── */
-  #mob-btn-volver-productos {
-    display: inline-flex;
+  /* ── nav-menu-wrap: oculto en navbar, visible en bottom nav ── */
+  .navbar .nav-menu-wrap {
+    display: none !important;
+  }
+
+  /* ── Slot del menú 3 puntos en bottom nav ── */
+  .mob-nav-menu-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 54px;
+    border-left: 1px solid #e2e8f0;
+  }
+
+  .mob-nav-menu-slot .nav-menu-wrap {
+    display: flex !important;
+    position: static;
+    margin: 0;
+  }
+
+  .mob-nav-menu-slot .nav-menu-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #1a2135;
+  }
+
+  /* El dropdown del menú 3 puntos desde el bottom nav sube hacia arriba */
+  .mob-nav-menu-slot .nav-menu-dropdown {
+    position: fixed;
+    top: auto;
+    right: 8px;
+    left: 8px;
+    bottom: calc(54px + env(safe-area-inset-bottom, 0px) + 8px);
+    min-width: unset;
+    width: auto;
+    border-radius: 18px;
+    box-shadow: 0 -4px 32px rgba(26, 33, 53, .22), 0 2px 8px rgba(0, 0, 0, .1);
   }
 
   /* ── Charts ── */
@@ -4709,6 +4742,16 @@ font-size: .8rem;
         padding: 2px 5px;
   }
 
+  .btn-nueva-factura-tab {
+    width: 29px;
+    height: 26px;
+}
+
+.factura-tab .tab-close {
+    margin-left: 2px;
+
+}
+
 .productos-grid.grande {
     grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
 }
@@ -4740,9 +4783,9 @@ font-size: .8rem;
 
   /* Columna derecha (carrito): oculto por defecto en mobile, visible solo al presionar FAB */
   .pos-right {
-    width: 100%;
+    width: 100vw;
     min-width: unset;
-    max-width: unset;
+    max-width: 100vw;
     height: 100%;
     border-radius: 0;
     border-left: none;
@@ -4750,9 +4793,14 @@ font-size: .8rem;
     display: none;
     flex-direction: column;
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 10;
     background: white;
+    overflow-x: hidden;
+    box-sizing: border-box;
     transition: transform .3s cubic-bezier(.4, 0, .2, 1);
     transform: translateX(100%);
   }
@@ -4785,7 +4833,7 @@ font-size: .8rem;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  /* FAB: solo visible en móvil Y en page-pos */
+  /* FAB carrito en navbar: solo visible en móvil Y en page-pos */
   #mob-carrito-fab {
     display: none;
   }
