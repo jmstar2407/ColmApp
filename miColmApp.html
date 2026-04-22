@@ -155,6 +155,10 @@
       <div id="modo-prueba-badge" style="display:none;align-items:center;gap:6px;background:#f59f00;color:#1a2135;font-weight:800;font-size:12px;padding:5px 12px;border-radius:20px;white-space:nowrap;letter-spacing:0.3px;flex-shrink:0;">
         <i class="fas fa-flask"></i> MODO DE PRUEBA
       </div>
+      <!-- OFFLINE BADGE -->
+      <div id="offline-badge" style="display:none;align-items:center;gap:6px;background:#e03131;color:#fff;font-weight:800;font-size:12px;padding:5px 12px;border-radius:20px;white-space:nowrap;letter-spacing:0.3px;flex-shrink:0;cursor:default;" title="Sistema funcionando en modo offline. Los cambios se guardan localmente y se sincronizan automáticamente al volver la conexión.">
+        <i class="fas fa-wifi-slash"></i> SIN CONEXIÓN
+      </div>
       <div class="nav-datetime" id="nav-datetime"></div>
       <div class="nav-buttons" id="nav-buttons"></div>
 
@@ -403,6 +407,9 @@
             <div class="inv-head-actions">
               <button class="btn-ordenar" id="btn-modo-ordenar" onclick="toggleModoOrden()"><i
                   class="fas fa-arrows-alt"></i> Ordenar<span class="guardando-orden" id="guardando-orden-indicator"><i class="fas fa-circle-notch fa-spin"></i> Guardando...</span></button>
+              <button class="btn-sm azul" onclick="exportarInventarioCompleto()" title="Exportar todo el inventario con imágenes"><i class="fas fa-file-export"></i> Exportar</button>
+              <button class="btn-sm naranja" onclick="document.getElementById('inv-import-input').click()" title="Importar inventario desde archivo"><i class="fas fa-file-import"></i> Importar</button>
+              <input type="file" id="inv-import-input" accept=".json" style="display:none" onchange="importarInventarioCompleto(this)">
               <button class="btn-sm verde" id="btn-cat-accion" onclick="abrirModalCategoria()"><i class="fas fa-folder-plus"></i> Categoría</button>
             </div>
           </div>
@@ -410,6 +417,23 @@
             <input type="text" id="inv-buscar" placeholder="Buscar productos..."
               oninput="filtrarInventarioBusqueda(this.value)" style="flex:1;min-width:200px;" autocomplete="off">
             <div id="inv-buscar-dropdown" class="inv-buscar-dropdown">
+            </div>
+          </div>
+          <!-- PANEL ESTADÍSTICAS INVENTARIO -->
+          <div id="inv-stats-panel" style="display:flex;gap:12px;flex-wrap:wrap;margin:0 0 14px 0;">
+            <div style="display:flex;align-items:center;gap:10px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:10px 18px;flex:1;min-width:160px;">
+              <span style="font-size:1.6rem;">📦</span>
+              <div>
+                <div style="font-size:11px;color:#166534;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;">Productos Registrados</div>
+                <div id="inv-stat-total-prods" style="font-size:1.4rem;font-weight:800;color:#15803d;">0</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:10px 18px;flex:1;min-width:160px;">
+              <span style="font-size:1.6rem;">💰</span>
+              <div>
+                <div style="font-size:11px;color:#1e40af;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;">Dinero Invertido</div>
+                <div id="inv-stat-dinero" style="font-size:1.4rem;font-weight:800;color:#1d4ed8;">RD$ 0.00</div>
+              </div>
             </div>
           </div>
           <div id="inv-contenido"></div>
@@ -705,26 +729,23 @@
           <div class="efectivo-section visible" id="efectivo-section">
             <div class="mf-seccion-label">Dinero Recibido</div>
             <input type="number" id="monto-recibido" class="monto-recibido-input"
-              placeholder="0.00" oninput="calcularCambio()">
+              placeholder="0.00" oninput="calcularCambio()" style="text-align:right;">
+            <div class="cambio-display" id="cambio-display" style="display: flex; background: rgb(248, 215, 218);">
+              <span>💵 Cambio a entregar:</span><span id="cambio-valor">RD$ 0.00</span>
+            </div>
             <div class="teclado-num mf-teclado">
               <button class="tec-btn" onclick="tecNumero('1')">1</button>
               <button class="tec-btn" onclick="tecNumero('2')">2</button>
               <button class="tec-btn" onclick="tecNumero('3')">3</button>
-              <button class="tec-btn rojo" onclick="tecNumero('C')">C</button>
               <button class="tec-btn" onclick="tecNumero('4')">4</button>
               <button class="tec-btn" onclick="tecNumero('5')">5</button>
               <button class="tec-btn" onclick="tecNumero('6')">6</button>
-              <button class="tec-btn rojo" onclick="tecNumero('⌫')">⌫</button>
               <button class="tec-btn" onclick="tecNumero('7')">7</button>
               <button class="tec-btn" onclick="tecNumero('8')">8</button>
               <button class="tec-btn" onclick="tecNumero('9')">9</button>
-              <button class="tec-btn" onclick="tecNumero('00')">00</button>
-              <button class="tec-btn" onclick="tecNumero('.')">.</button>
+              <button class="tec-btn rojo" onclick="tecNumero('C')">C</button>
               <button class="tec-btn" onclick="tecNumero('0')">0</button>
-              <button class="tec-btn verde" style="grid-column:span 2;" onclick="tecNumero('OK')">✓ OK</button>
-            </div>
-            <div class="cambio-display" id="cambio-display">
-              <span>💵 Cambio a entregar:</span><span id="cambio-valor">RD$ 0.00</span>
+              <button class="tec-btn rojo" onclick="tecNumero('⌫')">⌫</button>
             </div>
           </div>
 
@@ -941,8 +962,8 @@
             </div>
             <div id="stock-fields-wrap">
               <div class="two-col" id="precio-compra-label">
-                <div class="form-group"><label>Stock Actual</label><input type="number" id="prod-stock" placeholder="0" min="0"></div>
-                <div class="form-group"><label>Stock Mínimo</label><input type="number" id="prod-stock-min" placeholder="5" min="0"></div>
+                <div class="form-group"><label>Stock Actual</label><input type="number" id="prod-stock" placeholder="0" min="0" step="0.01"></div>
+                <div class="form-group"><label>Stock Mínimo</label><input type="number" id="prod-stock-min" placeholder="5" min="0" step="0.01"></div>
               </div>
             </div>
             <div class="form-group">
@@ -1248,8 +1269,8 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, collectionGroup, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, Timestamp, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, collectionGroup, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot, Timestamp, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const firebaseConfig = {
@@ -1264,16 +1285,160 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+
+    // ── FIRESTORE con persistencia IndexedDB multi-pestaña (API moderna Firebase 10) ──
+    // persistentMultipleTabManager: todas las pestañas comparten el mismo caché IndexedDB
+    // onSnapshot sirve datos offline sin lecturas a red; escrituras se encolan offline
+    const db = initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    });
+
     const storage = getStorage(app);
 
-    // ==================== STATE ====================
+    // ── AUTH PERSISTENCE: mantener sesión entre recargas sin consulta extra ──
+    setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // SISTEMA OFFLINE COMPLETO — Cola de imágenes pendientes + indicadores
+    // ══════════════════════════════════════════════════════════════════════════
+
+    // ── Helper: ejecuta una operación Firestore con timeout offline ──────────
+    // Si no hay internet, Firestore encola la op internamente y resuelve
+    // INMEDIATAMENTE desde el caché local. Si hay red, resuelve con el servidor.
+    // Esto evita que los botones queden colgados con el spinner.
+    async function _fsOp(fn, timeoutMs = 4000) {
+      if (!navigator.onLine) {
+        // Sin red: ejecutar sin esperar confirmación del servidor
+        // Firestore offline encola la escritura y la resuelve del caché
+        try {
+          const result = await Promise.race([
+            fn(),
+            new Promise(res => setTimeout(() => res({ id: 'offline_' + Date.now() }), 800))
+          ]);
+          return result;
+        } catch(e) {
+          // Offline: ignorar error de red, devolver ID local
+          return { id: 'offline_' + Date.now() };
+        }
+      }
+      // Con red: ejecutar normalmente
+      return await fn();
+    }
+
+    // ── Cola de imágenes pendientes (base64 guardadas localmente hasta tener red) ──
+    const OFFLINE_IMG_QUEUE_KEY = 'offline_img_queue_v1';
+
+    function _getImgQueue() {
+      try { return JSON.parse(localStorage.getItem(OFFLINE_IMG_QUEUE_KEY) || '[]'); } catch { return []; }
+    }
+    function _saveImgQueue(queue) {
+      try { localStorage.setItem(OFFLINE_IMG_QUEUE_KEY, JSON.stringify(queue)); } catch(e) { console.warn('No se pudo guardar cola de imágenes:', e); }
+    }
+    function _addToImgQueue(entry) {
+      const queue = _getImgQueue();
+      // Reemplazar si ya existe el mismo path
+      const idx = queue.findIndex(e => e.path === entry.path);
+      if (idx >= 0) queue[idx] = entry; else queue.push(entry);
+      _saveImgQueue(queue);
+      _actualizarBadgePendientes();
+    }
+    function _removeFromImgQueue(path) {
+      const queue = _getImgQueue().filter(e => e.path !== path);
+      _saveImgQueue(queue);
+      _actualizarBadgePendientes();
+    }
+    // Actualiza el firestorePath de una entrada en la cola (útil cuando se crea un doc nuevo y se conoce su ID después)
+    function _actualizarFirestoreEnCola(dataUrlOrPath, firestorePath, field) {
+      const queue = _getImgQueue();
+      // Buscar por dataUrl (cuando no tenemos el path exacto)
+      const idx = queue.findIndex(e => e.dataUrl === dataUrlOrPath || e.path === dataUrlOrPath);
+      if (idx >= 0) {
+        queue[idx].firestorePath = firestorePath;
+        queue[idx].field = field || 'imagen';
+        _saveImgQueue(queue);
+      }
+    }
+
+    // ── Actualizar badge de operaciones pendientes ──
+    function _actualizarBadgePendientes() {
+      const queue = _getImgQueue();
+      const badge = document.getElementById('offline-badge');
+      if (!badge) return;
+      const offline = !navigator.onLine;
+      if (offline) {
+        badge.style.display = 'flex';
+        badge.innerHTML = '<i class="fas fa-wifi-slash"></i> SIN CONEXIÓN';
+      } else if (queue.length > 0) {
+        badge.style.display = 'flex';
+        badge.style.background = '#e67700';
+        badge.innerHTML = `<i class="fas fa-sync fa-spin"></i> Sincronizando ${queue.length} imagen${queue.length > 1 ? 'es' : ''}...`;
+      } else {
+        badge.style.display = 'none';
+        badge.style.background = '#e03131';
+      }
+    }
+
+    // ── Sincronizar imágenes pendientes cuando vuelve la conexión ──
+    async function _sincronizarImagenesPendientes() {
+      const queue = _getImgQueue();
+      if (!queue.length) return;
+      console.log(`[Offline] Sincronizando ${queue.length} imagen(es) pendiente(s)...`);
+      _actualizarBadgePendientes();
+
+      for (const entry of [...queue]) {
+        try {
+          const imgRef = ref(storage, entry.path);
+          await uploadString(imgRef, entry.dataUrl, 'data_url');
+          const downloadURL = await getDownloadURL(imgRef);
+          // Actualizar el documento en Firestore con la URL real
+          if (entry.firestorePath && entry.field) {
+            const parts = entry.firestorePath.split('/');
+            let docRef;
+            if (parts.length === 2) docRef = doc(db, parts[0], parts[1]);
+            else if (parts.length === 4) docRef = doc(db, parts[0], parts[1], parts[2], parts[3]);
+            else if (parts.length === 6) docRef = doc(db, parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]);
+            if (docRef) await updateDoc(docRef, { [entry.field]: downloadURL });
+          }
+          _removeFromImgQueue(entry.path);
+          console.log(`[Offline] Imagen sincronizada: ${entry.path}`);
+        } catch(e) {
+          console.warn(`[Offline] Error sincronizando imagen ${entry.path}:`, e);
+        }
+      }
+      _actualizarBadgePendientes();
+      const remaining = _getImgQueue().length;
+      if (remaining === 0) {
+        toast('✅ Datos sincronizados con Firebase', 'success', 3000);
+      }
+    }
+
+    // ── INDICADOR OFFLINE/ONLINE ──────────────────────────────────────────────
+    function _actualizarBadgeOffline() {
+      _actualizarBadgePendientes();
+    }
+    window.addEventListener('online', async () => {
+      _actualizarBadgePendientes();
+      // Esperar un momento para que Firebase se reconecte
+      setTimeout(async () => {
+        await _sincronizarImagenesPendientes();
+      }, 2000);
+    });
+    window.addEventListener('offline', _actualizarBadgeOffline);
+    _actualizarBadgeOffline(); // estado inicial
     let negocioId = null;
     let negocioData = null;
     let currentUser = null;
     let userRole = null;
     let categorias = [];
     let productos = [];
+
+    // Exponer al scope global para exportar/importar inventario
+    Object.defineProperty(window, '_db', { get: () => db, configurable: true });
+    Object.defineProperty(window, '_negocioId', { get: () => negocioId, configurable: true });
+    Object.defineProperty(window, 'categorias', { get: () => categorias, set: v => { categorias = v; }, configurable: true });
+    Object.defineProperty(window, 'productos', { get: () => productos, set: v => { productos = v; }, configurable: true });
+
+    let _invStats = { total: 0, unidades: 0, dinero: 0, porCategoria: {} }; // caché de estadísticas, se recalcula solo cuando productos cambia
     let cajaActual = null;
     let config = { itbisPct: 18, itbisCliente: true, ncfPrefijo: 'B01', ncfSeq: 1 };
     let modoPrueba = false; // Modo de prueba: no guarda facturas ni descuenta stock
@@ -1315,6 +1480,8 @@
     let facturaActualParaImprimir = null;
     let unsubCategorias = null;
     let _unsubProductos = {}; // suscripciones en tiempo real por categoría
+    let _unsubConfig = null;  // suscripción en tiempo real de configuración
+    let _unsubEmpleados = null; // suscripción en tiempo real de empleados
 
     // NUEVAS VARIABLES PARA DIBUJO
     let signaturePad = null;
@@ -1775,6 +1942,10 @@
       // Cancelar todas las suscripciones de productos por categoría
       Object.values(_unsubProductos).forEach(u => u && u());
       _unsubProductos = {};
+      // Cancelar suscripciones de config y empleados
+      if (_unsubConfig) { _unsubConfig(); _unsubConfig = null; }
+      if (_unsubEmpleados) { _unsubEmpleados(); _unsubEmpleados = null; }
+      empleadosCache = [];
       // Limpiar caché de grids DOM
       Object.keys(_gridCache).forEach(k => delete _gridCache[k]);
       categoriaActual = null;
@@ -1800,16 +1971,34 @@
         // Buscar todos los negocios donde el usuario es admin/empleado
         const negociosIds = await _obtenerNegociosDelUsuario(user);
         if (!negociosIds.length) {
-          lista.innerHTML = `<div style="text-align:center;padding:20px;color:#aab4c8;"><i class="fas fa-store-slash" style="font-size:2rem;display:block;margin-bottom:8px;"></i>No tienes ningún negocio registrado.<br>Agrega tu primer negocio.</div>`;
+          // Si offline, buscar en caché local
+          if (!navigator.onLine) {
+            lista.innerHTML = `<div style="text-align:center;padding:20px;color:#e67700;"><i class="fas fa-wifi-slash" style="font-size:2rem;display:block;margin-bottom:8px;"></i><strong>Sin conexión</strong><br><span style="font-size:13px;">Inicia sesión con internet al menos una vez para usar el modo offline.</span></div>`;
+          } else {
+            lista.innerHTML = `<div style="text-align:center;padding:20px;color:#aab4c8;"><i class="fas fa-store-slash" style="font-size:2rem;display:block;margin-bottom:8px;"></i>No tienes ningún negocio registrado.<br>Agrega tu primer negocio.</div>`;
+          }
           return;
         }
-        // Obtener datos de cada negocio
+        // Obtener datos de cada negocio (Firestore los sirve desde caché offline)
         const negocios = await Promise.all(negociosIds.map(async id => {
-          const snap = await getDoc(doc(db, 'negocios', id));
-          return snap.exists() ? { id, ...snap.data() } : null;
+          try {
+            const snap = await getDoc(doc(db, 'negocios', id));
+            if (snap.exists()) {
+              // Actualizar caché local
+              try { localStorage.setItem(`negocio_data_${id}`, JSON.stringify(snap.data())); } catch(e) {}
+              return { id, ...snap.data() };
+            }
+            // Fallback a caché local
+            const cached = localStorage.getItem(`negocio_data_${id}`);
+            return cached ? { id, ...JSON.parse(cached) } : null;
+          } catch(e) {
+            const cached = localStorage.getItem(`negocio_data_${id}`);
+            return cached ? { id, ...JSON.parse(cached) } : null;
+          }
         }));
         const negociosValidos = negocios.filter(Boolean);
-        lista.innerHTML = negociosValidos.map(neg => `
+        const offlineBanner = !navigator.onLine ? `<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#664d03;"><i class="fas fa-wifi-slash"></i> <strong>Modo offline</strong> — Los cambios se sincronizarán al volver la conexión</div>` : '';
+        lista.innerHTML = offlineBanner + negociosValidos.map(neg => `
           <div onclick="entrarAlNegocio('${neg.id}')" style="
             display:flex;align-items:center;gap:14px;
             background:#f8f9ff;border:2px solid #e2e8f0;border-radius:14px;
@@ -1863,18 +2052,49 @@
     window.entrarAlNegocio = async (negId) => {
       showScreen('loading');
       try {
+        // Firestore con persistentLocalCache sirve datos desde caché offline automáticamente
         const negSnap = await getDoc(doc(db, 'negocios', negId));
-        if (!negSnap.exists()) { toast('Negocio no encontrado', 'error'); showScreen('selector'); return; }
+        if (!negSnap.exists()) {
+          // Intentar cargar desde caché local si estamos offline
+          const cachedNeg = localStorage.getItem(`negocio_data_${negId}`);
+          if (cachedNeg) {
+            negocioId = negId;
+            negocioData = JSON.parse(cachedNeg);
+            userRole = localStorage.getItem(`negocio_role_${negId}_${currentUser.uid}`) || 'admin';
+            localStorage.setItem(`negocio_activo_${currentUser.uid}`, negId);
+            await initApp();
+            if (!navigator.onLine) toast('📱 Modo offline — datos del caché local', 'warning', 3000);
+            return;
+          }
+          toast('Negocio no encontrado', 'error'); showScreen('selector'); return;
+        }
         negocioId = negId;
         negocioData = negSnap.data();
+        // Guardar en caché local para modo offline
+        try { localStorage.setItem(`negocio_data_${negId}`, JSON.stringify(negocioData)); } catch(e) {}
         const empSnap = await getDoc(doc(db, 'negocios', negocioId, 'empleados', currentUser.uid));
         if (empSnap.exists()) { userRole = empSnap.data().rol; }
         else { userRole = negocioData.propietarioUid === currentUser.uid ? 'admin' : 'empleado'; }
+        try { localStorage.setItem(`negocio_role_${negId}_${currentUser.uid}`, userRole); } catch(e) {}
         // Recordar el negocio activo
         localStorage.setItem(`negocio_activo_${currentUser.uid}`, negId);
         localStorage.setItem(`negocio_${currentUser.uid}`, negId);
         await initApp();
+        if (!navigator.onLine) toast('📱 Modo offline — los cambios se sincronizarán al volver la conexión', 'warning', 4000);
       } catch (e) {
+        // Si falla por offline, intentar con caché local
+        if (!navigator.onLine || e.code === 'unavailable') {
+          const cachedNeg = localStorage.getItem(`negocio_data_${negId}`);
+          if (cachedNeg) {
+            negocioId = negId;
+            negocioData = JSON.parse(cachedNeg);
+            userRole = localStorage.getItem(`negocio_role_${negId}_${currentUser.uid}`) || 'admin';
+            localStorage.setItem(`negocio_activo_${currentUser.uid}`, negId);
+            try { await initApp(); } catch(e2) { console.error(e2); }
+            toast('📱 Modo offline — funcionando con datos locales', 'warning', 4000);
+            return;
+          }
+        }
         toast('Error al entrar al negocio: ' + e.message, 'error');
         showScreen('selector');
       }
@@ -1960,8 +2180,36 @@
 
     async function initApp() {
       showScreen('loading');
-      const cfgSnap = await getDoc(doc(db, 'negocios', negocioId, 'configuraciones', 'general'));
-      if (cfgSnap.exists()) config = { ...config, ...cfgSnap.data() };
+
+      // ── CONFIG: onSnapshot sirve desde caché offline, actualiza en vivo si hay red ──
+      if (_unsubConfig) { _unsubConfig(); _unsubConfig = null; }
+      _unsubConfig = onSnapshot(
+        doc(db, 'negocios', negocioId, 'configuraciones', 'general'),
+        (snap) => {
+          if (snap.exists()) {
+            config = { itbisPct: 18, itbisCliente: true, ncfPrefijo: 'B01', ncfSeq: 1, ...snap.data() };
+            // Reflejar en UI de config si ya está montada
+            const el = document.getElementById('cfg-itbis-pct');
+            if (el) el.value = config.itbisPct ?? 18;
+          }
+        },
+        () => {} // ignorar error — usar config default
+      );
+
+      // ── EMPLEADOS: onSnapshot mantiene empleadosCache siempre actualizado ─────
+      if (_unsubEmpleados) { _unsubEmpleados(); _unsubEmpleados = null; }
+      _unsubEmpleados = onSnapshot(
+        collection(db, 'negocios', negocioId, 'empleados'),
+        (snap) => {
+          empleadosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          // Si la página de config ya está visible, re-renderizar lista de empleados
+          if (document.getElementById('page-config')?.classList.contains('active')) {
+            renderEmpleados();
+          }
+        },
+        () => {} // ignorar error offline
+      );
+
       document.getElementById('nav-negocio-nombre').textContent = negocioData.nombre || 'Mi Colmado';
       buildNavbar();
       // Restaurar modo prueba desde localStorage
@@ -1971,28 +2219,8 @@
       } catch(e) {}
       _aplicarModoPrueba();
 
-      // ── CARGA INSTANTÁNEA DESDE CACHÉ LOCAL ──────────────────────────────
-      // Renderizar categorías y productos al instante sin esperar a Firebase
-      try {
-        const catsCached = localStorage.getItem(`cats_${negocioId}`);
-        const prodsCached = localStorage.getItem(`prods_${negocioId}`);
-        if (catsCached) {
-          categorias = JSON.parse(catsCached);
-          renderCategoriasPos();
-          populateCatSelects();
-        }
-        if (prodsCached) {
-          productos = JSON.parse(prodsCached);
-          actualizarConteosCategorias();
-          if (categoriaActual) renderProductosCategoria(categoriaActual);
-          else renderCategoriasPos();
-        }
-      } catch (e) { /* ignorar errores de caché */ }
-      // ─────────────────────────────────────────────────────────────────────
-
       suscribirCaja();
       suscribirInventario();
-      await loadEmpleados();
 
       // Inicializar sistema multi-factura
       _cargarTabsDeStorage();
@@ -2017,6 +2245,10 @@
 
       showScreen('app');
       showPage('pos');
+      // Sincronizar imágenes pendientes si hay conexión
+      if (navigator.onLine) {
+        setTimeout(_sincronizarImagenesPendientes, 3000);
+      }
 
       // Restaurar dirección del cliente de la tab activa al refrescar
       const dirInputInit = document.getElementById('pos-direccion-cliente');
@@ -2135,7 +2367,6 @@
         const catsChanged = catsStr !== catsAnteriorStr;
 
         categorias = nuevasCats;
-        localStorage.setItem(`cats_${negocioId}`, JSON.stringify(categorias));
 
         if (catsChanged) {
           renderCategoriasPos();
@@ -2195,7 +2426,7 @@
         return (a.orden ?? 9999) - (b.orden ?? 9999);
       });
 
-      localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos));
+      _recalcularInvStats();
       actualizarConteosCategorias();
 
       // Actualizar contenido del grid de la categoría que cambió (sin eliminarlo del DOM)
@@ -2249,10 +2480,11 @@
       const monto = parseFloat(document.getElementById('caja-monto-inicial').value) || 0;
       const notas = document.getElementById('caja-notas-apertura').value;
       const empNombre = await getEmpNombre();
+      const _offlineAC = !navigator.onLine;
       try {
-        await addDoc(collection(db, 'negocios', negocioId, 'caja'), { estado: 'abierta', montoInicial: monto, fechaApertura: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, notas, ingresos: 0, gastos: 0 });
+        await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'caja'), { estado: 'abierta', montoInicial: monto, fechaApertura: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, notas, ingresos: 0, gastos: 0 }));
         cerrarModal('modal-abrir-caja');
-        toast('Caja abierta exitosamente', 'success');
+        toast(_offlineAC ? '📱 Caja abierta localmente — se sincronizará con Firebase' : 'Caja abierta exitosamente ✅', _offlineAC ? 'warning' : 'success', _offlineAC ? 5000 : 3000);
       } catch (e) { toast('Error al abrir caja: ' + e.message, 'error'); }
     };
 
@@ -2295,10 +2527,11 @@
       if (isNaN(final)) { toast('Ingresa el monto final', 'error'); return; }
       const notas = document.getElementById('caja-notas-cierre').value;
       const empNombre = await getEmpNombre();
+      const _offlineCC = !navigator.onLine;
       try {
-        await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { estado: 'cerrada', montoFinal: final, fechaCierre: serverTimestamp(), notasCierre: notas, empleadoCierreNombre: empNombre });
+        await _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { estado: 'cerrada', montoFinal: final, fechaCierre: serverTimestamp(), notasCierre: notas, empleadoCierreNombre: empNombre }));
         cerrarModal('modal-cerrar-caja');
-        toast('Caja cerrada correctamente', 'success');
+        toast(_offlineCC ? '📱 Caja cerrada localmente — se sincronizará con Firebase' : 'Caja cerrada correctamente ✅', _offlineCC ? 'warning' : 'success', _offlineCC ? 5000 : 3000);
       } catch (e) { toast('Error: ' + e.message, 'error'); }
     };
 
@@ -2315,12 +2548,16 @@
       const cat = document.getElementById('gasto-cat').value;
       if (!desc || isNaN(monto) || monto <= 0) { toast('Completa todos los campos', 'error'); return; }
       const empNombre = await getEmpNombre();
+      const _offlineRG = !navigator.onLine;
       try {
-        await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'gasto', descripcion: desc, categoria: cat, monto, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, cajaId: cajaActual.id });
-        await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { gastos: (cajaActual.gastos || 0) + monto });
+        _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'gasto', descripcion: desc, categoria: cat, monto, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, cajaId: cajaActual.id }));
+        cajaActual.gastos = (cajaActual.gastos || 0) + monto;
+        _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { gastos: cajaActual.gastos }));
+        // Agregar al cache local inmediatamente
+        movimientosCache.unshift({ tipo: 'gasto', descripcion: desc, categoria: cat, monto, fecha: { toDate: () => new Date() }, empleadoNombre: empNombre });
         cerrarModal('modal-gasto');
-        toast('Gasto registrado', 'success');
-        cargarMovimientosHoy();
+        toast(_offlineRG ? '📱 Gasto registrado localmente — se sincronizará con Firebase' : 'Gasto registrado ✅', _offlineRG ? 'warning' : 'success', _offlineRG ? 5000 : 3000);
+        renderMovimientos();
       } catch (e) { toast('Error: ' + e.message, 'error'); }
     };
 
@@ -3257,7 +3494,7 @@
       document.getElementById('mfact-itbis').textContent = fmt(itbis);
       document.getElementById('mfact-total').textContent = fmt(total);
       document.getElementById('monto-recibido').value = '';
-      document.getElementById('cambio-display').style.display = 'none';
+      const _cd = document.getElementById('cambio-display'); _cd.style.display = 'flex'; _cd.style.background = 'rgb(248, 215, 218)'; document.getElementById('cambio-valor').textContent = 'RD$ 0.00';
       mixtoResetear();
       const sel = document.getElementById('fact-empleado');
       sel.innerHTML = empleadosCache.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
@@ -3438,7 +3675,7 @@
       // estadoFacturaSeleccionado se resetea a 'pagada' dentro de confirmarFactura()
     };
 
-    window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente !== false ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); if (recibido > 0) { disp.style.display = 'flex'; document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { disp.style.display = 'none'; } actualizarBtnConfirmar(); };
+    window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente !== false ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); disp.style.display = 'flex'; if (recibido > 0) { document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { document.getElementById('cambio-valor').textContent = 'RD$ 0.00'; disp.style.background = 'rgb(248, 215, 218)'; } actualizarBtnConfirmar(); };
 
     window.tecNumero = (val) => { const inp = document.getElementById('monto-recibido'); if (val === 'C') { inp.value = ''; } else if (val === '⌫') { inp.value = inp.value.slice(0, -1); } else if (val === 'OK') { calcularCambio(); return; } else { inp.value += val; } calcularCambio(); };
 
@@ -3562,6 +3799,9 @@
         return;
       }
 
+      // ── Detección offline ANTES de operar ──────────────────────────
+      const _offline = !navigator.onLine;
+
       try {
         // ── 5. Calcular totales ───────────────────────────────────────
         const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
@@ -3611,14 +3851,14 @@
           } : {})
         };
 
-        // ── 8. Guardar en Firestore ───────────────────────────────────
+        // ── 8. Guardar en Firestore (offline-safe con _fsOp) ──────────
         let factRef;
         if (esPendiente) {
-          factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas-pendientes'), facturaData);
+          factRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'facturas-pendientes'), facturaData));
         } else {
-          factRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaData);
-          // Registrar movimiento de caja solo para facturas pagadas
-          await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), {
+          factRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaData));
+          // Movimiento de caja y actualización de saldo (encolados offline automáticamente)
+          _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'movimientos'), {
             tipo: 'ingreso',
             descripcion: `Venta ${numFactura}`,
             monto: total,
@@ -3627,37 +3867,35 @@
             empleadoNombre: empNombre,
             facturaId: factRef.id,
             cajaId: cajaActual?.id || ''
-          });
-          // Actualizar saldo de caja
+          }));
           if (cajaActual?.id) {
             cajaActual.ingresos = (cajaActual.ingresos || 0) + total;
-            await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), {
+            _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), {
               ingresos: cajaActual.ingresos
-            });
+            }));
           }
         }
 
-        // ── 9. Actualizar NCF ─────────────────────────────────────────
-        await updateDoc(doc(db, 'negocios', negocioId, 'configuraciones', 'general'), { ncfSeq: ncfSeq + 1 });
+        // ── 9. Actualizar NCF (local inmediato + Firestore en cola) ───
         config.ncfSeq = ncfSeq + 1;
+        _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'configuraciones', 'general'), { ncfSeq: config.ncfSeq }));
 
-        // ── 10. Descontar stock ───────────────────────────────────────
+        // ── 10. Descontar stock localmente y encolar en Firestore ──────
         const batch = writeBatch(db);
         for (const item of carrito) {
           if (!item.categoriaId || !item.id) continue;
           const prodRef = doc(db, 'negocios', negocioId, 'categorias', item.categoriaId, 'productos', item.id);
           const nuevoStock = Math.max(0, (item.stock || 0) - item.qty);
           batch.update(prodRef, { stock: nuevoStock });
+          // Actualizar array local inmediatamente para que la UI refleje el cambio
           const pi = productos.findIndex(p => p.id === item.id);
           if (pi >= 0) productos[pi].stock = nuevoStock;
         }
-        await batch.commit();
-        localStorage.setItem(`prods_${negocioId}`, JSON.stringify(productos));
+        _fsOp(() => batch.commit()); // No await — encolar sin bloquear
 
         // ── 11. Cerrar modal y limpiar carrito ────────────────────────
         cerrarModal('modal-facturar');
 
-        // Vaciar tab activa
         const tabActual = _getTabActiva();
         if (tabActual) {
           tabActual.carrito = [];
@@ -3667,7 +3905,6 @@
         }
         _guardarTabsEnStorage();
 
-        // Limpiar UI
         const dirInput = document.getElementById('pos-direccion-cliente');
         if (dirInput) dirInput.value = '';
         if (signaturePad) signaturePad.clear();
@@ -3677,7 +3914,6 @@
         const cambioDisp = document.getElementById('cambio-display');
         if (cambioDisp) cambioDisp.style.display = 'none';
 
-        // Resetear estado para la próxima factura
         estadoFacturaSeleccionado = 'pagada';
         metodoPagoSeleccionado = 'efectivo';
         _mixtoEfStr = '';
@@ -3687,17 +3923,24 @@
         renderFacturasTabs();
 
         // ── 12. Mostrar ticket y notificación ─────────────────────────
-        facturaActualParaImprimir = { ...facturaData, id: factRef.id };
+        facturaActualParaImprimir = { ...facturaData, id: factRef.id, fecha: { toDate: () => new Date() } };
         mostrarTicket(facturaActualParaImprimir);
 
-        const tipoMsg = esPendiente ? '⏳ Factura guardada como pago pendiente' : '✅ Factura procesada exitosamente';
-        toast(tipoMsg, 'success', 4000);
+        if (_offline) {
+          const tipoMsgOffline = esPendiente
+            ? '📱 Factura pendiente guardada localmente — se sincronizará con Firebase al volver la conexión'
+            : '📱 Factura guardada localmente con éxito — se sincronizará con Firebase al volver la conexión';
+          toast(tipoMsgOffline, 'warning', 6000);
+        } else {
+          const tipoMsg = esPendiente ? '⏳ Factura guardada como pago pendiente' : '✅ Factura procesada exitosamente';
+          toast(tipoMsg, 'success', 4000);
+        }
 
       } catch (e) {
         console.error('Error al procesar factura:', e);
         toast('Error al procesar la factura: ' + (e.message || 'Error desconocido'), 'error', 5000);
       } finally {
-        // ── 13. Siempre restaurar botones ─────────────────────────────
+        // ── 13. Siempre restaurar botones de inmediato ────────────────
         if (btnConfirmar) {
           btnConfirmar.innerHTML = '<i class="fas fa-check"></i> Confirmar Factura';
           btnConfirmar.disabled = false;
@@ -4129,13 +4372,13 @@
       const btn = document.getElementById('btn-confirmar-pagar-pendiente');
       btn.innerHTML = '<span class="loader"></span> Procesando...';
       btn.disabled = true;
+      const _offlinePfp = !navigator.onLine;
       try {
         const montoRec = pfpMetodo === 'efectivo' ? (parseFloat(pfpMontoStr) || f.total) : f.total;
         const cambio = pfpMetodo === 'efectivo' ? Math.max(0, montoRec - f.total) : 0;
         const empNombre = await getEmpNombre();
         const fechaPago = serverTimestamp();
 
-        // Construir datos de la factura pagada
         const facturaPageData = {
           ...f,
           id: undefined,
@@ -4152,49 +4395,35 @@
         };
         delete facturaPageData.id;
 
-        // Guardar en colección 'facturas' (pagadas)
-        const newFactRef = await addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaPageData);
+        const newFactRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaPageData));
+        _fsOp(() => deleteDoc(doc(db, 'negocios', negocioId, 'facturas-pendientes', pfpFacturaId)));
 
-        // Eliminar de 'facturas-pendientes'
-        await deleteDoc(doc(db, 'negocios', negocioId, 'facturas-pendientes', pfpFacturaId));
-
-        // Afectar caja si hay caja abierta
         if (cajaActual) {
-          // Registrar ingreso
-          await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), {
-            tipo: 'ingreso',
-            descripcion: `Pago factura ${f.numero}`,
-            monto: f.total,
-            fecha: fechaPago,
-            uid: currentUser.uid,
-            empleadoNombre: empNombre,
-            facturaId: newFactRef.id,
-            cajaId: cajaActual.id
-          });
+          _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'movimientos'), {
+            tipo: 'ingreso', descripcion: `Pago factura ${f.numero}`, monto: f.total,
+            fecha: fechaPago, uid: currentUser.uid, empleadoNombre: empNombre,
+            facturaId: newFactRef.id, cajaId: cajaActual.id
+          }));
           let newIngresos = (cajaActual.ingresos || 0) + f.total;
           let newGastos = cajaActual.gastos || 0;
-          // Si hay cambio en efectivo, registrarlo como gasto (dinero devuelto)
           if (pfpMetodo === 'efectivo' && cambio > 0) {
-            await addDoc(collection(db, 'negocios', negocioId, 'movimientos'), {
-              tipo: 'gasto',
-              descripcion: `Cambio devuelto factura ${f.numero}`,
-              monto: cambio,
-              fecha: fechaPago,
-              uid: currentUser.uid,
-              empleadoNombre: empNombre,
-              facturaId: newFactRef.id,
-              cajaId: cajaActual.id
-            });
+            _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'movimientos'), {
+              tipo: 'gasto', descripcion: `Cambio devuelto factura ${f.numero}`, monto: cambio,
+              fecha: fechaPago, uid: currentUser.uid, empleadoNombre: empNombre,
+              facturaId: newFactRef.id, cajaId: cajaActual.id
+            }));
             newGastos += cambio;
           }
-          await updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), {
-            ingresos: newIngresos,
-            gastos: newGastos
-          });
+          cajaActual.ingresos = newIngresos; cajaActual.gastos = newGastos;
+          _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { ingresos: newIngresos, gastos: newGastos }));
         }
 
+        // Actualizar cache local de facturas pendientes
+        const pfpIdx = facturasPendientesCache.findIndex(x => x.id === pfpFacturaId);
+        if (pfpIdx >= 0) facturasPendientesCache.splice(pfpIdx, 1);
+
         cerrarModal('modal-pagar-factura-pendiente');
-        toast('Factura pagada exitosamente ✅', 'success');
+        toast(_offlinePfp ? '📱 Factura marcada como pagada localmente — se sincronizará con Firebase' : 'Factura pagada exitosamente ✅', _offlinePfp ? 'warning' : 'success', _offlinePfp ? 5000 : 4000);
         await cargarFacturas();
       } catch (e) {
         toast('Error: ' + e.message, 'error');
@@ -4226,7 +4455,33 @@
       }
     }
 
+    function _recalcularInvStats() {
+      let total = 0, unidades = 0, dinero = 0;
+      const porCategoria = {};
+      for (const p of productos) {
+        total++;
+        const catId = p.categoriaId;
+        if (!porCategoria[catId]) porCategoria[catId] = { total: 0, unidades: 0, dinero: 0 };
+        porCategoria[catId].total++;
+        if (p.stockHabilitado !== false && p.stock > 0) {
+          const stock = parseFloat(p.stock) || 0;
+          const valor = parseFloat(p.costo) > 0 ? parseFloat(p.costo) : parseFloat(p.precio) || 0;
+          unidades += stock;
+          dinero += valor * stock;
+          porCategoria[catId].unidades += stock;
+          porCategoria[catId].dinero += valor * stock;
+        }
+      }
+      _invStats = { total, unidades, dinero, porCategoria };
+    }
+
     function renderInventario() {
+      const fmtUds = v => v % 1 === 0 ? String(v) : v.toLocaleString('es-DO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      const elTotalProds = document.getElementById('inv-stat-total-prods');
+      const elDinero = document.getElementById('inv-stat-dinero');
+      if (elTotalProds) elTotalProds.innerHTML = `${_invStats.total} <span style="font-size:0.75rem;font-weight:600;color:#16a34a;background:#dcfce7;border-radius:20px;padding:2px 8px;vertical-align:middle;">${fmtUds(_invStats.unidades)} uds en stock</span>`;
+      if (elDinero) elDinero.textContent = 'RD$ ' + _invStats.dinero.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
       if (inventarioCategoriaActual === '__mas_vendidos__') {
         renderMasVendidosInventario();
       } else if (inventarioCategoriaActual) {
@@ -4629,7 +4884,30 @@
       if (busqueda) prods = prods.filter(p => p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigoBarras || '').includes(busqueda));
       if (!area) return;
 
-      const header = `<div class="productos-header-inv"><div><button class="back-btn" onclick="volverCategoriasInventario()"><i class="fas fa-arrow-left"></i> Categorías</button></div><div style="text-align: center; width: 140px;"><strong>${categoria?.nombre || 'Productos'}</strong></div><div><button class="btn-sm verde" onclick="abrirModalProductoDesdeCategoria('${categoriaId}')" style="margin-left:auto;"><i class="fas fa-plus"></i> Producto</button></div></div>`;
+      // Stats de la categoría — leer del caché, sin recalcular
+      const cs = _invStats.porCategoria[categoriaId] || { total: 0, unidades: 0, dinero: 0 };
+      const fmtUdsCat = v => v % 1 === 0 ? String(v) : v.toLocaleString('es-DO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      const catTotalProds = cs.total;
+      const catTotalUnidades = cs.unidades;
+      const catDinero = cs.dinero;
+      const catStatsHtml = `<div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px 0;">
+        <div style="display:flex;align-items:center;gap:8px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:8px 14px;flex:1;min-width:140px;">
+          <span style="font-size:1.3rem;">📦</span>
+          <div>
+            <div style="font-size:10px;color:#166534;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">Productos</div>
+            <div style="font-size:1.15rem;font-weight:800;color:#15803d;">${catTotalProds} <span style="font-size:0.72rem;font-weight:600;background:#dcfce7;color:#16a34a;border-radius:20px;padding:1px 7px;">${fmtUdsCat(catTotalUnidades)} uds</span></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:8px 14px;flex:1;min-width:140px;">
+          <span style="font-size:1.3rem;">💰</span>
+          <div>
+            <div style="font-size:10px;color:#1e40af;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">Invertido</div>
+            <div style="font-size:1.15rem;font-weight:800;color:#1d4ed8;">RD$ ${catDinero.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          </div>
+        </div>
+      </div>`;
+
+      const header = `<div class="productos-header-inv"><div><button class="back-btn" onclick="volverCategoriasInventario()"><i class="fas fa-arrow-left"></i> Categorías</button></div><div style="text-align: center; width: 140px;"><strong>${categoria?.nombre || 'Productos'}</strong></div><div><button class="btn-sm verde" onclick="abrirModalProductoDesdeCategoria('${categoriaId}')" style="margin-left:auto;"><i class="fas fa-plus"></i> Producto</button></div></div>` + catStatsHtml;
 
       if (!prods.length) {
         area.innerHTML = header + `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos en esta categoría</p></div>`;
@@ -4849,7 +5127,23 @@
 
     window.editarCategoria = async (catId) => { const cat = categorias.find(c => c.id === catId); if (!cat) return; document.getElementById('cat-nombre').value = cat.nombre || ''; document.getElementById('cat-emoji').value = cat.emoji || ''; const icon = document.getElementById('cat-img-icon'); const hint = document.getElementById('cat-img-hint'); if (cat.imagen) { document.getElementById('cat-img-preview').src = cat.imagen; document.getElementById('cat-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (hint) hint.style.display = 'none'; } else { document.getElementById('cat-img-preview').src = ''; document.getElementById('cat-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (hint) hint.style.display = 'block'; } window.categoriaEditandoId = catId; const titulo = document.getElementById('modal-cat-titulo'); if (titulo) titulo.innerHTML = '<i class="fas fa-edit"></i> Editar Categoría'; const btnElim = document.getElementById('btn-eliminar-categoria'); if (btnElim) btnElim.style.display = 'inline-flex'; abrirModal('modal-categoria'); };
 
-    window.eliminarCategoria = async (catId) => { if (catId === '__mas_vendidos__') { toast('La categoría "Más Vendidos" no se puede eliminar', 'error'); return; } const productosEnCat = productos.filter(p => p.categoriaId === catId); if (productosEnCat.length > 0) { toast(`No se puede eliminar la categoría. Tiene ${productosEnCat.length} productos.`, 'error'); return; } if (!confirm('¿Eliminar esta categoría?')) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', catId)); toast('Categoría eliminada', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+    window.eliminarCategoria = async (catId) => {
+      if (catId === '__mas_vendidos__') { toast('La categoría "Más Vendidos" no se puede eliminar', 'error'); return; }
+      const productosEnCat = productos.filter(p => p.categoriaId === catId);
+      if (productosEnCat.length > 0) { toast(`No se puede eliminar la categoría. Tiene ${productosEnCat.length} productos.`, 'error'); return; }
+      if (!confirm('¿Eliminar esta categoría?')) return;
+      const _offlineDelCat = !navigator.onLine;
+      try {
+        await _fsOp(() => deleteDoc(doc(db, 'negocios', negocioId, 'categorias', catId)));
+        // Eliminar del array local inmediatamente
+        const ci = categorias.findIndex(c => c.id === catId);
+        if (ci >= 0) categorias.splice(ci, 1);
+        renderInventario();
+        renderCategoriasPos();
+        populateCatSelects();
+        toast(_offlineDelCat ? '📱 Categoría eliminada localmente — se sincronizará con Firebase' : 'Categoría eliminada ✅', _offlineDelCat ? 'warning' : 'success', _offlineDelCat ? 5000 : 3000);
+      } catch (e) { toast('Error: ' + e.message, 'error'); }
+    };
 
     window.eliminarCategoriaDesdeModal = async () => { const catId = window.categoriaEditandoId; if (!catId) return; cerrarModal('modal-categoria'); await eliminarCategoria(catId); };
 
@@ -4868,25 +5162,42 @@
 
       let imagen = '';
       const preview = document.getElementById('cat-img-preview');
+      const _catImgStoragePath = `cats/${negocioId}/${Date.now()}`;
       if (preview.src && preview.src !== window.location.href && preview.style.display !== 'none' && !preview.src.includes('firebasestorage')) {
-        imagen = await subirImagenBase64(preview.src, `cats/${negocioId}/${Date.now()}`);
+        imagen = await subirImagenBase64(preview.src, _catImgStoragePath);
       } else if (window.categoriaEditandoId) {
         const catExistente = categorias.find(c => c.id === window.categoriaEditandoId);
         if (catExistente?.imagen && preview.src === catExistente.imagen) { imagen = catExistente.imagen; }
       }
+      const _offlineCat = !navigator.onLine;
       try {
         if (window.categoriaEditandoId) {
-          await updateDoc(doc(db, 'negocios', negocioId, 'categorias', window.categoriaEditandoId), { nombre, emoji, imagen });
-          toast('Categoría actualizada', 'success');
+          const catId = window.categoriaEditandoId;
+          await _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'categorias', catId), { nombre, emoji, imagen }));
+          if (imagen && !imagen.startsWith('http')) {
+            _actualizarFirestoreEnCola(imagen, `negocios/${negocioId}/categorias/${catId}`, 'imagen');
+          }
+          // Actualizar array local inmediatamente
+          const ci = categorias.findIndex(c => c.id === catId);
+          if (ci >= 0) categorias[ci] = { ...categorias[ci], nombre, emoji, imagen };
+          toast(_offlineCat ? '📱 Categoría actualizada localmente — se sincronizará con Firebase' : 'Categoría actualizada ✅', _offlineCat ? 'warning' : 'success', _offlineCat ? 5000 : 3000);
           delete window.categoriaEditandoId;
         } else {
           const nextOrden = categorias.length + 1;
-          await addDoc(collection(db, 'negocios', negocioId, 'categorias'), { nombre, emoji, imagen, orden: nextOrden, creadoEn: serverTimestamp() });
-          toast('Categoría creada', 'success');
+          const newCatRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'categorias'), { nombre, emoji, imagen, orden: nextOrden, creadoEn: serverTimestamp() }));
+          if (imagen && !imagen.startsWith('http')) {
+            _actualizarFirestoreEnCola(imagen, `negocios/${negocioId}/categorias/${newCatRef.id}`, 'imagen');
+          }
+          // Agregar al array local inmediatamente
+          categorias.push({ id: newCatRef.id, nombre, emoji, imagen, orden: nextOrden });
+          toast(_offlineCat ? '📱 Categoría creada localmente — se sincronizará con Firebase' : 'Categoría creada ✅', _offlineCat ? 'warning' : 'success', _offlineCat ? 5000 : 3000);
         }
         cerrarModal('modal-categoria');
         document.getElementById('cat-img-preview').src = '';
         document.getElementById('cat-img-preview').style.display = 'none';
+        renderInventario();
+        renderCategoriasPos();
+        populateCatSelects();
       } catch (e) {
         toast('Error: ' + e.message, 'error');
       } finally {
@@ -4986,8 +5297,8 @@
         nombre,
         precio,
         costo: parseFloat(document.getElementById('prod-costo').value) || 0,
-        stock: document.getElementById('prod-stock-enabled').checked ? (parseInt(document.getElementById('prod-stock').value) || 0) : -1,
-        stockMin: document.getElementById('prod-stock-enabled').checked ? (parseInt(document.getElementById('prod-stock-min').value) || 5) : 0,
+        stock: document.getElementById('prod-stock-enabled').checked ? (parseFloat(document.getElementById('prod-stock').value) || 0) : -1,
+        stockMin: document.getElementById('prod-stock-enabled').checked ? (parseFloat(document.getElementById('prod-stock-min').value) || 5) : 0,
         stockHabilitado: document.getElementById('prod-stock-enabled').checked,
         codigoBarras: document.getElementById('prod-barcode').value.trim(),
         pesoNeto: document.getElementById('prod-peso-neto').value.trim(),
@@ -5006,24 +5317,44 @@
         data.imagen = productoEnEdicion.imagen;
       }
 
+      const _offlineProd = !navigator.onLine;
       try {
         const prodId = document.getElementById('prod-id').value;
         if (prodId) {
           if (productoEnEdicion && productoEnEdicion.categoriaId !== catId) {
-            await addDoc(collection(db, 'negocios', negocioId, 'categorias', catId, 'productos'), { ...data, creadoEn: serverTimestamp() });
-            await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', productoEnEdicion.categoriaId, 'productos', prodId));
-            toast('Producto movido a nueva categoría', 'success');
+            const newRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'categorias', catId, 'productos'), { ...data, creadoEn: serverTimestamp() }));
+            if (data.imagen && !data.imagen.startsWith('http')) {
+              _actualizarFirestoreEnCola(data.imagen, `negocios/${negocioId}/categorias/${catId}/productos/${newRef.id}`, 'imagen');
+            }
+            _fsOp(() => deleteDoc(doc(db, 'negocios', negocioId, 'categorias', productoEnEdicion.categoriaId, 'productos', prodId)));
+            toast(_offlineProd ? '📱 Producto movido localmente — se sincronizará con Firebase' : 'Producto movido a nueva categoría', _offlineProd ? 'warning' : 'success', _offlineProd ? 5000 : 3000);
           } else {
-            await updateDoc(doc(db, 'negocios', negocioId, 'categorias', catId, 'productos', prodId), data);
-            toast('Producto actualizado', 'success');
+            await _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'categorias', catId, 'productos', prodId), data));
+            if (data.imagen && !data.imagen.startsWith('http')) {
+              _actualizarFirestoreEnCola(data.imagen, `negocios/${negocioId}/categorias/${catId}/productos/${prodId}`, 'imagen');
+            }
+            toast(_offlineProd ? '📱 Producto actualizado localmente — se sincronizará con Firebase' : 'Producto actualizado ✅', _offlineProd ? 'warning' : 'success', _offlineProd ? 5000 : 3000);
           }
+          // Actualizar array local inmediatamente para reflejar cambio en UI
+          const pi = productos.findIndex(p => p.id === prodId);
+          if (pi >= 0) productos[pi] = { ...productos[pi], ...data, id: prodId };
         } else {
           data.creadoEn = serverTimestamp();
-          await addDoc(collection(db, 'negocios', negocioId, 'categorias', catId, 'productos'), data);
-          toast('Producto creado', 'success');
+          const newProdRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'categorias', catId, 'productos'), data));
+          if (data.imagen && !data.imagen.startsWith('http')) {
+            _actualizarFirestoreEnCola(data.imagen, `negocios/${negocioId}/categorias/${catId}/productos/${newProdRef.id}`, 'imagen');
+          }
+          // Agregar al array local inmediatamente
+          productos.push({ ...data, id: newProdRef.id, categoriaId: catId });
+          toast(_offlineProd ? '📱 Producto creado localmente — se sincronizará con Firebase' : 'Producto creado ✅', _offlineProd ? 'warning' : 'success', _offlineProd ? 5000 : 3000);
         }
         cerrarModal('modal-producto');
         renderInventario();
+        // Limpiar caché de grids para que refleje los cambios
+        const catGrid = document.getElementById(`productos-grid-${catId}`);
+        if (catGrid) catGrid.remove();
+        delete _gridCache[catId];
+        renderCategoriasPos();
       } catch (e) {
         toast('Error: ' + e.message, 'error');
       } finally {
@@ -5031,9 +5362,46 @@
       }
     };
 
-    window.eliminarProducto = async (id) => { if (!confirm('¿Eliminar este producto?')) return; const p = productos.find(pr => pr.id === id); if (!p) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id)); toast('Producto eliminado', 'success'); renderInventario(); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+    window.eliminarProducto = async (id) => {
+      if (!confirm('¿Eliminar este producto?')) return;
+      const p = productos.find(pr => pr.id === id);
+      if (!p) return;
+      const _offlineDel = !navigator.onLine;
+      try {
+        await _fsOp(() => deleteDoc(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id)));
+        // Eliminar del array local inmediatamente
+        const pi = productos.findIndex(pr => pr.id === id);
+        if (pi >= 0) productos.splice(pi, 1);
+        // Limpiar caché del grid
+        const catGrid = document.getElementById(`productos-grid-${p.categoriaId}`);
+        if (catGrid) catGrid.remove();
+        delete _gridCache[p.categoriaId];
+        renderInventario();
+        renderCategoriasPos();
+        toast(_offlineDel ? '📱 Producto eliminado localmente — se sincronizará con Firebase' : 'Producto eliminado ✅', _offlineDel ? 'warning' : 'success', _offlineDel ? 5000 : 3000);
+      } catch (e) { toast('Error: ' + e.message, 'error'); }
+    };
 
-    async function subirImagenBase64(dataUrl, path) { try { const imgRef = ref(storage, path); await uploadString(imgRef, dataUrl, 'data_url'); return await getDownloadURL(imgRef); } catch (e) { console.warn('Error subiendo imagen:', e); return dataUrl; } }
+    // subirImagenBase64 — versión con soporte offline completo:
+    // Si hay internet sube directo. Offline: guarda en cola local IndexedDB y
+    // devuelve base64 para que la app funcione sin interrupciones.
+    async function subirImagenBase64(dataUrl, storagePath, firestorePath, field) {
+      if (!dataUrl || dataUrl.startsWith('http')) return dataUrl;
+      if (!navigator.onLine) {
+        _addToImgQueue({ path: storagePath, dataUrl, firestorePath: firestorePath || null, field: field || 'imagen', savedAt: Date.now() });
+        console.log('[Offline] Imagen encolada:', storagePath);
+        return dataUrl;
+      }
+      try {
+        const imgRef = ref(storage, storagePath);
+        await uploadString(imgRef, dataUrl, 'data_url');
+        return await getDownloadURL(imgRef);
+      } catch (e) {
+        console.warn('Error subiendo imagen, encolando offline:', e);
+        _addToImgQueue({ path: storagePath, dataUrl, firestorePath: firestorePath || null, field: field || 'imagen', savedAt: Date.now() });
+        return dataUrl;
+      }
+    }
 
     function comprimirImagen(file, maxHeight = 400, quality = 0.82) {
       return new Promise((resolve, reject) => {
@@ -5248,7 +5616,8 @@
     // ==================== FIN ESCÁNER GLOBAL ====================
 
     // ==================== EMPLEADOS ====================
-    async function loadEmpleados() { const snap = await getDocs(collection(db, 'negocios', negocioId, 'empleados')); empleadosCache = snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+    // loadEmpleados reemplazado por onSnapshot en initApp — función vacía por compatibilidad
+    async function loadEmpleados() { /* datos ya cargados via onSnapshot en initApp */ }
 
     function renderEmpleados() { const lista = document.getElementById('empleados-lista'); if (!lista) return; if (!empleadosCache.length) { lista.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Sin empleados</p></div>'; return; } lista.innerHTML = empleadosCache.map(e => `<div class="empleado-row"><div class="empleado-avatar">${(e.nombre || 'E')[0].toUpperCase()}</div><div class="empleado-info"><div class="emp-nombre">${e.nombre}</div><div class="emp-email">${e.email}</div></div><span class="emp-rol ${e.rol}">${e.rol}</span>${e.uid !== currentUser.uid ? `<button class="btn-sm" onclick="eliminarEmpleado('${e.id}')" style="background:#ffe3e3;color:#e03131;padding:6px 10px;font-size:12px;"><i class="fas fa-trash"></i></button>` : ''}</div>`).join(''); }
 
@@ -6059,6 +6428,397 @@
   })();
   </script>
 
+
+  <style>
+    /* ── Offline / Sync badge animation ── */
+    @keyframes syncPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    #offline-badge[style*="e67700"] {
+      animation: syncPulse 1.5s ease-in-out infinite;
+    }
+    /* Offline warning toast */
+    .toast.warning {
+      background: #e67700 !important;
+      border-left-color: #f59f00 !important;
+    }
+
+    /* ── Botones azul / naranja inventario ── */
+    .btn-sm.azul {
+      background: #1971c2; color: #fff; border: none;
+      padding: 7px 14px; border-radius: 8px; font-size: 13px;
+      font-weight: 700; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 6px; transition: background 0.18s;
+    }
+    .btn-sm.azul:hover { background: #1864ab; }
+    .btn-sm.naranja {
+      background: #e67700; color: #fff; border: none;
+      padding: 7px 14px; border-radius: 8px; font-size: 13px;
+      font-weight: 700; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 6px; transition: background 0.18s;
+    }
+    .btn-sm.naranja:hover { background: #d06200; }
+
+    /* ── Modal de progreso exportar/importar ── */
+    #modal-inv-progreso {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55); z-index: 9999;
+      align-items: center; justify-content: center;
+    }
+    #modal-inv-progreso.activo { display: flex; }
+    .inv-progreso-card {
+      background: #fff; border-radius: 18px;
+      padding: 32px 36px; max-width: 420px; width: 90%;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+      text-align: center;
+    }
+    .inv-progreso-card h3 {
+      font-size: 1.2rem; font-weight: 800; margin: 0 0 8px;
+      color: #1a2135;
+    }
+    .inv-progreso-card p {
+      font-size: 13px; color: #555; margin: 0 0 20px;
+    }
+    .inv-progreso-bar-wrap {
+      background: #f0f0f0; border-radius: 20px;
+      height: 12px; overflow: hidden; margin-bottom: 10px;
+    }
+    .inv-progreso-bar-fill {
+      height: 100%; background: linear-gradient(90deg,#1971c2,#74c0fc);
+      border-radius: 20px; transition: width 0.25s ease;
+      width: 0%;
+    }
+    .inv-progreso-pct {
+      font-size: 13px; font-weight: 700; color: #1971c2; margin-bottom: 18px;
+    }
+    .inv-progreso-ok {
+      display: none; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .inv-progreso-ok .ok-icon { font-size: 2.8rem; }
+    .inv-progreso-ok p { margin: 0; font-size: 14px; font-weight: 700; color: #15803d; }
+    .inv-progreso-ok.visible { display: flex; }
+
+    /* ── Modal confirmación importar ── */
+    #modal-inv-confirmar-import {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55); z-index: 10000;
+      align-items: center; justify-content: center;
+    }
+    #modal-inv-confirmar-import.activo { display: flex; }
+    .inv-confirm-card {
+      background: #fff; border-radius: 18px;
+      padding: 28px 32px; max-width: 400px; width: 90%;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+    }
+    .inv-confirm-card h3 {
+      font-size: 1.1rem; font-weight: 800; color: #1a2135; margin: 0 0 10px;
+    }
+    .inv-confirm-card p {
+      font-size: 13px; color: #555; margin: 0 0 20px; line-height: 1.6;
+    }
+    .inv-confirm-btns {
+      display: flex; gap: 10px; justify-content: flex-end;
+    }
+    .inv-confirm-btns button {
+      padding: 9px 20px; border-radius: 9px; border: none;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    .inv-confirm-btns .btn-cancelar {
+      background: #f1f3f5; color: #495057;
+    }
+    .inv-confirm-btns .btn-confirmar {
+      background: #e67700; color: #fff;
+    }
+    .inv-confirm-btns .btn-confirmar:hover { background: #d06200; }
+    .inv-confirm-resumen {
+      background: #f8f9fa; border-radius: 10px;
+      padding: 12px 16px; margin-bottom: 18px;
+      font-size: 13px; color: #333; line-height: 1.8;
+    }
+    .inv-confirm-resumen strong { color: #1971c2; }
+  </style>
+
+  <!-- MODAL PROGRESO EXPORTAR/IMPORTAR -->
+  <div id="modal-inv-progreso">
+    <div class="inv-progreso-card">
+      <h3 id="inv-prog-titulo">Exportando Inventario</h3>
+      <p id="inv-prog-subtitulo">Preparando productos e imágenes...</p>
+      <div class="inv-progreso-bar-wrap">
+        <div class="inv-progreso-bar-fill" id="inv-prog-barra"></div>
+      </div>
+      <div class="inv-progreso-pct" id="inv-prog-pct">0%</div>
+      <div class="inv-progreso-ok" id="inv-prog-ok">
+        <div class="ok-icon">✅</div>
+        <p id="inv-prog-ok-txt">¡Listo!</p>
+        <button class="btn-sm verde" onclick="document.getElementById('modal-inv-progreso').classList.remove('activo')" style="margin-top:6px;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMAR IMPORTAR -->
+  <div id="modal-inv-confirmar-import">
+    <div class="inv-confirm-card">
+      <h3>📥 Importar Inventario</h3>
+      <p>Se encontró el siguiente inventario en el archivo:</p>
+      <div class="inv-confirm-resumen" id="inv-confirm-resumen"></div>
+      <p style="font-size:12px;color:#e03131;font-weight:700;">⚠️ Esta acción reemplazará TODO el inventario actual (productos y categorías). No se puede deshacer.</p>
+      <div class="inv-confirm-btns">
+        <button class="btn-cancelar" onclick="cancelarImport()">Cancelar</button>
+        <button class="btn-confirmar" onclick="confirmarImport()"><i class="fas fa-file-import"></i> Sí, Importar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ═══════════════════════════════════════════════════════
+  //  EXPORTAR / IMPORTAR INVENTARIO COMPLETO (con imágenes)
+  // ═══════════════════════════════════════════════════════
+  (function () {
+
+    let _importPendingData = null;
+
+    // ── Utilidades de UI ──────────────────────────────────
+    function _showProgreso(titulo, subtitulo) {
+      document.getElementById('inv-prog-titulo').textContent = titulo;
+      document.getElementById('inv-prog-subtitulo').textContent = subtitulo;
+      document.getElementById('inv-prog-barra').style.width = '0%';
+      document.getElementById('inv-prog-pct').textContent = '0%';
+      document.getElementById('inv-prog-ok').classList.remove('visible');
+      document.getElementById('modal-inv-progreso').classList.add('activo');
+    }
+
+    function _setProgreso(pct) {
+      document.getElementById('inv-prog-barra').style.width = pct + '%';
+      document.getElementById('inv-prog-pct').textContent = Math.round(pct) + '%';
+    }
+
+    function _finProgreso(mensaje) {
+      _setProgreso(100);
+      document.getElementById('inv-prog-ok-txt').textContent = mensaje;
+      document.getElementById('inv-prog-ok').classList.add('visible');
+      document.getElementById('inv-prog-subtitulo').textContent = '';
+    }
+
+    // ── EXPORTAR ─────────────────────────────────────────
+    window.exportarInventarioCompleto = async function () {
+      const cats = window.categorias || [];
+      const prods = window.productos || [];
+
+      if (cats.length === 0 && prods.length === 0) {
+        if (window.toast) toast('⚠️ No hay productos en el inventario para exportar.', 'warning', 3000);
+        return;
+      }
+
+      _showProgreso('📦 Exportando Inventario', 'Preparando datos...');
+
+      const total = cats.length + prods.length;
+      let procesados = 0;
+
+      // Clonar categorías (con imagen si la tienen)
+      const catsExport = [];
+      for (const cat of cats) {
+        const c = { ...cat };
+        // Si la imagen ya es base64 la incluimos tal cual
+        // Si es una URL externa, la intentamos convertir a base64
+        if (c.imagen && !c.imagen.startsWith('data:')) {
+          try {
+            c.imagen = await _urlToBase64(c.imagen);
+          } catch (e) { /* mantener URL si falla */ }
+        }
+        catsExport.push(c);
+        procesados++;
+        _setProgreso((procesados / total) * 100);
+      }
+
+      // Clonar productos (con imagen en base64)
+      const prodsExport = [];
+      for (const p of prods) {
+        const prod = { ...p };
+        if (prod.imagen && !prod.imagen.startsWith('data:')) {
+          try {
+            prod.imagen = await _urlToBase64(prod.imagen);
+          } catch (e) { /* mantener URL si falla */ }
+        }
+        prodsExport.push(prod);
+        procesados++;
+        _setProgreso((procesados / total) * 100);
+      }
+
+      const payload = {
+        _version: 1,
+        _exportDate: new Date().toISOString(),
+        _appName: 'miColmApp',
+        categorias: catsExport,
+        productos: prodsExport
+      };
+
+      // Descargar como .json
+      const json = JSON.stringify(payload, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const fecha = new Date().toLocaleDateString('es-DO').replace(/\//g, '-');
+      const negNombre = (document.getElementById('nav-negocio-nombre')?.textContent || 'inventario').replace(/\s+/g, '_');
+      a.href = url;
+      a.download = `inventario_${negNombre}_${fecha}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      _finProgreso(`✅ ${prodsExport.length} productos en ${catsExport.length} categorías exportados`);
+    };
+
+    // ── Convertir URL a base64 ────────────────────────────
+    async function _urlToBase64(url) {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    // ── IMPORTAR ─────────────────────────────────────────
+    window.importarInventarioCompleto = function (input) {
+      const file = input.files[0];
+      if (!file) return;
+      input.value = ''; // resetear para poder volver a importar el mismo archivo
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        let data;
+        try {
+          data = JSON.parse(e.target.result);
+        } catch (err) {
+          if (window.toast) toast('❌ El archivo no es válido. Debe ser un archivo .json de miColmApp.', 'error', 4000);
+          return;
+        }
+
+        // Validación básica
+        if (!data._appName || data._appName !== 'miColmApp' || !Array.isArray(data.categorias) || !Array.isArray(data.productos)) {
+          if (window.toast) toast('❌ Archivo inválido. Solo se aceptan exportaciones de miColmApp.', 'error', 4000);
+          return;
+        }
+
+        // Mostrar confirmación
+        _importPendingData = data;
+        const fechaExport = data._exportDate ? new Date(data._exportDate).toLocaleDateString('es-DO', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'Desconocida';
+        document.getElementById('inv-confirm-resumen').innerHTML =
+          `📁 <strong>${data.categorias.length}</strong> categorías<br>` +
+          `📦 <strong>${data.productos.length}</strong> productos<br>` +
+          `🗓️ Exportado el: <strong>${fechaExport}</strong>`;
+        document.getElementById('modal-inv-confirmar-import').classList.add('activo');
+      };
+      reader.readAsText(file);
+    };
+
+    window.cancelarImport = function () {
+      _importPendingData = null;
+      document.getElementById('modal-inv-confirmar-import').classList.remove('activo');
+    };
+
+    window.confirmarImport = async function () {
+      document.getElementById('modal-inv-confirmar-import').classList.remove('activo');
+      const data = _importPendingData;
+      _importPendingData = null;
+      if (!data) return;
+
+      _showProgreso('📥 Importando Inventario', 'Borrando inventario actual...');
+
+      try {
+        // Acceder a Firestore mediante las variables globales del app
+        const { db, negocioId } = _getFirebaseCtx();
+        const { collection, doc, getDocs, deleteDoc, setDoc, writeBatch } = await _getFirestoreFns();
+
+        const total = data.categorias.length + data.productos.length;
+        let procesados = 0;
+
+        // 1. Borrar categorías y productos actuales en Firestore
+        const catsRef = collection(db, 'negocios', negocioId, 'categorias');
+        const catsSnap = await getDocs(catsRef);
+        for (const catDoc of catsSnap.docs) {
+          const prodsSnap = await getDocs(collection(db, 'negocios', negocioId, 'categorias', catDoc.id, 'productos'));
+          for (const pDoc of prodsSnap.docs) await deleteDoc(pDoc.ref);
+          await deleteDoc(catDoc.ref);
+        }
+
+        // 2. Importar nuevas categorías
+        for (const cat of data.categorias) {
+          const { imagen, ...catData } = cat;
+          // Guardar sin imagen primero (imagen puede ser pesada)
+          const catRef = doc(db, 'negocios', negocioId, 'categorias', cat.id);
+          await setDoc(catRef, { ...catData, imagen: imagen || '' });
+          procesados++;
+          _setProgreso((procesados / total) * 100);
+        }
+
+        // 3. Importar productos
+        for (const prod of data.productos) {
+          const catId = prod.categoriaId;
+          if (!catId) continue;
+          const prodRef = doc(db, 'negocios', negocioId, 'categorias', catId, 'productos', prod.id);
+          await setDoc(prodRef, { ...prod });
+          procesados++;
+          _setProgreso((procesados / total) * 100);
+        }
+
+        // 4. Actualizar estado local
+        if (window.categorias !== undefined) window.categorias = data.categorias;
+        if (window.productos !== undefined) window.productos = data.productos;
+        if (window.renderInventario) window.renderInventario();
+        if (window.populateCatSelects) window.populateCatSelects();
+
+        _finProgreso(`✅ Inventario importado: ${data.productos.length} productos en ${data.categorias.length} categorías`);
+      } catch (err) {
+        console.error('Error importando inventario:', err);
+        document.getElementById('modal-inv-progreso').classList.remove('activo');
+        if (window.toast) toast('❌ Error al importar: ' + (err.message || err), 'error', 5000);
+      }
+    };
+
+    // ── Acceder al contexto Firebase del app ─────────────
+    function _getFirebaseCtx() {
+      const _db = window._db;
+      const _negId = window._negocioId;
+      if (!_db || !_negId) throw new Error('No se pudo acceder al contexto de Firebase. Asegúrate de haber iniciado sesión y tener un negocio activo.');
+      return { db: _db, negocioId: _negId };
+    }
+
+    async function _getFirestoreFns() {
+      // Usar la misma versión que la app principal
+      return await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    }
+
+  })();
+  </script>
+
+  <style>
+    /* ── Offline / Sync badge animation ── */
+    @keyframes syncPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    #offline-badge[style*="e67700"] {
+      animation: syncPulse 1.5s ease-in-out infinite;
+    }
+    /* Offline warning toast */
+    .toast.warning {
+      background: #e67700 !important;
+      border-left-color: #f59f00 !important;
+    }
+    /* Remove spinner arrows from monto-recibido input */
+    #monto-recibido::-webkit-outer-spin-button,
+    #monto-recibido::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    #monto-recibido[type=number] {
+      -moz-appearance: textfield;
+      text-align: right;
+    }
+  </style>
 </body>
 
 </html>
