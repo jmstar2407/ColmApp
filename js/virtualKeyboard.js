@@ -15,11 +15,6 @@
   //  HTML del teclado — se inyecta en el <body>
   // ══════════════════════════════════════════════
   function injectHTML() {
-    // Overlay de fondo
-    const overlay = document.createElement('div');
-    overlay.id = 'vkb-overlay';
-    document.body.appendChild(overlay);
-
     // Panel principal
     const panel = document.createElement('div');
     panel.id = 'vkb-panel';
@@ -28,21 +23,12 @@
     panel.innerHTML = `
       <div id="vkb-drag-handle" title="Arrastrar para mover">
         <div id="vkb-drag-dots"><span></span><span></span></div>
-        <button id="vkb-x-close" onclick="vkbClose()" title="Cerrar teclado"
-          style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1.2rem;line-height:1;padding:2px 6px;border-radius:6px;margin-left:auto;"
+        <button id="vkb-x-close" title="Cerrar teclado"
+          style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1.2rem;line-height:1;padding:2px 6px;border-radius:6px;margin-left:auto;-webkit-tap-highlight-color:transparent;"
           onmouseover="this.style.color='#e03131'"
           onmouseout="this.style.color='#94a3b8'">✕</button>
       </div>
       <div id="vkb-field-label">Escribiendo en campo</div>
-      <div id="vkb-preview-bar">
-        <i class="fas fa-keyboard" id="vkb-preview-icon"></i>
-        <div id="vkb-preview-text">
-          <span id="vkb-text-before"></span>
-          <span class="vkb-cursor"></span>
-          <span id="vkb-text-after"></span>
-        </div>
-        <button id="vkb-close-btn" onclick="vkbClose()">Listo ✓</button>
-      </div>
       <div class="vkb-rows" id="vkb-rows"></div>
       <div id="vkb-resize-handle" title="Redimensionar">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -274,19 +260,13 @@
     vkbTarget.value = val.slice(0, vkbCursorPos) + char + val.slice(vkbCursorPos);
     vkbCursorPos++;
     triggerInput(vkbTarget);
-    updatePreview();
   }
 
   function triggerInput(el) {
     el.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  function updatePreview() {
-    if (!vkbTarget) return;
-    const val = vkbTarget.value;
-    document.getElementById('vkb-text-before').textContent = val.slice(0, vkbCursorPos);
-    document.getElementById('vkb-text-after').textContent  = val.slice(vkbCursorPos);
-  }
+  function updatePreview() { /* preview bar removed — text updates directly in the input */ }
 
   // ══════════════════════════════════════════════
   //  DRAG & RESIZE + PERSISTENCIA
@@ -337,6 +317,16 @@
     const panel        = document.getElementById('vkb-panel');
     const dragHandle   = document.getElementById('vkb-drag-handle');
     const resizeHandle = document.getElementById('vkb-resize-handle');
+
+    // ── Botón X cerrar — funciona en touch y mouse ──
+    const xClose = document.getElementById('vkb-x-close');
+    if (xClose) {
+      xClose.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        vkbClose();
+      });
+    }
 
     // ── DRAG ──
     let dragging = false, dStartX, dStartY, dOrigLeft, dOrigTop;
@@ -435,15 +425,38 @@
   }
 
   // ══════════════════════════════════════════════
-  //  Cerrar al hacer click fuera
+  //  Cerrar al tocar/hacer click fuera
+  //  Estrategia: ocultar el panel momentáneamente,
+  //  encontrar el elemento real debajo del toque
+  //  con elementFromPoint, y dispararle un click.
   // ══════════════════════════════════════════════
   function initOutsideClick() {
-    document.addEventListener('mousedown', (e) => {
+    document.addEventListener('pointerdown', (e) => {
       const panel = document.getElementById('vkb-panel');
-      if (!panel.classList.contains('vkb-open')) return;
+      if (!panel || !panel.classList.contains('vkb-open')) return;
       if (panel.contains(e.target)) return;
       if (vkbTarget && vkbTarget.contains(e.target)) return;
+
+      // Obtener coordenadas del toque
+      const x = e.clientX, y = e.clientY;
+
+      // Cerrar el teclado primero
       vkbClose();
+
+      // Ocultar el panel temporalmente para que elementFromPoint
+      // pueda encontrar el elemento real debajo
+      panel.style.display = 'none';
+      const realTarget = document.elementFromPoint(x, y);
+      panel.style.display = '';
+
+      // Disparar click al elemento real si existe y no es el propio input
+      if (realTarget && realTarget !== vkbTarget) {
+        // Buscar el elemento clickeable más cercano (el card o su hijo)
+        const clickable = realTarget.closest('[onclick], button, a, .prod-card, .pos-cat-card, label') || realTarget;
+        try {
+          clickable.click();
+        } catch(err) { /* silencioso */ }
+      }
     }, true);
   }
 
@@ -472,9 +485,6 @@
       label.style.display = 'none';
     }
 
-    const icon = document.getElementById('vkb-preview-icon');
-    icon.className = inputEl.id === 'pos-buscar' ? 'fas fa-search' : 'fas fa-map-marker-alt';
-
     renderKeyboard();
     updatePreview();
 
@@ -497,16 +507,20 @@
       panel._closeTimer = null;
     }
 
-    document.getElementById('vkb-overlay').classList.add('vkb-open');
     panel.classList.add('vkb-open');
   }
   window.vkbClose = function () {
     const panel   = document.getElementById('vkb-panel');
-    const overlay = document.getElementById('vkb-overlay');
     panel.classList.remove('vkb-open');
-    overlay.classList.remove('vkb-open');
     vkbTarget = null;
   };
+
+  // Exponer cursor reset para uso externo (ej: botón limpiar input)
+  Object.defineProperty(window, 'vkbCursorPos', {
+    get: () => vkbCursorPos,
+    set: (v) => { vkbCursorPos = v; },
+    configurable: true
+  });
 
   // ══════════════════════════════════════════════
   //  Conectar el teclado a un <input> por su id

@@ -211,7 +211,7 @@
                   style="padding-left:34px;padding-right:32px;width:100%;box-sizing:border-box;"
                   oninput="buscarProductos(this.value);_syncClearBtn('pos-buscar','pos-buscar-clear');">
                 <button id="pos-buscar-clear"
-                  onclick="document.getElementById('pos-buscar').value='';buscarProductos('');_syncClearBtn('pos-buscar','pos-buscar-clear');" title="Limpiar búsqueda">&#x2715;</button>
+                  onpointerdown="(function(e){e.preventDefault();e.stopPropagation();var inp=document.getElementById('pos-buscar');inp.value='';buscarProductos('');_syncClearBtn('pos-buscar','pos-buscar-clear');if(window.vkbTarget===inp){window.vkbCursorPos=0;if(window.updatePreview)window.updatePreview();}else{inp.focus();};})(event);" title="Limpiar búsqueda">&#x2715;</button>
               </div>
               <div class="pos-direccion-wrap">
                 <i class="fas fa-map-marker-alt" style="color:var(--gris-suave);font-size:13px;flex-shrink:0;"></i>
@@ -223,6 +223,12 @@
                   class="pos-dir-clear"
                   title="Limpiar dirección">&#x2715;</button>
               </div>
+              <button class="icon-btn grid-btn" id="btn-orden-az" onclick="setOrdenProductos('az')" title="Ordenar A-Z">
+                <i class="fas fa-sort-alpha-down"></i>
+              </button>
+              <button class="icon-btn grid-btn" id="btn-orden-original" onclick="setOrdenProductos('original')" title="Orden original">
+                <i class="fas fa-database"></i>
+              </button>
               <button class="icon-btn grid-btn" id="btn-grid-grande" onclick="setGridSize('grande')">
                 <img src="./img/icons/grid.png">
               </button>
@@ -1473,6 +1479,7 @@
     let estadoFacturaSeleccionado = 'pagada';
     let categoriaActual = null;
     let gridSize = localStorage.getItem('pos_grid_size') === 'pequena' ? 'pequena' : 'grande';
+    let ordenProductos = localStorage.getItem('pos_orden_productos') || 'original'; // 'original' | 'az'
     let invViewGrid = true;
     let chartVentas = null, chartProductos = null, chartMetodos = null;
     let unsubscribers = [];
@@ -2339,7 +2346,7 @@
         renderFacturasTabs();
         renderCarrito();
         // Asegurar que el grid de la categoría activa sea visible
-        if (categoriaActual && _gridCache[categoriaActual]) {
+        if (categoriaActual && !_gridNecesitaActualizar(categoriaActual)) {
           _mostrarGrid(categoriaActual);
         } else if (categoriaActual) {
           _llenarGrid(categoriaActual);
@@ -2662,7 +2669,9 @@
     // ── CACHÉ DE GRIDS POR CATEGORÍA ─────────────────────────────────────────
     // Cada categoría tiene su propio div.productos-grid en el DOM.
     // Al cambiar de categoría solo se muestra/oculta — sin destruir ni recrear.
+    // _gridOrdenCache guarda con qué orden fue renderizado cada grid para invalidarlo si cambia.
     const _gridCache = {};
+    const _gridOrdenCache = {}; // catId -> orden con que fue renderizado
 
     function _getOrCreateGrid(catId) {
       const area = document.getElementById('pos-productos-area');
@@ -2679,6 +2688,11 @@
       return grid;
     }
 
+    function _gridNecesitaActualizar(catId) {
+      // El grid necesita re-renderizarse si no existe o si fue renderizado con otro orden
+      return !_gridCache[catId] || _gridOrdenCache[catId] !== ordenProductos;
+    }
+
     function _llenarGrid(catId, busqueda = '') {
       const grid = _getOrCreateGrid(catId);
       if (!grid) return;
@@ -2692,10 +2706,13 @@
         p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
         (p.codigoBarras || '').includes(busqueda)
       );
+      prods = _aplicarOrden(prods);
       grid.className = `productos-grid ${gridSize}`;
       grid.innerHTML = prods.length
         ? prods.map(p => renderProdCard(p, busqueda)).join('')
         : '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin productos en esta categoría</p></div>';
+      // Registrar con qué orden fue renderizado este grid
+      if (!busqueda) _gridOrdenCache[catId] = ordenProductos;
     }
 
     function _mostrarGrid(catId) {
@@ -2713,8 +2730,8 @@
       document.querySelectorAll('.pos-cat-card').forEach(el => el.classList.remove('activa'));
       const activeCard = document.getElementById(`pos-cat-${catId}`);
       if (activeCard) activeCard.classList.add('activa');
-      if (!_gridCache[catId]) {
-        // Primera visita: construir el grid
+      // Re-renderizar si es primera visita O si cambió el orden desde la última vez
+      if (_gridNecesitaActualizar(catId)) {
         _llenarGrid(catId);
       }
       _mostrarGrid(catId);
@@ -2739,6 +2756,7 @@
           normalizarTexto(p.nombre).includes(normalizarTexto(busqueda)) ||
           normalizarTexto(p.codigoBarras || '').includes(normalizarTexto(busqueda))
         );
+        prods = _aplicarOrden(prods);
         searchGrid.className = `productos-grid ${gridSize}`;
         searchGrid.style.display = '';
         searchGrid.innerHTML = prods.length
@@ -2790,7 +2808,7 @@
         const gs = document.getElementById('productos-grid-global-search');
         if (gs) gs.style.display = 'none';
         if (categoriaActual) {
-          if (!_gridCache[categoriaActual]) _llenarGrid(categoriaActual);
+          if (_gridNecesitaActualizar(categoriaActual)) _llenarGrid(categoriaActual);
           _mostrarGrid(categoriaActual);
         } else {
           renderCategoriasPos();
@@ -2818,7 +2836,8 @@
         area.appendChild(globalSearch);
       }
       globalSearch.style.display = '';
-      globalSearch.innerHTML = `<div style="padding:0 0 12px;font-size:13px;color:var(--gris-suave);font-weight:600;">${found.length} resultado(s) para "<strong>${escapeHtml(q)}</strong>"</div><div class="productos-grid ${gridSize}">${found.length ? found.map(p => renderProdCard(p, q)).join('') : '<div class="empty-state"><p>Sin resultados</p></div>'}</div>`;
+      const foundOrdenado = _aplicarOrden(found);
+      globalSearch.innerHTML = `<div style="padding:0 0 12px;font-size:13px;color:var(--gris-suave);font-weight:600;">${found.length} resultado(s) para "<strong>${escapeHtml(q)}</strong>"</div><div class="productos-grid ${gridSize}">${found.length ? foundOrdenado.map(p => renderProdCard(p, q)).join('') : '<div class="empty-state"><p>Sin resultados</p></div>'}</div>`;
     };
 
     // ── Menú contextual producto en POS ─────────────────
@@ -2864,8 +2883,39 @@
       const sg = document.getElementById('productos-grid-busqueda');
       if (sg) sg.className = `productos-grid ${size}`;
     };
+    // ── Orden de productos ───────────────────────────────
+    function _aplicarOrden(prods) {
+      if (ordenProductos === 'az') {
+        return [...prods].sort((a, b) => normalizarTexto(a.nombre).localeCompare(normalizarTexto(b.nombre)));
+      }
+      return prods; // orden original de Firebase
+    }
+
+    window.setOrdenProductos = (orden) => {
+      if (ordenProductos === orden) return; // sin cambio, no hacer nada
+      ordenProductos = orden;
+      localStorage.setItem('pos_orden_productos', orden);
+      // Actualizar estado visual de botones
+      const btnAZ = document.getElementById('btn-orden-az');
+      const btnOrig = document.getElementById('btn-orden-original');
+      if (btnAZ) btnAZ.classList.toggle('active', orden === 'az');
+      if (btnOrig) btnOrig.classList.toggle('active', orden === 'original');
+      // Invalidar SOLO el registro de orden de cada grid cacheado
+      // Los grids se re-renderizan lazy al visitarlos; solo el actual se actualiza ahora
+      Object.keys(_gridOrdenCache).forEach(k => delete _gridOrdenCache[k]);
+      // Re-renderizar la categoría visible inmediatamente
+      if (categoriaActual) {
+        _llenarGrid(categoriaActual);
+        _mostrarGrid(categoriaActual);
+      }
+      // Re-renderizar búsqueda activa si hay
+      const busqEl = document.getElementById('pos-buscar');
+      if (busqEl && busqEl.value.trim()) window.buscarProductos(busqEl.value.trim());
+    };
+
     // Restaurar tamaño de grid guardado
     (function () { const saved = localStorage.getItem('pos_grid_size'); if (saved === 'pequena' || saved === 'grande') { gridSize = saved; document.addEventListener('DOMContentLoaded', () => { const bg = document.getElementById('btn-grid-grande'); const bp = document.getElementById('btn-grid-peq'); if (bg) bg.classList.toggle('active', saved === 'grande'); if (bp) bp.classList.toggle('active', saved === 'pequena'); }); } })();
+    (function () { const savedOrden = localStorage.getItem('pos_orden_productos') || 'original'; ordenProductos = savedOrden; document.addEventListener('DOMContentLoaded', () => { const ba = document.getElementById('btn-orden-az'); const bo = document.getElementById('btn-orden-original'); if (ba) ba.classList.toggle('active', savedOrden === 'az'); if (bo) bo.classList.toggle('active', savedOrden === 'original'); }); })();
 
     window.abrirScaner = () => {
       if (window.innerWidth <= 768) {
