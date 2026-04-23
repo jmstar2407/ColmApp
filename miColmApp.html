@@ -3294,10 +3294,10 @@
     function _actualizarTotalesCarrito() {
       const carrito = getCarrito();
       const subtotal = carrito.reduce((s, i) => {
-        if (i._precioBase !== undefined) return s + i._precioBase * i.qty; // detallable
         if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) {
           return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades);
         }
+        if (i._precioBase !== undefined) return s + i._precioBase * i.qty; // detallable
         return s + i.precio * i.qty;
       }, 0);
       const itbisPct = config.itbisPct || 18;
@@ -3524,7 +3524,7 @@
         });
       }
 
-      const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
+      const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
@@ -3980,7 +3980,7 @@
       const carrito = getCarrito();
       if (!carrito.length) { toast('El carrito está vacío', 'error'); return; }
       if (!cajaActual) { toast('La caja no está abierta', 'error'); return; }
-      const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
+      const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
@@ -4066,7 +4066,7 @@
 
     window.mixtoPonerResto = (campo) => {
       const carrito = getCarrito();
-      const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
+      const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
@@ -4105,7 +4105,7 @@
 
     function mixtoActualizarResumen() {
       const carrito = getCarrito();
-      const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
+      const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
@@ -4150,7 +4150,7 @@
     // ==================== CONFIRMAR FACTURA — LÓGICA DEL BOTÓN VERDE ====================
     function _facturaListaParaPagar() {
       const carrito = getCarrito();
-      const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
+      const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
@@ -4207,7 +4207,7 @@
             toast('Ingresa el monto recibido en efectivo', 'error');
             return;
           }
-          const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
+          const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
           const itbisCliente = config.itbisCliente === true;
           const total = subtotal * (1 + (itbisCliente ? (config.itbisPct || 18) / 100 : 0));
           if (montoRec < total) {
@@ -4218,7 +4218,7 @@
         if (metodoPagoSeleccionado === 'mixto') {
           const ef   = parseFloat(_mixtoEfStr)   || 0;
           const elec = parseFloat(_mixtoElecStr)  || 0;
-          const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
+          const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
           const itbisCliente = config.itbisCliente === true;
           const total = subtotal * (1 + (itbisCliente ? (config.itbisPct || 18) / 100 : 0));
           if (ef <= 0 && elec <= 0) {
@@ -4242,7 +4242,7 @@
 
       // ── MODO DE PRUEBA: simular factura sin guardar ni descontar stock ──
       if (modoPrueba) {
-        const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
+        const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
         const itbisPct = config.itbisPct || 18;
         const itbisCliente = config.itbisCliente === true;
         const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
@@ -4317,7 +4317,7 @@
 
       try {
         // ── 5. Calcular totales ───────────────────────────────────────
-        const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
+        const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
         const itbisPct = config.itbisPct || 18;
         const itbisCliente = config.itbisCliente === true;
         const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
