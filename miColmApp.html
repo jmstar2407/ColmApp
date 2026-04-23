@@ -211,7 +211,7 @@
                   style="padding-left:34px;padding-right:32px;width:100%;box-sizing:border-box;"
                   oninput="buscarProductos(this.value);_syncClearBtn('pos-buscar','pos-buscar-clear');">
                 <button id="pos-buscar-clear"
-                  onpointerdown="(function(e){e.preventDefault();var inp=document.getElementById('pos-buscar');inp.value='';inp.dispatchEvent(new Event('input',{bubbles:true}));if(window.vkbTarget===inp){window.vkbCursorPos=0;}else{inp.focus();};})(event);" title="Limpiar búsqueda" style="display:none;align-items:center;justify-content:center;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:14px;padding:4px;line-height:1;border-radius:50%;width:20px;height:20px;z-index:2;">&#x2715;</button>
+                  onpointerdown="(function(e){e.preventDefault();var inp=document.getElementById('pos-buscar');inp.value='';inp.dispatchEvent(new Event('input',{bubbles:true}));if(window.vkbTarget===inp){window.vkbCursorPos=0;}else{inp.focus();};})(event);" title="Limpiar búsqueda" style="display:none;">&#x2715;</button>
               </div>
               <div class="pos-direccion-wrap" style="position:relative;">
                 <i class="fas fa-map-marker-alt" style="color:var(--gris-suave);font-size:13px;flex-shrink:0;"></i>
@@ -220,14 +220,11 @@
                   oninput="_getTabActiva()&&(_getTabActiva().direccion=this.value,_guardarTabsEnStorage());_syncClearBtn('pos-direccion-cliente','pos-dir-clear');">
                 <button id="pos-dir-clear"
                   onpointerdown="(function(e){e.preventDefault();var inp=document.getElementById('pos-direccion-cliente');inp.value='';if(_getTabActiva()){_getTabActiva().direccion='';_guardarTabsEnStorage();}inp.dispatchEvent(new Event('input',{bubbles:true}));if(window.vkbTarget===inp){window.vkbCursorPos=0;}else{inp.focus();};})(event);"
-                  style="display:none;align-items:center;justify-content:center;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:14px;padding:4px;line-height:1;border-radius:50%;width:20px;height:20px;z-index:2;"
+                  style=""
                   title="Limpiar dirección">&#x2715;</button>
               </div>
-              <button class="icon-btn grid-btn" id="btn-orden-az" onclick="setOrdenProductos('az')" title="Ordenar A-Z">
+              <button class="icon-btn grid-btn" id="btn-orden-az" onclick="toggleOrdenProductos()" title="Orden A-Z / Original">
                 <i class="fas fa-sort-alpha-down"></i>
-              </button>
-              <button class="icon-btn grid-btn" id="btn-orden-original" onclick="setOrdenProductos('original')" title="Orden original">
-                <i class="fas fa-database"></i>
               </button>
               <button class="icon-btn grid-btn" id="btn-grid-grande" onclick="setGridSize('grande')">
                 <img src="./img/icons/grid.png">
@@ -259,8 +256,11 @@
           <!-- COLUMNA DERECHA: Carrito -->
           <div class="pos-right" id="pos-right">
             <div class="carrito-header">
-              <h3><i class="fas fa-shopping-cart"></i> Carrito</h3>
-              <span class="carrito-count" id="carrito-count">0</span>
+              <h3><i class="fas fa-shopping-cart"></i> <span id="carrito-header-nombre">Carrito</span></h3>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="carrito-count" id="carrito-count">0</span>
+                <button id="btn-editar-carrito" onclick="toggleModoEdicionCarrito()" title="Editar productos del carrito" style="background:none;border:none;cursor:pointer;color:#fff;font-size:15px;padding:4px 6px;border-radius:6px;transition:background 0.2s;display:flex;align-items:center;justify-content:center;"><i id="icon-editar-carrito" class="fas fa-pen" style="color: #4a5568;"></i></button>
+              </div>
             </div>
             <div class="carrito-items" id="carrito-items">
               <div class="carrito-empty"><i class="fas fa-shopping-cart"></i>
@@ -295,6 +295,72 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- MODAL EDITAR ITEM CARRITO -->
+      <div id="modal-editar-item-carrito" style="display:none;position:fixed;inset:0;z-index:9999;pointer-events:none;">
+        <!-- Overlay -->
+        <div id="modal-editar-item-overlay" onclick="cerrarModalEditarItem()" style="position:absolute;inset:0;background:rgba(0,0,0,0.35);pointer-events:all;"></div>
+        <!-- Panel deslizante desde la derecha -->
+        <div id="modal-editar-item-panel" style="position:absolute;top:0;right:0;height:100%;width:400px;max-width:100vw;background:#fff;box-shadow:-4px 0 30px rgba(0,0,0,0.18);transform:translateX(100%);transition:transform 0.32s cubic-bezier(.4,0,.2,1);pointer-events:all;display:flex;flex-direction:column;border-radius:16px 0 0 16px;overflow:hidden;">
+          <!-- Header -->
+          <div style="background:linear-gradient(135deg,#1a2135 0%,#2d3a56 100%);padding:18px 20px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <div>
+              <div style="color:#a0aec0;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;">Editando producto</div>
+              <div id="meic-nombre" style="color:#fff;font-size:16px;font-weight:700;"></div>
+            </div>
+            <button onclick="cerrarModalEditarItem()" style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+          </div>
+          <!-- Precio actual badge -->
+          <div style="padding:14px 20px 0;flex-shrink:0;">
+            <div style="background:#f0f4ff;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:12px;color:#4a5568;font-weight:600;">Precio original</span>
+              <span id="meic-precio-original" style="font-size:15px;font-weight:800;color:#1a2135;"></span>
+            </div>
+          </div>
+          <!-- Body scrollable -->
+          <div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:18px;">
+            <!-- Precio -->
+            <div>
+              <label style="display:block;font-size:12px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Precio total (RD$)</label>
+              <div style="display:flex;align-items:center;background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;overflow:hidden;transition:border 0.2s;">
+                <span style="padding:0 12px;font-size:13px;color:#718096;font-weight:600;">RD$</span>
+                <input id="meic-precio" type="number" min="0" step="0.01" style="flex:1;border:none;background:transparent;padding:11px 12px 11px 0;font-size:16px;font-weight:700;color:#1a2135;outline:none;" oninput="meicActualizarPreview()" onfocus="this.parentElement.style.borderColor='#4299e1'" onblur="this.parentElement.style.borderColor='#e2e8f0'">
+              </div>
+            </div>
+            <!-- Cantidad -->
+            <div>
+              <label style="display:block;font-size:12px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Cantidad</label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <button onclick="meicCambiarQty(-1)" style="width:40px;height:40px;border-radius:10px;border:2px solid #e2e8f0;background:#f8fafc;font-size:20px;font-weight:700;color:#1a2135;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmousedown="this.style.background='#e2e8f0'" onmouseup="this.style.background='#f8fafc'">−</button>
+                <input id="meic-qty" type="number" min="0.01" step="1" style="flex:1;border:2px solid #e2e8f0;background:#f8fafc;border-radius:10px;padding:10px 12px;font-size:16px;font-weight:700;color:#1a2135;text-align:center;outline:none;" oninput="meicSyncTotalDesdeQty();meicActualizarPreview()" onfocus="this.style.borderColor='#4299e1'" onblur="this.style.borderColor='#e2e8f0'">
+                <button onclick="meicCambiarQty(1)" style="width:40px;height:40px;border-radius:10px;border:2px solid #e2e8f0;background:#f8fafc;font-size:20px;font-weight:700;color:#1a2135;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmousedown="this.style.background='#e2e8f0'" onmouseup="this.style.background='#f8fafc'">+</button>
+              </div>
+            </div>
+            <!-- Descuento -->
+            <div>
+              <label style="display:block;font-size:12px;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Descuento (%)</label>
+              <div style="display:flex;align-items:center;background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;overflow:hidden;transition:border 0.2s;">
+                <input id="meic-descuento" type="number" min="0" max="100" step="1" placeholder="0" style="flex:1;border:none;background:transparent;padding:11px 12px;font-size:16px;font-weight:700;color:#1a2135;outline:none;" oninput="meicActualizarPreview()" onfocus="this.parentElement.style.borderColor='#f6ad55'" onblur="this.parentElement.style.borderColor='#e2e8f0'">
+                <span style="padding:0 12px;font-size:15px;color:#718096;font-weight:700;">%</span>
+              </div>
+              <div id="meic-descuento-info" style="margin-top:5px;font-size:12px;color:#e67e22;font-weight:600;display:none;"></div>
+            </div>
+            <!-- Preview total -->
+            <div style="background:linear-gradient(135deg,#ebf8ff,#f0fff4);border:2px solid #bee3f8;border-radius:12px;padding:14px 16px;">
+              <div style="font-size:11px;color:#2b6cb0;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;">Vista previa</div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;color:#4a5568;">Precio unitario</span><span id="meic-preview-precio" style="font-size:13px;font-weight:700;color:#2d3748;"></span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;color:#4a5568;">Cantidad</span><span id="meic-preview-qty" style="font-size:13px;font-weight:700;color:#2d3748;"></span></div>
+              <div style="height:1px;background:#bee3f8;margin:8px 0;"></div>
+              <div style="display:flex;justify-content:space-between;"><span style="font-size:14px;font-weight:700;color:#1a2135;">Subtotal</span><span id="meic-preview-total" style="font-size:16px;font-weight:800;color:#276749;"></span></div>
+            </div>
+          </div>
+          <!-- Footer -->
+          <div style="padding:16px 20px;border-top:1px solid #e2e8f0;display:flex;gap:10px;flex-shrink:0;background:#fafbfc;">
+            <button onclick="cerrarModalEditarItem()" style="flex:1;padding:13px;border:2px solid #e2e8f0;background:#fff;border-radius:10px;font-size:14px;font-weight:700;color:#4a5568;cursor:pointer;">Cancelar</button>
+            <button onclick="meicGuardarCambios()" style="flex:2;padding:13px;border:none;background:linear-gradient(135deg,#1a2135,#2d3a56);border-radius:10px;font-size:14px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:0.3px;">✓ Aplicar Cambios</button>
+          </div>
+        </div>
       </div>
 
       <!-- CAJA PAGE -->
@@ -387,11 +453,12 @@
               <thead>
                 <tr>
                   <th># Factura</th>
-                  <th>NCF</th>
-                  <th>Fecha</th>
-                  <th>Empleado</th>
-                  <th>Método</th>
+                  <th>Dirección</th>
+                  <th>Hora / Fecha</th>
                   <th>Total</th>
+                  <th>Método</th>
+                  <th>Empleado</th>
+                  <th>NCF</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
@@ -673,7 +740,7 @@
       </div>
 
       <div class="modal-footer">
-        <button class="detalle-key cancelar" onclick="cerrarModal('modal-detalle-unidad')"><i class="fas fa-times"></i>
+        <button class="detalle-key cancelar" onclick="cerrarModal('modal-detalle-unidad')">
           Cancelar</button>
         <button class="detalle-key ok" id="du-btn-confirmar" onclick="duConfirmar()" disabled><i
             class="fas fa-check"></i> Agregar al Carrito</button>
@@ -707,7 +774,7 @@
 
           <!-- Totales -->
           <div class="mf-totales-box">
-            <div class="totales-row"><span id="mfact-itbis-lbl">ITBIS (18%)</span><span id="mfact-itbis">RD$ 0.00</span>
+            <div class="totales-row" id="mfact-itbis-row"><span id="mfact-itbis-lbl">ITBIS (18%)</span><span id="mfact-itbis">RD$ 0.00</span>
             </div>
             <div class="totales-row"><span>Subtotal</span><span id="mfact-subtotal">RD$ 0.00</span></div>
             <div class="totales-row total mf-total-grande"><span>TOTAL</span><span id="mfact-total">RD$ 0.00</span>
@@ -955,7 +1022,7 @@
                 <option value="">Selecciona categoría...</option>
               </select></div>
             <div class="two-col" id="precio-compra-label">
-              <div class="form-group"><label>Precio Venta (RD$)</label><input type="number" id="prod-precio" placeholder="0.00" min="0" step="0.01"></div>
+              <div class="form-group"><label>Precio Venta (RD$)</label><input type="number" id="prod-precio" placeholder="0.00" min="0" step="0.01" oninput="if(document.getElementById('prod-combo-enabled')?.checked) actualizarComboPreview()"></div>
               <div class="form-group"><label>Precio Compra/Costo (RD$)</label><input type="number" id="prod-costo" placeholder="0.00" min="0" step="0.01" value="0"></div>
             </div>
             <!-- Toggle stock -->
@@ -1021,6 +1088,38 @@
             <span style="font-weight:600;font-size:13px;">⭐ Añadir a Más Vendidos</span>
           </label>
           <p style="font-size:11px;color:var(--gris-suave);margin-top:6px;margin-left:58px;">El producto aparecerá en la categoría especial "Más Vendidos"</p>
+        </div>
+
+        <!-- SISTEMA DE COMBO -->
+        <div id="combo-toggle-wrap" style="margin-top:10px;">
+          <label class="mv-toggle-wrap" for="prod-combo-enabled" id="combo-toggle-label" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:#f1f3f9;cursor:pointer;user-select:none;transition:background 0.2s;">
+            <span style="position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0;">
+              <input type="checkbox" id="prod-combo-enabled" onchange="toggleComboFields()" style="opacity:0;width:0;height:0;position:absolute;">
+              <span id="combo-toggle-track" style="position:absolute;inset:0;border-radius:22px;background:#cbd5e0;transition:background 0.2s;"></span>
+              <span id="combo-toggle-thumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.18);transition:transform 0.2s;"></span>
+            </span>
+            <div>
+              <span style="font-weight:700;font-size:13px;color:#1a2135;">🎁 Activar sistema de Combo</span>
+              <p style="font-size:11px;color:var(--gris-suave);margin:2px 0 0 0;">Ej: 10 pesos/ud, pero por 15 pesos se dan 2 unidades</p>
+            </div>
+          </label>
+          <div id="combo-fields-wrap" style="display:none;margin-top:10px;padding:14px;background:linear-gradient(135deg,#fff9db,#fff3bf);border:2px solid #f59f00;border-radius:12px;animation:fadeInDown 0.2s ease;">
+            <div style="font-size:12px;font-weight:800;color:#e67700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px;">⚡ Configurar Combo</div>
+            <div class="two-col">
+              <div class="form-group" style="margin:0;">
+                <label style="font-size:12px;font-weight:700;color:#7c5e00;">Precio del combo (RD$)</label>
+                <input type="number" id="prod-combo-precio" placeholder="Ej: 15.00" min="0" step="0.01" oninput="actualizarComboPreview()" style="border-color:#f59f00;">
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label style="font-size:12px;font-weight:700;color:#7c5e00;">Unidades que incluye</label>
+                <input type="number" id="prod-combo-unidades" placeholder="Ej: 2" min="2" step="1" oninput="actualizarComboPreview()" style="border-color:#f59f00;">
+              </div>
+            </div>
+            <div id="combo-preview" style="margin-top:10px;padding:8px 12px;background:#fff;border-radius:8px;border:1px solid #f59f00;font-size:12px;color:#495057;min-height:36px;display:flex;align-items:center;gap:6px;">
+              <i class="fas fa-info-circle" style="color:#f59f00;"></i>
+              <span id="combo-preview-txt">Configura el precio del combo y las unidades para ver el resumen.</span>
+            </div>
+          </div>
         </div>
         <input type="hidden" id="prod-id">
       </div>
@@ -2793,11 +2892,14 @@
       const unidadBadge = esDetallable ? ` <span style="background:#1971c2;color:white;border-radius:4px;padding:1px 5px;font-size:10px;font-weight:700;">${unidadLabel}</span>` : '';
       const stockValDisplay = stockHab ? fmtNum(p.stock) : '∞';
       const stockHtml = `Stock: ${stockValDisplay}${unidadBadge}`;
+      const comboBadge = p.comboActivo && p.comboPrecio && p.comboUnidades
+        ? `<span style="position:absolute;top:4px;left:4px;background:linear-gradient(135deg,#f59f00,#e67700);color:#fff;border-radius:5px;padding:2px 6px;font-size:9px;font-weight:800;letter-spacing:0.3px;box-shadow:0 1px 4px rgba(0,0,0,0.18);z-index:2;">${p.comboUnidades}x${p.comboPrecio}</span>`
+        : '';
       const imagenHtml = p.imagen
         ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;><i class=&quot;fas fa-shopping-cart&quot;></i></div>'">`
         : `<div class="prod-emoji"><i class="fas fa-shopping-cart"></i></div>`;
       const pesoNetoHtml = p.pesoNeto ? `<span class="peso-neto-badge">${escapeHtml(p.pesoNeto)}</span>` : '';
-      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')" oncontextmenu="mostrarMenuContextoProducto(event,'${p.id}');return false;"><div class="product-image" style="position:relative;">${imagenHtml}${pesoNetoHtml}</div><div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
+      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')" oncontextmenu="mostrarMenuContextoProducto(event,'${p.id}');return false;"><div class="product-image" style="position:relative;">${imagenHtml}${pesoNetoHtml}${comboBadge}</div><div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
     }
 
     window.buscarProductos = (q) => {
@@ -2892,30 +2994,27 @@
     }
 
     window.setOrdenProductos = (orden) => {
-      if (ordenProductos === orden) return; // sin cambio, no hacer nada
+      if (ordenProductos === orden) return;
       ordenProductos = orden;
       localStorage.setItem('pos_orden_productos', orden);
-      // Actualizar estado visual de botones
       const btnAZ = document.getElementById('btn-orden-az');
-      const btnOrig = document.getElementById('btn-orden-original');
       if (btnAZ) btnAZ.classList.toggle('active', orden === 'az');
-      if (btnOrig) btnOrig.classList.toggle('active', orden === 'original');
-      // Invalidar SOLO el registro de orden de cada grid cacheado
-      // Los grids se re-renderizan lazy al visitarlos; solo el actual se actualiza ahora
       Object.keys(_gridOrdenCache).forEach(k => delete _gridOrdenCache[k]);
-      // Re-renderizar la categoría visible inmediatamente
       if (categoriaActual) {
         _llenarGrid(categoriaActual);
         _mostrarGrid(categoriaActual);
       }
-      // Re-renderizar búsqueda activa si hay
       const busqEl = document.getElementById('pos-buscar');
       if (busqEl && busqEl.value.trim()) window.buscarProductos(busqEl.value.trim());
     };
 
+    window.toggleOrdenProductos = () => {
+      setOrdenProductos(ordenProductos === 'az' ? 'original' : 'az');
+    };
+
     // Restaurar tamaño de grid guardado
     (function () { const saved = localStorage.getItem('pos_grid_size'); if (saved === 'pequena' || saved === 'grande') { gridSize = saved; document.addEventListener('DOMContentLoaded', () => { const bg = document.getElementById('btn-grid-grande'); const bp = document.getElementById('btn-grid-peq'); if (bg) bg.classList.toggle('active', saved === 'grande'); if (bp) bp.classList.toggle('active', saved === 'pequena'); }); } })();
-    (function () { const savedOrden = localStorage.getItem('pos_orden_productos') || 'original'; ordenProductos = savedOrden; document.addEventListener('DOMContentLoaded', () => { const ba = document.getElementById('btn-orden-az'); const bo = document.getElementById('btn-orden-original'); if (ba) ba.classList.toggle('active', savedOrden === 'az'); if (bo) bo.classList.toggle('active', savedOrden === 'original'); }); })();
+    (function () { const savedOrden = localStorage.getItem('pos_orden_productos') || 'original'; ordenProductos = savedOrden; document.addEventListener('DOMContentLoaded', () => { const ba = document.getElementById('btn-orden-az'); if (ba) ba.classList.toggle('active', savedOrden === 'az'); }); })();
 
     window.abrirScaner = () => {
       if (window.innerWidth <= 768) {
@@ -3119,7 +3218,7 @@
       const h3 = document.querySelector('#modal-detalle-unidad .modal-header h3');
       if (h3) h3.innerHTML = '<i class="fas fa-pen"></i> Editar cantidad';
       const btnOk = document.getElementById('du-btn-confirmar');
-      if (btnOk) { btnOk.innerHTML = '<i class="fas fa-check"></i> Actualizar Carrito'; btnOk.disabled = true; }
+      if (btnOk) { btnOk.innerHTML = 'Actualizar Carrito'; btnOk.disabled = true; }
       duActualizarResultado();
       abrirModal('modal-detalle-unidad');
     };
@@ -3172,12 +3271,15 @@
       const carrito = getCarrito();
       const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
       const itbisPct = config.itbisPct || 18;
-      const itbisCliente = config.itbisCliente !== false;
+      const itbisCliente = config.itbisCliente === true;
       const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
       const total = subtotal + itbis;
       document.getElementById('cart-subtotal').textContent = fmt(subtotal);
       document.getElementById('cart-itbis').textContent = fmt(itbis);
       document.getElementById('cart-total').textContent = fmt(total);
+      // Mostrar/ocultar fila ITBIS
+      const itbisRow = document.getElementById('cart-itbis')?.closest('.totales-row');
+      if (itbisRow) itbisRow.style.display = itbisCliente ? '' : 'none';
       // Actualizar subtotal de cada item detallable
       carrito.forEach(item => {
         if (esUnidadDetallable(item.unidad)) {
@@ -3233,7 +3335,7 @@
         if (prod.stockHabilitado !== false && carrito[idx].qty >= prod.stock) { toast('No hay más stock disponible', 'error'); return; }
         carrito[idx].qty++;
       } else {
-        carrito.push({ ...prod, qty: 1 });
+        carrito.push({ ...prod, qty: 1, _precioBase: prod.precio, _precioInventario: prod.precio });
       }
       setCarrito(carrito);
       _ultimoItemAgregado = prod.id;
@@ -3252,6 +3354,16 @@
 
     function _renderItemNormal(item) {
       const pesoNeto = item.pesoNeto ? `<span class="peso-neto-badge">${item.pesoNeto}</span>` : '';
+      // Lógica de combo: calcular unidades reales según el monto ingresado
+      if (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2) {
+        const montoTotal = item.precio * item.qty;
+        const combosCompletos = Math.floor(montoTotal / item.comboPrecio);
+        const montoEnCombos = combosCompletos * item.comboPrecio;
+        const resto = montoTotal - montoEnCombos;
+        const unidadesSueltas = Math.floor(resto / item.precio);
+        const subtotalReal = montoEnCombos + unidadesSueltas * item.precio;
+        return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(subtotalReal)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
+      }
       return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
     }
 
@@ -3293,6 +3405,13 @@
       const carrito = getCarrito();
       // Contar productos distintos (no suma de unidades/libras/onzas)
       count.textContent = carrito.length;
+
+      // Actualizar nombre de la factura en el header
+      const headerNombre = document.getElementById('carrito-header-nombre');
+      if (headerNombre) {
+        const tabActiva = _getTabActiva();
+        headerNombre.textContent = tabActiva ? tabActiva.nombre : 'Carrito';
+      }
 
       if (!carrito.length) {
         items.innerHTML = `<div class="carrito-empty"><i class="fas fa-shopping-cart"></i><p>Agrega productos al carrito</p></div>`;
@@ -3336,7 +3455,19 @@
               const qtyEl = existing.querySelector('.qty-num');
               if (qtyEl) qtyEl.textContent = item.qty;
               const subEl = existing.querySelector('.item-subtotal');
-              if (subEl) subEl.textContent = fmt(item.precio * item.qty);
+              if (subEl) {
+                if (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2) {
+                  const montoTotal = item.precio * item.qty;
+                  const combosCompletos = Math.floor(montoTotal / item.comboPrecio);
+                  const montoEnCombos = combosCompletos * item.comboPrecio;
+                  const resto = montoTotal - montoEnCombos;
+                  const unidadesSueltas = Math.floor(resto / item.precio);
+                  const subtotalReal = montoEnCombos + unidadesSueltas * item.precio;
+                  subEl.textContent = fmt(subtotalReal);
+                } else {
+                  subEl.textContent = fmt(item.precio * item.qty);
+                }
+              }
             }
 
             // Asegurar posición correcta en el DOM
@@ -3361,13 +3492,16 @@
 
       const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
       const itbisPct = config.itbisPct || 18;
-      const itbisCliente = config.itbisCliente !== false;
+      const itbisCliente = config.itbisCliente === true;
       const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
       const total = subtotal + itbis;
       document.getElementById('cart-subtotal').textContent = fmt(subtotal);
-      document.getElementById('cart-itbis-label').textContent = `ITBIS (${itbisPct}%)${!itbisCliente ? ' (asumido)' : ''}`;
+      document.getElementById('cart-itbis-label').textContent = `ITBIS (${itbisPct}%)`;
       document.getElementById('cart-itbis').textContent = fmt(itbis);
       document.getElementById('cart-total').textContent = fmt(total);
+      // Mostrar/ocultar fila ITBIS según configuración
+      const itbisRow = document.getElementById('cart-itbis')?.closest('.totales-row');
+      if (itbisRow) itbisRow.style.display = itbisCliente ? '' : 'none';
       const btnVaciar = document.getElementById('btn-vaciar-carrito');
       if (btnVaciar) btnVaciar.style.background = carrito.length ? 'var(--rojo)' : '#aab4c8';
       if (typeof window._actualizarFabBadge === 'function') window._actualizarFabBadge(carrito.length);
@@ -3388,6 +3522,219 @@
         });
       }
     }
+
+// ══════════════════════════════════════════════════
+    // MODO EDICIÓN CARRITO + MODAL EDITAR ITEM
+    // ══════════════════════════════════════════════════
+    let _modoEdicionCarrito = false;
+    let _meicItemId = null;
+
+    window.toggleModoEdicionCarrito = function () {
+      _modoEdicionCarrito = !_modoEdicionCarrito;
+      const icon = document.getElementById('icon-editar-carrito');
+      if (icon) {
+        icon.className = _modoEdicionCarrito ? 'fas fa-times' : 'fas fa-pen';
+      }
+      const btn = document.getElementById('btn-editar-carrito');
+      if (btn) btn.style.background = _modoEdicionCarrito ? 'rgba(252,79,98,0.25)' : 'none';
+      _aplicarOverlaysEdicion();
+    };
+
+    function _aplicarOverlaysEdicion() {
+      const carritoItemsEl = document.getElementById('carrito-items');
+      if (!carritoItemsEl) return;
+      carritoItemsEl.querySelectorAll('.carrito-item').forEach(el => {
+        let ov = el.querySelector('.carrito-edit-overlay');
+        if (_modoEdicionCarrito) {
+          el.style.position = 'relative';
+          if (!ov) {
+            ov = document.createElement('div');
+            ov.className = 'carrito-edit-overlay';
+            ov.innerHTML = '<i class="fas fa-pen"></i>';
+            ov.addEventListener('click', function (e) {
+              e.stopPropagation();
+              const itemId = el.dataset.itemId;
+              if (itemId) abrirModalEditarItem(itemId);
+            });
+            el.appendChild(ov);
+          }
+        } else {
+          if (ov) ov.remove();
+        }
+      });
+    }
+
+    window.abrirModalEditarItem = function (itemId) {
+      const carrito = getCarrito();
+      const item = carrito.find(i => i.id === itemId);
+      if (!item) return;
+      _meicItemId = itemId;
+
+      document.getElementById('meic-nombre').textContent = item.nombre;
+      // Precio original del inventario (para mostrar como referencia — total original)
+      const precioUnitOriginal = item._precioInventario || item._precioBase || item.precio;
+      const qty = parseFloat(Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(2));
+      document.getElementById('meic-precio-original').textContent = 'RD$ ' + (precioUnitOriginal * qty).toFixed(2);
+      // El input muestra el precio TOTAL actual (unitario × qty)
+      const precioUnitActual = item._precioBase || item.precio;
+      document.getElementById('meic-precio').value = (precioUnitActual * qty).toFixed(2);
+      document.getElementById('meic-qty').value = Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(2);
+      const desc = item._descuento || 0;
+      document.getElementById('meic-descuento').value = desc > 0 ? desc : '';
+
+      meicActualizarPreview();
+
+      const modal = document.getElementById('modal-editar-item-carrito');
+      const panel = document.getElementById('modal-editar-item-panel');
+      modal.style.display = 'block';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          panel.style.transform = 'translateX(0)';
+          // Prevenir que el scroll cambie el valor de los inputs numéricos
+          panel.querySelectorAll('input[type="number"]').forEach(inp => {
+            inp.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
+          });
+        });
+      });
+    };
+
+    window.cerrarModalEditarItem = function () {
+      const panel = document.getElementById('modal-editar-item-panel');
+      const modal = document.getElementById('modal-editar-item-carrito');
+      panel.style.transform = 'translateX(100%)';
+      setTimeout(() => { modal.style.display = 'none'; }, 330);
+      _meicItemId = null;
+    };
+
+    window.meicActualizarPreview = function () {
+      const precioTotal = parseFloat(document.getElementById('meic-precio').value) || 0;
+      const qty = parseFloat(document.getElementById('meic-qty').value) || 0;
+      const desc = parseFloat(document.getElementById('meic-descuento').value) || 0;
+      // El usuario ingresa el precio TOTAL; el unitario se deriva
+      const precioUnitSinDesc = qty > 0 ? precioTotal / qty : 0;
+      const precioTotalConDesc = desc > 0 ? precioTotal * (1 - desc / 100) : precioTotal;
+      const precioUnitConDesc = qty > 0 ? precioTotalConDesc / qty : 0;
+
+      document.getElementById('meic-preview-precio').textContent = 'RD$ ' + precioUnitConDesc.toFixed(2) + (desc > 0 ? ' (−' + desc + '%)' : '');
+      document.getElementById('meic-preview-qty').textContent = qty;
+      document.getElementById('meic-preview-total').textContent = 'RD$ ' + precioTotalConDesc.toFixed(2);
+
+      const infoEl = document.getElementById('meic-descuento-info');
+      if (desc > 0 && precioTotal > 0) {
+        const ahorro = precioTotal * (desc / 100);
+        infoEl.style.display = 'block';
+        infoEl.textContent = 'Ahorro: RD$ ' + ahorro.toFixed(2);
+      } else {
+        infoEl.style.display = 'none';
+      }
+
+      // Actualizar carrito en tiempo real (solo visual, sin guardar en storage)
+      if (_meicItemId && precioTotal > 0 && qty > 0) {
+        const carrito = getCarrito();
+        const idx = carrito.findIndex(i => i.id === _meicItemId);
+        if (idx >= 0) {
+          const carritoEl = document.getElementById('carrito-items');
+          const itemEl = carritoEl ? carritoEl.querySelector(`.carrito-item[data-item-id="${_meicItemId}"]`) : null;
+          if (itemEl) {
+            const subEl = itemEl.querySelector('.item-subtotal');
+            if (subEl) subEl.textContent = fmt(precioTotalConDesc);
+            const qtyEl = itemEl.querySelector('.qty-num');
+            if (qtyEl) qtyEl.textContent = qty;
+            const precioEl = itemEl.querySelector('.item-precio');
+            if (precioEl) precioEl.textContent = fmt(precioUnitConDesc) + ' c/u';
+          }
+          // Actualizar totales en tiempo real (pasamos precio unitario para que _meicRecalcularTotales multiplique por qty)
+          _meicRecalcularTotales(carrito, idx, precioUnitConDesc, qty);
+        }
+      }
+    };
+
+    function _meicRecalcularTotales(carrito, idxEditado, precioPreview, qtyPreview) {
+      const itbisPct = (window.config && config.itbisPct) || 18;
+      const itbisCliente = config.itbisCliente === true;
+      let subtotal = 0;
+      let itbis = 0;
+      carrito.forEach((item, i) => {
+        const precio = i === idxEditado ? precioPreview : (item._precioBase || item.precio);
+        const qty = i === idxEditado ? qtyPreview : item.qty;
+        subtotal += precio * qty;
+        if (itbisCliente && item.itbis !== false) itbis += precio * qty * (itbisPct / 100);
+      });
+      const total = subtotal + itbis;
+      const fmtN = n => 'RD$ ' + n.toFixed(2);
+      const subEl = document.getElementById('cart-subtotal');
+      const itbisEl = document.getElementById('cart-itbis');
+      const totalEl = document.getElementById('cart-total');
+      if (subEl) subEl.textContent = fmtN(subtotal);
+      if (itbisEl) itbisEl.textContent = fmtN(itbis);
+      if (totalEl) totalEl.textContent = fmtN(total);
+    }
+
+    window.meicSyncTotalDesdeQty = function () {
+      if (!_meicItemId) return;
+      const carrito = getCarrito();
+      const item = carrito.find(i => i.id === _meicItemId);
+      if (!item) return;
+      // Precio unitario actual guardado en el carrito
+      const precioUnit = item._precioBase || item.precio;
+      const nuevaQty = parseFloat(document.getElementById('meic-qty').value) || 0;
+      if (nuevaQty > 0) {
+        document.getElementById('meic-precio').value = (precioUnit * nuevaQty).toFixed(2);
+      }
+    };
+
+    window.meicCambiarQty = function (delta) {
+      const inpQty = document.getElementById('meic-qty');
+      const inpPrecio = document.getElementById('meic-precio');
+      const qtyVieja = parseFloat(inpQty.value) || 1;
+      const precioTotalViejo = parseFloat(inpPrecio.value) || 0;
+      // Calcular precio unitario actual para mantenerlo fijo
+      const precioUnit = qtyVieja > 0 ? precioTotalViejo / qtyVieja : precioTotalViejo;
+      const nuevaQty = Math.max(0.01, qtyVieja + delta);
+      inpQty.value = Number.isInteger(nuevaQty) ? nuevaQty : nuevaQty.toFixed(2);
+      // Actualizar el total con el mismo precio unitario × nueva qty
+      inpPrecio.value = (precioUnit * nuevaQty).toFixed(2);
+      meicActualizarPreview();
+    };
+
+    window.meicGuardarCambios = function () {
+      if (!_meicItemId) return;
+      const carrito = getCarrito();
+      const idx = carrito.findIndex(i => i.id === _meicItemId);
+      if (idx < 0) return;
+
+      const precioTotal = parseFloat(document.getElementById('meic-precio').value) || 0;
+      const nuevaQty = parseFloat(document.getElementById('meic-qty').value) || 1;
+      const desc = parseFloat(document.getElementById('meic-descuento').value) || 0;
+
+      const item = carrito[idx];
+      // Preservar el precio original del inventario la primera vez
+      if (!item._precioInventario) item._precioInventario = item._precioBase || item.precio;
+      item._descuento = desc;
+      // Derivar precio unitario desde el total ingresado, aplicando descuento
+      const precioTotalConDesc = desc > 0 ? precioTotal * (1 - desc / 100) : precioTotal;
+      const precioUnitFinal = nuevaQty > 0 ? precioTotalConDesc / nuevaQty : precioTotalConDesc;
+      item._precioBase = precioUnitFinal;
+      item.precio = precioUnitFinal;
+      item.qty = nuevaQty;
+
+      setCarrito(carrito);
+      cerrarModalEditarItem();
+      renderCarrito();
+      if (_modoEdicionCarrito) {
+        setTimeout(_aplicarOverlaysEdicion, 80);
+      }
+      if (window.toast) toast('Producto actualizado', 'ok', 2000);
+    };
+
+    // Patch renderCarrito to re-apply overlays when in edit mode
+    const _origRenderCarrito = renderCarrito;
+    renderCarrito = function() {
+      _origRenderCarrito();
+      if (_modoEdicionCarrito) {
+        requestAnimationFrame(_aplicarOverlaysEdicion);
+      }
+    };
 
     function _actualizarBtnLimpiar() {
       const btn = document.querySelector('.btn-dibujo-sm.rojo');
@@ -3564,7 +3911,7 @@
       if (!cajaActual) { toast('La caja no está abierta', 'error'); return; }
       const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
       const itbisPct = config.itbisPct || 18;
-      const itbisCliente = config.itbisCliente !== false;
+      const itbisCliente = config.itbisCliente === true;
       const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
       const total = subtotal + itbis;
       document.getElementById('factura-items-lista').innerHTML = carrito.map(item => {
@@ -3574,9 +3921,11 @@
         return `<div class="factura-item-row"><span class="fi-nombre">${item.nombre}</span><span class="fi-precio">${fmt(precioBase)}</span><span class="fi-qty">${qtyLabel}</span><span class="fi-precio">${fmt(subtItem)}</span></div>`;
       }).join('');
       document.getElementById('mfact-subtotal').textContent = fmt(subtotal);
-      document.getElementById('mfact-itbis-lbl').textContent = `ITBIS (${itbisPct}%)${!itbisCliente ? ' (asumido)' : ''}`;
+      document.getElementById('mfact-itbis-lbl').textContent = `ITBIS (${itbisPct}%)`;
       document.getElementById('mfact-itbis').textContent = fmt(itbis);
       document.getElementById('mfact-total').textContent = fmt(total);
+      const itbisRow = document.getElementById('mfact-itbis-row');
+      if (itbisRow) itbisRow.style.display = itbisCliente ? '' : 'none';
       document.getElementById('monto-recibido').value = '';
       const _cd = document.getElementById('cambio-display'); _cd.style.display = 'flex'; _cd.style.background = 'rgb(248, 215, 218)'; document.getElementById('cambio-valor').textContent = 'RD$ 0.00';
       mixtoResetear();
@@ -3644,7 +3993,7 @@
       const carrito = getCarrito();
       const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
       const itbisPct = config.itbisPct || 18;
-      const itbisCliente = config.itbisCliente !== false;
+      const itbisCliente = config.itbisCliente === true;
       const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
       if (campo === 'efectivo') {
         const elec = parseFloat(_mixtoElecStr) || 0;
@@ -3683,7 +4032,7 @@
       const carrito = getCarrito();
       const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
       const itbisPct = config.itbisPct || 18;
-      const itbisCliente = config.itbisCliente !== false;
+      const itbisCliente = config.itbisCliente === true;
       const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
       const ef = parseFloat(_mixtoEfStr) || 0;
       const elec = parseFloat(_mixtoElecStr) || 0;
@@ -3728,7 +4077,7 @@
       const carrito = getCarrito();
       const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
       const itbisPct = config.itbisPct || 18;
-      const itbisCliente = config.itbisCliente !== false;
+      const itbisCliente = config.itbisCliente === true;
       const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
       if (metodoPagoSeleccionado === 'efectivo') {
         const recibido = parseFloat(document.getElementById('monto-recibido')?.value) || 0;
@@ -3759,7 +4108,7 @@
       // estadoFacturaSeleccionado se resetea a 'pagada' dentro de confirmarFactura()
     };
 
-    window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente !== false ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); disp.style.display = 'flex'; if (recibido > 0) { document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { document.getElementById('cambio-valor').textContent = 'RD$ 0.00'; disp.style.background = 'rgb(248, 215, 218)'; } actualizarBtnConfirmar(); };
+    window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente === true ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); disp.style.display = 'flex'; if (recibido > 0) { document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { document.getElementById('cambio-valor').textContent = 'RD$ 0.00'; disp.style.background = 'rgb(248, 215, 218)'; } actualizarBtnConfirmar(); };
 
     window.tecNumero = (val) => { const inp = document.getElementById('monto-recibido'); if (val === 'C') { inp.value = ''; } else if (val === '⌫') { inp.value = inp.value.slice(0, -1); } else if (val === 'OK') { calcularCambio(); return; } else { inp.value += val; } calcularCambio(); };
 
@@ -3784,7 +4133,7 @@
             return;
           }
           const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
-          const itbisCliente = config.itbisCliente !== false;
+          const itbisCliente = config.itbisCliente === true;
           const total = subtotal * (1 + (itbisCliente ? (config.itbisPct || 18) / 100 : 0));
           if (montoRec < total) {
             toast(`Monto insuficiente. El total es ${fmt(total)}`, 'error');
@@ -3795,7 +4144,7 @@
           const ef   = parseFloat(_mixtoEfStr)   || 0;
           const elec = parseFloat(_mixtoElecStr)  || 0;
           const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
-          const itbisCliente = config.itbisCliente !== false;
+          const itbisCliente = config.itbisCliente === true;
           const total = subtotal * (1 + (itbisCliente ? (config.itbisPct || 18) / 100 : 0));
           if (ef <= 0 && elec <= 0) {
             toast('Ingresa los montos del pago mixto', 'error');
@@ -3820,7 +4169,7 @@
       if (modoPrueba) {
         const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
         const itbisPct = config.itbisPct || 18;
-        const itbisCliente = config.itbisCliente !== false;
+        const itbisCliente = config.itbisCliente === true;
         const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
         const total = subtotal + itbis;
         const numFactura = `PRUEBA-${Date.now()}`;
@@ -3890,7 +4239,7 @@
         // ── 5. Calcular totales ───────────────────────────────────────
         const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
         const itbisPct = config.itbisPct || 18;
-        const itbisCliente = config.itbisCliente !== false;
+        const itbisCliente = config.itbisCliente === true;
         const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
         const total = subtotal + itbis;
 
@@ -4099,7 +4448,7 @@
         </div>
         <div class="ticket-total">
           <div class="ticket-row" style="padding:0px 8px 0px 0px;"><span>Subtotal</span><span>${fmt(factura.subtotal)}</span></div>
-          <div class="ticket-row"style="padding:0px 8px 0px 0px;"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div>
+          ${factura.itbis > 0 ? `<div class="ticket-row"style="padding:0px 8px 0px 0px;"><span>ITBIS (${factura.itbisPct}%)</span><span>${fmt(factura.itbis)}</span></div>` : ''}
           <div class="ticket-row" style="padding:0px 8px 0px 0px; font-size:16px;"><span>TOTAL</span><span>${fmt(factura.total)}</span></div>
           ${pagoHtml}
         </div>
@@ -4143,7 +4492,17 @@
     };
 
     window.abrirModalVaciarCarrito = () => { if (!getCarrito().length) { toast('El carrito ya está vacío', 'info'); return; } abrirModal('modal-vaciar-carrito'); };
-    window.confirmarVaciarCarrito = () => { setCarrito([]); renderCarrito(); cerrarModal('modal-vaciar-carrito'); toast('Carrito vaciado', 'info'); };
+    window.confirmarVaciarCarrito = () => {
+      setCarrito([]);
+      // Si solo queda una tab, renombrarla a "Factura 1"
+      if (facturasTabs.length === 1) {
+        facturasTabs[0].nombre = 'Factura 1';
+        _guardarTabsEnStorage();
+      }
+      renderCarrito();
+      cerrarModal('modal-vaciar-carrito');
+      toast('Carrito vaciado', 'info');
+    };
 
     // ==================== FACTURAS PAGE ====================
     let facturasTabActual = 'pendientes'; // 'pendientes' | 'pagadas'
@@ -4223,21 +4582,24 @@
       if (!tbody) return;
       const esPendientes = facturasTabActual === 'pendientes';
       if (!facturas.length) {
-        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-file-invoice"></i><p>${esPendientes ? 'Sin facturas pendientes' : 'Sin facturas pagadas'}</p></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-file-invoice"></i><p>${esPendientes ? 'Sin facturas pendientes' : 'Sin facturas pagadas'}</p></div></td></tr>`;
         return;
       }
       tbody.innerHTML = facturas.map(f => {
-        const fecha = f.fecha?.toDate ? f.fecha.toDate().toLocaleString('es-DO') : '-';
+        const fechaObj = f.fecha?.toDate ? f.fecha.toDate() : null;
+        const hora = fechaObj ? fechaObj.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-';
+        const fecha = fechaObj ? fechaObj.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
         const accionPagar = esPendientes
           ? `<button class="btn-sm verde" onclick="abrirModalPagarPendiente('${f.id}')" style="padding:6px 12px;font-size:12px;margin-left:4px;display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-cash-register"></i> Pagar factura</button>`
           : '';
         return `<tr>
           <td style="font-family:var(--font-mono);font-weight:700;">${f.numero || '-'}</td>
-          <td style="font-family:var(--font-mono);font-size:11px;">${f.ncf || '-'}</td>
-          <td>${fecha}</td>
-          <td>${f.empleadoNombre || '-'}</td>
-          <td>${f.metodoPago || '-'}</td>
+          <td style="font-size:12px;font-weight:700;color:#1a2135;">${f.direccionCliente || '-'}</td>
+          <td style="font-family:var(--font-mono);font-size:12px;"><strong>${hora}</strong><br><span style="font-weight:400;color:#718096;">${fecha}</span></td>
           <td style="font-family:var(--font-mono);font-weight:700;">${fmt(f.total)}</td>
+          <td>${f.metodoPago || '-'}</td>
+          <td>${f.empleadoNombre || '-'}</td>
+          <td style="font-family:var(--font-mono);font-size:11px;">${f.ncf || '-'}</td>
           <td><span class="badge ${esPendientes ? 'pendiente' : 'pagada'}">${esPendientes ? '⏳ Pendiente' : '✅ Pagada'}</span></td>
           <td>
             <button class="btn-sm gris" onclick="verFactura('${f.id}','${esPendientes ? 'pend' : 'pag'}')" style="padding:6px 10px;font-size:12px;"><i class="fas fa-eye"></i></button>
@@ -5202,6 +5564,7 @@
       document.getElementById('prod-stock-enabled').checked = true;
       document.getElementById('stock-fields-wrap').style.display = 'block';
       setMasVendidosToggle(false);
+      document.getElementById('prod-combo-enabled').checked = false; _syncComboToggleUI(false); document.getElementById('prod-combo-precio').value = ''; document.getElementById('prod-combo-unidades').value = ''; document.getElementById('combo-preview-txt').textContent = 'Configura el precio del combo y las unidades para ver el resumen.';
       populateCatSelects();
       document.getElementById('prod-categoria').value = categoriaId;
       const btnElimPD = document.getElementById('btn-eliminar-producto');
@@ -5328,6 +5691,7 @@
       document.getElementById('prod-stock-enabled').checked = true;
       document.getElementById('stock-fields-wrap').style.display = 'block';
       setMasVendidosToggle(false);
+      document.getElementById('prod-combo-enabled').checked = false; _syncComboToggleUI(false); document.getElementById('prod-combo-precio').value = ''; document.getElementById('prod-combo-unidades').value = ''; document.getElementById('combo-preview-txt').textContent = 'Configura el precio del combo y las unidades para ver el resumen.';
       populateCatSelects();
       if (inventarioCategoriaActual) {
         document.getElementById('prod-categoria').value = inventarioCategoriaActual;
@@ -5337,7 +5701,7 @@
       abrirModal('modal-producto');
     };
 
-    window.editarProducto = (id) => { const p = productos.find(pr => pr.id === id); if (!p) return; productoEnEdicion = p; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Producto'; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-peso-neto').value = p.pesoNeto || ''; document.getElementById('prod-barcode').value = p.codigoBarras || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-costo').value = p.costo || ''; const stockHab = p.stockHabilitado !== false; document.getElementById('prod-stock-enabled').checked = stockHab; document.getElementById('stock-fields-wrap').style.display = stockHab ? 'block' : 'none'; document.getElementById('prod-stock').value = stockHab ? (p.stock >= 0 ? p.stock : '') : ''; document.getElementById('prod-stock-min').value = p.stockMin || ''; const detalleActivo = !!p.productoDetalle; document.getElementById('prod-detalle-enabled').checked = detalleActivo; _syncDetalleToggleUI(detalleActivo); const selUnidad = document.getElementById('prod-unidad'); selUnidad.innerHTML = detalleActivo ? '<option>Libra</option><option>Kilogramo</option><option>Onza</option><option>Litro</option>' : '<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; selUnidad.value = p.unidad || (detalleActivo ? 'Libra' : 'Unidad'); document.getElementById('prod-itbis').value = p.itbis !== false ? '1' : '0'; setMasVendidosToggle(!!p.masVendidos); populateCatSelects(); document.getElementById('prod-categoria').value = p.categoriaId || ''; const icon = document.getElementById('prod-img-icon'); const h1 = document.getElementById('prod-img-hint1'); const h2 = document.getElementById('prod-img-hint2'); const rh = document.getElementById('prod-img-replace-hint'); if (p.imagen) { document.getElementById('prod-img-preview').src = p.imagen; document.getElementById('prod-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (h1) h1.style.display = 'none'; if (h2) h2.style.display = 'none'; if (rh) rh.style.display = 'block'; } else { document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (h1) h1.style.display = 'block'; if (h2) h2.style.display = 'block'; if (rh) rh.style.display = 'none'; } const btnElimP = document.getElementById('btn-eliminar-producto'); if (btnElimP) btnElimP.style.display = 'inline-flex'; abrirModal('modal-producto'); };
+    window.editarProducto = (id) => { const p = productos.find(pr => pr.id === id); if (!p) return; productoEnEdicion = p; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Producto'; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-peso-neto').value = p.pesoNeto || ''; document.getElementById('prod-barcode').value = p.codigoBarras || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-costo').value = p.costo || ''; const stockHab = p.stockHabilitado !== false; document.getElementById('prod-stock-enabled').checked = stockHab; document.getElementById('stock-fields-wrap').style.display = stockHab ? 'block' : 'none'; document.getElementById('prod-stock').value = stockHab ? (p.stock >= 0 ? p.stock : '') : ''; document.getElementById('prod-stock-min').value = p.stockMin || ''; const detalleActivo = !!p.productoDetalle; document.getElementById('prod-detalle-enabled').checked = detalleActivo; _syncDetalleToggleUI(detalleActivo); const selUnidad = document.getElementById('prod-unidad'); selUnidad.innerHTML = detalleActivo ? '<option>Libra</option><option>Kilogramo</option><option>Onza</option><option>Litro</option>' : '<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; selUnidad.value = p.unidad || (detalleActivo ? 'Libra' : 'Unidad'); document.getElementById('prod-itbis').value = p.itbis !== false ? '1' : '0'; setMasVendidosToggle(!!p.masVendidos); const comboActivo = !!p.comboActivo; document.getElementById('prod-combo-enabled').checked = comboActivo; _syncComboToggleUI(comboActivo); if (comboActivo) { document.getElementById('prod-combo-precio').value = p.comboPrecio || ''; document.getElementById('prod-combo-unidades').value = p.comboUnidades || ''; setTimeout(actualizarComboPreview, 50); } else { document.getElementById('prod-combo-precio').value = ''; document.getElementById('prod-combo-unidades').value = ''; } populateCatSelects(); document.getElementById('prod-categoria').value = p.categoriaId || ''; const icon = document.getElementById('prod-img-icon'); const h1 = document.getElementById('prod-img-hint1'); const h2 = document.getElementById('prod-img-hint2'); const rh = document.getElementById('prod-img-replace-hint'); if (p.imagen) { document.getElementById('prod-img-preview').src = p.imagen; document.getElementById('prod-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (h1) h1.style.display = 'none'; if (h2) h2.style.display = 'none'; if (rh) rh.style.display = 'block'; } else { document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (h1) h1.style.display = 'block'; if (h2) h2.style.display = 'block'; if (rh) rh.style.display = 'none'; } const btnElimP = document.getElementById('btn-eliminar-producto'); if (btnElimP) btnElimP.style.display = 'inline-flex'; abrirModal('modal-producto'); };
 
     window.toggleStockFields = function() {
       const enabled = document.getElementById('prod-stock-enabled').checked;
@@ -5366,6 +5730,66 @@
       if (lbl)   lbl.style.background   = activo ? '#d3f9d8' : '#f1f3f9';
     }
 
+    window.toggleComboFields = function() {
+      const activo = document.getElementById('prod-combo-enabled').checked;
+      const wrap = document.getElementById('combo-fields-wrap');
+      const track = document.getElementById('combo-toggle-track');
+      const thumb = document.getElementById('combo-toggle-thumb');
+      const lbl = document.getElementById('combo-toggle-label');
+      if (wrap) wrap.style.display = activo ? 'block' : 'none';
+      if (track) track.style.background = activo ? '#f59f00' : '#cbd5e0';
+      if (thumb) thumb.style.transform = activo ? 'translateX(16px)' : 'translateX(0)';
+      if (lbl) lbl.style.background = activo ? '#fff3bf' : '#f1f3f9';
+      if (activo) actualizarComboPreview();
+    };
+
+    window.actualizarComboPreview = function() {
+      const precioUnit = parseFloat(document.getElementById('prod-precio').value) || 0;
+      const comboPrecio = parseFloat(document.getElementById('prod-combo-precio').value) || 0;
+      const comboUnidades = parseInt(document.getElementById('prod-combo-unidades').value) || 0;
+      const preview = document.getElementById('combo-preview-txt');
+      if (!preview) return;
+      if (!comboPrecio || !comboUnidades || comboUnidades < 2) {
+        preview.textContent = 'Configura el precio del combo y las unidades (mínimo 2) para ver el resumen.';
+        return;
+      }
+      if (!precioUnit) {
+        preview.textContent = 'Define el precio de venta unitario primero.';
+        return;
+      }
+      // Ejemplo: con 40 pesos cuántas unidades?
+      const ejemploMonto = 40;
+      const udsEjemplo = calcularUnidadesCombo(ejemploMonto, precioUnit, comboPrecio, comboUnidades);
+      const precioEfectivo = (comboPrecio / comboUnidades).toFixed(2);
+      preview.innerHTML = `<strong>${fmt(comboPrecio)}</strong> = ${comboUnidades} unidades (${fmt(precioEfectivo)} c/u efectivo) · Ej: con <strong>${fmt(ejemploMonto)}</strong> → <strong>${udsEjemplo} unidades</strong>`;
+    };
+
+    // Calcula cuántas unidades se dan por un monto, aplicando lógica combo
+    function calcularUnidadesCombo(monto, precioUnit, comboPrecio, comboUnidades) {
+      if (!comboPrecio || !comboUnidades || comboUnidades < 2) return Math.floor(monto / precioUnit);
+      let restante = monto;
+      let unidades = 0;
+      // Primero aplicar combos completos
+      const combosCompletos = Math.floor(restante / comboPrecio);
+      unidades += combosCompletos * comboUnidades;
+      restante -= combosCompletos * comboPrecio;
+      // Con el restante, unidades individuales
+      unidades += Math.floor(restante / precioUnit);
+      return unidades;
+    }
+    window.calcularUnidadesCombo = calcularUnidadesCombo;
+
+    function _syncComboToggleUI(activo) {
+      const track = document.getElementById('combo-toggle-track');
+      const thumb = document.getElementById('combo-toggle-thumb');
+      const lbl = document.getElementById('combo-toggle-label');
+      const wrap = document.getElementById('combo-fields-wrap');
+      if (track) track.style.background = activo ? '#f59f00' : '#cbd5e0';
+      if (thumb) thumb.style.transform = activo ? 'translateX(16px)' : 'translateX(0)';
+      if (lbl) lbl.style.background = activo ? '#fff3bf' : '#f1f3f9';
+      if (wrap) wrap.style.display = activo ? 'block' : 'none';
+    }
+
     window.guardarProducto = async () => {
       const nombre = document.getElementById('prod-nombre').value.trim();
       const precio = parseFloat(document.getElementById('prod-precio').value);
@@ -5390,6 +5814,9 @@
         unidad: document.getElementById('prod-unidad').value,
         itbis: document.getElementById('prod-itbis').value === '1',
         masVendidos: !!document.getElementById('prod-mas-vendidos').checked,
+        comboActivo: !!document.getElementById('prod-combo-enabled').checked,
+        comboPrecio: document.getElementById('prod-combo-enabled').checked ? (parseFloat(document.getElementById('prod-combo-precio').value) || 0) : 0,
+        comboUnidades: document.getElementById('prod-combo-enabled').checked ? (parseInt(document.getElementById('prod-combo-unidades').value) || 0) : 0,
         categoriaId: catId,
         actualizadoEn: serverTimestamp()
       };
@@ -5751,7 +6178,7 @@
       document.getElementById('cfg-ncf-prefijo').value = config.ncfPrefijo || 'B01';
       document.getElementById('cfg-ncf-seq').value = config.ncfSeq || 1;
       document.getElementById('cfg-itbis-pct').value = config.itbisPct || 18;
-      document.getElementById('cfg-itbis-cliente').checked = config.itbisCliente !== false;
+      document.getElementById('cfg-itbis-cliente').checked = config.itbisCliente === true;
       // Inicializar selectores de países
       initPaisSelects();
       // Cargar teléfono y whatsapp con auto-detección
@@ -6901,6 +7328,10 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.6; }
     }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
     #offline-badge[style*="e67700"] {
       animation: syncPulse 1.5s ease-in-out infinite;
     }
@@ -6918,6 +7349,43 @@
     #monto-recibido[type=number] {
       -moz-appearance: textfield;
       text-align: right;
+    }
+
+    /* ── Carrito edit overlay ── */
+    .carrito-edit-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(200, 210, 230, 0.55);
+      backdrop-filter: blur(1px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: inherit;
+      z-index: 10;
+      transition: background 0.15s;
+    }
+    .carrito-edit-overlay:hover {
+      background: rgba(180, 195, 220, 0.72);
+    }
+    .carrito-edit-overlay i {
+      font-size: 20px;
+      color: #1a2135;
+      opacity: 0.75;
+      pointer-events: none;
+      transition: transform 0.15s;
+    }
+    .carrito-edit-overlay:hover i {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    /* Ensure carrito items have relative positioning for overlay */
+    .carrito-item {
+      position: relative;
+    }
+    /* Edit button hover in header */
+    #btn-editar-carrito:hover {
+      background: rgba(255,255,255,0.15) !important;
     }
   </style>
 </body>

@@ -826,20 +826,22 @@ body {
 }
 
 #pos-buscar-clear {
-  display: none;
-  position: absolute;
-  right: 6px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #f04449;
-  font-size: 1.2rem;
-  font-weight: bold;
-  padding: 0 7px;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  height: 100%;
+    display: none;
+    position: absolute;
+    right: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #f04449;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0 12px;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    background: #ff00002e;
+    height: 78%;
+    border-radius: 5px;
 }
 
 .icon-btn.scan-btn {
@@ -857,8 +859,8 @@ body {
 }
 
 .icon-btn.grid-btn.active {
-  color: white;
-  filter: grayscale(0);
+    color: #ff4e63;
+    filter: grayscale(0);
 }
 
 /* Dirección cliente */
@@ -870,7 +872,6 @@ body {
   border: 2px solid var(--gris-borde);
   border-radius: var(--radio-sm);
   padding: 0 12px;
-  height: 42px;
   flex: 1;
   min-width: 160px;
   transition: border-color .2s;
@@ -1593,12 +1594,12 @@ body {
 
 /* ── Highlight búsqueda ── */
 .search-highlight {
-  background: #ffeb3b;
-  border-radius: 4px;
-  font-weight: 700;
-  color: #1a2135;
-  padding: 2px;
-  margin: 0 1px;
+    background: #ffeb3b;
+    border-radius: 4px;
+    font-weight: 700;
+    color: #1a2135;
+    padding: 0px;
+    margin: 0 0px;
 }
 
 /* ── Guardando orden badge ── */
@@ -1751,6 +1752,24 @@ padding: 12px;
 
 .btn-sm.amarillo:hover {
   background: #e67700;
+}
+
+#pos-dir-clear{
+position: absolute;
+    right: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #f04449;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0 12px;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    background: #ff00002e;
+    height: 78%;
+    border-radius: 5px;
 }
 
 /* ════════════════════════════════════════════════════════════
