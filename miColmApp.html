@@ -3598,6 +3598,18 @@
       });
     }
 
+    // ── Función interna: calcula el total real de un item respetando combo/detalle ──
+    function _meicTotalReal(item, qty) {
+      if (item._precioBase !== undefined && !item.comboActivo) {
+        // Detallable (libra, kg, etc) o precio ya sobreescrito manualmente
+        return (item._precioBase || item.precio) * qty;
+      }
+      if (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2) {
+        return window.calcularPrecioConCombo(qty, item.precio, item.comboPrecio, item.comboUnidades);
+      }
+      return item.precio * qty;
+    }
+
     window.abrirModalEditarItem = function (itemId) {
       const carrito = getCarrito();
       const item = carrito.find(i => i.id === itemId);
@@ -3605,13 +3617,18 @@
       _meicItemId = itemId;
 
       document.getElementById('meic-nombre').textContent = item.nombre;
-      // Precio original del inventario (para mostrar como referencia — total original)
-      const precioUnitOriginal = item._precioInventario || item._precioBase || item.precio;
       const qty = parseFloat(Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(2));
-      document.getElementById('meic-precio-original').textContent = 'RD$ ' + (precioUnitOriginal * qty).toFixed(2);
-      // El input muestra el precio TOTAL actual (unitario × qty)
-      const precioUnitActual = item._precioBase || item.precio;
-      document.getElementById('meic-precio').value = (precioUnitActual * qty).toFixed(2);
+
+      // Total original del inventario (sin descuento manual)
+      const precioUnitOriginal = item._precioInventario || item.precio;
+      const totalOriginal = (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2)
+        ? window.calcularPrecioConCombo(qty, precioUnitOriginal, item.comboPrecio, item.comboUnidades)
+        : precioUnitOriginal * qty;
+      document.getElementById('meic-precio-original').textContent = 'RD$ ' + totalOriginal.toFixed(2);
+
+      // Total actual real (con combo aplicado)
+      const totalActual = _meicTotalReal(item, qty);
+      document.getElementById('meic-precio').value = totalActual.toFixed(2);
       document.getElementById('meic-qty').value = Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(2);
       const desc = item._descuento || 0;
       document.getElementById('meic-descuento').value = desc > 0 ? desc : '';
@@ -3624,7 +3641,6 @@
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           panel.style.transform = 'translateX(0)';
-          // Prevenir que el scroll cambie el valor de los inputs numéricos
           panel.querySelectorAll('input[type="number"]').forEach(inp => {
             inp.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
           });
@@ -3644,8 +3660,6 @@
       const precioTotal = parseFloat(document.getElementById('meic-precio').value) || 0;
       const qty = parseFloat(document.getElementById('meic-qty').value) || 0;
       const desc = parseFloat(document.getElementById('meic-descuento').value) || 0;
-      // El usuario ingresa el precio TOTAL; el unitario se deriva
-      const precioUnitSinDesc = qty > 0 ? precioTotal / qty : 0;
       const precioTotalConDesc = desc > 0 ? precioTotal * (1 - desc / 100) : precioTotal;
       const precioUnitConDesc = qty > 0 ? precioTotalConDesc / qty : 0;
 
@@ -3655,14 +3669,13 @@
 
       const infoEl = document.getElementById('meic-descuento-info');
       if (desc > 0 && precioTotal > 0) {
-        const ahorro = precioTotal * (desc / 100);
         infoEl.style.display = 'block';
-        infoEl.textContent = 'Ahorro: RD$ ' + ahorro.toFixed(2);
+        infoEl.textContent = 'Ahorro: RD$ ' + (precioTotal * desc / 100).toFixed(2);
       } else {
         infoEl.style.display = 'none';
       }
 
-      // Actualizar carrito en tiempo real (solo visual, sin guardar en storage)
+      // Actualizar carrito en tiempo real (visual)
       if (_meicItemId && precioTotal > 0 && qty > 0) {
         const carrito = getCarrito();
         const idx = carrito.findIndex(i => i.id === _meicItemId);
@@ -3677,13 +3690,14 @@
             const precioEl = itemEl.querySelector('.item-precio');
             if (precioEl) precioEl.textContent = fmt(precioUnitConDesc) + ' c/u';
           }
-          // Actualizar totales en tiempo real (pasamos precio unitario para que _meicRecalcularTotales multiplique por qty)
-          _meicRecalcularTotales(carrito, idx, precioUnitConDesc, qty);
+          // Recalcular totales del footer — el item editado usa el total directo del input
+          _meicRecalcularTotales(carrito, idx, precioTotalConDesc);
         }
       }
     };
 
-    function _meicRecalcularTotales(carrito, idxEditado, precioPreview, qtyPreview) {
+    // precioTotalEditado = monto total ya con descuento para el item que se está editando
+    function _meicRecalcularTotales(carrito, idxEditado, precioTotalEditado) {
       const itbisPct = (window.config && config.itbisPct) || 18;
       const itbisCliente = config.itbisCliente === true;
       let subtotal = 0;
@@ -3691,13 +3705,9 @@
       carrito.forEach((item, i) => {
         let lineTotal;
         if (i === idxEditado) {
-          lineTotal = precioPreview * qtyPreview;
-        } else if (item._precioBase !== undefined) {
-          lineTotal = item._precioBase * item.qty;
-        } else if (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2) {
-          lineTotal = window.calcularPrecioConCombo(item.qty, item.precio, item.comboPrecio, item.comboUnidades);
+          lineTotal = precioTotalEditado; // ya es el total real con combo+descuento
         } else {
-          lineTotal = item.precio * item.qty;
+          lineTotal = _meicTotalReal(item, item.qty);
         }
         subtotal += lineTotal;
         if (itbisCliente && item.itbis !== false) itbis += lineTotal * (itbisPct / 100);
@@ -3712,30 +3722,32 @@
       if (totalEl) totalEl.textContent = fmtN(total);
     }
 
+    // Al cambiar qty, recalcula el total respetando combo
     window.meicSyncTotalDesdeQty = function () {
       if (!_meicItemId) return;
       const carrito = getCarrito();
       const item = carrito.find(i => i.id === _meicItemId);
       if (!item) return;
-      // Precio unitario actual guardado en el carrito
-      const precioUnit = item._precioBase || item.precio;
       const nuevaQty = parseFloat(document.getElementById('meic-qty').value) || 0;
       if (nuevaQty > 0) {
-        document.getElementById('meic-precio').value = (precioUnit * nuevaQty).toFixed(2);
+        const nuevoTotal = _meicTotalReal(item, nuevaQty);
+        document.getElementById('meic-precio').value = nuevoTotal.toFixed(2);
       }
     };
 
     window.meicCambiarQty = function (delta) {
+      if (!_meicItemId) return;
+      const carrito = getCarrito();
+      const item = carrito.find(i => i.id === _meicItemId);
       const inpQty = document.getElementById('meic-qty');
-      const inpPrecio = document.getElementById('meic-precio');
       const qtyVieja = parseFloat(inpQty.value) || 1;
-      const precioTotalViejo = parseFloat(inpPrecio.value) || 0;
-      // Calcular precio unitario actual para mantenerlo fijo
-      const precioUnit = qtyVieja > 0 ? precioTotalViejo / qtyVieja : precioTotalViejo;
-      const nuevaQty = Math.max(0.01, qtyVieja + delta);
-      inpQty.value = Number.isInteger(nuevaQty) ? nuevaQty : nuevaQty.toFixed(2);
-      // Actualizar el total con el mismo precio unitario × nueva qty
-      inpPrecio.value = (precioUnit * nuevaQty).toFixed(2);
+      const nuevaQty = Math.max(1, Math.floor(qtyVieja) + delta);
+      inpQty.value = nuevaQty;
+      // Recalcular total respetando combo
+      if (item) {
+        const nuevoTotal = _meicTotalReal(item, nuevaQty);
+        document.getElementById('meic-precio').value = nuevoTotal.toFixed(2);
+      }
       meicActualizarPreview();
     };
 
@@ -3746,26 +3758,43 @@
       if (idx < 0) return;
 
       const precioTotal = parseFloat(document.getElementById('meic-precio').value) || 0;
-      const nuevaQty = parseFloat(document.getElementById('meic-qty').value) || 1;
-      const desc = parseFloat(document.getElementById('meic-descuento').value) || 0;
+      const nuevaQty   = parseFloat(document.getElementById('meic-qty').value) || 1;
+      const desc       = parseFloat(document.getElementById('meic-descuento').value) || 0;
+      const item       = carrito[idx];
 
-      const item = carrito[idx];
-      // Preservar el precio original del inventario la primera vez
-      if (!item._precioInventario) item._precioInventario = item._precioBase || item.precio;
-      item._descuento = desc;
-      // Derivar precio unitario desde el total ingresado, aplicando descuento
+      // Preservar precio original del inventario la primera vez
+      if (!item._precioInventario) item._precioInventario = item.precio;
+
       const precioTotalConDesc = desc > 0 ? precioTotal * (1 - desc / 100) : precioTotal;
-      const precioUnitFinal = nuevaQty > 0 ? precioTotalConDesc / nuevaQty : precioTotalConDesc;
-      item._precioBase = precioUnitFinal;
-      item.precio = precioUnitFinal;
+
+      item._descuento = desc;
       item.qty = nuevaQty;
+
+      // Si el usuario modificó el total manualmente (distinto del total combo esperado),
+      // desactivamos el combo y guardamos como precio unitario fijo.
+      const totalEsperadoConCombo = (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2)
+        ? window.calcularPrecioConCombo(nuevaQty, item.precio, item.comboPrecio, item.comboUnidades)
+        : null;
+      const totalEsperadoSinCombo = item.precio * nuevaQty;
+
+      const fueEditadoManualmente = Math.abs(precioTotal - (totalEsperadoConCombo ?? totalEsperadoSinCombo)) > 0.005;
+
+      if (fueEditadoManualmente) {
+        // El cajero sobreescribió el precio: guardar como precio unitario fijo, sin combo
+        const precioUnitFinal = nuevaQty > 0 ? precioTotalConDesc / nuevaQty : precioTotalConDesc;
+        item._precioBase = precioUnitFinal;
+        item.precio = precioUnitFinal;
+        item.comboActivo = false; // precio fijo manual: ignorar combo
+      } else {
+        // El total coincide con lo esperado: mantener precio original y combo intacto
+        item._precioBase = undefined; // dejar que renderCarrito use combo
+        item.precio = item._precioInventario;
+      }
 
       setCarrito(carrito);
       cerrarModalEditarItem();
       renderCarrito();
-      if (_modoEdicionCarrito) {
-        setTimeout(_aplicarOverlaysEdicion, 80);
-      }
+      if (_modoEdicionCarrito) setTimeout(_aplicarOverlaysEdicion, 80);
       if (window.toast) toast('Producto actualizado', 'ok', 2000);
     };
 
