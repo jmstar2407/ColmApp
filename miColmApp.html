@@ -2736,8 +2736,8 @@
           ? productos.filter(p => p.masVendidos)
           : productos.filter(p => p.categoriaId === catId);
         prods = prods.filter(p =>
-          p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
-          (p.codigoBarras || '').includes(busqueda)
+          normalizarTexto(p.nombre).includes(normalizarTexto(busqueda)) ||
+          normalizarTexto(p.codigoBarras || '').includes(normalizarTexto(busqueda))
         );
         searchGrid.className = `productos-grid ${gridSize}`;
         searchGrid.style.display = '';
@@ -2753,6 +2753,7 @@
     }
 
     function escapeHtml(str) { return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+    function normalizarTexto(str) { return (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
 
     function resaltarTexto(texto, busqueda) {
       if (!busqueda) return escapeHtml(texto);
@@ -2778,7 +2779,7 @@
         ? `<img src="${p.imagen}" alt="${escapeHtml(p.nombre || '')}" onerror="this.outerHTML='<div class=&quot;prod-emoji&quot;><i class=&quot;fas fa-shopping-cart&quot;></i></div>'">`
         : `<div class="prod-emoji"><i class="fas fa-shopping-cart"></i></div>`;
       const pesoNetoHtml = p.pesoNeto ? `<span class="peso-neto-badge">${escapeHtml(p.pesoNeto)}</span>` : '';
-      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')"><div class="product-image" style="position:relative;">${imagenHtml}${pesoNetoHtml}</div><div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
+      return `<div class="prod-card ${sinStock ? 'sin-stock' : ''}" onclick="agregarAlCarrito('${p.id}')" oncontextmenu="mostrarMenuContextoProducto(event,'${p.id}');return false;"><div class="product-image" style="position:relative;">${imagenHtml}${pesoNetoHtml}</div><div class="prod-info"><div class="prod-nombre">${nombreHtml}</div><div class="prod-precio">${precioHtml}</div><div class="prod-stock${stockClass}">${stockHtml}</div></div></div>`;
     }
 
     window.buscarProductos = (q) => {
@@ -2800,7 +2801,7 @@
       const seenIds = new Set();
       const found = productos.filter(p => {
         if (seenIds.has(p.id)) return false;
-        const match = p.nombre?.toLowerCase().includes(q.toLowerCase()) || (p.codigoBarras || '').includes(q);
+        const match = normalizarTexto(p.nombre).includes(normalizarTexto(q)) || normalizarTexto(p.codigoBarras || '').includes(normalizarTexto(q));
         if (match) seenIds.add(p.id);
         return match;
       });
@@ -2818,6 +2819,39 @@
       }
       globalSearch.style.display = '';
       globalSearch.innerHTML = `<div style="padding:0 0 12px;font-size:13px;color:var(--gris-suave);font-weight:600;">${found.length} resultado(s) para "<strong>${escapeHtml(q)}</strong>"</div><div class="productos-grid ${gridSize}">${found.length ? found.map(p => renderProdCard(p, q)).join('') : '<div class="empty-state"><p>Sin resultados</p></div>'}</div>`;
+    };
+
+    // ── Menú contextual producto en POS ─────────────────
+    window.mostrarMenuContextoProducto = function(e, prodId) {
+      e.preventDefault();
+      // Eliminar menú previo si existe
+      const prev = document.getElementById('_pos_ctx_menu');
+      if (prev) prev.remove();
+
+      const menu = document.createElement('div');
+      menu.id = '_pos_ctx_menu';
+      menu.style.cssText = `position:fixed;z-index:99999;background:#fff;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.18);min-width:160px;overflow:hidden;animation:ctxFadeIn 0.13s ease;`;
+      menu.innerHTML = `
+        <div style="padding:6px 0;">
+          <button onclick="window.editarProducto('${prodId}');document.getElementById('_pos_ctx_menu')?.remove();" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-weight:600;color:#1a2135;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='none'">
+            <i class="fas fa-edit" style="color:#1971c2;width:16px;"></i> Editar producto
+          </button>
+        </div>`;
+
+      // Posicionar cerca del cursor sin salirse de la pantalla
+      let x = e.clientX, y = e.clientY;
+      document.body.appendChild(menu);
+      const mw = menu.offsetWidth, mh = menu.offsetHeight;
+      if (x + mw > window.innerWidth - 8) x = window.innerWidth - mw - 8;
+      if (y + mh > window.innerHeight - 8) y = window.innerHeight - mh - 8;
+      menu.style.left = x + 'px';
+      menu.style.top = y + 'px';
+
+      // Cerrar al hacer click fuera
+      setTimeout(() => {
+        const cerrar = (ev) => { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('mousedown', cerrar); } };
+        document.addEventListener('mousedown', cerrar);
+      }, 50);
     };
 
     window.setGridSize = (size) => {
@@ -6430,6 +6464,11 @@
 
 
   <style>
+    /* ── Menú contextual POS ── */
+    @keyframes ctxFadeIn {
+      from { opacity:0; transform:scale(0.93) translateY(-4px); }
+      to   { opacity:1; transform:scale(1) translateY(0); }
+    }
     /* ── Offline / Sync badge animation ── */
     @keyframes syncPulse {
       0%, 100% { opacity: 1; }
