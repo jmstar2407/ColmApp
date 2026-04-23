@@ -211,16 +211,16 @@
                   style="padding-left:34px;padding-right:32px;width:100%;box-sizing:border-box;"
                   oninput="buscarProductos(this.value);_syncClearBtn('pos-buscar','pos-buscar-clear');">
                 <button id="pos-buscar-clear"
-                  onpointerdown="(function(e){e.preventDefault();e.stopPropagation();var inp=document.getElementById('pos-buscar');inp.value='';buscarProductos('');_syncClearBtn('pos-buscar','pos-buscar-clear');if(window.vkbTarget===inp){window.vkbCursorPos=0;if(window.updatePreview)window.updatePreview();}else{inp.focus();};})(event);" title="Limpiar búsqueda">&#x2715;</button>
+                  onpointerdown="(function(e){e.preventDefault();var inp=document.getElementById('pos-buscar');inp.value='';inp.dispatchEvent(new Event('input',{bubbles:true}));if(window.vkbTarget===inp){window.vkbCursorPos=0;}else{inp.focus();};})(event);" title="Limpiar búsqueda" style="display:none;align-items:center;justify-content:center;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:14px;padding:4px;line-height:1;border-radius:50%;width:20px;height:20px;z-index:2;">&#x2715;</button>
               </div>
-              <div class="pos-direccion-wrap">
+              <div class="pos-direccion-wrap" style="position:relative;">
                 <i class="fas fa-map-marker-alt" style="color:var(--gris-suave);font-size:13px;flex-shrink:0;"></i>
                 <input type="text" id="pos-direccion-cliente" placeholder="Dirección del cliente..."
-                  style="border:none;outline:none;font-family:var(--font-body);font-size:1.1rem;flex:1;min-width:140px;background:transparent;"
+                  style="border:none;outline:none;font-family:var(--font-body);font-size:1.1rem;flex:1;min-width:140px;background:transparent;padding-right:28px;"
                   oninput="_getTabActiva()&&(_getTabActiva().direccion=this.value,_guardarTabsEnStorage());_syncClearBtn('pos-direccion-cliente','pos-dir-clear');">
                 <button id="pos-dir-clear"
-                  onclick="document.getElementById('pos-direccion-cliente').value='';_getTabActiva()&&(_getTabActiva().direccion='',_guardarTabsEnStorage());_syncClearBtn('pos-direccion-cliente','pos-dir-clear');"
-                  class="pos-dir-clear"
+                  onpointerdown="(function(e){e.preventDefault();var inp=document.getElementById('pos-direccion-cliente');inp.value='';if(_getTabActiva()){_getTabActiva().direccion='';_guardarTabsEnStorage();}inp.dispatchEvent(new Event('input',{bubbles:true}));if(window.vkbTarget===inp){window.vkbCursorPos=0;}else{inp.focus();};})(event);"
+                  style="display:none;align-items:center;justify-content:center;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:14px;padding:4px;line-height:1;border-radius:50%;width:20px;height:20px;z-index:2;"
                   title="Limpiar dirección">&#x2715;</button>
               </div>
               <button class="icon-btn grid-btn" id="btn-orden-az" onclick="setOrdenProductos('az')" title="Ordenar A-Z">
@@ -6137,10 +6137,22 @@
       return true;
     }
     // ==================== SYNC CLEAR BUTTONS ====================
+    // Mapa de input → botón claro para actualización centralizada
+    const _clearBtnMap = {};
+
     window._syncClearBtn = function (inputId, btnId) {
       const inp = document.getElementById(inputId);
       const btn = document.getElementById(btnId);
       if (!inp || !btn) return;
+      // Registrar listener una sola vez — es la única fuente de verdad
+      if (!_clearBtnMap[inputId]) {
+        _clearBtnMap[inputId] = btnId;
+        inp.addEventListener('input', () => {
+          const b = document.getElementById(_clearBtnMap[inputId]);
+          if (b) b.style.display = inp.value.length > 0 ? 'flex' : 'none';
+        }, true); // captura: se ejecuta antes que cualquier otro handler
+      }
+      // Sincronizar estado inmediato
       btn.style.display = inp.value.length > 0 ? 'flex' : 'none';
     };
 

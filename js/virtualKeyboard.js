@@ -15,6 +15,74 @@
   //  HTML del teclado — se inyecta en el <body>
   // ══════════════════════════════════════════════
   function injectHTML() {
+    // Estilos para la nueva estructura main+numpad
+    const style = document.createElement('style');
+    style.id = 'vkb-layout-styles';
+    style.textContent = `
+      /* ── Wrapper principal: letras izq | numpad der ── */
+      .vkb-body-wrap {
+        display: flex;
+        flex-direction: row;
+        gap: clamp(5px, 0.8vw, 10px);
+        width: 100%;
+        flex: 1;
+        min-height: 0;
+      }
+
+      /* ── Bloque letras: crece, columna de filas ── */
+      .vkb-main-cols {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+        gap: clamp(3px, 0.6vh, 7px);
+      }
+
+      /* Separador visual entre letras y numpad */
+      .vkb-numpad-col::before {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: rgba(148,163,184,0.18);
+        border-radius: 1px;
+      }
+
+      /* ── Bloque numpad: ancho fijo para 3 teclas cuadradas ── */
+.vkb-numpad-col {
+    display: flex;
+    flex-direction: column;
+    flex: 0.22 0 auto;
+    /* width: clamp(100px, 13vw, 292px); */
+    gap: clamp(3px, 0.6vh, 7px);
+    position: relative;
+    padding-left: clamp(5px, 0.8vw, 10px);
+}
+
+      /* ── Fila del numpad ── */
+      .vkb-numpad-row {
+        display: flex;
+        flex: 1;
+        gap: clamp(3px, 0.5vw, 6px);
+        min-height: 0;
+      }
+
+      /* ── Tecla individual del numpad ── */
+
+
+      .vkb-numpad-key:active,
+      .vkb-numpad-key.vkb-pressed {
+        background: var(--vkb-key-pressed) !important;
+        transform: scale(0.93) !important;
+        box-shadow: none !important;
+      }
+    `;
+    if (!document.getElementById('vkb-layout-styles')) {
+      document.head.appendChild(style);
+    }
     // Panel principal
     const panel = document.createElement('div');
     panel.id = 'vkb-panel';
@@ -56,31 +124,34 @@
   //  Layouts
   // ══════════════════════════════════════════════
   const LAYOUT_ES = [
-    // Fila números — backspace al lado del 0
-    [
-      { l: '#', cls: 'vkb-hash', numRow: true },
-      { l: '1', s: '!', numRow: true }, { l: '2', s: '"', numRow: true }, { l: '3', s: '#', numRow: true },
-      { l: '4', s: '$', numRow: true }, { l: '5', s: '%', numRow: true }, { l: '6', s: '&', numRow: true },
-      { l: '7', s: '/', numRow: true }, { l: '8', s: '(', numRow: true }, { l: '9', s: ')', numRow: true },
-      { l: '0', s: '=', numRow: true },
-      { action: 'backspace', label: '⌫', cls: 'vkb-backspace' }
-    ],
-    // Fila 1
-    [{ l: 'q' }, { l: 'w' }, { l: 'e' }, { l: 'r' }, { l: 't' }, { l: 'y' }, { l: 'u' }, { l: 'i' }, { l: 'o' }, { l: 'p' },
-      { l: '´', cls: 'vkb-accent', action: 'accent' }],
-    // Fila 2
-    [{ l: 'a' }, { l: 's' }, { l: 'd' }, { l: 'f' }, { l: 'g' }, { l: 'h' }, { l: 'j' }, { l: 'k' }, { l: 'l' },
-      { l: 'ñ', cls: 'vkb-eñe' }],
-    // Fila 3
-    [{ action: 'shift', label: '⇧', cls: 'vkb-shift', id: 'vkb-shift-btn' },
-      { l: 'z' }, { l: 'x' }, { l: 'c' }, { l: 'v' }, { l: 'b' }, { l: 'n' }, { l: 'm' },
-      { l: ',', s: ';' }, { l: '.', s: ':' }],
-    // Fila 4
-    [{ action: 'symToggle', label: '#+=', cls: 'vkb-num-toggle' },
-      { action: 'themeToggle', label: '🌙', cls: 'vkb-theme-toggle' },
-      { action: 'space', label: 'Espacio', cls: 'vkb-space' },
-      { l: '-' }, { l: '@' },
-      { action: 'enter', label: '↵ OK', cls: 'vkb-enter' }]
+    // Fila 1: qwerty + backspace (reemplaza ´) | numpad: 7 8 9
+    {
+      main: [{ l: 'q' }, { l: 'w' }, { l: 'e' }, { l: 'r' }, { l: 't' }, { l: 'y' }, { l: 'u' }, { l: 'i' }, { l: 'o' }, { l: 'p' },
+             { action: 'backspace', label: '⌫', cls: 'vkb-backspace' }],
+      num:  [{ l: '7' }, { l: '8' }, { l: '9' }]
+    },
+    // Fila 2: asdfg + ñ | numpad: 4 5 6
+    {
+      main: [{ l: 'a' }, { l: 's' }, { l: 'd' }, { l: 'f' }, { l: 'g' }, { l: 'h' }, { l: 'j' }, { l: 'k' }, { l: 'l' },
+             { l: 'ñ', cls: 'vkb-eñe' }],
+      num:  [{ l: '4' }, { l: '5' }, { l: '6' }]
+    },
+    // Fila 3: shift + zxcvbnm | numpad: 1 2 3
+    {
+      main: [{ action: 'shift', label: '⇧', cls: 'vkb-shift', id: 'vkb-shift-btn' },
+             { l: 'z' }, { l: 'x' }, { l: 'c' }, { l: 'v' }, { l: 'b' }, { l: 'n' }, { l: 'm' },
+             { l: ',', s: ';' }, { l: '.', s: ':' }],
+      num:  [{ l: '1' }, { l: '2' }, { l: '3' }]
+    },
+    // Fila 4: controles + espacio | numpad: # 0 -
+    {
+      main: [{ action: 'symToggle', label: '#+=', cls: 'vkb-num-toggle' },
+             { action: 'themeToggle', label: '🌙', cls: 'vkb-theme-toggle' },
+             { action: 'space', label: 'Espacio', cls: 'vkb-space' },
+             { l: '@' },
+             { action: 'enter', label: '↵ OK', cls: 'vkb-enter' }],
+      num:  [{ l: '#', cls: 'number_j1' }, { l: '0' }, { l: '-' }]
+    }
   ];
 
   const LAYOUT_SYM = [
@@ -121,43 +192,84 @@
     else if (vkbSymMode)  layout = LAYOUT_SYM;
     else                  layout = LAYOUT_ES;
 
-    layout.forEach(rowKeys => {
-      const row = document.createElement('div');
-      row.className = 'vkb-row';
+    // Detectar si es el nuevo formato {main, num} o el antiguo array plano
+    const isNewFormat = layout.length > 0 && !Array.isArray(layout[0]);
 
-      rowKeys.forEach(k => {
-        const btn = document.createElement('button');
-        btn.className = 'vkb-key ' + (k.cls || '');
-        if (k.id) btn.id = k.id;
+    if (isNewFormat) {
+      // ── Nuevo formato: teclado letras (izquierda) + numpad (derecha) ──
+      // Estructura: vkb-body-wrap > vkb-main-cols + vkb-numpad-col
+      const bodyWrap = document.createElement('div');
+      bodyWrap.className = 'vkb-body-wrap';
 
-        let label = k.label || k.l || '';
+      const mainCols = document.createElement('div');
+      mainCols.className = 'vkb-main-cols';
 
-        // Ícono del tema según estado actual
-        if (k.action === 'themeToggle') {
-          label = vkbDarkTheme ? '☀️' : '🌙';
-        }
+      const numpadCol = document.createElement('div');
+      numpadCol.className = 'vkb-numpad-col';
 
-        // Aplicar shift/caps solo a teclas que NO son de la fila numérica
-        if (!k.action && !k.numRow && (vkbShift || vkbCaps) && k.l) {
-          if (k.s && (vkbShift || vkbCaps)) label = k.s;
-          else label = k.l.toUpperCase();
-        }
-
-        btn.textContent = label;
-        if (k.action === 'shift' && (vkbShift || vkbCaps)) btn.classList.add('active');
-
-        btn.addEventListener('pointerdown', (e) => {
-          e.preventDefault();
-          btn.classList.add('vkb-pressed');
-          handleKey(k);
-          setTimeout(() => btn.classList.remove('vkb-pressed'), 120);
+      layout.forEach(rowDef => {
+        // Fila de letras
+        const row = document.createElement('div');
+        row.className = 'vkb-row';
+        rowDef.main.forEach(k => {
+          row.appendChild(_makeKey(k));
         });
+        mainCols.appendChild(row);
 
-        row.appendChild(btn);
+        // Fila del numpad (3 teclas por fila)
+        const numRow = document.createElement('div');
+        numRow.className = 'vkb-row vkb-numpad-row';
+        rowDef.num.forEach(k => {
+          const btn = _makeKey(k);
+          btn.classList.add('vkb-numpad-key');
+          numRow.appendChild(btn);
+        });
+        numpadCol.appendChild(numRow);
       });
 
-      rows.appendChild(row);
+      bodyWrap.appendChild(mainCols);
+      bodyWrap.appendChild(numpadCol);
+      rows.appendChild(bodyWrap);
+
+    } else {
+      // ── Formato antiguo: filas planas (LAYOUT_SYM, LAYOUT_NUM) ──
+      layout.forEach(rowKeys => {
+        const row = document.createElement('div');
+        row.className = 'vkb-row';
+        rowKeys.forEach(k => row.appendChild(_makeKey(k)));
+        rows.appendChild(row);
+      });
+    }
+  }
+
+  // Construye un botón de tecla a partir de su definición
+  function _makeKey(k) {
+    const btn = document.createElement('button');
+    btn.className = 'vkb-key ' + (k.cls || '');
+    if (k.id) btn.id = k.id;
+
+    let label = k.label || k.l || '';
+
+    if (k.action === 'themeToggle') {
+      label = vkbDarkTheme ? '☀️' : '🌙';
+    }
+
+    if (!k.action && !k.numRow && (vkbShift || vkbCaps) && k.l) {
+      if (k.s && (vkbShift || vkbCaps)) label = k.s;
+      else label = k.l.toUpperCase();
+    }
+
+    btn.textContent = label;
+    if (k.action === 'shift' && (vkbShift || vkbCaps)) btn.classList.add('active');
+
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      btn.classList.add('vkb-pressed');
+      handleKey(k);
+      setTimeout(() => btn.classList.remove('vkb-pressed'), 120);
     });
+
+    return btn;
   }
 
   // ══════════════════════════════════════════════
@@ -167,10 +279,15 @@
     if (!vkbTarget) return;
 
     if (k.action === 'backspace') {
+      if (document.activeElement !== vkbTarget) {
+        vkbTarget.focus({ preventScroll: true });
+      }
+      syncCursor();
       if (vkbCursorPos > 0) {
         const val = vkbTarget.value;
         vkbTarget.value = val.slice(0, vkbCursorPos - 1) + val.slice(vkbCursorPos);
         vkbCursorPos--;
+        vkbTarget.setSelectionRange(vkbCursorPos, vkbCursorPos);
         triggerInput(vkbTarget);
         // Auto-mayúscula si el campo queda vacío
         if (vkbTarget.value.length === 0 && !vkbCaps) {
@@ -178,7 +295,6 @@
           renderKeyboard();
         }
       }
-      updatePreview();
       return;
     }
 
@@ -254,15 +370,37 @@
   // ══════════════════════════════════════════════
   //  Helpers de texto
   // ══════════════════════════════════════════════
+  // Sincroniza vkbCursorPos con la posición real del cursor en el input.
+  // Fuente de verdad: selectionStart del input (refleja teclado físico, clicks, etc.)
+  function syncCursor() {
+    if (!vkbTarget) return;
+    const pos = vkbTarget.selectionStart;
+    if (typeof pos !== 'number') return;
+    // Solo sobreescribir vkbCursorPos si el input tiene foco activo,
+    // o si pos > 0 (un 0 con el input sin foco es unreliable).
+    // Evita que selectionStart=0 (reset del browser al perder foco) corrompa la posición.
+    if (document.activeElement === vkbTarget || pos > 0) {
+      vkbCursorPos = pos;
+    }
+  }
+
   function insertChar(char) {
     if (!vkbTarget) return;
+    // Asegurar que el input tenga foco antes de manipular cursor
+    // (si el usuario tocó fuera y volvió, el input puede no tenerlo)
+    if (document.activeElement !== vkbTarget) {
+      vkbTarget.focus({ preventScroll: true });
+    }
+    syncCursor();
     const val = vkbTarget.value;
     vkbTarget.value = val.slice(0, vkbCursorPos) + char + val.slice(vkbCursorPos);
     vkbCursorPos++;
+    vkbTarget.setSelectionRange(vkbCursorPos, vkbCursorPos);
     triggerInput(vkbTarget);
   }
 
   function triggerInput(el) {
+    // El evento input activa el listener de _syncClearBtn automáticamente
     el.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
@@ -286,7 +424,7 @@
 
   function applyLayout(panel, layout) {
     const vw = window.innerWidth, vh = window.innerHeight;
-    const w  = Math.max(340, Math.min(layout.width  || 860, Math.min(vw - 10, 1100)));
+    const w  = Math.max(400, Math.min(layout.width  || 1020, Math.min(vw - 10, 1280)));
     const h  = Math.max(240, Math.min(layout.height || 320, 650));
     const left = Math.max(0, Math.min(layout.left, vw - w));
     const top  = Math.max(0, Math.min(layout.top,  vh - 80));
@@ -404,7 +542,7 @@
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const dx = clientX - rStartX;
       const dy = clientY - rStartY;
-      panel.style.width  = Math.max(340, Math.min(rOrigW + dx, Math.min(window.innerWidth  - 10, 1100))) + 'px';
+      panel.style.width  = Math.max(420, Math.min(rOrigW + dx, Math.min(window.innerWidth  - 10, 1280))) + 'px';
       panel.style.height = Math.max(240, Math.min(rOrigH + dy, Math.min(window.innerHeight - 20, 650)))  + 'px';
     }
 
@@ -430,44 +568,68 @@
   //  encontrar el elemento real debajo del toque
   //  con elementFromPoint, y dispararle un click.
   // ══════════════════════════════════════════════
+  // IDs de elementos que NO deben cerrar el teclado al tocarse
+  // (botones de limpiar input u otros controles asociados al campo activo)
+  const VKB_NO_CLOSE_IDS = new Set(['pos-buscar-clear', 'pos-dir-clear']);
+
+  function _isProtectedTarget(el) {
+    if (!el) return false;
+    // Verificar el elemento y sus ancestros inmediatos
+    let node = el;
+    for (let i = 0; i < 4; i++) {
+      if (!node) break;
+      if (node.id && VKB_NO_CLOSE_IDS.has(node.id)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
   function initOutsideClick() {
     document.addEventListener('pointerdown', (e) => {
       const panel = document.getElementById('vkb-panel');
       if (!panel || !panel.classList.contains('vkb-open')) return;
+      // Toque dentro del panel del teclado → ignorar
       if (panel.contains(e.target)) return;
+      // Toque en el input activo → ignorar
       if (vkbTarget && vkbTarget.contains(e.target)) return;
+      // Toque en elemento protegido (ej: botón limpiar) → no cerrar
+      if (_isProtectedTarget(e.target)) return;
 
-      // Obtener coordenadas del toque
+      // Toque fuera: cerrar y re-disparar el click al elemento real
       const x = e.clientX, y = e.clientY;
-
-      // Cerrar el teclado primero
       vkbClose();
-
-      // Ocultar el panel temporalmente para que elementFromPoint
-      // pueda encontrar el elemento real debajo
       panel.style.display = 'none';
       const realTarget = document.elementFromPoint(x, y);
       panel.style.display = '';
-
-      // Disparar click al elemento real si existe y no es el propio input
-      if (realTarget && realTarget !== vkbTarget) {
-        // Buscar el elemento clickeable más cercano (el card o su hijo)
+      if (realTarget) {
         const clickable = realTarget.closest('[onclick], button, a, .prod-card, .pos-cat-card, label') || realTarget;
-        try {
-          clickable.click();
-        } catch(err) { /* silencioso */ }
+        try { clickable.click(); } catch (_) {}
       }
     }, true);
   }
 
+  // Permite registrar IDs adicionales como protegidos desde fuera del módulo
+  window.vkbProtectElement = (id) => VKB_NO_CLOSE_IDS.add(id);
+
   // ══════════════════════════════════════════════
   //  Abrir / Cerrar
   // ══════════════════════════════════════════════
-  function vkbOpen(inputEl) {
+  function vkbOpen(inputEl, forcedPos) {
     // Respetar el toggle de teclado virtual
     if (window._vkEnabled === false) return;
     vkbTarget        = inputEl;
-    vkbCursorPos     = inputEl.value.length;
+    // forcedPos: posición guardada ANTES del trick readonly (evita que el browser la resetee a 0)
+    // Si no se pasa, leer selectionStart; si aun así es 0 con texto, ir al final
+    let realPos;
+    if (typeof forcedPos === 'number') {
+      realPos = forcedPos;
+    } else {
+      const raw = (typeof inputEl.selectionStart === 'number') ? inputEl.selectionStart : inputEl.value.length;
+      // Si el browser devolvió 0 pero hay texto, el cursor probablemente fue reseteado → ir al final
+      realPos = (raw === 0 && inputEl.value.length > 0) ? inputEl.value.length : raw;
+    }
+    vkbCursorPos     = realPos;
+    inputEl.setSelectionRange(realPos, realPos);
     vkbShift         = inputEl.value.length === 0; // mayúscula automática si vacío
     vkbCaps          = false;
     vkbNumMode       = false;
@@ -497,7 +659,7 @@
       panel.style.left       = '50%';
       panel.style.top        = '';
       panel.style.bottom     = '20px';
-      panel.style.width      = '860px';
+      panel.style.width      = '1020px';
       panel.style.height     = '';
     }
 
@@ -531,10 +693,16 @@
 
     el.addEventListener('focus', (e) => {
       e.preventDefault();
+      // Si el teclado ya está abierto para este input (ej: insertChar hizo .focus())
+      // no re-abrir: solo causaría un reset de vkbCursorPos innecesario
+      const panel = document.getElementById('vkb-panel');
+      if (panel.classList.contains('vkb-open') && vkbTarget === el) return;
+      // Guardar posición ANTES de poner readonly (el browser la resetea después)
+      const savedPos = (typeof el.selectionStart === 'number') ? el.selectionStart : el.value.length;
       el.setAttribute('readonly', 'readonly');
       requestAnimationFrame(() => {
         el.removeAttribute('readonly');
-        vkbOpen(el);
+        vkbOpen(el, savedPos);
       });
     });
 
@@ -542,12 +710,31 @@
       const panel = document.getElementById('vkb-panel');
       if (panel.classList.contains('vkb-open') && vkbTarget === el) return;
       e.preventDefault();
+      // Guardar posición ANTES de poner readonly (el browser la resetea después)
+      const savedPos = (typeof el.selectionStart === 'number') ? el.selectionStart : el.value.length;
       el.setAttribute('readonly', 'readonly');
       requestAnimationFrame(() => {
         el.removeAttribute('readonly');
-        vkbOpen(el);
+        vkbOpen(el, savedPos);
       });
     }, { passive: false });
+
+    // ── Sincronización bidireccional del cursor ──────────────────────────
+    // Cuando el usuario escribe con teclado físico, vkbCursorPos debe seguir
+    // la posición real del cursor para que la próxima tecla virtual inserte
+    // exactamente donde está la rayita.
+    const syncIfActive = () => {
+      if (vkbTarget === el && typeof el.selectionStart === 'number') {
+        vkbCursorPos = el.selectionStart;
+      }
+    };
+
+    // keyup: después de cada tecla física el cursor ya está en la nueva posición
+    el.addEventListener('keyup', syncIfActive);
+    // click/pointerup: el usuario reposicionó el cursor con el dedo/mouse
+    el.addEventListener('pointerup', syncIfActive);
+    // selectionchange (algunos browsers): cubre flechas del teclado, home/end, etc.
+    el.addEventListener('selectionchange', syncIfActive);
   }
 
   // Exponer para uso externo (agregar inputs adicionales desde el HTML)
@@ -565,6 +752,16 @@
     attachVkbToInput('pos-direccion-cliente');
     initDragAndResize();
     initOutsideClick();
+
+    // Sincronizar cursor cuando el foco está en el input activo y el usuario
+    // mueve la rayita con las teclas de flecha del teclado físico
+    document.addEventListener('selectionchange', () => {
+      if (!vkbTarget) return;
+      const active = document.activeElement;
+      if (active === vkbTarget && typeof vkbTarget.selectionStart === 'number') {
+        vkbCursorPos = vkbTarget.selectionStart;
+      }
+    });
   }
 
   window.initVkb = initVkb;

@@ -93,16 +93,16 @@
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    width: clamp(320px, 860px, 96vw);
-    min-width: 320px;
-    max-width: 1034px;
-    min-height: 364px;
-    max-height: 444px;
+    width: clamp(380px, 1020px, 98vw);
+    min-width: 380px;
+    max-width: 1280px;
+    min-height: 300px;
+    max-height: 420px;
     z-index: 99999;
     background: var(--vkb-bg);
     border-radius: 18px;
     box-shadow: 0 8px 48px rgba(0, 0, 0, 0.55), 0 2px 12px rgba(0, 0, 0, 0.3);
-    padding: 18px clamp(6px, 1.2vw, 14px) clamp(8px, 1.5vh, 16px);
+    padding: 18px clamp(6px, 1.2vw, 14px) clamp(8px, 1.5vh, 14px);
     transition: opacity 0.2s ease, background 0.2s;
     opacity: 0;
     pointer-events: none;
@@ -298,6 +298,13 @@
       min-height: 0;
     }
 
+    /* Cuando contiene el nuevo layout con numpad, cede el flex a vkb-body-wrap */
+    .vkb-rows > .vkb-body-wrap {
+      flex: 1;
+      min-height: 0;
+      gap: clamp(3px, 0.6vh, 7px);
+    }
+
     .vkb-row {
       display: flex;
       gap: clamp(3px, 0.5vw, 6px);
@@ -309,7 +316,7 @@
     .vkb-key {
       height: 100%;
       min-height: clamp(32px, 5vh, 52px);
-      max-height: 62px;
+      /*max-height: 62px;*/
       min-width: 0;
       flex: 1;
       border: none;
@@ -333,6 +340,17 @@
       text-overflow: ellipsis;
       box-sizing: border-box;
     }
+
+          .vkb-numpad-key {
+            background: var(--vkb-key-num-bg) !important;
+            }
+
+    .number_j1 {
+      
+       background: var(--vkb-eñe-bg) !important;
+    color: var(--vkb-eñe-color) !important;
+    font-size: clamp(0.9rem, 1.8vw, 1.75rem) !important;
+    } 
 
     .vkb-key:active,
     .vkb-key.vkb-pressed {
