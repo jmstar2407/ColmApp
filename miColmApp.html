@@ -3269,7 +3269,13 @@
 
     function _actualizarTotalesCarrito() {
       const carrito = getCarrito();
-      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+      const subtotal = carrito.reduce((s, i) => {
+        if (i._precioBase !== undefined) return s + i._precioBase * i.qty; // detallable
+        if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) {
+          return s + calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades);
+        }
+        return s + i.precio * i.qty;
+      }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
@@ -3354,15 +3360,15 @@
 
     function _renderItemNormal(item) {
       const pesoNeto = item.pesoNeto ? `<span class="peso-neto-badge">${item.pesoNeto}</span>` : '';
-      // Lógica de combo: calcular unidades reales según el monto ingresado
+      // Lógica de combo: calcular precio real según cantidad de unidades
       if (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2) {
-        const montoTotal = item.precio * item.qty;
-        const combosCompletos = Math.floor(montoTotal / item.comboPrecio);
-        const montoEnCombos = combosCompletos * item.comboPrecio;
-        const resto = montoTotal - montoEnCombos;
-        const unidadesSueltas = Math.floor(resto / item.precio);
-        const subtotalReal = montoEnCombos + unidadesSueltas * item.precio;
-        return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(subtotalReal)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
+        const subtotalReal = calcularPrecioConCombo(item.qty, item.precio, item.comboPrecio, item.comboUnidades);
+        const combosCompletos = Math.floor(item.qty / item.comboUnidades);
+        const sueltas = item.qty % item.comboUnidades;
+        const comboInfo = combosCompletos > 0
+          ? `<span style="font-size:10px;color:#e67700;font-weight:700;">${combosCompletos} combo${combosCompletos>1?'s':''}${sueltas > 0 ? ` + ${sueltas} suelto${sueltas>1?'s':''}` : ''}</span>`
+          : '';
+        return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u · ${item.comboUnidades}x${fmt(item.comboPrecio)}</div><div style="display:flex;align-items:center;gap:6px;">${comboInfo}<span class="item-subtotal">${fmt(subtotalReal)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
       }
       return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
     }
@@ -3457,13 +3463,17 @@
               const subEl = existing.querySelector('.item-subtotal');
               if (subEl) {
                 if (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2) {
-                  const montoTotal = item.precio * item.qty;
-                  const combosCompletos = Math.floor(montoTotal / item.comboPrecio);
-                  const montoEnCombos = combosCompletos * item.comboPrecio;
-                  const resto = montoTotal - montoEnCombos;
-                  const unidadesSueltas = Math.floor(resto / item.precio);
-                  const subtotalReal = montoEnCombos + unidadesSueltas * item.precio;
+                  const subtotalReal = calcularPrecioConCombo(item.qty, item.precio, item.comboPrecio, item.comboUnidades);
                   subEl.textContent = fmt(subtotalReal);
+                  // Actualizar también el comboInfo si existe
+                  const comboInfoEl = existing.querySelector('.item-combo-info');
+                  if (comboInfoEl) {
+                    const combosCompletos = Math.floor(item.qty / item.comboUnidades);
+                    const sueltas = item.qty % item.comboUnidades;
+                    comboInfoEl.textContent = combosCompletos > 0
+                      ? `${combosCompletos} combo${combosCompletos>1?'s':''}${sueltas > 0 ? ` + ${sueltas} suelto${sueltas>1?'s':''}` : ''}`
+                      : '';
+                  }
                 } else {
                   subEl.textContent = fmt(item.precio * item.qty);
                 }
@@ -3490,7 +3500,7 @@
         });
       }
 
-      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+      const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
@@ -3655,10 +3665,18 @@
       let subtotal = 0;
       let itbis = 0;
       carrito.forEach((item, i) => {
-        const precio = i === idxEditado ? precioPreview : (item._precioBase || item.precio);
-        const qty = i === idxEditado ? qtyPreview : item.qty;
-        subtotal += precio * qty;
-        if (itbisCliente && item.itbis !== false) itbis += precio * qty * (itbisPct / 100);
+        let lineTotal;
+        if (i === idxEditado) {
+          lineTotal = precioPreview * qtyPreview;
+        } else if (item._precioBase !== undefined) {
+          lineTotal = item._precioBase * item.qty;
+        } else if (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2) {
+          lineTotal = calcularPrecioConCombo(item.qty, item.precio, item.comboPrecio, item.comboUnidades);
+        } else {
+          lineTotal = item.precio * item.qty;
+        }
+        subtotal += lineTotal;
+        if (itbisCliente && item.itbis !== false) itbis += lineTotal * (itbisPct / 100);
       });
       const total = subtotal + itbis;
       const fmtN = n => 'RD$ ' + n.toFixed(2);
@@ -3909,16 +3927,20 @@
       const carrito = getCarrito();
       if (!carrito.length) { toast('El carrito está vacío', 'error'); return; }
       if (!cajaActual) { toast('La caja no está abierta', 'error'); return; }
-      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+      const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
       const total = subtotal + itbis;
       document.getElementById('factura-items-lista').innerHTML = carrito.map(item => {
         const precioBase = item._precioBase || item.precio;
-        const subtItem = precioBase * item.qty;
+        const subtItem = (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2 && item._precioBase === undefined)
+          ? calcularPrecioConCombo(item.qty, item.precio, item.comboPrecio, item.comboUnidades)
+          : precioBase * item.qty;
         const qtyLabel = esUnidadDetallable(item.unidad) ? `${item.qty.toFixed(2)} ${labelUnidad(item.unidad)}` : `x${item.qty}`;
-        return `<div class="factura-item-row"><span class="fi-nombre">${item.nombre}</span><span class="fi-precio">${fmt(precioBase)}</span><span class="fi-qty">${qtyLabel}</span><span class="fi-precio">${fmt(subtItem)}</span></div>`;
+        const comboTag = (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2 && item._precioBase === undefined)
+          ? ` <span style="font-size:9px;background:#f59f00;color:#fff;border-radius:4px;padding:1px 5px;font-weight:800;">${item.comboUnidades}x${fmt(item.comboPrecio)}</span>` : '';
+        return `<div class="factura-item-row"><span class="fi-nombre">${item.nombre}${comboTag}</span><span class="fi-precio">${fmt(item.precio)}</span><span class="fi-qty">${qtyLabel}</span><span class="fi-precio">${fmt(subtItem)}</span></div>`;
       }).join('');
       document.getElementById('mfact-subtotal').textContent = fmt(subtotal);
       document.getElementById('mfact-itbis-lbl').textContent = `ITBIS (${itbisPct}%)`;
@@ -3991,7 +4013,7 @@
 
     window.mixtoPonerResto = (campo) => {
       const carrito = getCarrito();
-      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+      const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
@@ -4030,7 +4052,7 @@
 
     function mixtoActualizarResumen() {
       const carrito = getCarrito();
-      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+      const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
@@ -4075,7 +4097,7 @@
     // ==================== CONFIRMAR FACTURA — LÓGICA DEL BOTÓN VERDE ====================
     function _facturaListaParaPagar() {
       const carrito = getCarrito();
-      const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+      const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
       const itbisPct = config.itbisPct || 18;
       const itbisCliente = config.itbisCliente === true;
       const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
@@ -4132,7 +4154,7 @@
             toast('Ingresa el monto recibido en efectivo', 'error');
             return;
           }
-          const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+          const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
           const itbisCliente = config.itbisCliente === true;
           const total = subtotal * (1 + (itbisCliente ? (config.itbisPct || 18) / 100 : 0));
           if (montoRec < total) {
@@ -4143,7 +4165,7 @@
         if (metodoPagoSeleccionado === 'mixto') {
           const ef   = parseFloat(_mixtoEfStr)   || 0;
           const elec = parseFloat(_mixtoElecStr)  || 0;
-          const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+          const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
           const itbisCliente = config.itbisCliente === true;
           const total = subtotal * (1 + (itbisCliente ? (config.itbisPct || 18) / 100 : 0));
           if (ef <= 0 && elec <= 0) {
@@ -4167,7 +4189,7 @@
 
       // ── MODO DE PRUEBA: simular factura sin guardar ni descontar stock ──
       if (modoPrueba) {
-        const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+        const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
         const itbisPct = config.itbisPct || 18;
         const itbisCliente = config.itbisCliente === true;
         const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
@@ -4187,7 +4209,12 @@
           fecha: { toDate: () => new Date() },
           items: carrito.map(i => {
             const pb = i._precioBase || i.precio;
-            return { id: i.id, nombre: i.nombre, precio: pb, qty: i.qty, unidad: i.unidad || null, subtotal: pb * i.qty };
+            const itemSubtotal = (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2 && i._precioBase === undefined)
+                ? calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades)
+                : pb * i.qty;
+            return { id: i.id, nombre: i.nombre, precio: pb, qty: i.qty, unidad: i.unidad || null,
+              comboActivo: i.comboActivo || false, comboPrecio: i.comboPrecio || 0, comboUnidades: i.comboUnidades || 0,
+              subtotal: itemSubtotal };
           }),
           subtotal, itbis, itbisPct, total,
           metodoPago: metodoPagoSeleccionado,
@@ -4237,7 +4264,7 @@
 
       try {
         // ── 5. Calcular totales ───────────────────────────────────────
-        const subtotal = carrito.reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0);
+        const subtotal = carrito.reduce((s, i) => { if (i._precioBase !== undefined) return s + i._precioBase * i.qty; if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); return s + i.precio * i.qty; }, 0);
         const itbisPct = config.itbisPct || 18;
         const itbisCliente = config.itbisCliente === true;
         const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
@@ -4262,7 +4289,12 @@
           fecha: serverTimestamp(),
           items: carrito.map(i => {
             const pb = i._precioBase || i.precio;
-            return { id: i.id, nombre: i.nombre, precio: pb, qty: i.qty, unidad: i.unidad || null, subtotal: pb * i.qty };
+            const itemSubtotal = (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2 && i._precioBase === undefined)
+                ? calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades)
+                : pb * i.qty;
+            return { id: i.id, nombre: i.nombre, precio: pb, qty: i.qty, unidad: i.unidad || null,
+              comboActivo: i.comboActivo || false, comboPrecio: i.comboPrecio || 0, comboUnidades: i.comboUnidades || 0,
+              subtotal: itemSubtotal };
           }),
           subtotal,
           itbis,
@@ -5764,16 +5796,26 @@
       preview.innerHTML = `<strong>${fmt(comboPrecio)}</strong> = ${comboUnidades} unidades (${fmt(precioEfectivo)} c/u efectivo) · Ej: con <strong>${fmt(ejemploMonto)}</strong> → <strong>${udsEjemplo} unidades</strong>`;
     };
 
-    // Calcula cuántas unidades se dan por un monto, aplicando lógica combo
+    // Calcula el precio total a cobrar por qty unidades, aplicando lógica combo
+    // Ej: combo 2x15, precio unit 10 → 3 uds = 15+10=25, 4 uds = 15+15=30, 5 uds = 15+15+10=40
+    function calcularPrecioConCombo(qty, precioUnit, comboPrecio, comboUnidades) {
+      if (!comboPrecio || !comboUnidades || comboUnidades < 2 || !precioUnit) {
+        return qty * precioUnit;
+      }
+      const combosCompletos = Math.floor(qty / comboUnidades);
+      const sueltas = qty % comboUnidades;
+      return (combosCompletos * comboPrecio) + (sueltas * precioUnit);
+    }
+    window.calcularPrecioConCombo = calcularPrecioConCombo;
+
+    // Calcula cuántas unidades se dan por un monto, aplicando lógica combo (para preview)
     function calcularUnidadesCombo(monto, precioUnit, comboPrecio, comboUnidades) {
-      if (!comboPrecio || !comboUnidades || comboUnidades < 2) return Math.floor(monto / precioUnit);
+      if (!comboPrecio || !comboUnidades || comboUnidades < 2 || !precioUnit) return Math.floor(monto / precioUnit);
       let restante = monto;
       let unidades = 0;
-      // Primero aplicar combos completos
       const combosCompletos = Math.floor(restante / comboPrecio);
       unidades += combosCompletos * comboUnidades;
       restante -= combosCompletos * comboPrecio;
-      // Con el restante, unidades individuales
       unidades += Math.floor(restante / precioUnit);
       return unidades;
     }
