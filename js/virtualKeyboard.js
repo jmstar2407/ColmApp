@@ -585,6 +585,8 @@
   }
 
   function initOutsideClick() {
+    // Usamos 'pointerdown' en fase de captura para detectar el toque antes
+    // de que el navegador lo entregue al elemento destino.
     document.addEventListener('pointerdown', (e) => {
       const panel = document.getElementById('vkb-panel');
       if (!panel || !panel.classList.contains('vkb-open')) return;
@@ -595,16 +597,10 @@
       // Toque en elemento protegido (ej: botón limpiar) → no cerrar
       if (_isProtectedTarget(e.target)) return;
 
-      // Toque fuera: cerrar y re-disparar el click al elemento real
-      const x = e.clientX, y = e.clientY;
+      // Cierre del teclado: simplemente lo ocultamos y dejamos que el evento
+      // nativo (pointerdown → click) llegue al elemento real por sí solo.
+      // NO disparamos .click() manualmente para evitar el doble disparo.
       vkbClose();
-      panel.style.display = 'none';
-      const realTarget = document.elementFromPoint(x, y);
-      panel.style.display = '';
-      if (realTarget) {
-        const clickable = realTarget.closest('[onclick], button, a, .prod-card, .pos-cat-card, label') || realTarget;
-        try { clickable.click(); } catch (_) {}
-      }
     }, true);
   }
 
