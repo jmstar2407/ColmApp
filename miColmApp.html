@@ -269,9 +269,7 @@
             </div>
             <div class="carrito-footer">
               <div class="totales-row"><span>Subtotal</span><span id="cart-subtotal">RD$ 0.00</span></div>
-              <div class="totales-row"><span id="cart-itbis-label">ITBIS (18%)</span><span id="cart-itbis">RD$
-                  0.00</span>
-              </div>
+              <div class="totales-row" id="cart-itbis-row" style="display:none;"><span id="cart-itbis-label">ITBIS (18%)</span><span id="cart-itbis">RD$ 0.00</span></div>
               <div class="totales-row total"><span>Total</span><span id="cart-total">RD$ 0.00</span></div>
               <div class="btn-facturar-row">
                 <button class="btn-facturar btn-vaciar-carrito" id="btn-vaciar-carrito"
@@ -1545,7 +1543,7 @@
 
     let _invStats = { total: 0, unidades: 0, dinero: 0, porCategoria: {} }; // caché de estadísticas, se recalcula solo cuando productos cambia
     let cajaActual = null;
-    let config = { itbisPct: 18, itbisCliente: true, ncfPrefijo: 'B01', ncfSeq: 1 };
+    let config = { itbisPct: 18, itbisCliente: false, ncfPrefijo: 'B01', ncfSeq: 1 }; // itbisCliente arranca false hasta que Firebase confirme el valor real
     let modoPrueba = false; // Modo de prueba: no guarda facturas ni descuenta stock
 
     window.toggleModoPrueba = (activo) => {
@@ -3308,7 +3306,7 @@
       document.getElementById('cart-itbis').textContent = fmt(itbis);
       document.getElementById('cart-total').textContent = fmt(total);
       // Mostrar/ocultar fila ITBIS
-      const itbisRow = document.getElementById('cart-itbis')?.closest('.totales-row');
+      const itbisRow = document.getElementById('cart-itbis-row');
       if (itbisRow) itbisRow.style.display = itbisCliente ? '' : 'none';
       // Actualizar subtotal de cada item detallable
       carrito.forEach(item => {
@@ -3346,7 +3344,9 @@
         if (idx >= 0) {
           carrito[idx].qty += 1;
         } else {
-          carrito.push({ ...prod, qty: 1, _precioBase: prod.precio });
+          // No asignar _precioBase si tiene combo activo
+          const tieneComboD = prod.comboActivo && prod.comboPrecio && prod.comboUnidades >= 2;
+          carrito.push(tieneComboD ? { ...prod, qty: 1 } : { ...prod, qty: 1, _precioBase: prod.precio });
         }
         setCarrito(carrito);
         _ultimoItemAgregado = prod.id;
@@ -3365,7 +3365,12 @@
         if (prod.stockHabilitado !== false && carrito[idx].qty >= prod.stock) { toast('No hay más stock disponible', 'error'); return; }
         carrito[idx].qty++;
       } else {
-        carrito.push({ ...prod, qty: 1, _precioBase: prod.precio, _precioInventario: prod.precio });
+        // No asignar _precioBase si tiene combo activo; la condición i._precioBase === undefined activa la lógica combo en facturas
+        const tieneCombo = prod.comboActivo && prod.comboPrecio && prod.comboUnidades >= 2;
+        const nuevoItem = tieneCombo
+          ? { ...prod, qty: 1, _precioInventario: prod.precio }
+          : { ...prod, qty: 1, _precioBase: prod.precio, _precioInventario: prod.precio };
+        carrito.push(nuevoItem);
       }
       setCarrito(carrito);
       _ultimoItemAgregado = prod.id;
@@ -3389,10 +3394,7 @@
         const subtotalReal = window.calcularPrecioConCombo(item.qty, item.precio, item.comboPrecio, item.comboUnidades);
         const combosCompletos = Math.floor(item.qty / item.comboUnidades);
         const sueltas = item.qty % item.comboUnidades;
-        const comboInfo = combosCompletos > 0
-          ? `<span style="font-size:10px;color:#e67700;font-weight:700;">${combosCompletos} combo${combosCompletos>1?'s':''}${sueltas > 0 ? ` + ${sueltas} suelto${sueltas>1?'s':''}` : ''}</span>`
-          : '';
-        return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u · ${item.comboUnidades}x${fmt(item.comboPrecio)}</div><div style="display:flex;align-items:center;gap:6px;">${comboInfo}<span class="item-subtotal">${fmt(subtotalReal)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
+        return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u · ${item.comboUnidades}x${fmt(item.comboPrecio)}</div><div><span class="item-subtotal">${fmt(subtotalReal)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
       }
       return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
     }
@@ -3489,15 +3491,7 @@
                 if (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2) {
                   const subtotalReal = window.calcularPrecioConCombo(item.qty, item.precio, item.comboPrecio, item.comboUnidades);
                   subEl.textContent = fmt(subtotalReal);
-                  // Actualizar también el comboInfo si existe
-                  const comboInfoEl = existing.querySelector('.item-combo-info');
-                  if (comboInfoEl) {
-                    const combosCompletos = Math.floor(item.qty / item.comboUnidades);
-                    const sueltas = item.qty % item.comboUnidades;
-                    comboInfoEl.textContent = combosCompletos > 0
-                      ? `${combosCompletos} combo${combosCompletos>1?'s':''}${sueltas > 0 ? ` + ${sueltas} suelto${sueltas>1?'s':''}` : ''}`
-                      : '';
-                  }
+
                 } else {
                   subEl.textContent = fmt(item.precio * item.qty);
                 }
@@ -3534,7 +3528,7 @@
       document.getElementById('cart-itbis').textContent = fmt(itbis);
       document.getElementById('cart-total').textContent = fmt(total);
       // Mostrar/ocultar fila ITBIS según configuración
-      const itbisRow = document.getElementById('cart-itbis')?.closest('.totales-row');
+      const itbisRow = document.getElementById('cart-itbis-row');
       if (itbisRow) itbisRow.style.display = itbisCliente ? '' : 'none';
       const btnVaciar = document.getElementById('btn-vaciar-carrito');
       if (btnVaciar) btnVaciar.style.background = carrito.length ? 'var(--rojo)' : '#aab4c8';
@@ -3991,9 +3985,24 @@
           ? window.calcularPrecioConCombo(item.qty, item.precio, item.comboPrecio, item.comboUnidades)
           : precioBase * item.qty;
         const qtyLabel = esUnidadDetallable(item.unidad) ? `${item.qty.toFixed(2)} ${labelUnidad(item.unidad)}` : `x${item.qty}`;
-        const comboTag = (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2 && item._precioBase === undefined)
-          ? ` <span style="font-size:9px;background:#f59f00;color:#fff;border-radius:4px;padding:1px 5px;font-weight:800;">${item.comboUnidades}x${fmt(item.comboPrecio)}</span>` : '';
-        return `<div class="factura-item-row"><span class="fi-nombre">${item.nombre}${comboTag}</span><span class="fi-precio">${fmt(item.precio)}</span><span class="fi-qty">${qtyLabel}</span><span class="fi-precio">${fmt(subtItem)}</span></div>`;
+        let qtyLabelCombo;
+        const tieneComboModal = item.comboActivo && item.comboPrecio && item.comboUnidades >= 2 && item._precioBase === undefined;
+        if (tieneComboModal) {
+          const combos = Math.floor(item.qty / item.comboUnidades);
+          const sueltas = item.qty % item.comboUnidades;
+          const precioComboUd = item.comboPrecio / item.comboUnidades;
+          if (combos > 0 && sueltas > 0) {
+            qtyLabelCombo = `${combos * item.comboUnidades} uds x ${fmt(precioComboUd)} + ${sueltas} ud${sueltas > 1 ? 's' : ''} x ${fmt(item.precio)}`;
+          } else if (combos > 0) {
+            qtyLabelCombo = `${item.qty} uds x ${fmt(precioComboUd)}`;
+          } else {
+            qtyLabelCombo = `${item.qty} ud${item.qty !== 1 ? 's' : ''} x ${fmt(item.precio)}`;
+          }
+        } else {
+          qtyLabelCombo = qtyLabel;
+        }
+        const precioEfectivo = tieneComboModal && item.qty > 0 ? subtItem / item.qty : precioBase;
+        return `<div class="factura-item-row"><span class="fi-nombre">${item.nombre}</span><span class="fi-precio">${fmt(precioEfectivo)}</span><span class="fi-qty">${qtyLabelCombo}</span><span class="fi-precio">${fmt(subtItem)}</span></div>`;
       }).join('');
       document.getElementById('mfact-subtotal').textContent = fmt(subtotal);
       document.getElementById('mfact-itbis-lbl').textContent = `ITBIS (${itbisPct}%)`;
@@ -4500,9 +4509,23 @@
         const precioBase = i._precioBase || i.precio;
         const qty = i.qty;
         const subtotal = i.subtotal ?? (precioBase * qty);
-        const qtyStr = (i.unidad && esUnidadDetallable(i.unidad))
-          ? `${parseFloat(qty).toFixed(2)} ${labelUnidad(i.unidad)} x ${fmt(precioBase)}`
-          : `Cant. ${qty} x  ${precioBase.toFixed(2)}`;
+        let qtyStr;
+        if (i.unidad && esUnidadDetallable(i.unidad)) {
+          qtyStr = `${parseFloat(qty).toFixed(2)} ${labelUnidad(i.unidad)} x ${fmt(precioBase)}`;
+        } else if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) {
+          const combos = Math.floor(qty / i.comboUnidades);
+          const sueltas = qty % i.comboUnidades;
+          const precioComboUd = i.comboPrecio / i.comboUnidades;
+          if (combos > 0 && sueltas > 0) {
+            qtyStr = `Cant.: ${combos * i.comboUnidades} uds x ${precioComboUd.toFixed(2)} + ${sueltas} ud${sueltas > 1 ? 's' : ''} x ${i.precio.toFixed(2)}`;
+          } else if (combos > 0) {
+            qtyStr = `Cant.: ${qty} uds x ${precioComboUd.toFixed(2)}`;
+          } else {
+            qtyStr = `Cant.: ${qty} ud${qty !== 1 ? 's' : ''} x ${i.precio.toFixed(2)}`;
+          }
+        } else {
+          qtyStr = `Cant.: ${qty} ud${qty !== 1 ? 's' : ''} x ${precioBase.toFixed(2)}`;
+        }
         return `<div style="padding:2px 8px 2px 4px;border-bottom:1px dashed #e0e0e0;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <span style="font-weight:700;font-size:12px;">${i.nombre}</span>

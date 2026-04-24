@@ -868,7 +868,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #f8f9ff;
+background: #ffffff;
   border: 2px solid var(--gris-borde);
   border-radius: var(--radio-sm);
   padding: 0 12px;
