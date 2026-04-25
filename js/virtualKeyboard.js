@@ -124,10 +124,9 @@
   //  Layouts
   // ══════════════════════════════════════════════
   const LAYOUT_ES = [
-    // Fila 1: qwerty + backspace (reemplaza ´) | numpad: 7 8 9
+    // Fila 1: qwerty (sin backspace) | numpad: 7 8 9
     {
-      main: [{ l: 'q' }, { l: 'w' }, { l: 'e' }, { l: 'r' }, { l: 't' }, { l: 'y' }, { l: 'u' }, { l: 'i' }, { l: 'o' }, { l: 'p' },
-             { action: 'backspace', label: '⌫', cls: 'vkb-backspace' }],
+      main: [{ l: 'q' }, { l: 'w' }, { l: 'e' }, { l: 'r' }, { l: 't' }, { l: 'y' }, { l: 'u' }, { l: 'i' }, { l: 'o' }, { l: 'p' }],
       num:  [{ l: '7' }, { l: '8' }, { l: '9' }]
     },
     // Fila 2: asdfg + ñ | numpad: 4 5 6
@@ -136,20 +135,20 @@
              { l: 'ñ', cls: 'vkb-eñe' }],
       num:  [{ l: '4' }, { l: '5' }, { l: '6' }]
     },
-    // Fila 3: shift + zxcvbnm | numpad: 1 2 3
+    // Fila 3: shift + zxcvbnm (sin , y .) | numpad: 1 2 3
     {
       main: [{ action: 'shift', label: '⇧', cls: 'vkb-shift', id: 'vkb-shift-btn' },
              { l: 'z' }, { l: 'x' }, { l: 'c' }, { l: 'v' }, { l: 'b' }, { l: 'n' }, { l: 'm' },
-             { l: ',', s: ';' }, { l: '.', s: ':' }],
+             { action: 'backspace', label: '⌫', cls: 'vkb-backspace' }],
       num:  [{ l: '1' }, { l: '2' }, { l: '3' }]
     },
-    // Fila 4: controles + espacio | numpad: # 0 -
+    // Fila 4: controles + espacio + , + . + backspace + OK | numpad: # 0 -
     {
       main: [{ action: 'symToggle', label: '#+=', cls: 'vkb-num-toggle' },
              { action: 'themeToggle', label: '🌙', cls: 'vkb-theme-toggle' },
              { action: 'space', label: 'Espacio', cls: 'vkb-space' },
-             { l: '@' },
-             { action: 'enter', label: '↵ OK', cls: 'vkb-enter' }],
+             { l: ',' },
+             { l: '.' }],
       num:  [{ l: '#', cls: 'number_j1' }, { l: '0' }, { l: '-' }]
     }
   ];
