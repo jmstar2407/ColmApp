@@ -1,5 +1,10 @@
 // miColmApp — inventario.js
-// Inventario CRUD, categorías, productos, imágenes, drag-drop, estadísticas
+// CRUD inventario: window.productos, categorías, imágenes, drag-drop, estadísticas
+// Requiere: window.db, window.negocioId, window.categorias, window.productos
+
+// miColmApp — inventario.js
+// Inventario CRUD: window.productos, categorías, imágenes, drag-drop, estadísticas, escáner HID
+// Depende de window.db, window.negocioId, window.categorias, window.productos, etc.
 
 function renderInventario() {
    const fmtUds = v => v % 1 === 0 ? String(v) : v.toLocaleString('es-DO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -8,27 +13,27 @@ function renderInventario() {
    if (elTotalProds) elTotalProds.innerHTML = `${_invStats.total} <span style="font-size:0.75rem;font-weight:600;color:#16a34a;background:#dcfce7;border-radius:20px;padding:2px 8px;vertical-align:middle;">${fmtUds(_invStats.unidades)} uds en stock</span>`;
    if (elDinero) elDinero.textContent = 'RD$ ' + _invStats.dinero.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-   if (inventarioCategoriaActual === '__mas_vendidos__') {
+   if (window.inventarioCategoriaActual === '__mas_vendidos__') {
     renderMasVendidosInventario();
-   } else if (inventarioCategoriaActual) {
-    renderProductosInventario(inventarioCategoriaActual, inventarioBusquedaActual);
+   } else if (window.inventarioCategoriaActual) {
+    renderProductosInventario(window.inventarioCategoriaActual, window.inventarioBusquedaActual);
    } else {
     renderCategoriasInventario();
    }
   }
 
   window.toggleModoOrden = () => {
-   modoOrdenActivo = !modoOrdenActivo;
+   modoOrdenActivo = !window.modoOrdenActivo;
    const btn = document.getElementById('btn-modo-ordenar');
    if (btn) {
-    btn.classList.toggle('activo', modoOrdenActivo);
-    btn.innerHTML = modoOrdenActivo
+    btn.classList.toggle('activo', window.modoOrdenActivo);
+    btn.innerHTML = window.modoOrdenActivo
      ? '<i class="fas fa-check"></i> Listo'
      : '<i class="fas fa-arrows-alt"></i> Ordenar';
    }
    document.querySelectorAll('.categorias-grid-inv, .productos-grid-inv').forEach(g => {
-    g.classList.toggle('modo-orden', modoOrdenActivo);
-    g.querySelectorAll('[draggable]').forEach(c => c.draggable = modoOrdenActivo);
+    g.classList.toggle('modo-orden', window.modoOrdenActivo);
+    g.querySelectorAll('[draggable]').forEach(c => c.draggable = window.modoOrdenActivo);
    });
   };
 
@@ -40,7 +45,7 @@ function renderInventario() {
 
   function attachTouchDrag(card, id, type, container) {
    card.addEventListener('touchstart', (e) => {
-    if (!modoOrdenActivo) return;
+    if (!window.modoOrdenActivo) return;
     const touch = e.touches[0];
     touchStartX = touch.clientX;
     touchStartY = touch.clientY;
@@ -52,7 +57,7 @@ function renderInventario() {
    });
 
    card.addEventListener('touchmove', (e) => {
-    if (!modoOrdenActivo || !touchDragSrcEl) return;
+    if (!window.modoOrdenActivo || !touchDragSrcEl) return;
     const touch = e.touches[0];
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
     const dragOverCard = target?.closest(type === 'cat' ? '.cat-card-inv' : '.prod-card-inv');
@@ -64,7 +69,7 @@ function renderInventario() {
    });
 
    card.addEventListener('touchend', async (e) => {
-    if (!modoOrdenActivo || !touchDragSrcEl) {
+    if (!window.modoOrdenActivo || !touchDragSrcEl) {
      card.classList.remove('dragging');
      touchDragSrcEl = null;
      return;
@@ -82,7 +87,7 @@ function renderInventario() {
 
      const newOrder = [...container.children].map(c => c.dataset.id);
      if (type === 'cat') {
-      categorias.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+      window.categorias.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
       [...container.children].forEach((c, i) => {
        const badge = c.querySelector('.orden-badge');
        if (badge) badge.textContent = i + 1;
@@ -91,12 +96,12 @@ function renderInventario() {
       populateCatSelects();
       await guardarOrdenCategorias();
      } else {
-      newOrder.forEach((id, i) => { const p = productos.find(x => x.id === id); if (p) p.orden = i + 1; });
+      newOrder.forEach((id, i) => { const p = window.productos.find(x => x.id === id); if (p) p.orden = i + 1; });
       [...container.children].forEach((c, i) => {
        const badge = c.querySelector('.orden-badge');
        if (badge) badge.textContent = i + 1;
       });
-      await guardarOrdenProductos(newOrder, inventarioCategoriaActual);
+      await guardarOrdenProductos(newOrder, window.inventarioCategoriaActual);
      }
     }
     container.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
@@ -117,10 +122,10 @@ function renderInventario() {
     if (!file) return;
     try {
      const dataUrl = await comprimirImagen(file, 400, 0.92);
-     const url = await subirImagenBase64(dataUrl, `negocios/${negocioId}/mas_vendidos_bg_${Date.now()}`);
+     const url = await subirImagenBase64(dataUrl, `negocios/${window.negocioId}/mas_vendidos_bg_${Date.now()}`);
      // Guardar en Firestore (campo en el negocio)
-     await updateDoc(doc(db, 'negocios', negocioId), { masVendidosBg: url });
-     negocioData.masVendidosBg = url;
+     await updateDoc(doc(window.db, 'negocios', window.negocioId), { masVendidosBg: url });
+     window.negocioData.masVendidosBg = url;
      renderInventario();
      renderCategoriasPos(); // actualizar imagen en el POS también
      toast('Imagen de Más Vendidos actualizada', 'success');
@@ -133,7 +138,7 @@ function renderInventario() {
    _actualizarBtnCatAccion('masvendidos');
    const area = document.getElementById('inv-contenido');
    if (!area) return;
-   const masVendidosProds = productos.filter(p => p.masVendidos);
+   const masVendidosProds = window.productos.filter(p => p.masVendidos);
    masVendidosProds.sort((a, b) => (a.ordenMV ?? a.orden ?? 9999) - (b.ordenMV ?? b.orden ?? 9999));
 
    const header = `<div class="productos-header-inv">
@@ -144,17 +149,17 @@ function renderInventario() {
    </div>`;
 
    if (!masVendidosProds.length) {
-    area.innerHTML = header + `<div class="empty-state"><i class="fas fa-star"></i><p>No hay productos marcados como Más Vendidos.<br>Edita un producto y activa el toggle "⭐ Más Vendidos".</p></div>`;
+    area.innerHTML = header + `<div class="empty-state"><i class="fas fa-star"></i><p>No hay window.productos marcados como Más Vendidos.<br>Edita un producto y activa el toggle "⭐ Más Vendidos".</p></div>`;
     return;
    }
 
    const grid = document.createElement('div');
-   grid.className = 'productos-grid-inv' + (modoOrdenActivo ? ' modo-orden' : '');
+   grid.className = 'productos-grid-inv' + (window.modoOrdenActivo ? ' modo-orden' : '');
    grid.id = 'prod-drag-grid';
 
    const attachMVDragEvents = (card, prod) => {
     card.addEventListener('dragstart', (e) => {
-     if (!modoOrdenActivo) { e.preventDefault(); return; }
+     if (!window.modoOrdenActivo) { e.preventDefault(); return; }
      card.classList.add('dragging');
      e.dataTransfer.effectAllowed = 'move';
      e.dataTransfer.setData('text/plain', prod.id);
@@ -167,7 +172,7 @@ function renderInventario() {
      grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
     });
     card.addEventListener('dragover', (e) => {
-     if (!modoOrdenActivo || window._dragType !== 'prod') return;
+     if (!window.modoOrdenActivo || window._dragType !== 'prod') return;
      e.preventDefault();
      if (card !== window._dragSrcEl) {
       grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
@@ -180,7 +185,7 @@ function renderInventario() {
     card.addEventListener('drop', async (e) => {
      e.preventDefault();
      card.classList.remove('drag-over');
-     if (!modoOrdenActivo || window._dragType !== 'prod') return;
+     if (!window.modoOrdenActivo || window._dragType !== 'prod') return;
      const srcEl = window._dragSrcEl;
      const srcId = window._dragSrcId;
      if (!srcEl || srcId === prod.id) return;
@@ -190,7 +195,7 @@ function renderInventario() {
      if (srcIdx < dstIdx) grid.insertBefore(srcEl, card.nextSibling);
      else grid.insertBefore(srcEl, card);
      const newOrder = [...grid.children].map(c => c.dataset.id);
-     newOrder.forEach((id, i) => { const p = productos.find(x => x.id === id); if (p) p.ordenMV = i + 1; });
+     newOrder.forEach((id, i) => { const p = window.productos.find(x => x.id === id); if (p) p.ordenMV = i + 1; });
      [...grid.children].forEach((c, i) => {
       const badge = c.querySelector('.orden-badge');
       if (badge) badge.textContent = i + 1;
@@ -207,7 +212,7 @@ function renderInventario() {
     const stockValDisplay = stockHab ? fmtNum(p.stock || 0) : '∞';
     const card = document.createElement('div');
     card.className = `prod-card-inv${sinStock ? ' sin-stock' : ''}`;
-    card.draggable = modoOrdenActivo;
+    card.draggable = window.modoOrdenActivo;
     card.dataset.id = p.id;
     card.innerHTML = `
      <span class="orden-badge" style="background:#e67700;">${index + 1}</span>
@@ -224,7 +229,7 @@ function renderInventario() {
      </div>`;
     card.style.cursor = 'pointer';
     card.addEventListener('click', (e) => {
-     if (modoOrdenActivo) return;
+     if (window.modoOrdenActivo) return;
      if (e.target.closest('.drag-grip-overlay')) return;
      editarProducto(p.id);
     });
@@ -240,11 +245,11 @@ function renderInventario() {
    const indicator = document.getElementById('guardando-orden-indicator');
    if (indicator) indicator.classList.add('visible');
    try {
-    const batch = writeBatch(db);
+    const batch = writeBatch(window.db);
     newOrder.forEach((id, i) => {
-     const p = productos.find(x => x.id === id);
+     const p = window.productos.find(x => x.id === id);
      if (p && p.categoriaId) {
-      batch.update(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id), { ordenMV: i + 1 });
+      batch.update(doc(window.db, 'negocios', window.negocioId, 'categorias', p.categoriaId, 'productos', id), { ordenMV: i + 1 });
      }
     });
     await batch.commit();
@@ -260,18 +265,18 @@ function renderInventario() {
    _actualizarBtnCatAccion('lista');
    const area = document.getElementById('inv-contenido');
    if (!area) return;
-   if (!categorias.length) {
+   if (!window.categorias.length) {
     area.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>No hay categorías creadas.<br>Haz clic en "Categoría" para agregar.</p></div>`;
     return;
    }
 
    const grid = document.createElement('div');
-   grid.className = 'categorias-grid-inv' + (modoOrdenActivo ? ' modo-orden' : '');
+   grid.className = 'categorias-grid-inv' + (window.modoOrdenActivo ? ' modo-orden' : '');
 
    const attachCatDragEvents = (card, catId) => {
     // Mouse events
     card.addEventListener('dragstart', (e) => {
-     if (!modoOrdenActivo) { e.preventDefault(); return; }
+     if (!window.modoOrdenActivo) { e.preventDefault(); return; }
      card.classList.add('dragging');
      e.dataTransfer.effectAllowed = 'move';
      e.dataTransfer.setData('text/plain', catId);
@@ -284,7 +289,7 @@ function renderInventario() {
      grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
     });
     card.addEventListener('dragover', (e) => {
-     if (!modoOrdenActivo || window._dragType !== 'cat') return;
+     if (!window.modoOrdenActivo || window._dragType !== 'cat') return;
      e.preventDefault();
      if (card !== window._dragSrcEl) {
       grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
@@ -297,7 +302,7 @@ function renderInventario() {
     card.addEventListener('drop', async (e) => {
      e.preventDefault();
      card.classList.remove('drag-over');
-     if (!modoOrdenActivo || window._dragType !== 'cat') return;
+     if (!window.modoOrdenActivo || window._dragType !== 'cat') return;
      const srcEl = window._dragSrcEl;
      const srcId = window._dragSrcId;
      if (!srcEl || srcId === catId) return;
@@ -307,7 +312,7 @@ function renderInventario() {
      if (srcIdx < dstIdx) grid.insertBefore(srcEl, card.nextSibling);
      else grid.insertBefore(srcEl, card);
      const newOrder = [...grid.children].map(c => c.dataset.id);
-     categorias.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+     window.categorias.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
      [...grid.children].forEach((c, i) => {
       const badge = c.querySelector('.orden-badge');
       if (badge) badge.textContent = i + 1;
@@ -325,8 +330,8 @@ function renderInventario() {
    const mvCard = document.createElement('div');
    mvCard.className = 'cat-card-inv mv-inv-card';
    mvCard.dataset.id = '__mas_vendidos__';
-   const mvCount = productos.filter(p => p.masVendidos).length;
-   const mvBg = negocioData?.masVendidosBg || './img/backgrounds/masvendidos_1.jpg';
+   const mvCount = window.productos.filter(p => p.masVendidos).length;
+   const mvBg = window.negocioData?.masVendidosBg || './img/backgrounds/masvendidos_1.jpg';
    mvCard.innerHTML = `
     <div class="drag-grip-overlay" style="display:none;"></div>
     ${mvBg ? `<img src="${mvBg}" alt="Más Vendidos" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px 10px 0 0;display:block;" onerror="this.src='./img/backgrounds/masvendidos_1.jpg'">` : `<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:52px;background:linear-gradient(135deg,#f59f00,#e67700);border-radius:10px 10px 0 0;">⭐</div>`}
@@ -338,17 +343,17 @@ function renderInventario() {
    mvCard.style.border = '2px solid #f59f00';
    mvCard.style.boxShadow = '0 4px 16px rgba(245,159,0,0.25)';
    mvCard.addEventListener('click', (e) => {
-    if (modoOrdenActivo) return;
+    if (window.modoOrdenActivo) return;
     if (e.target.closest('.cat-actions-inv')) return;
     inventarioCategoriaActual = '__mas_vendidos__';
     renderInventario();
    });
    grid.appendChild(mvCard);
 
-   categorias.forEach((cat, index) => {
+   window.categorias.forEach((cat, index) => {
     const card = document.createElement('div');
     card.className = 'cat-card-inv';
-    card.draggable = modoOrdenActivo;
+    card.draggable = window.modoOrdenActivo;
     card.dataset.id = cat.id;
 
     const imgHtml = cat.imagen
@@ -361,12 +366,12 @@ function renderInventario() {
      ${imgHtml}
      <div class="cat-info-inv">
       <div class="cat-nombre-inv">${cat.nombre}</div>
-      <div class="cat-stats-inv">${productos.filter(p => p.categoriaId === cat.id).length} productos</div>
+      <div class="cat-stats-inv">${window.productos.filter(p => p.categoriaId === cat.id).length} window.productos</div>
      </div>`;
 
     card.style.cursor = 'pointer';
     card.addEventListener('click', (e) => {
-     if (modoOrdenActivo) return;
+     if (window.modoOrdenActivo) return;
      if (e.target.closest('.cat-actions-inv')) return;
      verProductosPorCategoriaInventario(cat.id);
     });
@@ -383,9 +388,9 @@ function renderInventario() {
    const indicator = document.getElementById('guardando-orden-indicator');
    if (indicator) indicator.classList.add('visible');
    try {
-    const batch = writeBatch(db);
-    categorias.forEach((cat, i) => {
-     batch.update(doc(db, 'negocios', negocioId, 'categorias', cat.id), { orden: i + 1 });
+    const batch = writeBatch(window.db);
+    window.categorias.forEach((cat, i) => {
+     batch.update(doc(window.db, 'negocios', window.negocioId, 'categorias', cat.id), { orden: i + 1 });
      cat.orden = i + 1;
     });
     await batch.commit();
@@ -405,8 +410,8 @@ function renderInventario() {
   function renderProductosInventario(categoriaId, busqueda = '') {
    _actualizarBtnCatAccion('categoria', categoriaId);
    const area = document.getElementById('inv-contenido');
-   const categoria = categorias.find(c => c.id === categoriaId);
-   let prods = productos.filter(p => p.categoriaId === categoriaId);
+   const categoria = window.categorias.find(c => c.id === categoriaId);
+   let prods = window.productos.filter(p => p.categoriaId === categoriaId);
    if (busqueda) prods = prods.filter(p => p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || (p.codigoBarras || '').includes(busqueda));
    if (!area) return;
 
@@ -436,20 +441,20 @@ function renderInventario() {
    const header = `<div class="productos-header-inv"><div><button class="back-btn" onclick="volverCategoriasInventario()"><i class="fas fa-arrow-left"></i> Categorías</button></div><div style="text-align: center; width: 140px;"><strong>${categoria?.nombre || 'Productos'}</strong></div><div><button class="btn-sm verde" onclick="abrirModalProductoDesdeCategoria('${categoriaId}')" style="margin-left:auto;"><i class="fas fa-plus"></i> Producto</button></div></div>` + catStatsHtml;
 
    if (!prods.length) {
-    area.innerHTML = header + `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos en esta categoría</p></div>`;
+    area.innerHTML = header + `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay window.productos en esta categoría</p></div>`;
     return;
    }
 
    prods.sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
 
    const grid = document.createElement('div');
-   grid.className = 'productos-grid-inv' + (modoOrdenActivo ? ' modo-orden' : '');
+   grid.className = 'productos-grid-inv' + (window.modoOrdenActivo ? ' modo-orden' : '');
    grid.id = 'prod-drag-grid';
 
    const attachProdDragEvents = (card, prod) => {
     // Mouse events
     card.addEventListener('dragstart', (e) => {
-     if (!modoOrdenActivo) { e.preventDefault(); return; }
+     if (!window.modoOrdenActivo) { e.preventDefault(); return; }
      card.classList.add('dragging');
      e.dataTransfer.effectAllowed = 'move';
      e.dataTransfer.setData('text/plain', prod.id);
@@ -462,7 +467,7 @@ function renderInventario() {
      grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
     });
     card.addEventListener('dragover', (e) => {
-     if (!modoOrdenActivo || window._dragType !== 'prod') return;
+     if (!window.modoOrdenActivo || window._dragType !== 'prod') return;
      e.preventDefault();
      if (card !== window._dragSrcEl) {
       grid.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
@@ -475,7 +480,7 @@ function renderInventario() {
     card.addEventListener('drop', async (e) => {
      e.preventDefault();
      card.classList.remove('drag-over');
-     if (!modoOrdenActivo || window._dragType !== 'prod') return;
+     if (!window.modoOrdenActivo || window._dragType !== 'prod') return;
      const srcEl = window._dragSrcEl;
      const srcId = window._dragSrcId;
      if (!srcEl || srcId === prod.id) return;
@@ -485,7 +490,7 @@ function renderInventario() {
      if (srcIdx < dstIdx) grid.insertBefore(srcEl, card.nextSibling);
      else grid.insertBefore(srcEl, card);
      const newOrder = [...grid.children].map(c => c.dataset.id);
-     newOrder.forEach((id, i) => { const p = productos.find(x => x.id === id); if (p) p.orden = i + 1; });
+     newOrder.forEach((id, i) => { const p = window.productos.find(x => x.id === id); if (p) p.orden = i + 1; });
      [...grid.children].forEach((c, i) => {
       const badge = c.querySelector('.orden-badge');
       if (badge) badge.textContent = i + 1;
@@ -504,7 +509,7 @@ function renderInventario() {
     const stockValDisplay = stockHab ? fmtNum(p.stock || 0) : '∞';
     const card = document.createElement('div');
     card.className = `prod-card-inv${sinStock ? ' sin-stock' : ''}`;
-    card.draggable = modoOrdenActivo;
+    card.draggable = window.modoOrdenActivo;
     card.dataset.id = p.id;
 
     const nombreResaltado = resaltarTextoInv(p.nombre || '', busqueda);
@@ -527,7 +532,7 @@ function renderInventario() {
 
     card.style.cursor = 'pointer';
     card.addEventListener('click', (e) => {
-     if (modoOrdenActivo) return;
+     if (window.modoOrdenActivo) return;
      if (e.target.closest('.drag-grip-overlay')) return;
      editarProducto(p.id);
     });
@@ -544,9 +549,9 @@ function renderInventario() {
    const indicator = document.getElementById('guardando-orden-indicator');
    if (indicator) indicator.classList.add('visible');
    try {
-    const batch = writeBatch(db);
+    const batch = writeBatch(window.db);
     newOrder.forEach((id, i) => {
-     batch.update(doc(db, 'negocios', negocioId, 'categorias', categoriaId, 'productos', id), { orden: i + 1 });
+     batch.update(doc(window.db, 'negocios', window.negocioId, 'categorias', categoriaId, 'productos', id), { orden: i + 1 });
     });
     await batch.commit();
    } catch (e) {
@@ -570,9 +575,9 @@ function renderInventario() {
     return;
    }
 
-   // Buscar en todos los productos
+   // Buscar en todos los window.productos
    const q = texto.toLowerCase();
-   const found = productos.filter(p => p.nombre?.toLowerCase().includes(q) || (p.codigoBarras || '').includes(q));
+   const found = window.productos.filter(p => p.nombre?.toLowerCase().includes(q) || (p.codigoBarras || '').includes(q));
 
    if (dropdown) {
     if (!found.length) {
@@ -581,7 +586,7 @@ function renderInventario() {
     } else {
      dropdown.style.display = 'block';
      dropdown.innerHTML = found.slice(0, 12).map(p => {
-      const cat = categorias.find(c => c.id === p.categoriaId);
+      const cat = window.categorias.find(c => c.id === p.categoriaId);
       const nombreH = resaltarTextoInv(p.nombre || '', texto);
       const stockHab = p.stockHabilitado !== false;
       const sinStock = stockHab && p.stock <= 0;
@@ -652,19 +657,19 @@ function renderInventario() {
    abrirModal('modal-producto');
   };
 
-  window.editarCategoria = async (catId) => { const cat = categorias.find(c => c.id === catId); if (!cat) return; document.getElementById('cat-nombre').value = cat.nombre || ''; document.getElementById('cat-emoji').value = cat.emoji || ''; const icon = document.getElementById('cat-img-icon'); const hint = document.getElementById('cat-img-hint'); if (cat.imagen) { document.getElementById('cat-img-preview').src = cat.imagen; document.getElementById('cat-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (hint) hint.style.display = 'none'; } else { document.getElementById('cat-img-preview').src = ''; document.getElementById('cat-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (hint) hint.style.display = 'block'; } window.categoriaEditandoId = catId; const titulo = document.getElementById('modal-cat-titulo'); if (titulo) titulo.innerHTML = '<i class="fas fa-edit"></i> Editar Categoría'; const btnElim = document.getElementById('btn-eliminar-categoria'); if (btnElim) btnElim.style.display = 'inline-flex'; abrirModal('modal-categoria'); };
+  window.editarCategoria = async (catId) => { const cat = window.categorias.find(c => c.id === catId); if (!cat) return; document.getElementById('cat-nombre').value = cat.nombre || ''; document.getElementById('cat-emoji').value = cat.emoji || ''; const icon = document.getElementById('cat-img-icon'); const hint = document.getElementById('cat-img-hint'); if (cat.imagen) { document.getElementById('cat-img-preview').src = cat.imagen; document.getElementById('cat-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (hint) hint.style.display = 'none'; } else { document.getElementById('cat-img-preview').src = ''; document.getElementById('cat-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (hint) hint.style.display = 'block'; } window.categoriaEditandoId = catId; const titulo = document.getElementById('modal-cat-titulo'); if (titulo) titulo.innerHTML = '<i class="fas fa-edit"></i> Editar Categoría'; const btnElim = document.getElementById('btn-eliminar-categoria'); if (btnElim) btnElim.style.display = 'inline-flex'; abrirModal('modal-categoria'); };
 
   window.eliminarCategoria = async (catId) => {
    if (catId === '__mas_vendidos__') { toast('La categoría "Más Vendidos" no se puede eliminar', 'error'); return; }
-   const productosEnCat = productos.filter(p => p.categoriaId === catId);
-   if (productosEnCat.length > 0) { toast(`No se puede eliminar la categoría. Tiene ${productosEnCat.length} productos.`, 'error'); return; }
+   const productosEnCat = window.productos.filter(p => p.categoriaId === catId);
+   if (productosEnCat.length > 0) { toast(`No se puede eliminar la categoría. Tiene ${productosEnCat.length} window.productos.`, 'error'); return; }
    if (!confirm('¿Eliminar esta categoría?')) return;
    const _offlineDelCat = !navigator.onLine;
    try {
-    await _fsOp(() => deleteDoc(doc(db, 'negocios', negocioId, 'categorias', catId)));
+    await _fsOp(() => deleteDoc(doc(window.db, 'negocios', window.negocioId, 'categorias', catId)));
     // Eliminar del array local inmediatamente
-    const ci = categorias.findIndex(c => c.id === catId);
-    if (ci >= 0) categorias.splice(ci, 1);
+    const ci = window.categorias.findIndex(c => c.id === catId);
+    if (ci >= 0) window.categorias.splice(ci, 1);
     renderInventario();
     renderCategoriasPos();
     populateCatSelects();
@@ -689,34 +694,34 @@ function renderInventario() {
 
    let imagen = '';
    const preview = document.getElementById('cat-img-preview');
-   const _catImgStoragePath = `cats/${negocioId}/${Date.now()}`;
+   const _catImgStoragePath = `cats/${window.negocioId}/${Date.now()}`;
    if (preview.src && preview.src !== window.location.href && preview.style.display !== 'none' && !preview.src.includes('firebasestorage')) {
     imagen = await subirImagenBase64(preview.src, _catImgStoragePath);
    } else if (window.categoriaEditandoId) {
-    const catExistente = categorias.find(c => c.id === window.categoriaEditandoId);
+    const catExistente = window.categorias.find(c => c.id === window.categoriaEditandoId);
     if (catExistente?.imagen && preview.src === catExistente.imagen) { imagen = catExistente.imagen; }
    }
    const _offlineCat = !navigator.onLine;
    try {
     if (window.categoriaEditandoId) {
      const catId = window.categoriaEditandoId;
-     await _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'categorias', catId), { nombre, emoji, imagen }));
+     await _fsOp(() => updateDoc(doc(window.db, 'negocios', window.negocioId, 'categorias', catId), { nombre, emoji, imagen }));
      if (imagen && !imagen.startsWith('http')) {
-      _actualizarFirestoreEnCola(imagen, `negocios/${negocioId}/categorias/${catId}`, 'imagen');
+      _actualizarFirestoreEnCola(imagen, `negocios/${window.negocioId}/window.categorias/${catId}`, 'imagen');
      }
      // Actualizar array local inmediatamente
-     const ci = categorias.findIndex(c => c.id === catId);
-     if (ci >= 0) categorias[ci] = { ...categorias[ci], nombre, emoji, imagen };
+     const ci = window.categorias.findIndex(c => c.id === catId);
+     if (ci >= 0) window.categorias[ci] = { ...categorias[ci], nombre, emoji, imagen };
      toast(_offlineCat ? '📱 Categoría actualizada localmente — se sincronizará con Firebase' : 'Categoría actualizada ✅', _offlineCat ? 'warning' : 'success', _offlineCat ? 5000 : 3000);
      delete window.categoriaEditandoId;
     } else {
-     const nextOrden = categorias.length + 1;
-     const newCatRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'categorias'), { nombre, emoji, imagen, orden: nextOrden, creadoEn: serverTimestamp() }));
+     const nextOrden = window.categorias.length + 1;
+     const newCatRef = await _fsOp(() => addDoc(collection(window.db, 'negocios', window.negocioId, 'categorias'), { nombre, emoji, imagen, orden: nextOrden, creadoEn: serverTimestamp() }));
      if (imagen && !imagen.startsWith('http')) {
-      _actualizarFirestoreEnCola(imagen, `negocios/${negocioId}/categorias/${newCatRef.id}`, 'imagen');
+      _actualizarFirestoreEnCola(imagen, `negocios/${window.negocioId}/window.categorias/${newCatRef.id}`, 'imagen');
      }
      // Agregar al array local inmediatamente
-     categorias.push({ id: newCatRef.id, nombre, emoji, imagen, orden: nextOrden });
+     window.categorias.push({ id: newCatRef.id, nombre, emoji, imagen, orden: nextOrden });
      toast(_offlineCat ? '📱 Categoría creada localmente — se sincronizará con Firebase' : 'Categoría creada ✅', _offlineCat ? 'warning' : 'success', _offlineCat ? 5000 : 3000);
     }
     cerrarModal('modal-categoria');
@@ -737,7 +742,7 @@ function renderInventario() {
   function populateCatSelects() {
    const selects = ['prod-categoria'];
    // Excluir la categoría virtual de Más Vendidos del selector
-   const catsReales = categorias.filter(c => c.id !== '__mas_vendidos__');
+   const catsReales = window.categorias.filter(c => c.id !== '__mas_vendidos__');
    selects.forEach(id => { const sel = document.getElementById(id); if (!sel) return; const prev = sel.value; sel.innerHTML = '<option value="">Selecciona categoría...</option>' + catsReales.map(c => `<option value="${c.id}">${c.emoji || '📦'} ${c.nombre}</option>`).join(''); if (prev && catsReales.find(c => c.id === prev)) sel.value = prev; });
   }
 
@@ -773,15 +778,15 @@ function renderInventario() {
    setMasVendidosToggle(false);
    document.getElementById('prod-combo-enabled').checked = false; _syncComboToggleUI(false); document.getElementById('prod-combo-precio').value = ''; document.getElementById('prod-combo-unidades').value = ''; document.getElementById('combo-preview-txt').textContent = 'Configura el precio del combo y las unidades para ver el resumen.';
    populateCatSelects();
-   if (inventarioCategoriaActual) {
-    document.getElementById('prod-categoria').value = inventarioCategoriaActual;
+   if (window.inventarioCategoriaActual) {
+    document.getElementById('prod-categoria').value = window.inventarioCategoriaActual;
    }
    const btnElimP = document.getElementById('btn-eliminar-producto');
    if (btnElimP) btnElimP.style.display = 'none';
    abrirModal('modal-producto');
   };
 
-  window.editarProducto = (id) => { const p = productos.find(pr => pr.id === id); if (!p) return; productoEnEdicion = p; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Producto'; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-peso-neto').value = p.pesoNeto || ''; document.getElementById('prod-barcode').value = p.codigoBarras || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-costo').value = p.costo || ''; const stockHab = p.stockHabilitado !== false; document.getElementById('prod-stock-enabled').checked = stockHab; document.getElementById('stock-fields-wrap').style.display = stockHab ? 'block' : 'none'; document.getElementById('prod-stock').value = stockHab ? (p.stock >= 0 ? p.stock : '') : ''; document.getElementById('prod-stock-min').value = p.stockMin || ''; const detalleActivo = !!p.productoDetalle; document.getElementById('prod-detalle-enabled').checked = detalleActivo; _syncDetalleToggleUI(detalleActivo); const selUnidad = document.getElementById('prod-unidad'); selUnidad.innerHTML = detalleActivo ? '<option>Libra</option><option>Kilogramo</option><option>Onza</option><option>Litro</option>' : '<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; selUnidad.value = p.unidad || (detalleActivo ? 'Libra' : 'Unidad'); document.getElementById('prod-itbis').value = p.itbis !== false ? '1' : '0'; setMasVendidosToggle(!!p.masVendidos); const comboActivo = !!p.comboActivo; document.getElementById('prod-combo-enabled').checked = comboActivo; _syncComboToggleUI(comboActivo); if (comboActivo) { document.getElementById('prod-combo-precio').value = p.comboPrecio || ''; document.getElementById('prod-combo-unidades').value = p.comboUnidades || ''; setTimeout(actualizarComboPreview, 50); } else { document.getElementById('prod-combo-precio').value = ''; document.getElementById('prod-combo-unidades').value = ''; } populateCatSelects(); document.getElementById('prod-categoria').value = p.categoriaId || ''; const icon = document.getElementById('prod-img-icon'); const h1 = document.getElementById('prod-img-hint1'); const h2 = document.getElementById('prod-img-hint2'); const rh = document.getElementById('prod-img-replace-hint'); if (p.imagen) { document.getElementById('prod-img-preview').src = p.imagen; document.getElementById('prod-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (h1) h1.style.display = 'none'; if (h2) h2.style.display = 'none'; if (rh) rh.style.display = 'block'; } else { document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (h1) h1.style.display = 'block'; if (h2) h2.style.display = 'block'; if (rh) rh.style.display = 'none'; } const btnElimP = document.getElementById('btn-eliminar-producto'); if (btnElimP) btnElimP.style.display = 'inline-flex'; abrirModal('modal-producto'); };
+  window.editarProducto = (id) => { const p = window.productos.find(pr => pr.id === id); if (!p) return; productoEnEdicion = p; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Producto'; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-peso-neto').value = p.pesoNeto || ''; document.getElementById('prod-barcode').value = p.codigoBarras || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-costo').value = p.costo || ''; const stockHab = p.stockHabilitado !== false; document.getElementById('prod-stock-enabled').checked = stockHab; document.getElementById('stock-fields-wrap').style.display = stockHab ? 'block' : 'none'; document.getElementById('prod-stock').value = stockHab ? (p.stock >= 0 ? p.stock : '') : ''; document.getElementById('prod-stock-min').value = p.stockMin || ''; const detalleActivo = !!p.productoDetalle; document.getElementById('prod-detalle-enabled').checked = detalleActivo; _syncDetalleToggleUI(detalleActivo); const selUnidad = document.getElementById('prod-unidad'); selUnidad.innerHTML = detalleActivo ? '<option>Libra</option><option>Kilogramo</option><option>Onza</option><option>Litro</option>' : '<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; selUnidad.value = p.unidad || (detalleActivo ? 'Libra' : 'Unidad'); document.getElementById('prod-itbis').value = p.itbis !== false ? '1' : '0'; setMasVendidosToggle(!!p.masVendidos); const comboActivo = !!p.comboActivo; document.getElementById('prod-combo-enabled').checked = comboActivo; _syncComboToggleUI(comboActivo); if (comboActivo) { document.getElementById('prod-combo-precio').value = p.comboPrecio || ''; document.getElementById('prod-combo-unidades').value = p.comboUnidades || ''; setTimeout(actualizarComboPreview, 50); } else { document.getElementById('prod-combo-precio').value = ''; document.getElementById('prod-combo-unidades').value = ''; } populateCatSelects(); document.getElementById('prod-categoria').value = p.categoriaId || ''; const icon = document.getElementById('prod-img-icon'); const h1 = document.getElementById('prod-img-hint1'); const h2 = document.getElementById('prod-img-hint2'); const rh = document.getElementById('prod-img-replace-hint'); if (p.imagen) { document.getElementById('prod-img-preview').src = p.imagen; document.getElementById('prod-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (h1) h1.style.display = 'none'; if (h2) h2.style.display = 'none'; if (rh) rh.style.display = 'block'; } else { document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (h1) h1.style.display = 'block'; if (h2) h2.style.display = 'block'; if (rh) rh.style.display = 'none'; } const btnElimP = document.getElementById('btn-eliminar-producto'); if (btnElimP) btnElimP.style.display = 'inline-flex'; abrirModal('modal-producto'); };
 
   window.toggleStockFields = function() {
    const enabled = document.getElementById('prod-stock-enabled').checked;
@@ -889,40 +894,40 @@ function renderInventario() {
 
    const preview = document.getElementById('prod-img-preview');
    if (preview.src && !preview.src.startsWith('http') && preview.style.display !== 'none') {
-    data.imagen = await subirImagenBase64(preview.src, `prods/${negocioId}/${Date.now()}`);
-   } else if (productoEnEdicion?.imagen) {
-    data.imagen = productoEnEdicion.imagen;
+    data.imagen = await subirImagenBase64(preview.src, `prods/${window.negocioId}/${Date.now()}`);
+   } else if (window.productoEnEdicion?.imagen) {
+    data.imagen = window.productoEnEdicion.imagen;
    }
 
    const _offlineProd = !navigator.onLine;
    try {
     const prodId = document.getElementById('prod-id').value;
     if (prodId) {
-     if (productoEnEdicion && productoEnEdicion.categoriaId !== catId) {
-      const newRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'categorias', catId, 'productos'), { ...data, creadoEn: serverTimestamp() }));
+     if (window.productoEnEdicion && window.productoEnEdicion.categoriaId !== catId) {
+      const newRef = await _fsOp(() => addDoc(collection(window.db, 'negocios', window.negocioId, 'categorias', catId, 'productos'), { ...data, creadoEn: serverTimestamp() }));
       if (data.imagen && !data.imagen.startsWith('http')) {
-       _actualizarFirestoreEnCola(data.imagen, `negocios/${negocioId}/categorias/${catId}/productos/${newRef.id}`, 'imagen');
+       _actualizarFirestoreEnCola(data.imagen, `negocios/${window.negocioId}/window.categorias/${catId}/window.productos/${newRef.id}`, 'imagen');
       }
-      _fsOp(() => deleteDoc(doc(db, 'negocios', negocioId, 'categorias', productoEnEdicion.categoriaId, 'productos', prodId)));
+      _fsOp(() => deleteDoc(doc(window.db, 'negocios', window.negocioId, 'categorias', window.productoEnEdicion.categoriaId, 'productos', prodId)));
       toast(_offlineProd ? '📱 Producto movido localmente — se sincronizará con Firebase' : 'Producto movido a nueva categoría', _offlineProd ? 'warning' : 'success', _offlineProd ? 5000 : 3000);
      } else {
-      await _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'categorias', catId, 'productos', prodId), data));
+      await _fsOp(() => updateDoc(doc(window.db, 'negocios', window.negocioId, 'categorias', catId, 'productos', prodId), data));
       if (data.imagen && !data.imagen.startsWith('http')) {
-       _actualizarFirestoreEnCola(data.imagen, `negocios/${negocioId}/categorias/${catId}/productos/${prodId}`, 'imagen');
+       _actualizarFirestoreEnCola(data.imagen, `negocios/${window.negocioId}/window.categorias/${catId}/window.productos/${prodId}`, 'imagen');
       }
       toast(_offlineProd ? '📱 Producto actualizado localmente — se sincronizará con Firebase' : 'Producto actualizado ✅', _offlineProd ? 'warning' : 'success', _offlineProd ? 5000 : 3000);
      }
      // Actualizar array local inmediatamente para reflejar cambio en UI
-     const pi = productos.findIndex(p => p.id === prodId);
-     if (pi >= 0) productos[pi] = { ...productos[pi], ...data, id: prodId };
+     const pi = window.productos.findIndex(p => p.id === prodId);
+     if (pi >= 0) window.productos[pi] = { ...productos[pi], ...data, id: prodId };
     } else {
      data.creadoEn = serverTimestamp();
-     const newProdRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'categorias', catId, 'productos'), data));
+     const newProdRef = await _fsOp(() => addDoc(collection(window.db, 'negocios', window.negocioId, 'categorias', catId, 'productos'), data));
      if (data.imagen && !data.imagen.startsWith('http')) {
-      _actualizarFirestoreEnCola(data.imagen, `negocios/${negocioId}/categorias/${catId}/productos/${newProdRef.id}`, 'imagen');
+      _actualizarFirestoreEnCola(data.imagen, `negocios/${window.negocioId}/window.categorias/${catId}/window.productos/${newProdRef.id}`, 'imagen');
      }
      // Agregar al array local inmediatamente
-     productos.push({ ...data, id: newProdRef.id, categoriaId: catId });
+     window.productos.push({ ...data, id: newProdRef.id, categoriaId: catId });
      toast(_offlineProd ? '📱 Producto creado localmente — se sincronizará con Firebase' : 'Producto creado ✅', _offlineProd ? 'warning' : 'success', _offlineProd ? 5000 : 3000);
     }
     cerrarModal('modal-producto');
@@ -941,14 +946,14 @@ function renderInventario() {
 
   window.eliminarProducto = async (id) => {
    if (!confirm('¿Eliminar este producto?')) return;
-   const p = productos.find(pr => pr.id === id);
+   const p = window.productos.find(pr => pr.id === id);
    if (!p) return;
    const _offlineDel = !navigator.onLine;
    try {
-    await _fsOp(() => deleteDoc(doc(db, 'negocios', negocioId, 'categorias', p.categoriaId, 'productos', id)));
+    await _fsOp(() => deleteDoc(doc(window.db, 'negocios', window.negocioId, 'categorias', p.categoriaId, 'productos', id)));
     // Eliminar del array local inmediatamente
-    const pi = productos.findIndex(pr => pr.id === id);
-    if (pi >= 0) productos.splice(pi, 1);
+    const pi = window.productos.findIndex(pr => pr.id === id);
+    if (pi >= 0) window.productos.splice(pi, 1);
     // Limpiar caché del grid
     const catGrid = document.getElementById(`productos-grid-${p.categoriaId}`);
     if (catGrid) catGrid.remove();
@@ -1090,7 +1095,7 @@ function renderInventario() {
      _bcScanner.buffer = '';
      // Redirigir a prod-barcode
      const barcodeInput = document.getElementById('prod-barcode');
-     const esEdicion = !!productoEnEdicion;
+     const esEdicion = !!window.productoEnEdicion;
      if (esEdicion) {
       if (_bcScanner.scanBtnActive || !barcodeInput.value.trim()) {
        barcodeInput.value = code;
@@ -1130,7 +1135,7 @@ function renderInventario() {
     // 2) Modal producto visible → llenar campo código de barras
     if (modalProdVisible) {
      const barcodeInput = document.getElementById('prod-barcode');
-     const esEdicion = !!productoEnEdicion; // true si hay producto en edición
+     const esEdicion = !!window.productoEnEdicion; // true si hay producto en edición
      if (esEdicion) {
       // Solo reemplazar si el botón de escanear fue presionado O si el campo está vacío
       if (_bcScanner.scanBtnActive || !barcodeInput.value.trim()) {
@@ -1149,7 +1154,7 @@ function renderInventario() {
 
     // 3) POS (facturación) → agregar al carrito si coincide
     if (pagePos && !modalProdVisible && !modalScannerVisible) {
-     const prod = productos.find(p => p.codigoBarras === code);
+     const prod = window.productos.find(p => p.codigoBarras === code);
      if (prod) {
       agregarAlCarritoObj(prod);
       toast(`🛒 ${prod.nombre} agregado`, 'success', 1800);
@@ -1161,7 +1166,7 @@ function renderInventario() {
 
     // 4) Inventario → abrir modal de edición si coincide
     if (pageInv && !modalProdVisible) {
-     const prod = productos.find(p => p.codigoBarras === code);
+     const prod = window.productos.find(p => p.codigoBarras === code);
      if (prod) {
       editarProducto(prod.id);
       toast(`✏️ Editando: ${prod.nombre}`, 'info', 2000);
@@ -1192,3 +1197,39 @@ function renderInventario() {
 
   // loadEmpleados reemplazado por onSnapshot en initApp — función vacía por compatibilidad
   async function loadEmpleados() { /* datos ya cargados via onSnapshot en initApp */ }
+
+  function renderEmpleados() { const lista = document.getElementById('empleados-lista'); if (!lista) return; if (!window.empleadosCache.length) { lista.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Sin empleados</p></div>'; return; } lista.innerHTML = window.empleadosCache.map(e => `<div class="empleado-row"><div class="empleado-avatar">${(e.nombre || 'E')[0].toUpperCase()}</div><div class="empleado-info"><div class="emp-nombre">${e.nombre}</div><div class="emp-email">${e.email}</div></div><span class="emp-rol ${e.rol}">${e.rol}</span>${e.uid !== window.currentUser.uid ? `<button class="btn-sm" onclick="eliminarEmpleado('${e.id}')" style="background:#ffe3e3;color:#e03131;padding:6px 10px;font-size:12px;"><i class="fas fa-trash"></i></button>` : ''}</div>`).join(''); }
+
+  window.abrirModalEmpleado = () => { ['emp-nombre', 'emp-email', 'emp-pass'].forEach(id => document.getElementById(id).value = ''); document.getElementById('emp-rol').value = 'empleado'; abrirModal('modal-empleado'); };
+
+  window.guardarEmpleado = async () => {
+   const nombre = document.getElementById('emp-nombre').value.trim();
+   const email = document.getElementById('emp-email').value.trim();
+   const pass = document.getElementById('emp-pass').value;
+   const rol = document.getElementById('emp-rol').value;
+   if (!nombre || !email || !pass) { toast('Todos los campos son requeridos', 'error'); return; }
+   if (pass.length < 6) { toast('La contraseña debe tener mínimo 6 caracteres', 'error'); return; }
+   try {
+    const cred = await createUserWithEmailAndPassword(window.auth, email, pass);
+    const uid = cred.user.uid;
+    localStorage.setItem(`negocio_${uid}`, window.negocioId);
+    await setDoc(doc(window.db, 'negocios', window.negocioId, 'empleados', uid), { nombre, email, rol, uid, activo: true, creadoEn: serverTimestamp() });
+    // Registrar el negocio en el perfil del empleado para que aparezca en su selector
+    const userRef = doc(window.db, 'usuarios', uid);
+    await setDoc(userRef, { email, negociosAdmin: [window.negocioId] }, { merge: true });
+    window.empleadosCache.push({ id: uid, nombre, email, rol, uid });
+    renderEmpleados();
+    cerrarModal('modal-empleado');
+    toast('Empleado agregado', 'success');
+   } catch (e) {
+    let msg = 'Error: ';
+    if (e.code === 'auth/email-already-in-use') msg += 'Ese email ya existe';
+    else msg += e.message;
+    toast(msg, 'error');
+   }
+  };
+
+  window.eliminarEmpleado = async (id) => { if (!confirm('¿Eliminar este empleado?')) return; try { await deleteDoc(doc(window.db, 'negocios', window.negocioId, 'empleados', id)); empleadosCache = window.empleadosCache.filter(e => e.id !== id); renderEmpleados(); toast('Empleado eliminado', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+
+  // ==================== CONFIG ====================
+

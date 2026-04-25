@@ -1,215 +1,22 @@
 // miColmApp — pos.js
-// POS: productos, categorías, carrito, dibujo/firma, facturación, pago mixto, escáner
+// POS: window.productos/categorías, carrito, dibujo, facturación, pago mixto, historial, pendientes
+// Requiere: window.db, window.negocioId, window.categorias, window.productos, window.config, etc.
 
-// miColmApp — pos.js
-// POS productos/categorías, carrito, dibujo/firma, facturación, facturas, pagos pendientes, inventario, escáner
-
-ConteosCategorias();
-
-   // Actualizar contenido del grid de la categoría que cambió (sin eliminarlo del DOM)
-   // Esto evita parpadeos y problemas de visibilidad
-   _llenarGrid(catId);
-
-   // Si "más vendidos" puede verse afectada, actualizarla también
-   if (catId !== '__mas_vendidos__') {
-    _llenarGrid('__mas_vendidos__');
-   }
-
-   // Garantizar que el grid activo siga visible (nunca quitar visibilidad al activo)
-   if (categoriaActual) {
-    _mostrarGrid(categoriaActual);
-   }
-
-   renderInventario();
-  }
-
-  function suscribirCaja() {
-   const cajaRef = collection(db, 'negocios', negocioId, 'caja');
-   const q = query(cajaRef, where('estado', '==', 'abierta'), limit(1));
-   const unsub = onSnapshot(q, (snap) => {
-    if (!snap.empty) { cajaActual = { id: snap.docs[0].id, ...snap.docs[0].data() }; }
-    else { cajaActual = null; }
-    updateCajaBanner();
-    renderCaja();
-   });
-   unsubscribers.push(unsub);
-  }
-
-  function updateCajaBanner() {
-   const banner = document.getElementById('caja-pendiente-banner');
-   if (!cajaActual) { banner.classList.add('visible'); }
-   else { banner.classList.remove('visible'); }
-   // Actualizar dot de estado de caja en desktop y mobile
-   document.querySelectorAll('.caja-status-dot, .mob-caja-dot').forEach(el => {
-    el.className = el.className.replace(/\b(abierta|cerrada)\b/g, '');
-    el.classList.add(cajaActual ? 'abierta' : 'cerrada');
-   });
-  }
-
-  window.abrirModalAbrirCaja = () => {
-   document.getElementById('caja-monto-inicial').value = '';
-   document.getElementById('caja-notas-apertura').value = '';
-   abrirModal('modal-abrir-caja');
-  };
-
-  window.abrirCaja = async () => {
-   const monto = parseFloat(document.getElementById('caja-monto-inicial').value) || 0;
-   const notas = document.getElementById('caja-notas-apertura').value;
-   const empNombre = await getEmpNombre();
-   const _offlineAC = !navigator.onLine;
-   try {
-    await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'caja'), { estado: 'abierta', montoInicial: monto, fechaApertura: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, notas, ingresos: 0, gastos: 0 }));
-    cerrarModal('modal-abrir-caja');
-    toast(_offlineAC ? '📱 Caja abierta localmente — se sincronizará con Firebase' : 'Caja abierta exitosamente ✅', _offlineAC ? 'warning' : 'success', _offlineAC ? 5000 : 3000);
-   } catch (e) { toast('Error al abrir caja: ' + e.message, 'error'); }
-  };
-
-  async function getEmpNombre() {
-   const emp = empleadosCache.find(e => e.uid === currentUser.uid);
-   return emp ? emp.nombre : currentUser.email;
-  }
-
-  window.abrirModalCerrarCaja = () => {
-   if (!cajaActual) return;
-   const ingresos = cajaActual.ingresos || 0;
-   const gastos = cajaActual.gastos || 0;
-   const esperado = (cajaActual.montoInicial || 0) + ingresos - gastos;
-   document.getElementById('cc-monto-inicial').textContent = fmt(cajaActual.montoInicial || 0);
-   document.getElementById('cc-ingresos').textContent = fmt(ingresos);
-   document.getElementById('cc-gastos').textContent = fmt(gastos);
-   document.getElementById('cc-total').textContent = fmt(esperado);
-   document.getElementById('caja-monto-final').value = '';
-   document.getElementById('diferencia-caja').style.display = 'none';
-   abrirModal('modal-cerrar-caja');
-  };
-
-  window.calcularDiferencia = () => {
-   if (!cajaActual) return;
-   const final = parseFloat(document.getElementById('caja-monto-final').value) || 0;
-   const ingresos = cajaActual.ingresos || 0;
-   const gastos = cajaActual.gastos || 0;
-   const esperado = (cajaActual.montoInicial || 0) + ingresos - gastos;
-   const diff = final - esperado;
-   const el = document.getElementById('diferencia-caja');
-   el.style.display = 'block';
-   if (Math.abs(diff) < 0.01) { el.style.background = '#d4edda'; el.style.color = '#155724'; el.textContent = '✅ Caja cuadra perfectamente'; }
-   else if (diff > 0) { el.style.background = '#fff3cd'; el.style.color = '#856404'; el.textContent = `⚠️ Sobrante: ${fmt(diff)}`; }
-   else { el.style.background = '#f8d7da'; el.style.color = '#721c24'; el.textContent = `❌ Faltante: ${fmt(Math.abs(diff))}`; }
-  };
-
-  window.cerrarCaja = async () => {
-   if (!cajaActual) return;
-   const final = parseFloat(document.getElementById('caja-monto-final').value);
-   if (isNaN(final)) { toast('Ingresa el monto final', 'error'); return; }
-   const notas = document.getElementById('caja-notas-cierre').value;
-   const empNombre = await getEmpNombre();
-   const _offlineCC = !navigator.onLine;
-   try {
-    await _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { estado: 'cerrada', montoFinal: final, fechaCierre: serverTimestamp(), notasCierre: notas, empleadoCierreNombre: empNombre }));
-    cerrarModal('modal-cerrar-caja');
-    toast(_offlineCC ? '📱 Caja cerrada localmente — se sincronizará con Firebase' : 'Caja cerrada correctamente ✅', _offlineCC ? 'warning' : 'success', _offlineCC ? 5000 : 3000);
-   } catch (e) { toast('Error: ' + e.message, 'error'); }
-  };
-
-  window.abrirModalGasto = () => {
-   if (!cajaActual) { toast('La caja debe estar abierta', 'error'); return; }
-   document.getElementById('gasto-desc').value = '';
-   document.getElementById('gasto-monto').value = '';
-   abrirModal('modal-gasto');
-  };
-
-  window.registrarGasto = async () => {
-   const desc = document.getElementById('gasto-desc').value.trim();
-   const monto = parseFloat(document.getElementById('gasto-monto').value);
-   const cat = document.getElementById('gasto-cat').value;
-   if (!desc || isNaN(monto) || monto <= 0) { toast('Completa todos los campos', 'error'); return; }
-   const empNombre = await getEmpNombre();
-   const _offlineRG = !navigator.onLine;
-   try {
-    _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'movimientos'), { tipo: 'gasto', descripcion: desc, categoria: cat, monto, fecha: serverTimestamp(), uid: currentUser.uid, empleadoNombre: empNombre, cajaId: cajaActual.id }));
-    cajaActual.gastos = (cajaActual.gastos || 0) + monto;
-    _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), { gastos: cajaActual.gastos }));
-    // Agregar al cache local inmediatamente
-    movimientosCache.unshift({ tipo: 'gasto', descripcion: desc, categoria: cat, monto, fecha: { toDate: () => new Date() }, empleadoNombre: empNombre });
-    cerrarModal('modal-gasto');
-    toast(_offlineRG ? '📱 Gasto registrado localmente — se sincronizará con Firebase' : 'Gasto registrado ✅', _offlineRG ? 'warning' : 'success', _offlineRG ? 5000 : 3000);
-    renderMovimientos();
-   } catch (e) { toast('Error: ' + e.message, 'error'); }
-  };
-
-  async function cargarMovimientosHoy() {
-   const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-   const q = query(collection(db, 'negocios', negocioId, 'movimientos'), where('fecha', '>=', Timestamp.fromDate(hoy)), orderBy('fecha', 'desc'));
-   const snap = await getDocs(q);
-   movimientosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-   renderMovimientos();
-  }
-
-  function renderMovimientos() {
-   const tbody = document.getElementById('tbody-movimientos');
-   if (!tbody) return;
-   if (!movimientosCache.length) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-inbox"></i><p>Sin movimientos hoy</p></div></td></tr>`; return; }
-   tbody.innerHTML = movimientosCache.map(m => { const fecha = m.fecha?.toDate ? m.fecha.toDate() : new Date(); return `<tr><td>${fecha.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })}</td><td><span class="badge ${m.tipo}">${m.tipo === 'ingreso' ? '🟢 Ingreso' : '🔴 Gasto'}</span></td><td>${m.descripcion || '-'}</td><td>${m.empleadoNombre || '-'}</td><td style="font-family:var(--font-mono);font-weight:700;color:${m.tipo === 'ingreso' ? '#00b341' : '#e03131'};">${m.tipo === 'ingreso' ? '+' : '-'}${fmt(m.monto)}</td></tr>`; }).join('');
-  }
-
-  async function cargarHistorialCaja() {
-   const q = query(collection(db, 'negocios', negocioId, 'caja'), orderBy('fechaApertura', 'desc'), limit(20));
-   const snap = await getDocs(q);
-   const tbody = document.getElementById('tbody-historial-caja');
-   if (!tbody) return;
-   const rows = snap.docs.map(d => { const data = d.data(); const apertura = data.fechaApertura?.toDate ? data.fechaApertura.toDate().toLocaleString('es-DO') : '-'; const cierre = data.fechaCierre?.toDate ? data.fechaCierre.toDate().toLocaleString('es-DO') : '-'; return `<tr><td>${apertura}</td><td>${cierre}</td><td>${data.empleadoNombre || '-'}</td><td style="font-family:var(--font-mono);">${fmt(data.montoInicial || 0)}</td><td style="font-family:var(--font-mono);">${data.montoFinal !== undefined ? fmt(data.montoFinal) : '-'}</td><td><span class="badge ${data.estado}">${data.estado}</span></td></tr>`; });
-   tbody.innerHTML = rows.join('') || `<tr><td colspan="6" style="text-align:center;color:var(--gris-suave);">Sin registros</td></tr>`;
-  }
-
-  function renderCaja() {
-   const card = document.getElementById('caja-estado-card');
-   if (!card) return;
-   if (cajaActual) {
-    const apertura = cajaActual.fechaApertura?.toDate ? cajaActual.fechaApertura.toDate().toLocaleString('es-DO') : 'Desconocida';
-    const ingresos = cajaActual.ingresos || 0;
-    const gastos = cajaActual.gastos || 0;
-    const total = (cajaActual.montoInicial || 0) + ingresos - gastos;
-    card.innerHTML = `<div class="caja-estado-icon">🟢</div><h2>Caja Abierta</h2><p>Apertura: ${apertura} • Por: ${cajaActual.empleadoNombre || '-'}</p><div class="caja-info-grid"><div class="caja-info-item"><label>Monto Inicial</label><span>${fmt(cajaActual.montoInicial || 0)}</span></div><div class="caja-info-item"><label>Ingresos</label><span style="color:#00b341">+${fmt(ingresos)}</span></div><div class="caja-info-item"><label>Gastos</label><span style="color:#e03131">-${fmt(gastos)}</span></div><div class="caja-info-item"><label>Total Esperado</label><span>${fmt(total)}</span></div></div><div class="caja-btns"><button class="btn-caja gasto" onclick="abrirModalGasto()"><i class="fas fa-minus-circle"></i> Registrar Gasto</button><button class="btn-caja cerrar" onclick="abrirModalCerrarCaja()"><i class="fas fa-lock"></i> Cerrar Caja</button></div>`;
-   } else {
-    card.innerHTML = `<div class="caja-estado-icon">🔴</div><h2>Caja Cerrada</h2><p>No hay caja abierta. Debes abrir la caja para poder realizar ventas.</p><div class="caja-btns"><button class="btn-caja abrir" onclick="abrirModalAbrirCaja()"><i class="fas fa-lock-open"></i> Abrir Caja</button></div>`;
-   }
-   cargarMovimientosHoy();
-   cargarHistorialCaja();
-  }
-
-  function actualizarConteosCategorias() {
-   // Actualizar conteo de categoría virtual Más Vendidos
-   const mvCard = document.getElementById('pos-cat-__mas_vendidos__');
-   if (mvCard) {
-    const mvCount = productos.filter(p => p.masVendidos).length;
-    const mvCountEl = mvCard.querySelector('.cat-count');
-    if (mvCountEl) mvCountEl.textContent = `${mvCount} producto${mvCount !== 1 ? 's' : ''}`;
-   }
-   // Actualizar conteos de categorías reales
-   categorias.forEach(c => {
-    const card = document.getElementById(`pos-cat-${c.id}`);
-    if (!card) return;
-    const count = productos.filter(p => p.categoriaId === c.id).length;
-    const countEl = card.querySelector('.cat-count');
-    if (countEl) countEl.textContent = `${count} producto${count !== 1 ? 's' : ''}`;
-   });
-  }
-
-  function renderCategoriasPos() {
-   const lista = document.getElementById('pos-categorias-lista');
-   const area = document.getElementById('pos-productos-area');
+function renderCategoriasPos() {
+   const lista = document.getElementById('pos-window.categorias-lista');
+   const area = document.getElementById('pos-window.productos-area');
    if (!lista) return;
 
    // Construir categorías: Más Vendidos primero (virtual), luego las reales
-   const masVendidosProds = productos.filter(p => p.masVendidos);
-   const mvBgImg = negocioData?.masVendidosBg || './img/backgrounds/masvendidos_1.jpg';
+   const masVendidosProds = window.productos.filter(p => p.masVendidos);
+   const mvBgImg = window.negocioData?.masVendidosBg || './img/backgrounds/masvendidos_1.jpg';
    const catsMostrar = [
     { id: '__mas_vendidos__', nombre: 'Más Vendidos', emoji: '⭐', imagen: mvBgImg, _virtual: true, _count: masVendidosProds.length }
-   ].concat(categorias.filter(c => c.id !== '__mas_vendidos__').map(c => ({ ...c, _virtual: false, _count: productos.filter(p => p.categoriaId === c.id).length })));
+   ].concat(window.categorias.filter(c => c.id !== '__mas_vendidos__').map(c => ({ ...c, _virtual: false, _count: window.productos.filter(p => p.categoriaId === c.id).length })));
 
-   if (!catsMostrar.length || (catsMostrar.length === 1 && categorias.length === 0)) {
+   if (!catsMostrar.length || (catsMostrar.length === 1 && window.categorias.length === 0)) {
     lista.innerHTML = `<div style="color:rgba(0,0,0,0.4);font-size:12px;text-align:center;padding:20px 8px;">Sin categorías</div>`;
-    if (area) area.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>No hay categorías creadas.<br>Ve a Inventario para crear categorías y productos.</p></div>`;
+    if (area) area.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>No hay categorías creadas.<br>Ve a Inventario para crear categorías y window.productos.</p></div>`;
     return;
    }
 
@@ -224,12 +31,12 @@ ConteosCategorias();
    }).join('');
 
    // Si no hay categoría activa, seleccionar Más Vendidos (primera)
-   if (!categoriaActual) {
+   if (!window.categoriaActual) {
     categoriaActual = '__mas_vendidos__';
    }
-   if (categoriaActual) {
-    renderProductosCategoria(categoriaActual);
-    const activeCard = document.getElementById(`pos-cat-${categoriaActual}`);
+   if (window.categoriaActual) {
+    renderProductosCategoria(window.categoriaActual);
+    const activeCard = document.getElementById(`pos-cat-${window.categoriaActual}`);
     if (activeCard) activeCard.classList.add('activa');
    }
   }
@@ -242,7 +49,7 @@ ConteosCategorias();
   const _gridOrdenCache = {}; // catId -> orden con que fue renderizado
 
   function _getOrCreateGrid(catId) {
-   const area = document.getElementById('pos-productos-area');
+   const area = document.getElementById('pos-window.productos-area');
    if (!area) return null;
    if (_gridCache[catId] && area.contains(_gridCache[catId])) {
     return _gridCache[catId];
@@ -266,9 +73,9 @@ ConteosCategorias();
    if (!grid) return;
    let prods;
    if (catId === '__mas_vendidos__') {
-    prods = productos.filter(p => p.masVendidos);
+    prods = window.productos.filter(p => p.masVendidos);
    } else {
-    prods = productos.filter(p => p.categoriaId === catId);
+    prods = window.productos.filter(p => p.categoriaId === catId);
    }
    if (busqueda) prods = prods.filter(p =>
     p.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -278,13 +85,13 @@ ConteosCategorias();
    grid.className = `productos-grid ${gridSize}`;
    grid.innerHTML = prods.length
     ? prods.map(p => renderProdCard(p, busqueda)).join('')
-    : '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin productos en esta categoría</p></div>';
+    : '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin window.productos en esta categoría</p></div>';
    // Registrar con qué orden fue renderizado este grid
    if (!busqueda) _gridOrdenCache[catId] = ordenProductos;
   }
 
   function _mostrarGrid(catId) {
-   const area = document.getElementById('pos-productos-area');
+   const area = document.getElementById('pos-window.productos-area');
    if (!area) return;
    // Ocultar todos los grids cacheados y el de búsqueda
    Array.from(area.children).forEach(el => { el.style.display = 'none'; });
@@ -308,7 +115,7 @@ ConteosCategorias();
   function renderProductosCategoria(catId, busqueda = '') {
    if (busqueda) {
     // Con búsqueda: grid temporal, no entra en caché
-    const area = document.getElementById('pos-productos-area');
+    const area = document.getElementById('pos-window.productos-area');
     if (!area) return;
     Array.from(area.children).forEach(el => { el.style.display = 'none'; });
     let searchGrid = document.getElementById('productos-grid-busqueda');
@@ -318,8 +125,8 @@ ConteosCategorias();
      area.appendChild(searchGrid);
     }
     let prods = catId === '__mas_vendidos__'
-     ? productos.filter(p => p.masVendidos)
-     : productos.filter(p => p.categoriaId === catId);
+     ? window.productos.filter(p => p.masVendidos)
+     : window.productos.filter(p => p.categoriaId === catId);
     prods = prods.filter(p =>
      normalizarTexto(p.nombre).includes(normalizarTexto(busqueda)) ||
      normalizarTexto(p.codigoBarras || '').includes(normalizarTexto(busqueda))
@@ -329,7 +136,7 @@ ConteosCategorias();
     searchGrid.style.display = '';
     searchGrid.innerHTML = prods.length
      ? prods.map(p => renderProdCard(p, busqueda)).join('')
-     : '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin productos en esta categoría</p></div>';
+     : '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin window.productos en esta categoría</p></div>';
     return;
    }
    // Sin búsqueda: reconstruir el grid cacheado de esta categoría
@@ -378,9 +185,9 @@ ConteosCategorias();
     if (sg) sg.style.display = 'none';
     const gs = document.getElementById('productos-grid-global-search');
     if (gs) gs.style.display = 'none';
-    if (categoriaActual) {
-     if (_gridNecesitaActualizar(categoriaActual)) _llenarGrid(categoriaActual);
-     _mostrarGrid(categoriaActual);
+    if (window.categoriaActual) {
+     if (_gridNecesitaActualizar(window.categoriaActual)) _llenarGrid(window.categoriaActual);
+     _mostrarGrid(window.categoriaActual);
     } else {
      renderCategoriasPos();
     }
@@ -388,13 +195,13 @@ ConteosCategorias();
    }
    // Deduplicar por id para evitar mostrar el mismo producto dos veces
    const seenIds = new Set();
-   const found = productos.filter(p => {
+   const found = window.productos.filter(p => {
     if (seenIds.has(p.id)) return false;
     const match = normalizarTexto(p.nombre).includes(normalizarTexto(q)) || normalizarTexto(p.codigoBarras || '').includes(normalizarTexto(q));
     if (match) seenIds.add(p.id);
     return match;
    });
-   const area = document.getElementById('pos-productos-area');
+   const area = document.getElementById('pos-window.productos-area');
    if (!area) return;
    document.querySelectorAll('.pos-cat-card').forEach(el => el.classList.remove('activa'));
    // Ocultar todos los grids cacheados (no destruirlos)
@@ -454,7 +261,7 @@ ConteosCategorias();
    const sg = document.getElementById('productos-grid-busqueda');
    if (sg) sg.className = `productos-grid ${size}`;
   };
-  // ── Orden de productos ───────────────────────────────
+  // ── Orden de window.productos ───────────────────────────────
   function _aplicarOrden(prods) {
    if (ordenProductos === 'az') {
     return [...prods].sort((a, b) => normalizarTexto(a.nombre).localeCompare(normalizarTexto(b.nombre)));
@@ -469,9 +276,9 @@ ConteosCategorias();
    const btnAZ = document.getElementById('btn-orden-az');
    if (btnAZ) btnAZ.classList.toggle('active', orden === 'az');
    Object.keys(_gridOrdenCache).forEach(k => delete _gridOrdenCache[k]);
-   if (categoriaActual) {
-    _llenarGrid(categoriaActual);
-    _mostrarGrid(categoriaActual);
+   if (window.categoriaActual) {
+    _llenarGrid(window.categoriaActual);
+    _mostrarGrid(window.categoriaActual);
    }
    const busqEl = document.getElementById('pos-buscar');
    if (busqEl && busqEl.value.trim()) window.buscarProductos(busqEl.value.trim());
@@ -487,7 +294,7 @@ ConteosCategorias();
 
   window.abrirScaner = () => {
    if (window.innerWidth <= 768) {
-    // En móvil: abrir cámara scanner y dirigir resultado al buscador de productos
+    // En móvil: abrir cámara scanner y dirigir resultado al buscador de window.productos
     if (window.abrirCamaraScanner) {
      // Usar un destino especial que agrega el producto al carrito por código de barras
      window._scannerDestinoPos = true;
@@ -500,7 +307,7 @@ ConteosCategorias();
    }
   };
 
-  window.buscarPorBarcode = () => { const codigo = document.getElementById('scanner-input').value.trim(); if (!codigo) return; const prod = productos.find(p => p.codigoBarras === codigo); if (prod) { agregarAlCarritoObj(prod); cerrarModal('modal-scanner'); } else { toast('Producto no encontrado con ese código', 'error'); } };
+  window.buscarPorBarcode = () => { const codigo = document.getElementById('scanner-input').value.trim(); if (!codigo) return; const prod = window.productos.find(p => p.codigoBarras === codigo); if (prod) { agregarAlCarritoObj(prod); cerrarModal('modal-scanner'); } else { toast('Producto no encontrado con ese código', 'error'); } };
 
   // Unidades que permiten cantidades decimales (detallables)
   const UNIDADES_DETALLABLES = ['libra', 'libras', 'lb', 'kilogramo', 'kilogramos', 'kg', 'kilo', 'kilos', 'onza', 'onzas', 'oz', 'litro', 'litros', 'lt', 'l', 'galon', 'galones', 'gal', 'galón', 'galones'];
@@ -691,7 +498,7 @@ ConteosCategorias();
    abrirModal('modal-detalle-unidad');
   };
 
-  // Edición inline de cantidad/precio en carrito (para productos detallables)
+  // Edición inline de cantidad/precio en carrito (para window.productos detallables)
   window.editarCantidadDetalle = (prodId, inputEl) => {
    const carrito = getCarrito();
    const idx = carrito.findIndex(i => i.id === prodId);
@@ -768,8 +575,8 @@ ConteosCategorias();
     if (i._precioBase !== undefined) return s + i._precioBase * i.qty; // detallable
     return s + i.precio * i.qty;
    }, 0);
-   const itbisPct = config.itbisPct || 18;
-   const itbisCliente = config.itbisCliente === true;
+   const itbisPct = window.config.itbisPct || 18;
+   const itbisCliente = window.config.itbisCliente === true;
    const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
    const total = subtotal + itbis;
    document.getElementById('cart-subtotal').textContent = fmt(subtotal);
@@ -793,7 +600,7 @@ ConteosCategorias();
    if (_carritoProcessing || !_carritoQueue.length) return;
    _carritoProcessing = true;
    const prodId = _carritoQueue.shift();
-   const prod = productos.find(p => p.id === prodId);
+   const prod = window.productos.find(p => p.id === prodId);
    if (prod) agregarAlCarritoObj(prod);
    _carritoProcessing = false;
    if (_carritoQueue.length) requestAnimationFrame(_procesarColaCarrito);
@@ -803,8 +610,8 @@ ConteosCategorias();
   let _ultimoItemAgregado = null;
 
   window.agregarAlCarrito = (prodId) => {
-   if (!cajaActual) { toast('⚠️ La caja no está abierta', 'error'); return; }
-   const prod = productos.find(p => p.id === prodId);
+   if (!window.cajaActual) { toast('⚠️ La caja no está abierta', 'error'); return; }
+   const prod = window.productos.find(p => p.id === prodId);
    if (!prod) return;
    if (prod.stockHabilitado !== false && prod.stock <= 0) { toast('Sin stock disponible', 'error'); return; }
    if (esUnidadDetallable(prod.unidad)) {
@@ -905,7 +712,7 @@ ConteosCategorias();
    const items = document.getElementById('carrito-items');
    const count = document.getElementById('carrito-count');
    const carrito = getCarrito();
-   // Contar productos distintos (no suma de unidades/libras/onzas)
+   // Contar window.productos distintos (no suma de unidades/libras/onzas)
    count.textContent = carrito.length;
 
    // Actualizar nombre de la factura en el header
@@ -916,7 +723,7 @@ ConteosCategorias();
    }
 
    if (!carrito.length) {
-    items.innerHTML = `<div class="carrito-empty"><i class="fas fa-shopping-cart"></i><p>Agrega productos al carrito</p></div>`;
+    items.innerHTML = `<div class="carrito-empty"><i class="fas fa-shopping-cart"></i><p>Agrega window.productos al carrito</p></div>`;
    } else {
     // ── Render diferencial: preserva imágenes ya cargadas ──
     // Eliminar nodos que NO son carrito-item (ej: carrito-empty)
@@ -989,8 +796,8 @@ ConteosCategorias();
    }
 
    const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
-   const itbisPct = config.itbisPct || 18;
-   const itbisCliente = config.itbisCliente === true;
+   const itbisPct = window.config.itbisPct || 18;
+   const itbisCliente = window.config.itbisCliente === true;
    const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
    const total = subtotal + itbis;
    document.getElementById('cart-subtotal').textContent = fmt(subtotal);
@@ -1160,8 +967,8 @@ ConteosCategorias();
 
   // precioTotalEditado = monto total ya con descuento para el item que se está editando
   function _meicRecalcularTotales(carrito, idxEditado, precioTotalEditado) {
-   const itbisPct = (window.config && config.itbisPct) || 18;
-   const itbisCliente = config.itbisCliente === true;
+   const itbisPct = (window.config && window.config.itbisPct) || 18;
+   const itbisCliente = window.config.itbisCliente === true;
    let subtotal = 0;
    let itbis = 0;
    carrito.forEach((item, i) => {
@@ -1272,14 +1079,14 @@ ConteosCategorias();
   function _actualizarBtnLimpiar() {
    const btn = document.querySelector('.btn-dibujo-sm.rojo');
    if (!btn) return;
-   const tieneContenido = dibujoDataURL !== null;
+   const tieneContenido = window.dibujoDataURL !== null;
    btn.classList.toggle('con-dibujo', tieneContenido);
   }
 
   // Función central que (re)crea el SignaturePad ajustando el canvas al tamaño físico real
   function _crearSignaturePad(canvas, dataURL) {
-   if (signaturePad) {
-    try { signaturePad.off(); } catch (e) { }
+   if (window.signaturePad) {
+    try { window.signaturePad.off(); } catch (e) { }
    }
 
    // Ancho real en píxeles CSS del wrapper (lo que ocupa en pantalla)
@@ -1309,7 +1116,7 @@ ConteosCategorias();
    ctx.scale(dpr, dpr);
 
    // Cargar datos si existen
-   const datos = dataURL !== undefined ? dataURL : dibujoDataURL;
+   const datos = dataURL !== undefined ? dataURL : window.dibujoDataURL;
    if (datos) {
     const img = new Image();
     img.onload = () => {
@@ -1321,12 +1128,12 @@ ConteosCategorias();
    }
 
    // Listener único: guarda el trazo en la clave propia de la tab activa
-   signaturePad.addEventListener('endStroke', () => {
-    dibujoDataURL = signaturePad.isEmpty() ? null : signaturePad.toDataURL();
+   window.signaturePad.addEventListener('endStroke', () => {
+    dibujoDataURL = window.signaturePad.isEmpty() ? null : window.signaturePad.toDataURL();
     const tab = _getTabActiva();
     if (tab) {
-     tab.dibujoDataURL = dibujoDataURL;
-     _guardarDibujoTab(tab.id, dibujoDataURL);
+     tab.dibujoDataURL = window.dibujoDataURL;
+     _guardarDibujoTab(tab.id, window.dibujoDataURL);
     }
     _actualizarBtnLimpiar();
    });
@@ -1336,8 +1143,8 @@ ConteosCategorias();
   function _redimensionarCanvas() {
    const canvas = document.getElementById('firmaCanvas');
    if (!canvas) return;
-   const dataActual = dibujoDataURL
-    || (signaturePad && !signaturePad.isEmpty() ? signaturePad.toDataURL() : null);
+   const dataActual = window.dibujoDataURL
+    || (window.signaturePad && !window.signaturePad.isEmpty() ? window.signaturePad.toDataURL() : null);
    _crearSignaturePad(canvas, dataActual);
   }
 
@@ -1346,7 +1153,7 @@ ConteosCategorias();
    if (!canvas) return;
 
    // Crear pad con el dibujo de la tab activa al iniciar
-   _crearSignaturePad(canvas, dibujoDataURL);
+   _crearSignaturePad(canvas, window.dibujoDataURL);
 
    // ResizeObserver: recrea el pad si el wrapper cambia de ancho (resize, resizer drag, etc.)
    if (window.ResizeObserver) {
@@ -1423,8 +1230,8 @@ ConteosCategorias();
   }
 
   window.limpiarDibujo = () => {
-   if (signaturePad) {
-    signaturePad.clear();
+   if (window.signaturePad) {
+    window.signaturePad.clear();
     dibujoDataURL = null;
     const tab = _getTabActiva();
     if (tab) {
@@ -1439,10 +1246,10 @@ ConteosCategorias();
   window.abrirModalFacturar = () => {
    const carrito = getCarrito();
    if (!carrito.length) { toast('El carrito está vacío', 'error'); return; }
-   if (!cajaActual) { toast('La caja no está abierta', 'error'); return; }
+   if (!window.cajaActual) { toast('La caja no está abierta', 'error'); return; }
    const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
-   const itbisPct = config.itbisPct || 18;
-   const itbisCliente = config.itbisCliente === true;
+   const itbisPct = window.config.itbisPct || 18;
+   const itbisCliente = window.config.itbisCliente === true;
    const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
    const total = subtotal + itbis;
    document.getElementById('factura-items-lista').innerHTML = carrito.map(item => {
@@ -1480,8 +1287,8 @@ ConteosCategorias();
    const _cd = document.getElementById('cambio-display'); _cd.style.display = 'flex'; _cd.style.background = 'rgb(248, 215, 218)'; document.getElementById('cambio-valor').textContent = 'RD$ 0.00';
    mixtoResetear();
    const sel = document.getElementById('fact-empleado');
-   sel.innerHTML = empleadosCache.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
-   const myEmp = empleadosCache.find(e => e.uid === currentUser.uid);
+   sel.innerHTML = window.empleadosCache.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+   const myEmp = window.empleadosCache.find(e => e.uid === window.currentUser.uid);
    if (myEmp) sel.value = myEmp.id;
    seleccionarMetodo('efectivo');
    estadoFacturaSeleccionado = 'pagada'; // default: confirmar pago
@@ -1541,8 +1348,8 @@ ConteosCategorias();
   window.mixtoPonerResto = (campo) => {
    const carrito = getCarrito();
    const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
-   const itbisPct = config.itbisPct || 18;
-   const itbisCliente = config.itbisCliente === true;
+   const itbisPct = window.config.itbisPct || 18;
+   const itbisCliente = window.config.itbisCliente === true;
    const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
    if (campo === 'efectivo') {
     const elec = parseFloat(_mixtoElecStr) || 0;
@@ -1580,8 +1387,8 @@ ConteosCategorias();
   function mixtoActualizarResumen() {
    const carrito = getCarrito();
    const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
-   const itbisPct = config.itbisPct || 18;
-   const itbisCliente = config.itbisCliente === true;
+   const itbisPct = window.config.itbisPct || 18;
+   const itbisCliente = window.config.itbisCliente === true;
    const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
    const ef = parseFloat(_mixtoEfStr) || 0;
    const elec = parseFloat(_mixtoElecStr) || 0;
@@ -1624,20 +1431,20 @@ ConteosCategorias();
   function _facturaListaParaPagar() {
    const carrito = getCarrito();
    const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
-   const itbisPct = config.itbisPct || 18;
-   const itbisCliente = config.itbisCliente === true;
+   const itbisPct = window.config.itbisPct || 18;
+   const itbisCliente = window.config.itbisCliente === true;
    const total = subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
-   if (metodoPagoSeleccionado === 'efectivo') {
+   if (window.metodoPagoSeleccionado === 'efectivo') {
     const recibido = parseFloat(document.getElementById('monto-recibido')?.value) || 0;
     return recibido >= total;
    }
-   if (metodoPagoSeleccionado === 'mixto') {
+   if (window.metodoPagoSeleccionado === 'mixto') {
     const ef = parseFloat(_mixtoEfStr) || 0;
     const elec = parseFloat(_mixtoElecStr) || 0;
     return (ef > 0 || elec > 0) && (ef + elec) >= total;
    }
    // transferencia / tarjeta — siempre listo
-   return (metodoPagoSeleccionado === 'transferencia' || metodoPagoSeleccionado === 'tarjeta');
+   return (window.metodoPagoSeleccionado === 'transferencia' || window.metodoPagoSeleccionado === 'tarjeta');
   }
 
   window.actualizarBtnConfirmar = () => {
@@ -1653,17 +1460,17 @@ ConteosCategorias();
   window.procesarComoPendiente = async () => {
    estadoFacturaSeleccionado = 'pendiente';
    await confirmarFactura();
-   // estadoFacturaSeleccionado se resetea a 'pagada' dentro de confirmarFactura()
+   // window.estadoFacturaSeleccionado se resetea a 'pagada' dentro de confirmarFactura()
   };
 
-  window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente === true ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); disp.style.display = 'flex'; if (recibido > 0) { document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { document.getElementById('cambio-valor').textContent = 'RD$ 0.00'; disp.style.background = 'rgb(248, 215, 218)'; } actualizarBtnConfirmar(); };
+  window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (window.config.itbisCliente === true ? (window.config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); disp.style.display = 'flex'; if (recibido > 0) { document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { document.getElementById('cambio-valor').textContent = 'RD$ 0.00'; disp.style.background = 'rgb(248, 215, 218)'; } actualizarBtnConfirmar(); };
 
   window.tecNumero = (val) => { const inp = document.getElementById('monto-recibido'); if (val === 'C') { inp.value = ''; } else if (val === '⌫') { inp.value = inp.value.slice(0, -1); } else if (val === 'OK') { calcularCambio(); return; } else { inp.value += val; } calcularCambio(); };
 
   window.confirmarFactura = async () => {
    // ── 1. Determinar estado ──────────────────────────────────────
-   if (!estadoFacturaSeleccionado) estadoFacturaSeleccionado = 'pagada';
-   const esPendiente = estadoFacturaSeleccionado === 'pendiente';
+   if (!window.estadoFacturaSeleccionado) estadoFacturaSeleccionado = 'pagada';
+   const esPendiente = window.estadoFacturaSeleccionado === 'pendiente';
 
    // ── 2. Validaciones de carrito ────────────────────────────────
    const carrito = getCarrito();
@@ -1674,26 +1481,26 @@ ConteosCategorias();
 
    // ── 3. Validaciones de pago (solo para facturas pagadas) ──────
    if (!esPendiente) {
-    if (metodoPagoSeleccionado === 'efectivo') {
+    if (window.metodoPagoSeleccionado === 'efectivo') {
      const montoRec = parseFloat(document.getElementById('monto-recibido').value) || 0;
      if (montoRec <= 0) {
       toast('Ingresa el monto recibido en efectivo', 'error');
       return;
      }
      const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
-     const itbisCliente = config.itbisCliente === true;
-     const total = subtotal * (1 + (itbisCliente ? (config.itbisPct || 18) / 100 : 0));
+     const itbisCliente = window.config.itbisCliente === true;
+     const total = subtotal * (1 + (itbisCliente ? (window.config.itbisPct || 18) / 100 : 0));
      if (montoRec < total) {
       toast(`Monto insuficiente. El total es ${fmt(total)}`, 'error');
       return;
      }
     }
-    if (metodoPagoSeleccionado === 'mixto') {
+    if (window.metodoPagoSeleccionado === 'mixto') {
      const ef   = parseFloat(_mixtoEfStr)   || 0;
      const elec = parseFloat(_mixtoElecStr)  || 0;
      const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
-     const itbisCliente = config.itbisCliente === true;
-     const total = subtotal * (1 + (itbisCliente ? (config.itbisPct || 18) / 100 : 0));
+     const itbisCliente = window.config.itbisCliente === true;
+     const total = subtotal * (1 + (itbisCliente ? (window.config.itbisPct || 18) / 100 : 0));
      if (ef <= 0 && elec <= 0) {
       toast('Ingresa los montos del pago mixto', 'error');
       return;
@@ -1716,17 +1523,17 @@ ConteosCategorias();
    // ── MODO DE PRUEBA: simular factura sin guardar ni descontar stock ──
    if (modoPrueba) {
     const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
-    const itbisPct = config.itbisPct || 18;
-    const itbisCliente = config.itbisCliente === true;
+    const itbisPct = window.config.itbisPct || 18;
+    const itbisCliente = window.config.itbisCliente === true;
     const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
     const total = subtotal + itbis;
     const numFactura = `PRUEBA-${Date.now()}`;
-    const ncf = `${config.ncfPrefijo || 'B01'}${String(config.ncfSeq || 1).padStart(8, '0')}`;
-    const notaDibujo = (signaturePad && !signaturePad.isEmpty()) ? signaturePad.toDataURL() : null;
+    const ncf = `${window.config.ncfPrefijo || 'B01'}${String(window.config.ncfSeq || 1).padStart(8, '0')}`;
+    const notaDibujo = (window.signaturePad && !window.signaturePad.isEmpty()) ? window.signaturePad.toDataURL() : null;
     const direccionCliente = document.getElementById('pos-direccion-cliente')?.value.trim() || '';
     const empId = document.getElementById('fact-empleado')?.value || '';
-    const empNombre = empleadosCache.find(e => e.id === empId)?.nombre || 'Sistema';
-    const montoRecibido = metodoPagoSeleccionado === 'efectivo'
+    const empNombre = window.empleadosCache.find(e => e.id === empId)?.nombre || 'Sistema';
+    const montoRecibido = window.metodoPagoSeleccionado === 'efectivo'
      ? (parseFloat(document.getElementById('monto-recibido').value) || total)
      : total;
 
@@ -1743,15 +1550,15 @@ ConteosCategorias();
        subtotal: itemSubtotal };
      }),
      subtotal, itbis, itbisPct, total,
-     metodoPago: metodoPagoSeleccionado,
+     metodoPago: window.metodoPagoSeleccionado,
      montoRecibido,
-     estado: estadoFacturaSeleccionado,
+     estado: window.estadoFacturaSeleccionado,
      empleadoId: empId, empleadoNombre: empNombre,
-     cajaId: cajaActual?.id || '',
-     uid: currentUser?.uid || '',
+     cajaId: window.cajaActual?.id || '',
+     uid: window.currentUser?.uid || '',
      dibujoNota: notaDibujo,
      ...(direccionCliente ? { direccionCliente } : {}),
-     ...(metodoPagoSeleccionado === 'mixto' ? {
+     ...(window.metodoPagoSeleccionado === 'mixto' ? {
       mixtoEfectivo: parseFloat(_mixtoEfStr) || 0,
       mixtoElectronico: parseFloat(_mixtoElecStr) || 0,
       mixtoSubMetodo: _mixtoSubMetodo
@@ -1765,7 +1572,7 @@ ConteosCategorias();
     _guardarTabsEnStorage();
     const dirInput = document.getElementById('pos-direccion-cliente');
     if (dirInput) dirInput.value = '';
-    if (signaturePad) signaturePad.clear();
+    if (window.signaturePad) window.signaturePad.clear();
     dibujoDataURL = null;
     const montoInput = document.getElementById('monto-recibido');
     if (montoInput) montoInput.value = '';
@@ -1777,7 +1584,7 @@ ConteosCategorias();
     renderCarrito(); renderFacturasTabs();
 
     facturaActualParaImprimir = { ...facturaSimulada, id: 'prueba' };
-    mostrarTicket(facturaActualParaImprimir);
+    mostrarTicket(window.facturaActualParaImprimir);
     toast('🧪 Factura de prueba generada (no guardada, stock sin cambios)', 'warning', 5000);
 
     if (btnConfirmar) { btnConfirmar.innerHTML = '<i class="fas fa-check"></i> Confirmar Factura'; btnConfirmar.disabled = false; }
@@ -1791,20 +1598,20 @@ ConteosCategorias();
    try {
     // ── 5. Calcular totales ───────────────────────────────────────
     const subtotal = carrito.reduce((s, i) => { if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades); if (i._precioBase !== undefined) return s + i._precioBase * i.qty; return s + i.precio * i.qty; }, 0);
-    const itbisPct = config.itbisPct || 18;
-    const itbisCliente = config.itbisCliente === true;
+    const itbisPct = window.config.itbisPct || 18;
+    const itbisCliente = window.config.itbisCliente === true;
     const itbis = itbisCliente ? subtotal * (itbisPct / 100) : 0;
     const total = subtotal + itbis;
 
     // ── 6. Datos de empleado y NCF ────────────────────────────────
     const empId = document.getElementById('fact-empleado')?.value || '';
-    const empNombre = empleadosCache.find(e => e.id === empId)?.nombre || 'Sistema';
-    const ncfSeq = config.ncfSeq || 1;
-    const ncf = `${config.ncfPrefijo || 'B01'}${String(ncfSeq).padStart(8, '0')}`;
+    const empNombre = window.empleadosCache.find(e => e.id === empId)?.nombre || 'Sistema';
+    const ncfSeq = window.config.ncfSeq || 1;
+    const ncf = `${window.config.ncfPrefijo || 'B01'}${String(ncfSeq).padStart(8, '0')}`;
     const numFactura = `F-${Date.now()}`;
-    const notaDibujo = (signaturePad && !signaturePad.isEmpty()) ? signaturePad.toDataURL() : null;
+    const notaDibujo = (window.signaturePad && !window.signaturePad.isEmpty()) ? window.signaturePad.toDataURL() : null;
     const direccionCliente = document.getElementById('pos-direccion-cliente')?.value.trim() || '';
-    const montoRecibido = metodoPagoSeleccionado === 'efectivo'
+    const montoRecibido = window.metodoPagoSeleccionado === 'efectivo'
      ? (parseFloat(document.getElementById('monto-recibido').value) || total)
      : total;
 
@@ -1826,16 +1633,16 @@ ConteosCategorias();
      itbis,
      itbisPct,
      total,
-     metodoPago: metodoPagoSeleccionado,
+     metodoPago: window.metodoPagoSeleccionado,
      montoRecibido,
-     estado: estadoFacturaSeleccionado,
+     estado: window.estadoFacturaSeleccionado,
      empleadoId: empId,
      empleadoNombre: empNombre,
-     cajaId: cajaActual?.id || '',
-     uid: currentUser?.uid || '',
+     cajaId: window.cajaActual?.id || '',
+     uid: window.currentUser?.uid || '',
      dibujoNota: notaDibujo,
      ...(direccionCliente ? { direccionCliente } : {}),
-     ...(metodoPagoSeleccionado === 'mixto' ? {
+     ...(window.metodoPagoSeleccionado === 'mixto' ? {
       mixtoEfectivo: parseFloat(_mixtoEfStr) || 0,
       mixtoElectronico: parseFloat(_mixtoElecStr) || 0,
       mixtoSubMetodo: _mixtoSubMetodo
@@ -1845,42 +1652,42 @@ ConteosCategorias();
     // ── 8. Guardar en Firestore (offline-safe con _fsOp) ──────────
     let factRef;
     if (esPendiente) {
-     factRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'facturas-pendientes'), facturaData));
+     factRef = await _fsOp(() => addDoc(collection(window.db, 'negocios', window.negocioId, 'facturas-pendientes'), facturaData));
     } else {
-     factRef = await _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'facturas'), facturaData));
+     factRef = await _fsOp(() => addDoc(collection(window.db, 'negocios', window.negocioId, 'facturas'), facturaData));
      // Movimiento de caja y actualización de saldo (encolados offline automáticamente)
-     _fsOp(() => addDoc(collection(db, 'negocios', negocioId, 'movimientos'), {
+     _fsOp(() => addDoc(collection(window.db, 'negocios', window.negocioId, 'movimientos'), {
       tipo: 'ingreso',
       descripcion: `Venta ${numFactura}`,
       monto: total,
       fecha: serverTimestamp(),
-      uid: currentUser?.uid || '',
+      uid: window.currentUser?.uid || '',
       empleadoNombre: empNombre,
       facturaId: factRef.id,
-      cajaId: cajaActual?.id || ''
+      cajaId: window.cajaActual?.id || ''
      }));
-     if (cajaActual?.id) {
-      cajaActual.ingresos = (cajaActual.ingresos || 0) + total;
-      _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'caja', cajaActual.id), {
-       ingresos: cajaActual.ingresos
+     if (window.cajaActual?.id) {
+      window.cajaActual.ingresos = (window.cajaActual.ingresos || 0) + total;
+      _fsOp(() => updateDoc(doc(window.db, 'negocios', window.negocioId, 'caja', window.cajaActual.id), {
+       ingresos: window.cajaActual.ingresos
       }));
      }
     }
 
     // ── 9. Actualizar NCF (local inmediato + Firestore en cola) ───
-    config.ncfSeq = ncfSeq + 1;
-    _fsOp(() => updateDoc(doc(db, 'negocios', negocioId, 'configuraciones', 'general'), { ncfSeq: config.ncfSeq }));
+    window.config.ncfSeq = ncfSeq + 1;
+    _fsOp(() => updateDoc(doc(window.db, 'negocios', window.negocioId, 'configuraciones', 'general'), { ncfSeq: window.config.ncfSeq }));
 
     // ── 10. Descontar stock localmente y encolar en Firestore ──────
-    const batch = writeBatch(db);
+    const batch = writeBatch(window.db);
     for (const item of carrito) {
      if (!item.categoriaId || !item.id) continue;
-     const prodRef = doc(db, 'negocios', negocioId, 'categorias', item.categoriaId, 'productos', item.id);
+     const prodRef = doc(window.db, 'negocios', window.negocioId, 'categorias', item.categoriaId, 'productos', item.id);
      const nuevoStock = Math.max(0, (item.stock || 0) - item.qty);
      batch.update(prodRef, { stock: nuevoStock });
      // Actualizar array local inmediatamente para que la UI refleje el cambio
-     const pi = productos.findIndex(p => p.id === item.id);
-     if (pi >= 0) productos[pi].stock = nuevoStock;
+     const pi = window.productos.findIndex(p => p.id === item.id);
+     if (pi >= 0) window.productos[pi].stock = nuevoStock;
     }
     _fsOp(() => batch.commit()); // No await — encolar sin bloquear
 
@@ -1898,7 +1705,7 @@ ConteosCategorias();
 
     const dirInput = document.getElementById('pos-direccion-cliente');
     if (dirInput) dirInput.value = '';
-    if (signaturePad) signaturePad.clear();
+    if (window.signaturePad) window.signaturePad.clear();
     dibujoDataURL = null;
     const montoInput = document.getElementById('monto-recibido');
     if (montoInput) montoInput.value = '';
@@ -1915,7 +1722,7 @@ ConteosCategorias();
 
     // ── 12. Mostrar ticket y notificación ─────────────────────────
     facturaActualParaImprimir = { ...facturaData, id: factRef.id, fecha: { toDate: () => new Date() } };
-    mostrarTicket(facturaActualParaImprimir);
+    mostrarTicket(window.facturaActualParaImprimir);
 
     if (_offline) {
      const tipoMsgOffline = esPendiente
@@ -2000,10 +1807,10 @@ ConteosCategorias();
    }).join('');
    return `<div class="ticket">
     <div class="ticket-header">
-     <div style="font-size:16px;font-weight:800;">${negocioData?.nombre || 'Colmado'}</div>
-     <div>${negocioData?.direccion || ''}</div>
-     <div>${negocioData?.telefono || ''}</div>
-     ${negocioData?.rnc ? `<div>RNC: ${negocioData.rnc}</div>` : ''}
+     <div style="font-size:16px;font-weight:800;">${window.negocioData?.nombre || 'Colmado'}</div>
+     <div>${window.negocioData?.direccion || ''}</div>
+     <div>${window.negocioData?.telefono || ''}</div>
+     ${window.negocioData?.rnc ? `<div>RNC: ${window.negocioData.rnc}</div>` : ''}
      <div style="margin-top:6px;">━━━━━━━━━━━━━━━━━━━━━━</div>
      <div>Factura: ${factura.numero}</div>
      ${factura.ncf ? `<div>NCF: ${factura.ncf}</div>` : ''}
@@ -2093,7 +1900,7 @@ ConteosCategorias();
     btnPag.style.borderColor = '#aab4c8';
     btnPag.style.color = '#4a5568';
     btnPag.style.boxShadow = 'none';
-    renderTablaFacturas(filtrarCache(facturasPendientesCache));
+    renderTablaFacturas(filtrarCache(window.facturasPendientesCache));
    } else {
     btnPag.style.background = '#28a745';
     btnPag.style.borderColor = '#28a745';
@@ -2123,5 +1930,375 @@ ConteosCategorias();
     }
     return true;
    });
+  }
+
+// ── Historial de facturas y cobro de pendientes ──
+// miColmApp — pos.js
+// Historial de facturas y cobro de facturas pendientes
+// Depende de window.db, window.negocioId, window.auth, window.cajaActual, etc. (expuestos por core.js)
+
+async function cargarFacturas() {
+   // Cargar facturas pagadas
+   const qPag = query(collection(window.db, 'negocios', window.negocioId, 'facturas'), orderBy('fecha', 'desc'), limit(100));
+   const snapPag = await getDocs(qPag);
+   facturasCache = snapPag.docs.map(d => ({ id: d.id, ...d.data() }));
+
+   // Cargar facturas pendientes
+   const qPend = query(collection(window.db, 'negocios', window.negocioId, 'facturas-pendientes'), orderBy('fecha', 'desc'), limit(100));
+   const snapPend = await getDocs(qPend);
+   facturasPendientesCache = snapPend.docs.map(d => ({ id: d.id, ...d.data() }));
+
+   // Actualizar badge
+   const badge = document.getElementById('badge-pendientes');
+   if (badge) badge.textContent = window.facturasPendientesCache.length;
+
+   // Render según tab activa
+   if (facturasTabActual === 'pendientes') {
+    renderTablaFacturas(filtrarCache(window.facturasPendientesCache));
+   } else {
+    renderTablaFacturas(filtrarCache(facturasCache));
+   }
+  }
+
+  function renderTablaFacturas(facturas) {
+   const tbody = document.getElementById('tbody-facturas');
+   if (!tbody) return;
+   const esPendientes = facturasTabActual === 'pendientes';
+   if (!facturas.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-file-invoice"></i><p>${esPendientes ? 'Sin facturas pendientes' : 'Sin facturas pagadas'}</p></div></td></tr>`;
+    return;
+   }
+   tbody.innerHTML = facturas.map(f => {
+    const fechaObj = f.fecha?.toDate ? f.fecha.toDate() : null;
+    const hora = fechaObj ? fechaObj.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: true }) : '-';
+    const fecha = fechaObj ? fechaObj.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
+    const accionPagar = esPendientes
+     ? `<button class="btn-sm verde" onclick="abrirModalPagarPendiente('${f.id}')" style="padding:6px 12px;font-size:12px;margin-left:4px;display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-cash-register"></i> Pagar factura</button>`
+     : '';
+    return `<tr>
+     <td style="font-family:var(--font-mono);font-weight:700;">${f.numero || '-'}</td>
+     <td style="font-size:12px;font-weight:700;color:#1a2135;">${f.direccionCliente || '-'}</td>
+     <td style="font-family:var(--font-mono);font-size:12px;"><strong>${hora}</strong><br><span style="font-weight:400;color:#718096;">${fecha}</span></td>
+     <td style="font-family:var(--font-mono);font-weight:700;">${fmt(f.total)}</td>
+     <td>${f.metodoPago || '-'}</td>
+     <td>${f.empleadoNombre || '-'}</td>
+     <td style="font-family:var(--font-mono);font-size:11px;">${f.ncf || '-'}</td>
+     <td><span class="badge ${esPendientes ? 'pendiente' : 'pagada'}">${esPendientes ? '⏳ Pendiente' : '✅ Pagada'}</span></td>
+     <td>
+      <button class="btn-sm gris" onclick="verFactura('${f.id}','${esPendientes ? 'pend' : 'pag'}')" style="padding:6px 10px;font-size:12px;"><i class="fas fa-eye"></i></button>
+      ${accionPagar}
+     </td>
+    </tr>`;
+   }).join('');
+  }
+
+  window.filtrarFacturas = () => {
+   if (facturasTabActual === 'pendientes') {
+    renderTablaFacturas(filtrarCache(window.facturasPendientesCache));
+   } else {
+    renderTablaFacturas(filtrarCache(facturasCache));
+   }
+  };
+
+  window.limpiarFiltrosFacturas = () => {
+   document.getElementById('fact-buscar').value = '';
+   document.getElementById('fact-fecha-ini').value = '';
+   document.getElementById('fact-fecha-fin').value = '';
+   document.getElementById('fact-metodo').value = '';
+   window.filtrarFacturas();
+  };
+
+  window.verFactura = (id, tipo) => {
+   const lista = tipo === 'pend' ? facturasPendientesCache : facturasCache;
+   const f = lista.find(f => f.id === id);
+   if (!f) return;
+   document.getElementById('modal-ver-factura-body').innerHTML = generarHTMLTicket(f);
+   abrirModal('modal-ver-factura');
+  };
+
+  // ===== MODAL PAGAR FACTURA PENDIENTE =====
+  let pfpFacturaId = null;
+  let pfpMetodo = 'efectivo';
+  let pfpMontoStr = '';
+
+  window.abrirModalPagarPendiente = (id) => {
+   pfpFacturaId = id;
+   pfpMetodo = 'efectivo';
+   pfpMontoStr = '';
+   const f = window.facturasPendientesCache.find(x => x.id === id);
+   if (!f) return;
+   const infoEl = document.getElementById('pfp-info');
+   infoEl.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+     <div>
+      <div style="font-weight:800;font-size:15px;color:#1a2135;">${f.numero || '-'}</div>
+      <div style="color:#666;font-size:12px;">${f.fecha?.toDate ? f.fecha.toDate().toLocaleString('es-DO') : '-'} • ${f.empleadoNombre || '-'}</div>
+     </div>
+     <div style="font-family:var(--font-mono);font-weight:800;font-size:1.3rem;color:#00b341;">${fmt(f.total)}</div>
+    </div>`;
+   pfpActualizarDisplay();
+   pfpSelMetodo('efectivo');
+   pfpMixtoResetear();
+   const cambioDis = document.getElementById('pfp-cambio-display');
+   if (cambioDis) cambioDis.style.display = 'none';
+   abrirModal('modal-pagar-factura-pendiente');
+  };
+
+  window.pfpSelMetodo = (metodo) => {
+   pfpMetodo = metodo;
+   const colores = { efectivo: '#28a745', transferencia: '#1971c2', tarjeta: '#6f42c1', mixto: '#e67700' };
+   ['efectivo', 'transferencia', 'tarjeta', 'mixto'].forEach(m => {
+    const btn = document.getElementById(`pfp-btn-${m}`);
+    if (btn) {
+     if (m === metodo) {
+      btn.style.background = colores[m];
+      btn.style.borderColor = colores[m];
+      btn.style.color = 'white';
+     } else {
+      btn.style.background = '#e2e8f0';
+      btn.style.borderColor = '#e2e8f0';
+      btn.style.color = '#4a5568';
+     }
+    }
+   });
+   const sec = document.getElementById('pfp-efectivo-section');
+   const mixtoSec = document.getElementById('pfp-mixto-section');
+   if (sec) sec.style.display = metodo === 'efectivo' ? 'block' : 'none';
+   if (mixtoSec) { mixtoSec.style.display = metodo === 'mixto' ? 'block' : 'none'; }
+   if (metodo === 'mixto') { pfpMixtoActivar('efectivo'); pfpMixtoActualizarResumen(); }
+  };
+
+  let _pfpMixtoActivo = 'efectivo';
+  let _pfpMixtoEfStr = '';
+  let _pfpMixtoElecStr = '';
+  let _pfpMixtoSub = 'transferencia';
+
+  window.pfpMixtoSelSub = (sub) => {
+   _pfpMixtoSub = sub;
+   document.getElementById('pfp-sub-trans').classList.toggle('activo', sub === 'transferencia');
+   document.getElementById('pfp-sub-tarj').classList.toggle('activo', sub === 'tarjeta');
+   const lbl = document.getElementById('pfp-mixto-elec-lbl');
+   const resLbl = document.getElementById('pfp-mx-res-el-lbl');
+   if (sub === 'transferencia') { if (lbl) lbl.textContent = '🏦 TRANSFERENCIA'; if (resLbl) resLbl.textContent = '🏦 Transferencia'; }
+   else { if (lbl) lbl.textContent = '💳 TARJETA'; if (resLbl) resLbl.textContent = '💳 Tarjeta'; }
+  };
+
+  window.pfpMixtoActivar = (campo) => {
+   _pfpMixtoActivo = campo;
+   document.getElementById('pfp-mixto-campo-ef').classList.toggle('mixto-campo-activo', campo === 'efectivo');
+   document.getElementById('pfp-mixto-campo-elec').classList.toggle('mixto-campo-activo', campo === 'elec');
+  };
+
+  window.pfpMixtoResto = (campo) => {
+   const f = window.facturasPendientesCache.find(x => x.id === window.pfpFacturaId);
+   if (!f) return;
+   const total = f.total;
+   if (campo === 'efectivo') { const elec = parseFloat(_pfpMixtoElecStr) || 0; _pfpMixtoEfStr = Math.max(0, total - elec).toFixed(2); }
+   else { const ef = parseFloat(_pfpMixtoEfStr) || 0; _pfpMixtoElecStr = Math.max(0, total - ef).toFixed(2); }
+   pfpMixtoActivar(campo);
+   _pfpMixtoRefrescar();
+   pfpMixtoActualizarResumen();
+  };
+
+  window.pfpMixtoTecla = (val) => {
+   let str = _pfpMixtoActivo === 'efectivo' ? _pfpMixtoEfStr : _pfpMixtoElecStr;
+   if (val === '⌫') str = str.slice(0, -1);
+   else if (val === '.') { if (!str.includes('.')) str += '.'; }
+   else if (val === 'OK') { pfpMixtoActualizarResumen(); return; }
+   else { if (str.length < 10) str += val; }
+   if (_pfpMixtoActivo === 'efectivo') _pfpMixtoEfStr = str; else _pfpMixtoElecStr = str;
+   _pfpMixtoRefrescar();
+   pfpMixtoActualizarResumen();
+  };
+
+  function _pfpMixtoRefrescar() {
+   const dE = document.getElementById('pfp-mixto-disp-ef');
+   const dEl = document.getElementById('pfp-mixto-disp-el');
+   if (dE) dE.innerHTML = _pfpMixtoEfStr ? `RD$ ${_pfpMixtoEfStr}` : '<span class="placeholder">Toca para ingresar</span>';
+   if (dEl) dEl.innerHTML = _pfpMixtoElecStr ? `RD$ ${_pfpMixtoElecStr}` : '<span class="placeholder">Toca para ingresar</span>';
+  }
+
+  function pfpMixtoActualizarResumen() {
+   const f = window.facturasPendientesCache.find(x => x.id === window.pfpFacturaId);
+   if (!f) return;
+   const ef = parseFloat(_pfpMixtoEfStr) || 0;
+   const elec = parseFloat(_pfpMixtoElecStr) || 0;
+   const tot = ef + elec;
+   const cambio = tot - f.total;
+   const rEf = document.getElementById('pfp-mx-res-ef');
+   const rEl = document.getElementById('pfp-mx-res-el');
+   const rTot = document.getElementById('pfp-mx-res-tot');
+   const rCambio = document.getElementById('pfp-mx-cambio-row');
+   if (rEf) rEf.textContent = fmt(ef);
+   if (rEl) rEl.textContent = fmt(elec);
+   if (rTot) rTot.textContent = fmt(tot);
+   if (rCambio) {
+    rCambio.style.display = 'flex';
+    if (cambio >= 0) { rCambio.className = 'mixto-resumen-row cambio-ok'; rCambio.innerHTML = `<span class="lbl">✅ Cambio</span><span class="val">${fmt(cambio)}</span>`; }
+    else { rCambio.className = 'mixto-resumen-row cambio-falta'; rCambio.innerHTML = `<span class="lbl">❌ Falta</span><span class="val">${fmt(Math.abs(cambio))}</span>`; }
+   }
+  }
+
+  function pfpMixtoResetear() {
+   _pfpMixtoEfStr = ''; _pfpMixtoElecStr = ''; _pfpMixtoActivo = 'efectivo'; _pfpMixtoSub = 'transferencia';
+   _pfpMixtoRefrescar();
+  }
+
+  window.pfpTecla = (val) => {
+   if (val === '⌫') {
+    pfpMontoStr = window.pfpMontoStr.slice(0, -1);
+   } else if (val === '.') {
+    if (!window.pfpMontoStr.includes('.')) window.pfpMontoStr += '.';
+   } else {
+    if (window.pfpMontoStr.length < 10) window.pfpMontoStr += val;
+   }
+   pfpActualizarDisplay();
+  };
+
+  function pfpActualizarDisplay() {
+   const val = parseFloat(window.pfpMontoStr) || 0;
+   const disp = document.getElementById('pfp-monto-display');
+   if (disp) disp.textContent = window.pfpMontoStr ? `RD$ ${window.pfpMontoStr}` : 'RD$ 0.00';
+   // Calcular cambio
+   const f = window.facturasPendientesCache.find(x => x.id === window.pfpFacturaId);
+   if (f && val > 0) {
+    const cambio = val - f.total;
+    const cambioDis = document.getElementById('pfp-cambio-display');
+    if (cambioDis) {
+     cambioDis.style.display = 'block';
+     if (cambio >= 0) {
+      cambioDis.style.background = '#d4edda';
+      cambioDis.style.color = '#155724';
+      cambioDis.textContent = `✅ Cambio: ${fmt(cambio)}`;
+     } else {
+      cambioDis.style.background = '#f8d7da';
+      cambioDis.style.color = '#721c24';
+      cambioDis.textContent = `❌ Falta: ${fmt(Math.abs(cambio))}`;
+     }
+    }
+   } else {
+    const cambioDis = document.getElementById('pfp-cambio-display');
+    if (cambioDis) cambioDis.style.display = 'none';
+   }
+  }
+
+  window.confirmarPagarFacturaPendiente = async () => {
+   if (!window.pfpFacturaId) return;
+   const f = window.facturasPendientesCache.find(x => x.id === window.pfpFacturaId);
+   if (!f) return;
+   if (window.pfpMetodo === 'efectivo') {
+    const montoRec = parseFloat(window.pfpMontoStr) || 0;
+    if (montoRec <= 0) { toast('Ingresa el monto recibido en efectivo', 'error'); return; }
+    if (montoRec < f.total) { toast('El monto recibido es menor al total', 'error'); return; }
+   }
+   if (window.pfpMetodo === 'mixto') {
+    const ef = parseFloat(_pfpMixtoEfStr) || 0;
+    const elec = parseFloat(_pfpMixtoElecStr) || 0;
+    if (ef <= 0 && elec <= 0) { toast('Ingresa los montos del pago mixto', 'error'); return; }
+    if ((ef + elec) < f.total) { toast('El total pagado no cubre el monto de la factura', 'error'); return; }
+   }
+   const btn = document.getElementById('btn-confirmar-pagar-pendiente');
+   btn.innerHTML = '<span class="loader"></span> Procesando...';
+   btn.disabled = true;
+   const _offlinePfp = !navigator.onLine;
+   try {
+    const montoRec = window.pfpMetodo === 'efectivo' ? (parseFloat(window.pfpMontoStr) || f.total) : f.total;
+    const cambio = window.pfpMetodo === 'efectivo' ? Math.max(0, montoRec - f.total) : 0;
+    const empNombre = await getEmpNombre();
+    const fechaPago = serverTimestamp();
+
+    const facturaPageData = {
+     ...f,
+     id: undefined,
+     estado: 'pagada',
+     metodoPago: window.pfpMetodo,
+     montoRecibido: montoRec,
+     cambio,
+     fechaPago,
+     ...(window.pfpMetodo === 'mixto' ? {
+      mixtoEfectivo: parseFloat(_pfpMixtoEfStr) || 0,
+      mixtoElectronico: parseFloat(_pfpMixtoElecStr) || 0,
+      mixtoSubMetodo: _pfpMixtoSub
+     } : {})
+    };
+    delete facturaPageData.id;
+
+    const newFactRef = await _fsOp(() => addDoc(collection(window.db, 'negocios', window.negocioId, 'facturas'), facturaPageData));
+    _fsOp(() => deleteDoc(doc(window.db, 'negocios', window.negocioId, 'facturas-pendientes', window.pfpFacturaId)));
+
+    if (window.cajaActual) {
+     _fsOp(() => addDoc(collection(window.db, 'negocios', window.negocioId, 'movimientos'), {
+      tipo: 'ingreso', descripcion: `Pago factura ${f.numero}`, monto: f.total,
+      fecha: fechaPago, uid: window.currentUser.uid, empleadoNombre: empNombre,
+      facturaId: newFactRef.id, cajaId: window.cajaActual.id
+     }));
+     let newIngresos = (window.cajaActual.ingresos || 0) + f.total;
+     let newGastos = window.cajaActual.gastos || 0;
+     if (window.pfpMetodo === 'efectivo' && cambio > 0) {
+      _fsOp(() => addDoc(collection(window.db, 'negocios', window.negocioId, 'movimientos'), {
+       tipo: 'gasto', descripcion: `Cambio devuelto factura ${f.numero}`, monto: cambio,
+       fecha: fechaPago, uid: window.currentUser.uid, empleadoNombre: empNombre,
+       facturaId: newFactRef.id, cajaId: window.cajaActual.id
+      }));
+      newGastos += cambio;
+     }
+     window.cajaActual.ingresos = newIngresos; window.cajaActual.gastos = newGastos;
+     _fsOp(() => updateDoc(doc(window.db, 'negocios', window.negocioId, 'caja', window.cajaActual.id), { ingresos: newIngresos, gastos: newGastos }));
+    }
+
+    // Actualizar cache local de facturas pendientes
+    const pfpIdx = window.facturasPendientesCache.findIndex(x => x.id === window.pfpFacturaId);
+    if (pfpIdx >= 0) window.facturasPendientesCache.splice(pfpIdx, 1);
+
+    cerrarModal('modal-pagar-factura-pendiente');
+    toast(_offlinePfp ? '📱 Factura marcada como pagada localmente — se sincronizará con Firebase' : 'Factura pagada exitosamente ✅', _offlinePfp ? 'warning' : 'success', _offlinePfp ? 5000 : 4000);
+    await cargarFacturas();
+   } catch (e) {
+    toast('Error: ' + e.message, 'error');
+    console.error(e);
+   }
+   btn.innerHTML = '<i class="fas fa-check"></i> Confirmar Pago';
+   btn.disabled = false;
+  };
+
+  // Mantener compatibilidad con marcarPagada (por si se llama desde algún lado)
+  window.marcarPagada = (id) => window.abrirModalPagarPendiente(id);
+
+  function _actualizarBtnCatAccion(modo, catId) {
+   const btn = document.getElementById('btn-cat-accion');
+   if (!btn) return;
+   if (modo === 'lista') {
+    btn.className = 'btn-sm verde';
+    btn.onclick = abrirModalCategoria;
+    btn.innerHTML = '<i class="fas fa-folder-plus"></i> Categoría';
+   } else if (modo === 'categoria') {
+    btn.className = 'btn-sm amarillo';
+    btn.onclick = () => editarCategoria(catId);
+    btn.innerHTML = '<i class="fas fa-edit"></i> Editar categoría';
+   } else if (modo === 'masvendidos') {
+    btn.className = 'btn-sm amarillo';
+    btn.onclick = (e) => editarImagenMasVendidos(e);
+    btn.innerHTML = '<i class="fas fa-image"></i> Editar imagen';
+   }
+  }
+
+  function _recalcularInvStats() {
+   let total = 0, unidades = 0, dinero = 0;
+   const porCategoria = {};
+   for (const p of window.productos) {
+    total++;
+    const catId = p.categoriaId;
+    if (!porCategoria[catId]) porCategoria[catId] = { total: 0, unidades: 0, dinero: 0 };
+    porCategoria[catId].total++;
+    if (p.stockHabilitado !== false && p.stock > 0) {
+     const stock = parseFloat(p.stock) || 0;
+     const valor = parseFloat(p.costo) > 0 ? parseFloat(p.costo) : parseFloat(p.precio) || 0;
+     unidades += stock;
+     dinero += valor * stock;
+     porCategoria[catId].unidades += stock;
+     porCategoria[catId].dinero += valor * stock;
+    }
+   }
+   _invStats = { total, unidades, dinero, porCategoria };
   }
 

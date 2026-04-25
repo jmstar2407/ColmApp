@@ -1,59 +1,30 @@
-// miColmApp — config.js
+// miColmApp — window.config.js
+// Configuración del negocio, empleados, países teléfono
+// Requiere: window.db, window.negocioId, window.auth, window.negocioData
+
+// miColmApp — window.config.js
 // Configuración del negocio, empleados, países teléfono
 
-function renderEmpleados() { const lista = document.getElementById('empleados-lista'); if (!lista) return; if (!empleadosCache.length) { lista.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Sin empleados</p></div>'; return; } lista.innerHTML = empleadosCache.map(e => `<div class="empleado-row"><div class="empleado-avatar">${(e.nombre || 'E')[0].toUpperCase()}</div><div class="empleado-info"><div class="emp-nombre">${e.nombre}</div><div class="emp-email">${e.email}</div></div><span class="emp-rol ${e.rol}">${e.rol}</span>${e.uid !== currentUser.uid ? `<button class="btn-sm" onclick="eliminarEmpleado('${e.id}')" style="background:#ffe3e3;color:#e03131;padding:6px 10px;font-size:12px;"><i class="fas fa-trash"></i></button>` : ''}</div>`).join(''); }
-
-  window.abrirModalEmpleado = () => { ['emp-nombre', 'emp-email', 'emp-pass'].forEach(id => document.getElementById(id).value = ''); document.getElementById('emp-rol').value = 'empleado'; abrirModal('modal-empleado'); };
-
-  window.guardarEmpleado = async () => {
-   const nombre = document.getElementById('emp-nombre').value.trim();
-   const email = document.getElementById('emp-email').value.trim();
-   const pass = document.getElementById('emp-pass').value;
-   const rol = document.getElementById('emp-rol').value;
-   if (!nombre || !email || !pass) { toast('Todos los campos son requeridos', 'error'); return; }
-   if (pass.length < 6) { toast('La contraseña debe tener mínimo 6 caracteres', 'error'); return; }
-   try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    const uid = cred.user.uid;
-    localStorage.setItem(`negocio_${uid}`, negocioId);
-    await setDoc(doc(db, 'negocios', negocioId, 'empleados', uid), { nombre, email, rol, uid, activo: true, creadoEn: serverTimestamp() });
-    // Registrar el negocio en el perfil del empleado para que aparezca en su selector
-    const userRef = doc(db, 'usuarios', uid);
-    await setDoc(userRef, { email, negociosAdmin: [negocioId] }, { merge: true });
-    empleadosCache.push({ id: uid, nombre, email, rol, uid });
-    renderEmpleados();
-    cerrarModal('modal-empleado');
-    toast('Empleado agregado', 'success');
-   } catch (e) {
-    let msg = 'Error: ';
-    if (e.code === 'auth/email-already-in-use') msg += 'Ese email ya existe';
-    else msg += e.message;
-    toast(msg, 'error');
-   }
-  };
-
-  window.eliminarEmpleado = async (id) => { if (!confirm('¿Eliminar este empleado?')) return; try { await deleteDoc(doc(db, 'negocios', negocioId, 'empleados', id)); empleadosCache = empleadosCache.filter(e => e.id !== id); renderEmpleados(); toast('Empleado eliminado', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
-
-  function renderConfig() {
-   if (!negocioData) return;
+function renderConfig() {
+   if (!window.negocioData) return;
    // Cargar estado modo prueba desde localStorage
    try {
-    const saved = localStorage.getItem(`modo_prueba_${negocioId}`);
+    const saved = localStorage.getItem(`modo_prueba_${window.negocioId}`);
     if (saved !== null) modoPrueba = saved === '1';
    } catch(e) {}
    _aplicarModoPrueba();
-   document.getElementById('cfg-nombre').value = negocioData.nombre || '';
-   document.getElementById('cfg-rnc').value = negocioData.rnc || '';
-   document.getElementById('cfg-direccion').value = negocioData.direccion || '';
-   document.getElementById('cfg-ncf-prefijo').value = config.ncfPrefijo || 'B01';
-   document.getElementById('cfg-ncf-seq').value = config.ncfSeq || 1;
-   document.getElementById('cfg-itbis-pct').value = config.itbisPct || 18;
-   document.getElementById('cfg-itbis-cliente').checked = config.itbisCliente === true;
+   document.getElementById('cfg-nombre').value = window.negocioData.nombre || '';
+   document.getElementById('cfg-rnc').value = window.negocioData.rnc || '';
+   document.getElementById('cfg-direccion').value = window.negocioData.direccion || '';
+   document.getElementById('cfg-ncf-prefijo').value = window.config.ncfPrefijo || 'B01';
+   document.getElementById('cfg-ncf-seq').value = window.config.ncfSeq || 1;
+   document.getElementById('cfg-itbis-pct').value = window.config.itbisPct || 18;
+   document.getElementById('cfg-itbis-cliente').checked = window.config.itbisCliente === true;
    // Inicializar selectores de países
    initPaisSelects();
    // Cargar teléfono y whatsapp con auto-detección
-   const telVal = negocioData.telefono || '';
-   const wsVal = negocioData.whatsapp || '';
+   const telVal = window.negocioData.telefono || '';
+   const wsVal = window.negocioData.whatsapp || '';
    document.getElementById('cfg-telefono').value = telVal;
    document.getElementById('cfg-whatsapp').value = wsVal;
    if (telVal) autoDetectPaisTel(telVal, 'cfg-tel-pais', 'cfg-tel-preview');
@@ -62,18 +33,18 @@ function renderEmpleados() { const lista = document.getElementById('empleados-li
    else updateTelPreview('cfg-ws-pais', '', 'cfg-ws-preview');
   }
 
-  window.guardarConfig = async () => { try { const telPaisSel = document.getElementById('cfg-tel-pais'); const wsPaisSel = document.getElementById('cfg-ws-pais'); const telPais = PAISES_TEL.find(p => p.code === telPaisSel?.value); const wsPais = PAISES_TEL.find(p => p.code === wsPaisSel?.value); const telRaw = document.getElementById('cfg-telefono').value.trim(); const wsRaw = document.getElementById('cfg-whatsapp').value.trim(); const telFull = telPais && telRaw ? (telRaw.startsWith('+') ? telRaw : telPais.dial + telRaw.replace(/\D/g, '')) : telRaw; const wsFull = wsPais && wsRaw ? (wsRaw.startsWith('+') ? wsRaw : wsPais.dial + wsRaw.replace(/\D/g, '')) : wsRaw; const negUpdate = { nombre: document.getElementById('cfg-nombre').value.trim(), rnc: document.getElementById('cfg-rnc').value.trim(), direccion: document.getElementById('cfg-direccion').value.trim(), telefono: telFull, whatsapp: wsFull }; const cfgUpdate = { ncfPrefijo: document.getElementById('cfg-ncf-prefijo').value.trim() || 'B01', ncfSeq: parseInt(document.getElementById('cfg-ncf-seq').value) || 1, itbisPct: parseFloat(document.getElementById('cfg-itbis-pct').value) || 18, itbisCliente: document.getElementById('cfg-itbis-cliente').checked }; await updateDoc(doc(db, 'negocios', negocioId), negUpdate); await updateDoc(doc(db, 'negocios', negocioId, 'configuraciones', 'general'), cfgUpdate); negocioData = { ...negocioData, ...negUpdate }; config = { ...config, ...cfgUpdate }; document.getElementById('nav-negocio-nombre').textContent = negocioData.nombre || 'Mi Colmado'; toast('Configuración guardada', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
+  window.guardarConfig = async () => { try { const telPaisSel = document.getElementById('cfg-tel-pais'); const wsPaisSel = document.getElementById('cfg-ws-pais'); const telPais = PAISES_TEL.find(p => p.code === telPaisSel?.value); const wsPais = PAISES_TEL.find(p => p.code === wsPaisSel?.value); const telRaw = document.getElementById('cfg-telefono').value.trim(); const wsRaw = document.getElementById('cfg-whatsapp').value.trim(); const telFull = telPais && telRaw ? (telRaw.startsWith('+') ? telRaw : telPais.dial + telRaw.replace(/\D/g, '')) : telRaw; const wsFull = wsPais && wsRaw ? (wsRaw.startsWith('+') ? wsRaw : wsPais.dial + wsRaw.replace(/\D/g, '')) : wsRaw; const negUpdate = { nombre: document.getElementById('cfg-nombre').value.trim(), rnc: document.getElementById('cfg-rnc').value.trim(), direccion: document.getElementById('cfg-direccion').value.trim(), telefono: telFull, whatsapp: wsFull }; const cfgUpdate = { ncfPrefijo: document.getElementById('cfg-ncf-prefijo').value.trim() || 'B01', ncfSeq: parseInt(document.getElementById('cfg-ncf-seq').value) || 1, itbisPct: parseFloat(document.getElementById('cfg-itbis-pct').value) || 18, itbisCliente: document.getElementById('cfg-itbis-cliente').checked }; await updateDoc(doc(window.db, 'negocios', window.negocioId), negUpdate); await updateDoc(doc(window.db, 'negocios', window.negocioId, 'configuraciones', 'general'), cfgUpdate); negocioData = { ...negocioData, ...negUpdate }; config = { ...config, ...cfgUpdate }; document.getElementById('nav-negocio-nombre').textContent = window.negocioData.nombre || 'Mi Colmado'; toast('Configuración guardada', 'success'); } catch (e) { toast('Error: ' + e.message, 'error'); } };
 
   window.estadisticasHoy = () => { const hoy = new Date(); document.getElementById('stats-fecha-ini').value = hoy.toISOString().split('T')[0]; document.getElementById('stats-fecha-fin').value = hoy.toISOString().split('T')[0]; calcularEstadisticas(); };
 
-  window.calcularEstadisticas = async () => { const fechaIni = document.getElementById('stats-fecha-ini').value; const fechaFin = document.getElementById('stats-fecha-fin').value; let q; if (fechaIni && fechaFin) { const ini = Timestamp.fromDate(new Date(fechaIni)); const fin = Timestamp.fromDate(new Date(fechaFin + 'T23:59:59')); q = query(collection(db, 'negocios', negocioId, 'facturas'), where('fecha', '>=', ini), where('fecha', '<=', fin), orderBy('fecha', 'asc')); } else { q = query(collection(db, 'negocios', negocioId, 'facturas'), orderBy('fecha', 'desc'), limit(100)); } const snap = await getDocs(q); const facturas = snap.docs.map(d => ({ id: d.id, ...d.data() })); const pagadas = facturas.filter(f => f.estado === 'pagada'); const totalVentas = pagadas.reduce((s, f) => s + (f.total || 0), 0); const numFacturas = pagadas.length; let prodsVendidos = 0; const prodConteo = {}; pagadas.forEach(f => { (f.items || []).forEach(i => { prodsVendidos += i.qty || 0; prodConteo[i.nombre] = (prodConteo[i.nombre] || 0) + (i.qty || 0); }); }); document.getElementById('stat-ventas-total').textContent = fmt(totalVentas); document.getElementById('stat-num-facturas').textContent = numFacturas; document.getElementById('stat-prods-vendidos').textContent = prodsVendidos; document.getElementById('stat-promedio').textContent = numFacturas ? fmt(totalVentas / numFacturas) : 'RD$ 0'; renderCharts(pagadas, prodConteo); await calcularContabilidad(fechaIni, fechaFin); };
+  window.calcularEstadisticas = async () => { const fechaIni = document.getElementById('stats-fecha-ini').value; const fechaFin = document.getElementById('stats-fecha-fin').value; let q; if (fechaIni && fechaFin) { const ini = Timestamp.fromDate(new Date(fechaIni)); const fin = Timestamp.fromDate(new Date(fechaFin + 'T23:59:59')); q = query(collection(window.db, 'negocios', window.negocioId, 'facturas'), where('fecha', '>=', ini), where('fecha', '<=', fin), orderBy('fecha', 'asc')); } else { q = query(collection(window.db, 'negocios', window.negocioId, 'facturas'), orderBy('fecha', 'desc'), limit(100)); } const snap = await getDocs(q); const facturas = snap.docs.map(d => ({ id: d.id, ...d.data() })); const pagadas = facturas.filter(f => f.estado === 'pagada'); const totalVentas = pagadas.reduce((s, f) => s + (f.total || 0), 0); const numFacturas = pagadas.length; let prodsVendidos = 0; const prodConteo = {}; pagadas.forEach(f => { (f.items || []).forEach(i => { prodsVendidos += i.qty || 0; prodConteo[i.nombre] = (prodConteo[i.nombre] || 0) + (i.qty || 0); }); }); document.getElementById('stat-ventas-total').textContent = fmt(totalVentas); document.getElementById('stat-num-facturas').textContent = numFacturas; document.getElementById('stat-prods-vendidos').textContent = prodsVendidos; document.getElementById('stat-promedio').textContent = numFacturas ? fmt(totalVentas / numFacturas) : 'RD$ 0'; renderCharts(pagadas, prodConteo); await calcularContabilidad(fechaIni, fechaFin); };
 
-  async function calcularContabilidad(fechaIni, fechaFin) { let q; if (fechaIni && fechaFin) { const ini = Timestamp.fromDate(new Date(fechaIni)); const fin = Timestamp.fromDate(new Date(fechaFin + 'T23:59:59')); q = query(collection(db, 'negocios', negocioId, 'movimientos'), where('fecha', '>=', ini), where('fecha', '<=', fin)); } else { q = query(collection(db, 'negocios', negocioId, 'movimientos'), limit(500)); } const snap = await getDocs(q); const movs = snap.docs.map(d => d.data()); const ingresos = movs.filter(m => m.tipo === 'ingreso').reduce((s, m) => s + (m.monto || 0), 0); const egresos = movs.filter(m => m.tipo === 'gasto').reduce((s, m) => s + (m.monto || 0), 0); document.getElementById('contab-ingresos').textContent = fmt(ingresos); document.getElementById('contab-egresos').textContent = fmt(egresos); document.getElementById('contab-ganancia').textContent = fmt(ingresos - egresos); }
+  async function calcularContabilidad(fechaIni, fechaFin) { let q; if (fechaIni && fechaFin) { const ini = Timestamp.fromDate(new Date(fechaIni)); const fin = Timestamp.fromDate(new Date(fechaFin + 'T23:59:59')); q = query(collection(window.db, 'negocios', window.negocioId, 'movimientos'), where('fecha', '>=', ini), where('fecha', '<=', fin)); } else { q = query(collection(window.db, 'negocios', window.negocioId, 'movimientos'), limit(500)); } const snap = await getDocs(q); const movs = snap.docs.map(d => d.data()); const ingresos = movs.filter(m => m.tipo === 'ingreso').reduce((s, m) => s + (m.monto || 0), 0); const egresos = movs.filter(m => m.tipo === 'gasto').reduce((s, m) => s + (m.monto || 0), 0); document.getElementById('contab-ingresos').textContent = fmt(ingresos); document.getElementById('contab-egresos').textContent = fmt(egresos); document.getElementById('contab-ganancia').textContent = fmt(ingresos - egresos); }
 
   function renderCharts(facturas, prodConteo) {
    const ventasPorDia = {}; facturas.forEach(f => { const fecha = f.fecha?.toDate ? f.fecha.toDate().toLocaleDateString('es-DO') : 'Sin fecha'; ventasPorDia[fecha] = (ventasPorDia[fecha] || 0) + (f.total || 0); });
    if (chartVentas) chartVentas.destroy(); const ctxV = document.getElementById('chart-ventas'); if (ctxV) { chartVentas = new Chart(ctxV, { type: 'bar', data: { labels: Object.keys(ventasPorDia), datasets: [{ label: 'Ventas', data: Object.values(ventasPorDia), backgroundColor: '#00b341', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } }); }
-   const topProds = Object.entries(prodConteo).sort((a, b) => b[1] - a[1]).slice(0, 8); if (chartProductos) chartProductos.destroy(); const ctxP = document.getElementById('chart-productos'); if (ctxP) { chartProductos = new Chart(ctxP, { type: 'bar', data: { labels: topProds.map(p => p[0]), datasets: [{ label: 'Cantidad', data: topProds.map(p => p[1]), backgroundColor: '#1971c2', borderRadius: 6 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }
+   const topProds = Object.entries(prodConteo).sort((a, b) => b[1] - a[1]).slice(0, 8); if (chartProductos) chartProductos.destroy(); const ctxP = document.getElementById('chart-window.productos'); if (ctxP) { chartProductos = new Chart(ctxP, { type: 'bar', data: { labels: topProds.map(p => p[0]), datasets: [{ label: 'Cantidad', data: topProds.map(p => p[1]), backgroundColor: '#1971c2', borderRadius: 6 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }
    const metodos = { efectivo: 0, transferencia: 0, tarjeta: 0 }; facturas.forEach(f => { if (metodos.hasOwnProperty(f.metodoPago)) metodos[f.metodoPago] += f.total || 0; }); if (chartMetodos) chartMetodos.destroy(); const ctxM = document.getElementById('chart-metodos'); if (ctxM) { chartMetodos = new Chart(ctxM, { type: 'doughnut', data: { labels: ['Efectivo', 'Transferencia', 'Tarjeta'], datasets: [{ data: [metodos.efectivo, metodos.transferencia, metodos.tarjeta], backgroundColor: ['#00b341', '#1971c2', '#ffd100'] }] }, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } }); }
   }
 
@@ -191,7 +162,7 @@ function renderEmpleados() { const lista = document.getElementById('empleados-li
   }
   window.toast = toast;
 
-  setTimeout(() => { if (document.getElementById('loading-screen').style.display !== 'none') { const authState = auth.currentUser; if (!authState) showScreen('auth'); } }, 2500);
+  setTimeout(() => { if (document.getElementById('loading-screen').style.display !== 'none') { const authState = window.auth?.currentUser; if (!authState) showScreen('auth'); } }, 2500);
 
   const PAISES_TEL = [
    { code: 'DO', flag: '🇩🇴', name: 'Rep. Dominicana', dial: '+1', areaCodes: ['809', '829', '849'] },
@@ -277,235 +248,5 @@ function renderEmpleados() { const lista = document.getElementById('empleados-li
    );
   };
 
-// Cámara escáner
+// ── Empleados ──
 
-  //  CÁMARA ESCÁNER — lógica
-  (function() {
-  let _camStream   = null;
-  let _barDetector = null;
-  let _scanLoop    = null;
-  let _scanning    = false;
-  let _destino     = null; // 'prod-barcode' | callback fn
-
-  // Abrir cámara y dirigir resultado a un input
-  window.abrirCamaraScanner = function(destinoInputId) {
-   _destino = destinoInputId || 'prod-barcode';
-   document.getElementById('modal-camara-scanner').classList.add('visible');
-   document.getElementById('cam-result-banner').classList.remove('visible');
-   document.getElementById('cam-error-banner').classList.remove('visible');
-   document.getElementById('cam-manual-input').value = '';
-   _setStatus('Iniciando cámara...');
-   _iniciarCamara();
-   if (window._modalStack) {
-    window._modalStack.push('modal-camara-scanner');
-    history.pushState({ modalOpen: 'modal-camara-scanner', stackLen: window._modalStack.length }, '', window.location.href);
-   }
-  };
-
-  window.cerrarCamaraScanner = function() {
-   _detenerCamara();
-   document.getElementById('modal-camara-scanner').classList.remove('visible');
-   if (window._modalStack) {
-    const idx = window._modalStack.lastIndexOf('modal-camara-scanner');
-    if (idx !== -1) window._modalStack.splice(idx, 1);
-   }
-  };
-
-  window.confirmarCodigoCamara = function() {
-   const val = document.getElementById('cam-manual-input').value.trim();
-   if (!val) return;
-   _entregarCodigo(val);
-  };
-
-  function _setStatus(msg) {
-   const el = document.getElementById('cam-status-text');
-   if (el) el.innerHTML = msg;
-  }
-
-  function _mostrarResultado(code) {
-   const banner = document.getElementById('cam-result-banner');
-   const txt    = document.getElementById('cam-result-text');
-   if (txt) txt.textContent = '✅ Código: ' + code;
-   if (banner) banner.classList.add('visible');
-  }
-
-  function _mostrarError(msg) {
-   const banner = document.getElementById('cam-error-banner');
-   const txt    = document.getElementById('cam-error-text');
-   if (txt) txt.textContent = msg;
-   if (banner) banner.classList.add('visible');
-   _setStatus('Ingresa el código manualmente ↓');
-  }
-
-  async function _iniciarCamara() {
-   try {
-    _camStream = await navigator.mediaDevices.getUserMedia({
-     video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
-    const vid = document.getElementById('cam-video');
-    vid.srcObject = _camStream;
-    await vid.play();
-    _setStatus('<strong>Apunta al código de barras</strong>');
-
-    // Usar BarcodeDetector si está disponible (Chrome Android / algunos iOS)
-    if ('BarcodeDetector' in window) {
-     _barDetector = new BarcodeDetector({ formats: [
-      'code_128','code_39','ean_13','ean_8','upc_a','upc_e',
-      'qr_code','data_matrix','codabar','itf'
-     ]});
-     _scanning = true;
-     _loopDetect();
-    } else {
-     // Fallback: solo entrada manual
-     _setStatus('Tu navegador no soporta escaneo automático.<br><strong>Usa el campo manual ↓</strong>');
-    }
-   } catch(err) {
-    _mostrarError('No se pudo acceder a la cámara. Revisa los permisos.');
-    console.warn('Cam error:', err);
-   }
-  }
-
-  function _loopDetect() {
-   if (!_scanning) return;
-   const vid = document.getElementById('cam-video');
-   if (!vid || vid.readyState < 2) { _scanLoop = requestAnimationFrame(_loopDetect); return; }
-   _barDetector.detect(vid).then(codes => {
-    if (codes.length > 0) {
-     const code = codes[0].rawValue;
-     _scanning = false;
-     cancelAnimationFrame(_scanLoop);
-     _entregarCodigo(code);
-    } else {
-     _scanLoop = requestAnimationFrame(_loopDetect);
-    }
-   }).catch(() => {
-    _scanLoop = requestAnimationFrame(_loopDetect);
-   });
-  }
-
-  function _entregarCodigo(code) {
-   _mostrarResultado(code);
-
-   // Si viene del scanner de POS móvil, buscar por código de barras y agregar al carrito
-   if (window._scannerDestinoPos) {
-    window._scannerDestinoPos = false;
-    setTimeout(() => {
-     cerrarCamaraScanner();
-     if (window.productos) {
-      const prod = window.productos.find(p => p.codigoBarras === code);
-      if (prod) {
-       if (window.agregarAlCarrito) window.agregarAlCarrito(prod.id);
-       if (window.toast) toast('✅ ' + prod.nombre + ' agregado al carrito', 'success', 2500);
-      } else {
-       const inp = document.getElementById('pos-buscar');
-       if (inp) {
-        inp.value = code;
-        inp.dispatchEvent(new Event('input', { bubbles: true }));
-        if (window.buscarProductos) window.buscarProductos(code);
-       }
-       if (window.toast) toast('🔍 Buscando: ' + code, 'info', 2000);
-      }
-     }
-    }, 600);
-    return;
-   }
-
-   // Poner en el input destino (comportamiento normal)
-   const inp = document.getElementById(_destino);
-   if (inp) {
-    inp.value = code;
-    inp.dispatchEvent(new Event('input', { bubbles: true }));
-   }
-   // Activar modo "scanBtnActive" del escáner global si aplica
-   if (window._bcScanner) window._bcScanner.scanBtnActive = false;
-   // Toast y cerrar después de un momento
-   setTimeout(() => {
-    if (window.toast) toast('✅ Código capturado: ' + code, 'success', 2500);
-    cerrarCamaraScanner();
-   }, 700);
-  }
-
-  function _detenerCamara() {
-   _scanning = false;
-   if (_scanLoop) { cancelAnimationFrame(_scanLoop); _scanLoop = null; }
-   if (_camStream) {
-    _camStream.getTracks().forEach(t => t.stop());
-    _camStream = null;
-   }
-   const vid = document.getElementById('cam-video');
-   if (vid) { vid.srcObject = null; }
-  }
-
-  // Cerrar al hacer clic en el fondo oscuro
-  document.getElementById('modal-camara-scanner').addEventListener('click', function(e) {
-   if (e.target === this) cerrarCamaraScanner();
-  });
-  })();
-  
-
-// Mobile FAB toggle
-
-  //  MOBILE POS TOGGLE — productos ↔ carrito
-  //  FAB solo visible en sección Facturación (POS)
-  (function () {
-  let _mobVistaCarrito = false;
-
-  function _esMobile() { return window.innerWidth <= 768; }
-
-  // Mostrar/ocultar FAB según la página activa
-  window._actualizarVisibilidadFab = function () {
-   const fab    = document.getElementById('mob-carrito-fab');
-   const enPos  = document.body.classList.contains('en-pos');
-   if (!fab) return;
-   fab.style.display = (_esMobile() && enPos) ? 'flex' : 'none';
-  };
-
-  window.mobToggleCarrito = function (forzar) {
-   if (typeof forzar === 'boolean') _mobVistaCarrito = forzar;
-   else _mobVistaCarrito = !_mobVistaCarrito;
-   _aplicarVista();
-  };
-
-  function _aplicarVista() {
-   if (!_esMobile()) return;
-   const posRight  = document.getElementById('pos-right');
-   const posCenter = document.querySelector('.pos-center');
-   const fab       = document.getElementById('mob-carrito-fab');
-   const fabLabel  = document.getElementById('fab-label');
-   const fabIcon   = document.getElementById('fab-icon-i');
-   if (!posRight || !posCenter || !fab) return;
-
-   if (_mobVistaCarrito) {
-    posRight.classList.add('mob-visible');
-    posCenter.classList.add('mob-hidden');
-    fab.classList.add('modo-carrito');
-    fabLabel.textContent = 'Ver Productos';
-    fabIcon.className = 'fas fa-store';
-   } else {
-    posRight.classList.remove('mob-visible');
-    posCenter.classList.remove('mob-hidden');
-    fab.classList.remove('modo-carrito');
-    fabLabel.textContent = 'Ver Carrito';
-    fabIcon.className = 'fas fa-shopping-cart';
-   }
-  }
-
-  window._actualizarFabBadge = function (n) {
-   const badge = document.getElementById('fab-badge');
-   if (!badge) return;
-   badge.textContent = n;
-   badge.classList.toggle('visible', n > 0);
-  };
-
-  window.addEventListener('resize', () => {
-   if (!_esMobile()) {
-    const posRight  = document.getElementById('pos-right');
-    const posCenter = document.querySelector('.pos-center');
-    if (posRight)  posRight.classList.remove('mob-visible');
-    if (posCenter) posCenter.classList.remove('mob-hidden');
-    _mobVistaCarrito = false;
-   }
-   window._actualizarVisibilidadFab();
-  });
-  })();
-  

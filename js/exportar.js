@@ -1,7 +1,6 @@
 // miColmApp — exportar.js
 // Exportar / Importar inventario completo
 
-
   //  EXPORTAR / IMPORTAR INVENTARIO COMPLETO (con imágenes)
   (function () {
 
@@ -221,4 +220,3 @@
   }
 
   })();
-  
