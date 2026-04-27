@@ -1755,6 +1755,7 @@ padding: 12px;
 }
 
 #pos-dir-clear{
+display: none;
 position: absolute;
     right: 6px;
     background: none;
@@ -4604,6 +4605,10 @@ position: absolute;
     grid-template-columns: 1fr;
   }
 
+  .page{
+    height: calc(100vh - var(--nav-h) - 4rem);
+  }
+
   /* ── Page subtitle ocultar ── */
   .page-subtitle {
     display: none;
@@ -4862,9 +4867,6 @@ font-size: .8rem;
   }
 
   /* ── Inventario ── */
-  #page-inventario {
-    padding: 0.4rem 0.6rem;
-  }
 
   .categorias-grid-inv {
     grid-template-columns: repeat(2, 1fr);
@@ -5233,6 +5235,7 @@ font-size: .8rem;
   display: flex;
   gap: 10px;
   align-items: center;
+  justify-content: flex-end;
 }
 
 /* Inventario modo orden btn */
@@ -5917,8 +5920,31 @@ font-size: .8rem;
 }
 
 /* monto-recibido input */
+.monto-recibido-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.btn-monto-exacto {
+  border: 2px solid #1971c2;
+  background: #e7f1ff;
+  color: #0b4f97;
+  border-radius: var(--radio-sm);
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-monto-exacto:hover {
+  background: #d8e9ff;
+}
+
 .monto-recibido-input {
   width: 100%;
+  flex: 1;
   padding: 10px 14px;
   border: 2px solid var(--gris-borde);
   border-radius: var(--radio-sm);

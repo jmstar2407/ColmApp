@@ -219,8 +219,7 @@
                   style="border:none;outline:none;font-family:var(--font-body);font-size:1.1rem;flex:1;min-width:140px;background:transparent;padding-right:28px;"
                   oninput="_getTabActiva()&&(_getTabActiva().direccion=this.value,_guardarTabsEnStorage());_syncClearBtn('pos-direccion-cliente','pos-dir-clear');">
                 <button id="pos-dir-clear"
-                  onpointerdown="(function(e){e.preventDefault();var inp=document.getElementById('pos-direccion-cliente');inp.value='';if(_getTabActiva()){_getTabActiva().direccion='';_guardarTabsEnStorage();}inp.dispatchEvent(new Event('input',{bubbles:true}));if(window.vkbTarget===inp){window.vkbCursorPos=0;}else{inp.focus();};})(event);"
-                  style=""
+                  type="button"
                   title="Limpiar dirección">&#x2715;</button>
               </div>
               <button class="icon-btn grid-btn" id="btn-orden-az" onclick="toggleOrdenProductos()" title="Orden A-Z / Original">
@@ -799,8 +798,11 @@
           <!-- SECCIÓN EFECTIVO SIMPLE -->
           <div class="efectivo-section visible" id="efectivo-section">
             <div class="mf-seccion-label">Dinero Recibido</div>
-            <input type="number" id="monto-recibido" class="monto-recibido-input"
-              placeholder="0.00" oninput="calcularCambio()" style="text-align:right;">
+            <div class="monto-recibido-row">
+              <button type="button" class="btn-monto-exacto" onclick="ponerMontoExacto()">Monto exacto</button>
+              <input type="number" id="monto-recibido" class="monto-recibido-input"
+                placeholder="0.00" oninput="calcularCambio()" style="text-align:right;">
+            </div>
             <div class="cambio-display" id="cambio-display" style="display: flex; background: rgb(248, 215, 218);">
               <span>💵 Cambio a entregar:</span><span id="cambio-valor">RD$ 0.00</span>
             </div>
@@ -1049,7 +1051,6 @@
               </label>
               <select id="prod-unidad" style="width:100%;padding:10px 14px;border:2px solid var(--gris-borde);border-radius:var(--radio-sm);font-family:var(--font-body);font-size:14px;outline:none;">
                 <option>Unidad</option>
-                <option>Galón</option>
                 <option>Caja</option>
                 <option>Paquete</option>
                 <option>Docena</option>
@@ -3033,7 +3034,7 @@
 
     // ==================== CARRITO ====================
     // Unidades que permiten cantidades decimales (detallables)
-    const UNIDADES_DETALLABLES = ['libra', 'libras', 'lb', 'kilogramo', 'kilogramos', 'kg', 'kilo', 'kilos', 'onza', 'onzas', 'oz', 'litro', 'litros', 'lt', 'l', 'galon', 'galones', 'gal', 'galón', 'galones'];
+    const UNIDADES_DETALLABLES = ['libra', 'libras', 'lb', 'kilogramo', 'kilogramos', 'kg', 'kilo', 'kilos', 'onza', 'onzas', 'oz', 'litro', 'litros', 'lt', 'l'];
 
     function esUnidadDetallable(unidad) {
       if (!unidad) return false;
@@ -3042,7 +3043,7 @@
 
     function labelUnidad(unidad) {
       const u = (unidad || '').toLowerCase().trim();
-      const map = { libra: 'lb', libras: 'lb', lb: 'lb', kilogramo: 'kg', kilogramos: 'kg', kg: 'kg', kilo: 'kg', kilos: 'kg', onza: 'oz', onzas: 'oz', oz: 'oz', litro: 'L', litros: 'L', lt: 'L', l: 'L', galon: 'gal', galones: 'gal', gal: 'gal', 'galón': 'gal' };
+      const map = { libra: 'lb', libras: 'lb', lb: 'lb', kilogramo: 'kg', kilogramos: 'kg', kg: 'kg', kilo: 'kg', kilos: 'kg', onza: 'oz', onzas: 'oz', oz: 'oz', litro: 'L', litros: 'L', lt: 'L', l: 'L' };
       return map[u] || unidad;
     }
 
@@ -3054,7 +3055,8 @@
     window.duCambiarTab = (tab) => {
       _duTab = tab;
       _duValor = '';
-      document.getElementById('du-valor').value = '';
+      const duInput = document.getElementById('du-valor');
+      duInput.value = '';
       document.getElementById('du-tab-cant').classList.toggle('activo', tab === 'cantidad');
       document.getElementById('du-tab-precio').classList.toggle('activo', tab === 'precio');
       const lbl = document.getElementById('du-label-unidad');
@@ -3063,6 +3065,10 @@
       } else {
         lbl.textContent = 'RD$';
       }
+      setTimeout(() => {
+        duInput.focus();
+        duInput.select();
+      }, 0);
       duActualizarResultado();
     };
 
@@ -3162,6 +3168,39 @@
           else if (e.key === 'Escape') { cerrarModal('modal-detalle-unidad'); e.preventDefault(); }
         });
 
+        // Permite escribir directo con teclado físico aun sin foco en el input
+        document.addEventListener('keydown', (e) => {
+          const modal = document.getElementById('modal-detalle-unidad');
+          if (!modal || !modal.classList.contains('active')) return;
+          if (e.ctrlKey || e.altKey || e.metaKey) return;
+          if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+
+          if (e.key >= '0' && e.key <= '9') {
+            duTecla(e.key);
+            e.preventDefault();
+            return;
+          }
+          if (e.key === '.') {
+            duTecla('.');
+            e.preventDefault();
+            return;
+          }
+          if (e.key === 'Backspace') {
+            duTecla('⌫');
+            e.preventDefault();
+            return;
+          }
+          if (e.key === 'Enter') {
+            duConfirmar();
+            e.preventDefault();
+            return;
+          }
+          if (e.key === 'Escape') {
+            cerrarModal('modal-detalle-unidad');
+            e.preventDefault();
+          }
+        });
+
         // Observar apertura del modal para enfocar el input
         const modal = document.getElementById('modal-detalle-unidad');
         if (!modal) return;
@@ -3195,6 +3234,7 @@
       if (btnOk) { btnOk.innerHTML = '<i class="fas fa-check"></i> Agregar al Carrito'; btnOk.disabled = true; }
       duActualizarResultado();
       abrirModal('modal-detalle-unidad');
+      setTimeout(() => document.getElementById('du-valor')?.focus(), 140);
     }
 
     window.abrirModalEditarDetalle = (prodId) => {
@@ -3204,11 +3244,11 @@
       _duProd = item;
       _duModoEdicion = true;
       _duTab = 'cantidad';
-      const qtyActual = item.qty;
-      _duValor = Number.isInteger(qtyActual) ? String(qtyActual) : qtyActual.toFixed(2);
+      // Siempre iniciar vacío al abrir el modal para capturar el nuevo valor de una vez
+      _duValor = '';
       document.getElementById('du-nombre').textContent = item.nombre;
       document.getElementById('du-precio-ref').innerHTML = `Precio: <span class="du-precio-valor">${fmt(item._precioBase || item.precio)}</span> por ${labelUnidad(item.unidad)}`;
-      document.getElementById('du-valor').value = _duValor;
+      document.getElementById('du-valor').value = '';
       document.getElementById('du-label-unidad').textContent = labelUnidad(item.unidad || '');
       document.getElementById('du-tab-cant').classList.add('activo');
       document.getElementById('du-tab-precio').classList.remove('activo');
@@ -3219,6 +3259,7 @@
       if (btnOk) { btnOk.innerHTML = 'Actualizar Carrito'; btnOk.disabled = true; }
       duActualizarResultado();
       abrirModal('modal-detalle-unidad');
+      setTimeout(() => document.getElementById('du-valor')?.focus(), 140);
     };
 
     // Edición inline de cantidad/precio en carrito (para productos detallables)
@@ -4192,7 +4233,16 @@
       // estadoFacturaSeleccionado se resetea a 'pagada' dentro de confirmarFactura()
     };
 
-    window.calcularCambio = () => { const total = getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente === true ? (config.itbisPct || 18) / 100 : 0)); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); disp.style.display = 'flex'; if (recibido > 0) { document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { document.getElementById('cambio-valor').textContent = 'RD$ 0.00'; disp.style.background = 'rgb(248, 215, 218)'; } actualizarBtnConfirmar(); };
+    function _facturaTotalActual() {
+      return getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente === true ? (config.itbisPct || 18) / 100 : 0));
+    }
+    window.ponerMontoExacto = () => {
+      const inp = document.getElementById('monto-recibido');
+      if (!inp) return;
+      inp.value = _facturaTotalActual().toFixed(2);
+      calcularCambio();
+    };
+    window.calcularCambio = () => { const total = _facturaTotalActual(); const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0; const cambio = recibido - total; const disp = document.getElementById('cambio-display'); disp.style.display = 'flex'; if (recibido > 0) { document.getElementById('cambio-valor').textContent = fmt(Math.max(0, cambio)); disp.style.background = cambio >= 0 ? '#d4edda' : '#f8d7da'; } else { document.getElementById('cambio-valor').textContent = 'RD$ 0.00'; disp.style.background = 'rgb(248, 215, 218)'; } actualizarBtnConfirmar(); };
 
     window.tecNumero = (val) => { const inp = document.getElementById('monto-recibido'); if (val === 'C') { inp.value = ''; } else if (val === '⌫') { inp.value = inp.value.slice(0, -1); } else if (val === 'OK') { calcularCambio(); return; } else { inp.value += val; } calcularCambio(); };
 
@@ -5666,7 +5716,7 @@
       if (h1) h1.style.display = 'block';
       if (h2) h2.style.display = 'block';
       if (rh) rh.style.display = 'none';
-      document.getElementById('prod-detalle-enabled').checked = false; _syncDetalleToggleUI(false); const _selU = document.getElementById('prod-unidad'); _selU.innerHTML = '<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; _selU.value = 'Unidad';
+      document.getElementById('prod-detalle-enabled').checked = false; _syncDetalleToggleUI(false); const _selU = document.getElementById('prod-unidad'); _selU.innerHTML = '<option>Unidad</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; _selU.value = 'Unidad';
       document.getElementById('prod-itbis').value = '1';
       // Reset stock toggle
       document.getElementById('prod-stock-enabled').checked = true;
@@ -5793,7 +5843,7 @@
       if (h1) h1.style.display = 'block';
       if (h2) h2.style.display = 'block';
       if (rh) rh.style.display = 'none';
-      document.getElementById('prod-detalle-enabled').checked = false; _syncDetalleToggleUI(false); const _selU = document.getElementById('prod-unidad'); _selU.innerHTML = '<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; _selU.value = 'Unidad';
+      document.getElementById('prod-detalle-enabled').checked = false; _syncDetalleToggleUI(false); const _selU = document.getElementById('prod-unidad'); _selU.innerHTML = '<option>Unidad</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; _selU.value = 'Unidad';
       document.getElementById('prod-itbis').value = '1';
       // Reset stock toggle
       document.getElementById('prod-stock-enabled').checked = true;
@@ -5809,7 +5859,7 @@
       abrirModal('modal-producto');
     };
 
-    window.editarProducto = (id) => { const p = productos.find(pr => pr.id === id); if (!p) return; productoEnEdicion = p; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Producto'; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-peso-neto').value = p.pesoNeto || ''; document.getElementById('prod-barcode').value = p.codigoBarras || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-costo').value = p.costo || ''; const stockHab = p.stockHabilitado !== false; document.getElementById('prod-stock-enabled').checked = stockHab; document.getElementById('stock-fields-wrap').style.display = stockHab ? 'block' : 'none'; document.getElementById('prod-stock').value = stockHab ? (p.stock >= 0 ? p.stock : '') : ''; document.getElementById('prod-stock-min').value = p.stockMin || ''; const detalleActivo = !!p.productoDetalle; document.getElementById('prod-detalle-enabled').checked = detalleActivo; _syncDetalleToggleUI(detalleActivo); const selUnidad = document.getElementById('prod-unidad'); selUnidad.innerHTML = detalleActivo ? '<option>Libra</option><option>Kilogramo</option><option>Onza</option><option>Litro</option>' : '<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; selUnidad.value = p.unidad || (detalleActivo ? 'Libra' : 'Unidad'); document.getElementById('prod-itbis').value = p.itbis !== false ? '1' : '0'; setMasVendidosToggle(!!p.masVendidos); const comboActivo = !!p.comboActivo; document.getElementById('prod-combo-enabled').checked = comboActivo; _syncComboToggleUI(comboActivo); if (comboActivo) { document.getElementById('prod-combo-precio').value = p.comboPrecio || ''; document.getElementById('prod-combo-unidades').value = p.comboUnidades || ''; setTimeout(actualizarComboPreview, 50); } else { document.getElementById('prod-combo-precio').value = ''; document.getElementById('prod-combo-unidades').value = ''; } populateCatSelects(); document.getElementById('prod-categoria').value = p.categoriaId || ''; const icon = document.getElementById('prod-img-icon'); const h1 = document.getElementById('prod-img-hint1'); const h2 = document.getElementById('prod-img-hint2'); const rh = document.getElementById('prod-img-replace-hint'); if (p.imagen) { document.getElementById('prod-img-preview').src = p.imagen; document.getElementById('prod-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (h1) h1.style.display = 'none'; if (h2) h2.style.display = 'none'; if (rh) rh.style.display = 'block'; } else { document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (h1) h1.style.display = 'block'; if (h2) h2.style.display = 'block'; if (rh) rh.style.display = 'none'; } const btnElimP = document.getElementById('btn-eliminar-producto'); if (btnElimP) btnElimP.style.display = 'inline-flex'; abrirModal('modal-producto'); };
+    window.editarProducto = (id) => { const p = productos.find(pr => pr.id === id); if (!p) return; productoEnEdicion = p; document.getElementById('modal-prod-titulo').innerHTML = '<i class="fas fa-edit"></i> Editar Producto'; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-peso-neto').value = p.pesoNeto || ''; document.getElementById('prod-barcode').value = p.codigoBarras || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-costo').value = p.costo || ''; const stockHab = p.stockHabilitado !== false; document.getElementById('prod-stock-enabled').checked = stockHab; document.getElementById('stock-fields-wrap').style.display = stockHab ? 'block' : 'none'; document.getElementById('prod-stock').value = stockHab ? (p.stock >= 0 ? p.stock : '') : ''; document.getElementById('prod-stock-min').value = p.stockMin || ''; const detalleActivo = !!p.productoDetalle; document.getElementById('prod-detalle-enabled').checked = detalleActivo; _syncDetalleToggleUI(detalleActivo); const selUnidad = document.getElementById('prod-unidad'); selUnidad.innerHTML = detalleActivo ? '<option>Libra</option><option>Kilogramo</option><option>Onza</option><option>Litro</option>' : '<option>Unidad</option><option>Caja</option><option>Paquete</option><option>Docena</option>'; selUnidad.value = p.unidad || (detalleActivo ? 'Libra' : 'Unidad'); document.getElementById('prod-itbis').value = p.itbis !== false ? '1' : '0'; setMasVendidosToggle(!!p.masVendidos); const comboActivo = !!p.comboActivo; document.getElementById('prod-combo-enabled').checked = comboActivo; _syncComboToggleUI(comboActivo); if (comboActivo) { document.getElementById('prod-combo-precio').value = p.comboPrecio || ''; document.getElementById('prod-combo-unidades').value = p.comboUnidades || ''; setTimeout(actualizarComboPreview, 50); } else { document.getElementById('prod-combo-precio').value = ''; document.getElementById('prod-combo-unidades').value = ''; } populateCatSelects(); document.getElementById('prod-categoria').value = p.categoriaId || ''; const icon = document.getElementById('prod-img-icon'); const h1 = document.getElementById('prod-img-hint1'); const h2 = document.getElementById('prod-img-hint2'); const rh = document.getElementById('prod-img-replace-hint'); if (p.imagen) { document.getElementById('prod-img-preview').src = p.imagen; document.getElementById('prod-img-preview').style.display = 'block'; if (icon) icon.style.display = 'none'; if (h1) h1.style.display = 'none'; if (h2) h2.style.display = 'none'; if (rh) rh.style.display = 'block'; } else { document.getElementById('prod-img-preview').src = ''; document.getElementById('prod-img-preview').style.display = 'none'; if (icon) icon.style.display = 'block'; if (h1) h1.style.display = 'block'; if (h2) h2.style.display = 'block'; if (rh) rh.style.display = 'none'; } const btnElimP = document.getElementById('btn-eliminar-producto'); if (btnElimP) btnElimP.style.display = 'inline-flex'; abrirModal('modal-producto'); };
 
     window.toggleStockFields = function() {
       const enabled = document.getElementById('prod-stock-enabled').checked;
@@ -5824,7 +5874,7 @@
       const unidadActual = sel.value;
       sel.innerHTML = activo
         ? `<option>Libra</option><option>Kilogramo</option><option>Onza</option><option>Litro</option>`
-        : `<option>Unidad</option><option>Galón</option><option>Caja</option><option>Paquete</option><option>Docena</option>`;
+        : `<option>Unidad</option><option>Caja</option><option>Paquete</option><option>Docena</option>`;
       const opts = Array.from(sel.options).map(o => o.value);
       if (opts.includes(unidadActual)) sel.value = unidadActual;
     };
@@ -6661,21 +6711,68 @@
     // ==================== SYNC CLEAR BUTTONS ====================
     // Mapa de input → botón claro para actualización centralizada
     const _clearBtnMap = {};
+    const _clearBtnReverseMap = {};
 
     window._syncClearBtn = function (inputId, btnId) {
       const inp = document.getElementById(inputId);
       const btn = document.getElementById(btnId);
       if (!inp || !btn) return;
+
+      function setVisible(b, visible) {
+        // Forzar consistencia incluso si hay CSS/JS que re-aplica "flex"
+        b.hidden = !visible;
+        b.style.setProperty('display', visible ? 'flex' : 'none', 'important');
+        if (!visible) b.setAttribute('aria-hidden', 'true');
+        else b.removeAttribute('aria-hidden');
+      }
+
       // Registrar listener una sola vez — es la única fuente de verdad
       if (!_clearBtnMap[inputId]) {
         _clearBtnMap[inputId] = btnId;
+        _clearBtnReverseMap[btnId] = inputId;
+
+        // Handler del botón (sin inline JS): limpiar y ocultar consistentemente
+        const handler = (e) => {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          const inputEl = document.getElementById(inputId);
+          const btnEl = document.getElementById(btnId);
+          if (!inputEl || !btnEl) return;
+
+          inputEl.value = '';
+          // mantener storage (tabs) si aplica
+          try {
+            if (typeof window._getTabActiva === 'function') {
+              const tab = window._getTabActiva();
+              if (tab) {
+                tab.direccion = '';
+                if (typeof window._guardarTabsEnStorage === 'function') window._guardarTabsEnStorage();
+              }
+            }
+          } catch (_) { }
+
+          inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+          // Por si algún listener externo re-muestra el botón, forzamos oculto al final del tick
+          setVisible(btnEl, false);
+          setTimeout(() => setVisible(btnEl, inputEl.value.trim().length > 0), 0);
+        };
+
+        // Evitar doble registro
+        if (!btn.dataset.clearHooked) {
+          btn.addEventListener('pointerdown', handler, true);
+          btn.addEventListener('click', handler, true);
+          btn.dataset.clearHooked = '1';
+        }
+
         inp.addEventListener('input', () => {
           const b = document.getElementById(_clearBtnMap[inputId]);
-          if (b) b.style.display = inp.value.length > 0 ? 'flex' : 'none';
+          if (b) setVisible(b, inp.value.trim().length > 0);
         }, true); // captura: se ejecuta antes que cualquier otro handler
       }
       // Sincronizar estado inmediato
-      btn.style.display = inp.value.length > 0 ? 'flex' : 'none';
+      setVisible(btn, inp.value.trim().length > 0);
     };
 
     // ==================== POS RESIZER ====================
@@ -7443,6 +7540,7 @@
     }
     #monto-recibido[type=number] {
       -moz-appearance: textfield;
+      appearance: textfield;
       text-align: right;
     }
 
