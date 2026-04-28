@@ -65,6 +65,26 @@
       width: 100%;
     }
 
+    /* NET BANNER */
+    #net-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .2px;
+      transform: translateY(-100%);
+      transition: transform .38s cubic-bezier(.34, 1.2, .64, 1);
+      box-shadow: 0 3px 12px rgba(0,0,0,.18);
+    }
+
     /* LOADING */
     #loading-screen {
       position: fixed;
@@ -116,6 +136,11 @@
       min-height: 100vh;
       width: 100%;
       overflow-x: hidden;
+    }
+
+    #screen-shop {
+      overflow: hidden;
+      height: 100dvh;
     }
 
     .screen.active {
@@ -371,15 +396,22 @@
     .shop-body {
       display: flex;
       flex-direction: column;
-      padding: 10px 10px 0;
       max-width: 640px;
       margin: 0 auto;
       width: 100%;
-      overflow-x: hidden;
+      overflow: hidden;
+    }
+
+    /* Search bar sticky under header */
+    .search-sticky {
+      position: sticky;
+      z-index: 90;
+      background: var(--bg);
+      padding: 8px 10px 6px;
+      border-bottom: 1px solid var(--border);
     }
 
     .search-wrap {
-      margin-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -430,17 +462,48 @@
     .shop-cols {
       display: flex;
       gap: 0;
+      height: calc(100dvh - 62px - 52px); /* viewport - shop header - search bar */
+      overflow: hidden;
+    }
+
+    /* Column headers */
+    .col-header {
+      font-size: .65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+      background: var(--white);
+      padding: 8px 8px 7px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .cats-col {
+      width: 30%;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .prods-col {
       flex: 1;
-      min-height: 0;
-      height: calc(100dvh - 62px - 50px - 10px); /* viewport - header - searchbar - padding */
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      overflow: hidden;
     }
 
     /* LEFT: categories sidebar */
     .cats-sidebar {
-      width: 30%;
-      flex-shrink: 0;
-      background: var(--white);
-      border-right: 1px solid var(--border);
+      flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
       scrollbar-width: none;
@@ -450,25 +513,32 @@
 
     .cats-sidebar::-webkit-scrollbar { display: none; }
 
+    /* RIGHT: products panel */
+    .prods-panel {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding: 8px 8px 130px;
+    }
+
+    .prods-panel::-webkit-scrollbar { display: none; }
+
     .cat-chip {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 5px;
       cursor: pointer;
       transition: all .15s;
       width: 100%;
-      border-radius: 7px;
+      border-radius: 9px;
       background: transparent;
       border: none;
-      padding: 8px 4px;
-      margin-bottom: 3px;
+      padding: 5px 4px;
+      margin-bottom: 2px;
       position: relative;
-    }
-
-    .cat-chip.active {
-      background: var(--verde-light);
+      overflow: hidden;
     }
 
     .cat-chip.active::before {
@@ -480,33 +550,73 @@
       width: 3px;
       background: var(--verde);
       border-radius: 0 3px 3px 0;
+      z-index: 2;
+    }
+
+    /* Image chip: image with text overlay */
+    .cat-chip-img-wrap {
+      position: relative;
+      width: 100%;
+      height: 48px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      transition: border-color .15s;
+    }
+
+    .cat-chip.active .cat-chip-img-wrap {
+      border-color: var(--verde);
     }
 
     .cat-chip-image {
-width: 110px;
-      height: 36px;
-      border-radius: 7px;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
-      background: #f0f0f0;
-      border: 1.5px solid transparent;
-      transition: all .15s;
+      display: block;
     }
 
+    /* dark gradient overlay so text is always readable */
+    .cat-chip-img-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.72) 55%, rgba(0,0,0,.18) 100%);
+      border-radius: 6px;
+    }
+
+    .cat-chip-img-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1;
+      font-size: .56rem;
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+      line-height: 1.2;
+      padding: 3px 3px 4px;
+      word-break: break-word;
+      white-space: normal;
+      text-shadow: 0 1px 3px rgba(0,0,0,.5);
+    }
+
+    .cat-chip.active .cat-chip-img-label {
+      color: #fff;
+    }
+
+    /* Emoji chip: emoji box + name below */
     .cat-chip-emoji {
-      width: 36px;
-      height: 36px;
-      border-radius: 7px;
+      width: 100%;
+      height: 48px;
+      border-radius: 8px;
       background: var(--bg2);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      border: 1.5px solid var(--border);
+      font-size: 20px;
+      border: 2px solid var(--border);
       transition: all .15s;
-    }
-
-    .cat-chip.active .cat-chip-image {
-      border-color: var(--verde);
     }
 
     .cat-chip.active .cat-chip-emoji {
@@ -515,7 +625,7 @@ width: 110px;
     }
 
     .cat-chip-name {
-      font-size: .6rem;
+      font-size: .58rem;
       font-weight: 600;
       color: var(--text2);
       text-align: center;
@@ -523,27 +633,13 @@ width: 110px;
       white-space: normal;
       word-break: break-word;
       line-height: 1.2;
-      padding: 0 2px;
+      padding: 3px 2px 0;
     }
 
     .cat-chip.active .cat-chip-name {
       color: var(--verde-dark);
       font-weight: 800;
     }
-
-    /* RIGHT: products panel */
-    .prods-panel {
-      width: 70%;
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-      padding: 8px 8px 130px;
-      background: var(--bg);
-    }
-
-    .prods-panel::-webkit-scrollbar { display: none; }
 
     /* PRODUCTS GRID - always 2 columns inside panel */
     .prods-grid {
@@ -1706,6 +1802,12 @@ width: 110px;
 
 <body>
 
+  <!-- CONNECTIVITY BANNER -->
+  <div id="net-banner">
+    <i id="net-banner-icon" class="fas fa-wifi-slash"></i>
+    <span id="net-banner-text">Sin conexión a internet</span>
+  </div>
+
   <div id="loading-screen">
     <div class="loading-logo">mi<span>Colm</span>App</div>
     <div class="loading-tagline">Tu colmado, a un toque</div>
@@ -1748,14 +1850,22 @@ width: 110px;
       </button>
     </div>
     <div class="shop-body">
-      <div class="search-wrap">
-        <i class="fas fa-search"></i>
-        <input type="text" id="search-input" placeholder="Buscar producto..." oninput="filtrarBusqueda(this.value)" autocomplete="off">
-        <button class="search-clear-btn" id="search-clear-btn" onclick="limpiarBusqueda()"><i class="fas fa-times-circle"></i></button>
+      <div class="search-sticky">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" id="search-input" placeholder="Buscar producto..." oninput="filtrarBusqueda(this.value)" autocomplete="off">
+          <button class="search-clear-btn" id="search-clear-btn" onclick="limpiarBusqueda()"><i class="fas fa-times-circle"></i></button>
+        </div>
       </div>
       <div class="shop-cols">
-        <div class="cats-sidebar" id="cats-scroll"></div>
-        <div class="prods-panel" id="shop-prods"></div>
+        <div class="cats-col">
+          <div class="col-header">Categorías</div>
+          <div class="cats-sidebar" id="cats-scroll"></div>
+        </div>
+        <div class="prods-col">
+          <div class="col-header">Productos</div>
+          <div class="prods-panel" id="shop-prods"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1855,7 +1965,8 @@ width: 110px;
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import {
       getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc,
-      query, orderBy, serverTimestamp, onSnapshot
+      query, orderBy, serverTimestamp, onSnapshot,
+      enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -1869,6 +1980,184 @@ width: 110px;
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    // ── FIRESTORE OFFLINE PERSISTENCE ────────────────────────────────────
+    try {
+      await enableIndexedDbPersistence(db, { cacheSizeBytes: CACHE_SIZE_UNLIMITED });
+    } catch (err) {
+      if (err.code === 'failed-precondition') {
+        console.warn('Firestore persistence: múltiples pestañas abiertas.');
+      } else if (err.code === 'unimplemented') {
+        console.warn('Firestore persistence no disponible en este navegador.');
+      }
+    }
+
+    // ── CACHE LOCAL (IndexedDB via localForage-style wrapper over localStorage) ─
+    // Usamos localStorage como caché secundaria rápida (strings JSON)
+    const CACHE_VERSION = 2;
+    const CK = {
+      colmados:   `mca_v${CACHE_VERSION}_colmados`,
+      negocio:    (id) => `mca_v${CACHE_VERSION}_neg_${id}`,
+      categorias: (id) => `mca_v${CACHE_VERSION}_cats_${id}`,
+      productos:  (id) => `mca_v${CACHE_VERSION}_prods_${id}`,
+      ts:         (key) => `${key}_ts`,
+    };
+    const CACHE_TTL_MS = 30 * 60 * 1000; // 30 min
+
+    function cacheSet(key, data) {
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+        localStorage.setItem(CK.ts(key), Date.now().toString());
+      } catch(e) { /* storage full — ignore */ }
+    }
+
+    function cacheGet(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch(e) { return null; }
+    }
+
+    function cacheFresh(key) {
+      const ts = parseInt(localStorage.getItem(CK.ts(key)) || '0', 10);
+      return (Date.now() - ts) < CACHE_TTL_MS;
+    }
+
+    // ── CONNECTIVITY BANNER ───────────────────────────────────────────────
+    let _wasOffline = false;
+    let _bannerTimer = null;
+
+    function showNetBanner(offline) {
+      const banner = document.getElementById('net-banner');
+      const icon   = document.getElementById('net-banner-icon');
+      const text   = document.getElementById('net-banner-text');
+      clearTimeout(_bannerTimer);
+
+      if (offline) {
+        banner.style.background = '#e03131';
+        banner.style.color = '#fff';
+        icon.className = 'fas fa-wifi-slash';
+        text.textContent = 'Sin conexión — mostrando datos guardados';
+        banner.style.transform = 'translateY(0)';
+      } else {
+        banner.style.background = '#00c04b';
+        banner.style.color = '#fff';
+        icon.className = 'fas fa-wifi';
+        text.textContent = '¡De nuevo en línea!';
+        banner.style.transform = 'translateY(0)';
+        _bannerTimer = setTimeout(() => {
+          banner.style.transform = 'translateY(-110%)';
+        }, 2800);
+      }
+    }
+
+    function hideNetBanner() {
+      const banner = document.getElementById('net-banner');
+      clearTimeout(_bannerTimer);
+      banner.style.transform = 'translateY(-110%)';
+    }
+
+    window.addEventListener('offline', () => {
+      _wasOffline = true;
+      showNetBanner(true);
+    });
+
+    window.addEventListener('online', () => {
+      if (_wasOffline) {
+        showNetBanner(false);
+        _wasOffline = false;
+      }
+    });
+
+    // Check initial state
+    if (!navigator.onLine) {
+      _wasOffline = true;
+      showNetBanner(true);
+    }
+
+    // ── OFFLINE-FIRST DATA FETCHERS ───────────────────────────────────────
+    // Each fetcher: 1) serve from cache instantly if available
+    //               2) fetch from Firestore (works offline via IndexedDB persistence)
+    //               3) update cache on success
+
+    async function fetchColmados() {
+      // Try cache first for instant render
+      const cached = cacheGet(CK.colmados);
+      if (cached) renderColmados(cached);
+
+      try {
+        const snap = await getDocs(collection(db, 'negocios'));
+        const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        cacheSet(CK.colmados, lista);
+        renderColmados(lista);
+      } catch(e) {
+        if (!cached) {
+          document.getElementById('colmados-list').innerHTML =
+            `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${navigator.onLine ? 'Error: ' + e.message : 'Sin conexión y sin datos guardados.<br>Conéctate para cargar los colmados.'}</p></div>`;
+        }
+      }
+    }
+
+    async function fetchNegocio(id) {
+      const cached = cacheGet(CK.negocio(id));
+      if (cached) return cached;
+      const snap = await getDoc(doc(db, 'negocios', id));
+      if (!snap.exists()) return null;
+      const data = { id, ...snap.data() };
+      cacheSet(CK.negocio(id), data);
+      return data;
+    }
+
+    async function fetchCategorias(id) {
+      const cached = cacheGet(CK.categorias(id));
+      if (cached && !navigator.onLine) return cached;
+
+      try {
+        const snap = await getDocs(collection(db, 'negocios', id, 'categorias'));
+        const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        lista.sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
+        cacheSet(CK.categorias(id), lista);
+        return lista;
+      } catch(e) {
+        if (cached) return cached;
+        throw e;
+      }
+    }
+
+    async function fetchProductos(negId, cats) {
+      const cached = cacheGet(CK.productos(negId));
+      if (cached && !navigator.onLine) return cached;
+
+      try {
+        const todos = [];
+        for (const cat of cats) {
+          try {
+            const pSnap = await getDocs(
+              collection(db, 'negocios', negId, 'categorias', cat.id, 'productos')
+            );
+            pSnap.docs.forEach(d => {
+              todos.push({
+                id: d.id,
+                categoriaId: cat.id,
+                categoriaNombre: cat.nombre,
+                categoriaEmoji: cat.emoji || '📦',
+                categoriaImagen: cat.imagen || null,
+                ...d.data(),
+                precio: d.data().precio ?? 0
+              });
+            });
+          } catch(catErr) {
+            console.warn(`Error cat ${cat.id}:`, catErr);
+          }
+        }
+        cacheSet(CK.productos(negId), todos);
+        return todos;
+      } catch(e) {
+        if (cached) return cached;
+        throw e;
+      }
+    }
 
     let colmadoActual = null;
     let colmadoIdActual = null;
@@ -1937,13 +2226,7 @@ width: 110px;
     async function cargarColmados() {
       showScreen('colmados');
       ocultarLoading();
-      try {
-        const snap = await getDocs(collection(db, 'negocios'));
-        renderColmados(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) {
-        document.getElementById('colmados-list').innerHTML =
-          `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></div>`;
-      }
+      await fetchColmados();
     }
 
     function renderColmados(lista) {
@@ -2016,68 +2299,48 @@ width: 110px;
       }
 
       const prodsArea = document.getElementById('shop-prods');
-      if (prodsArea) {
+
+      // ── Show cached data instantly while fetching ──────────────────────
+      const cachedCats  = cacheGet(CK.categorias(id));
+      const cachedProds = cacheGet(CK.productos(id));
+      const cachedNeg   = cacheGet(CK.negocio(id));
+
+      if (cachedNeg) {
+        colmadoActual = cachedNeg;
+        _setShopHeader(cachedNeg);
+      }
+
+      if (cachedCats && cachedProds && cachedProds.length > 0) {
+        categoriasLista = cachedCats;
+        productosLista  = cachedProds;
+        renderCategorias();
+        renderProductos();
+        _setInitialCat();
+        // Show subtle "updating" indicator if online
+        if (navigator.onLine && prodsArea) {
+          const syncBadge = document.createElement('div');
+          syncBadge.id = 'sync-badge';
+          syncBadge.style.cssText = 'position:fixed;bottom:80px;right:12px;background:rgba(25,113,194,.88);color:#fff;border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:700;z-index:300;display:flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.18);';
+          syncBadge.innerHTML = '<i class="fas fa-sync fa-spin" style="font-size:.65rem;"></i> Actualizando...';
+          document.body.appendChild(syncBadge);
+        }
+      } else if (prodsArea) {
         prodsArea.innerHTML = `<div class="empty-state"><div class="loading-spinner" style="border-color:#e2e8f0;border-top-color:var(--verde);width:30px;height:30px;margin:0 auto;"></div><p style="margin-top:12px;">Cargando productos...</p></div>`;
       }
 
+      // ── Fetch fresh data ───────────────────────────────────────────────
       try {
-        const negSnap = await getDoc(doc(db, 'negocios', id));
-        if (!negSnap.exists()) {
-          
-          return;
-        }
-        colmadoActual = { id, ...negSnap.data() };
+        colmadoActual = await fetchNegocio(id);
+        if (!colmadoActual) { console.error('Colmado no encontrado'); return; }
+        _setShopHeader(colmadoActual);
 
-        const hNombre = document.getElementById('shop-header-nombre');
-        const hDir = document.getElementById('shop-header-dir');
-        const hWs = document.getElementById('shop-header-ws');
-        if (hNombre) hNombre.textContent = colmadoActual.nombre || 'Colmado';
-        if (hDir) {
-          hDir.style.display = 'flex';
-          hDir.innerHTML = colmadoActual.direccion ? `<i class="fas fa-map-marker-alt" style="opacity:.7;font-size:.6rem;"></i> ${esc(colmadoActual.direccion)}` : '';
-        }
-        if (hWs) {
-          if (colmadoActual.whatsapp) {
-            hWs.innerHTML = `<i class="fab fa-whatsapp" style="opacity:.7;font-size:.6rem;"></i> ${esc(colmadoActual.whatsapp)}`;
-            hWs.style.display = 'flex';
-          } else {
-            hWs.style.display = 'none';
-          }
-        }
-
-        const catSnap = await getDocs(collection(db, 'negocios', id, 'categorias'));
-        categoriasLista = catSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        categoriasLista.sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
-
-        productosLista = [];
-
-        for (const cat of categoriasLista) {
-          try {
-            const pSnap = await getDocs(
-              collection(db, 'negocios', id, 'categorias', cat.id, 'productos')
-            );
-            pSnap.docs.forEach(d => {
-              productosLista.push({
-                id: d.id,
-                categoriaId: cat.id,
-                categoriaNombre: cat.nombre,
-                categoriaEmoji: cat.emoji || '📦',
-                categoriaImagen: cat.imagen || null,
-                ...d.data(),
-                precio: d.data().precio ?? 0
-              });
-            });
-          } catch (catError) {
-            console.error(`Error cargando productos de categoría ${cat.id}:`, catError);
-          }
-        }
+        categoriasLista = await fetchCategorias(id);
+        productosLista  = await fetchProductos(id, categoriasLista);
 
         console.log(`Productos cargados: ${productosLista.length} de ${categoriasLista.length} categorías`);
 
         if (productosLista.length === 0) {
-          if (prodsArea) {
-            prodsArea.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles en este colmado.<br>Vuelve más tarde.</p></div>`;
-          }
+          if (prodsArea) prodsArea.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles en este colmado.<br>Vuelve más tarde.</p></div>`;
           const catsScroll = document.getElementById('cats-scroll');
           if (catsScroll) catsScroll.innerHTML = `<div class="cat-chip active"><div class="cat-chip-emoji">📦</div><span class="cat-chip-name">Sin productos</span></div>`;
           return;
@@ -2086,13 +2349,53 @@ width: 110px;
         catFiltro = '';
         renderCategorias();
         renderProductos();
+        _setInitialCat();
 
       } catch (e) {
         console.error('Error cargando tienda:', e);
-        
-        if (prodsArea) {
-          prodsArea.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error al cargar: ${e.message}</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;background:var(--verde);color:white;border:none;border-radius:30px;">Reintentar</button></div>`;
+        // Only show error if we have nothing cached
+        if (!cachedProds || !cachedProds.length) {
+          if (prodsArea) {
+            const msg = !navigator.onLine
+              ? 'Sin conexión y sin datos guardados.<br>Conéctate para ver el catálogo.'
+              : `Error al cargar: ${e.message}`;
+            prodsArea.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${msg}</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;background:var(--verde);color:white;border:none;border-radius:30px;">Reintentar</button></div>`;
+          }
         }
+      } finally {
+        // Remove sync badge
+        const badge = document.getElementById('sync-badge');
+        if (badge) badge.remove();
+      }
+    }
+
+    function _setShopHeader(neg) {
+      const hNombre = document.getElementById('shop-header-nombre');
+      const hDir    = document.getElementById('shop-header-dir');
+      const hWs     = document.getElementById('shop-header-ws');
+      if (hNombre) hNombre.textContent = neg.nombre || 'Colmado';
+      if (hDir) {
+        hDir.style.display = 'flex';
+        hDir.innerHTML = neg.direccion ? `<i class="fas fa-map-marker-alt" style="opacity:.7;font-size:.6rem;"></i> ${esc(neg.direccion)}` : '';
+      }
+      if (hWs) {
+        if (neg.whatsapp) {
+          hWs.innerHTML = `<i class="fab fa-whatsapp" style="opacity:.7;font-size:.6rem;"></i> ${esc(neg.whatsapp)}`;
+          hWs.style.display = 'flex';
+        } else {
+          hWs.style.display = 'none';
+        }
+      }
+    }
+
+    function _setInitialCat() {
+      const masV = productosLista.filter(p => p.masVendidos === true);
+      const firstId = masV.length > 0 ? '__mas_vendidos__' : (categoriasLista[0]?.id || '');
+      if (firstId) {
+        catFiltro = firstId;
+        document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('active'));
+        const fc = document.getElementById(`cat-chip-${firstId}`);
+        if (fc) fc.classList.add('active');
       }
     }
 
@@ -2105,8 +2408,8 @@ width: 110px;
 
       if (masVendidosProds.length > 0) {
         const isActive = catFiltro === '__mas_vendidos__';
-        chips += `<div class="cat-chip ${isActive ? 'active' : ''}" onclick="setCatFiltro('__mas_vendidos__')">
-          <div class="cat-chip-emoji">⭐</div>
+        chips += `<div class="cat-chip ${isActive ? 'active' : ''}" id="cat-chip-__mas_vendidos__" onclick="setCatFiltro('__mas_vendidos__')">
+          <div class="cat-chip-emoji" style="${isActive ? 'border-color:var(--verde);background:rgba(0,192,75,.1);' : ''}">⭐</div>
           <span class="cat-chip-name">Más Vendidos</span>
         </div>`;
       }
@@ -2114,27 +2417,64 @@ width: 110px;
       for (const c of categoriasLista) {
         const hasImage = c.imagen && c.imagen.startsWith('http');
         const isActive = c.id === catFiltro;
-        chips += `<div class="cat-chip ${isActive ? 'active' : ''}" onclick="setCatFiltro('${c.id}')">
-          ${hasImage
-            ? `<img class="cat-chip-image" src="${c.imagen}" alt="${esc(c.nombre)}" onerror="this.outerHTML='<div class=&quot;cat-chip-emoji&quot;>${c.emoji || '📦'}</div>'">`
-            : `<div class="cat-chip-emoji">${c.emoji || '📦'}</div>`
-          }
-          <span class="cat-chip-name">${esc(c.nombre)}</span>
-        </div>`;
+        if (hasImage) {
+          chips += `<div class="cat-chip ${isActive ? 'active' : ''}" id="cat-chip-${c.id}" onclick="setCatFiltro('${c.id}')">
+            <div class="cat-chip-img-wrap">
+              <img class="cat-chip-image" src="${c.imagen}" alt="${esc(c.nombre)}"
+                onerror="this.closest('.cat-chip-img-wrap').outerHTML='<div class=\\'cat-chip-emoji\\'>${c.emoji || '📦'}</div><span class=\\'cat-chip-name\\'>${esc(c.nombre)}</span>'">
+              <span class="cat-chip-img-label">${esc(c.nombre)}</span>
+            </div>
+          </div>`;
+        } else {
+          chips += `<div class="cat-chip ${isActive ? 'active' : ''}" id="cat-chip-${c.id}" onclick="setCatFiltro('${c.id}')">
+            <div class="cat-chip-emoji" style="${isActive ? 'border-color:var(--verde);background:rgba(0,192,75,.1);' : ''}">${c.emoji || '📦'}</div>
+            <span class="cat-chip-name">${esc(c.nombre)}</span>
+          </div>`;
+        }
       }
 
       scroll.innerHTML = chips;
     }
 
     window.setCatFiltro = (id) => {
-      catFiltro = (catFiltro === id) ? '' : id;
-      busqueda = '';
-      document.getElementById('search-input').value = '';
-      document.getElementById('search-clear-btn').classList.remove('visible');
-      renderCategorias();
-      renderProductos();
+      // If searching, clear search first
+      if (busqueda) {
+        busqueda = '';
+        document.getElementById('search-input').value = '';
+        document.getElementById('search-clear-btn').classList.remove('visible');
+        renderProductos();
+      }
+
+      catFiltro = id;
+      _scrollSpyEnabled = false; // pause spy while we programmatically scroll
+
+      // Update category highlight
+      document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('active'));
+      const activeChip = document.getElementById(`cat-chip-${id}`);
+      if (activeChip) {
+        activeChip.classList.add('active');
+        // Scroll the category sidebar to show the active chip
+        const sidebar = document.getElementById('cats-scroll');
+        if (sidebar) {
+          const chipTop = activeChip.offsetTop;
+          const chipH = activeChip.offsetHeight;
+          const sidebarH = sidebar.clientHeight;
+          sidebar.scrollTo({ top: chipTop - sidebarH / 2 + chipH / 2, behavior: 'smooth' });
+        }
+      }
+
+      // Smooth scroll products panel to the section anchor
+      const anchor = document.getElementById(`sec-${id}`);
       const panel = document.getElementById('shop-prods');
-      if (panel) panel.scrollTop = 0;
+      if (anchor && panel) {
+        const targetTop = anchor.offsetTop - 4;
+        panel.scrollTo({ top: targetTop, behavior: 'smooth' });
+        // Re-enable scroll spy after scroll settles
+        clearTimeout(_scrollSpyTimer);
+        _scrollSpyTimer = setTimeout(() => { _scrollSpyEnabled = true; }, 700);
+      } else {
+        _scrollSpyEnabled = true;
+      }
     };
 
     window.filtrarBusqueda = (val) => {
@@ -2171,55 +2511,103 @@ width: 110px;
         return;
       }
 
-      let productosFiltrados = [];
-
+      // ── SEARCH MODE ──────────────────────────────────────────────────
       if (busqueda && busqueda.length > 0) {
-        productosFiltrados = productosLista.filter(p => (p.nombre || '').toLowerCase().includes(busqueda.toLowerCase()));
-        if (!productosFiltrados.length) {
+        let filtered = productosLista.filter(p => (p.nombre || '').toLowerCase().includes(busqueda.toLowerCase()));
+        if (!filtered.length) {
           area.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No se encontraron productos para "<strong>${esc(busqueda)}</strong>"</p></div>`;
           return;
         }
-        productosFiltrados = ordenarProductosAlfabeticamente(productosFiltrados);
-        area.innerHTML = `<div class="prods-grid">${productosFiltrados.map(p => prodCardHTML(p, busqueda)).join('')}</div>`;
+        filtered = ordenarProductosAlfabeticamente(filtered);
+        area.innerHTML = `<div class="prods-grid">${filtered.map(p => prodCardHTML(p, busqueda)).join('')}</div>`;
         return;
       }
 
-      if (catFiltro === '__mas_vendidos__') {
-        productosFiltrados = productosLista.filter(p => p.masVendidos === true);
-        if (!productosFiltrados.length) {
-          area.innerHTML = `<div class="empty-state"><i class="fas fa-star"></i><p>No hay productos marcados como más vendidos.</p></div>`;
-          return;
-        }
-        productosFiltrados = ordenarProductosAlfabeticamente(productosFiltrados);
-        area.innerHTML = `<div class="prods-grid">${productosFiltrados.map(p => prodCardHTML(p, '')).join('')}</div>`;
-        return;
-      }
-
-      if (catFiltro && catFiltro !== '' && catFiltro !== 'all') {
-        productosFiltrados = productosLista.filter(p => p.categoriaId === catFiltro);
-        if (!productosFiltrados.length) {
-          area.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos en esta categoría.</p></div>`;
-          return;
-        }
-        productosFiltrados = ordenarProductosAlfabeticamente(productosFiltrados);
-        area.innerHTML = `<div class="prods-grid">${productosFiltrados.map(p => prodCardHTML(p, '')).join('')}</div>`;
-        return;
-      }
-
-      // Sin filtro: mostrar todos los productos por categoría como secciones
+      // ── FULL LAYOUT: sections with anchors ───────────────────────────
       let html = '';
+
+      // Más Vendidos section first
+      const masVendidos = productosLista.filter(p => p.masVendidos === true);
+      if (masVendidos.length > 0) {
+        const sorted = ordenarProductosAlfabeticamente(masVendidos);
+        html += `<span class="cat-section-anchor" id="sec-__mas_vendidos__"></span>
+          <div class="cat-section-label">⭐ Más Vendidos</div>
+          <div class="prods-grid" style="margin-bottom:16px;">${sorted.map(p => prodCardHTML(p, '')).join('')}</div>`;
+      }
+
+      // Then each category section
       for (const cat of categoriasLista) {
         let prods = productosLista.filter(p => p.categoriaId === cat.id);
         if (!prods.length) continue;
         prods = ordenarProductosAlfabeticamente(prods);
-        html += `<div class="cat-section-label">${esc(cat.nombre)}</div>
-          <div class="prods-grid" style="margin-bottom:14px;">${prods.map(p => prodCardHTML(p, '')).join('')}</div>`;
+        html += `<span class="cat-section-anchor" id="sec-${cat.id}"></span>
+          <div class="cat-section-label">${esc(cat.nombre)}</div>
+          <div class="prods-grid" style="margin-bottom:16px;">${prods.map(p => prodCardHTML(p, '')).join('')}</div>`;
       }
 
       if (html === '') {
         area.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles en este colmado.</p></div>`;
       } else {
         area.innerHTML = html;
+        initScrollSpy();
+      }
+    }
+
+    // ── SCROLL SPY ───────────────────────────────────────────────────────
+    let _scrollSpyEnabled = true;
+    let _scrollSpyTimer = null;
+
+    function initScrollSpy() {
+      const panel = document.getElementById('shop-prods');
+      if (!panel) return;
+      // Remove previous listener by cloning (cheap)
+      const newPanel = panel.cloneNode(false);
+      while (panel.firstChild) newPanel.appendChild(panel.firstChild);
+      panel.parentNode.replaceChild(newPanel, panel);
+
+      newPanel.addEventListener('scroll', onProdsScroll, { passive: true });
+    }
+
+    function onProdsScroll() {
+      if (!_scrollSpyEnabled) return;
+      const panel = document.getElementById('shop-prods');
+      if (!panel) return;
+
+      const scrollTop = panel.scrollTop;
+      const masVendidos = productosLista.filter(p => p.masVendidos === true);
+
+      // Build ordered list of section ids as rendered
+      const sectionIds = [];
+      if (masVendidos.length > 0) sectionIds.push('__mas_vendidos__');
+      for (const cat of categoriasLista) {
+        if (productosLista.some(p => p.categoriaId === cat.id)) sectionIds.push(cat.id);
+      }
+
+      // Find which section is currently at the top
+      let activeSec = sectionIds[0];
+      for (const secId of sectionIds) {
+        const anchor = document.getElementById(`sec-${secId}`);
+        if (anchor && anchor.offsetTop <= scrollTop + 24) {
+          activeSec = secId;
+        }
+      }
+
+      if (activeSec === catFiltro) return;
+      catFiltro = activeSec;
+
+      // Update cat chips
+      document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('active'));
+      const activeChip = document.getElementById(`cat-chip-${activeSec}`);
+      if (activeChip) {
+        activeChip.classList.add('active');
+        // Auto-scroll sidebar to show active chip
+        const sidebar = document.getElementById('cats-scroll');
+        if (sidebar) {
+          const chipTop = activeChip.offsetTop;
+          const chipH = activeChip.offsetHeight;
+          const sidebarH = sidebar.clientHeight;
+          sidebar.scrollTo({ top: chipTop - sidebarH / 2 + chipH / 2, behavior: 'smooth' });
+        }
       }
     }
 
@@ -2860,6 +3248,7 @@ width: 110px;
       from { opacity: 0; transform: translateX(-50%) translateY(20px); }
       to   { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
+
     .cat-section-label {
       font-size: .68rem;
       font-weight: 800;
@@ -2868,6 +3257,27 @@ width: 110px;
       color: var(--muted);
       padding: 4px 2px 6px;
       margin-top: 4px;
+    }
+
+    .cat-section-anchor {
+      display: block;
+      height: 0;
+      visibility: hidden;
+    }
+
+    .mas-vendidos-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg,#fffbe6,#fff3cd);
+      color: #7a5500;
+      border: 1px solid #ffe082;
+      border-radius: 20px;
+      font-size: .6rem;
+      font-weight: 800;
+      padding: 1px 7px;
+      margin-left: 6px;
+      vertical-align: middle;
     }
   </style>
 </body>
