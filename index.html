@@ -8,6 +8,77 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>miColmApp – Pedidos</title>
   <link rel="icon" type="image/png" href="./img/micolmapp_logo_solo_blanco.png">
+
+  <!-- ── Open Graph / Meta para compartir ── -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://micolmapp.com/">
+  <meta property="og:title"       content="miColmApp – Pedidos Online de Colmados RD">
+  <meta property="og:description" content="Haz tu pedido en línea fácil y rápido desde tu colmado favorito. Elige tus productos, envía por WhatsApp y recíbelos en tu puerta.">
+  <meta property="og:image"       content="https://micolmapp.com/img/meta-background.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale"      content="es_DO">
+  <meta property="og:site_name"   content="miColmApp">
+
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="miColmApp – Pedidos Online de Colmados RD">
+  <meta name="twitter:description" content="Haz tu pedido en línea fácil y rápido desde tu colmado favorito. Elige tus productos, envía por WhatsApp y recíbelos en tu puerta.">
+  <meta name="twitter:image"       content="https://micolmapp.com/img/meta-background.jpg">
+
+  <meta name="description" content="miColmApp – Pedidos online de colmados en República Dominicana. Elige tus productos y recíbelos en tu puerta.">
+
+  <!-- Script: si hay ?c= en la URL, actualiza título y metas con el nombre del colmado -->
+  <script type="module">
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const cId = params.get('c');
+      if (!cId) return;
+
+      // Helper para actualizar o crear una meta tag
+      function setMeta(selector, attr, value) {
+        let el = document.querySelector(selector);
+        if (!el) { el = document.createElement('meta'); document.head.appendChild(el); }
+        el.setAttribute(attr, value);
+      }
+
+      try {
+        // Esperar a que la app principal exponga el config Firebase (máx 4 s)
+        await new Promise(res => {
+          let tries = 0;
+          const iv = setInterval(() => {
+            if (window.__fbCfg || ++tries > 40) { clearInterval(iv); res(); }
+          }, 100);
+        });
+        if (!window.__fbCfg) return;
+
+        const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+        const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+        const app = getApps().length ? getApps()[0] : initializeApp(window.__fbCfg);
+        const db  = getFirestore(app);
+        const snap = await getDoc(doc(db, 'negocios', cId));
+        if (!snap.exists()) return;
+
+        const nombre  = snap.data().nombre || 'miColmApp';
+        const pageUrl = `https://micolmapp.com/?c=${cId}`;
+        const imgUrl  = 'https://micolmapp.com/img/meta-background.jpg';
+        const desc    = `Haz tu pedido en ${nombre} de forma fácil y rápida. Elige tus productos y recíbelos en tu puerta.`;
+
+        document.title = `${nombre} – Pedidos | miColmApp`;
+
+        setMeta('meta[property="og:title"]',       'content', `${nombre} – Pedidos | miColmApp`);
+        setMeta('meta[property="og:description"]', 'content', desc);
+        setMeta('meta[property="og:url"]',         'content', pageUrl);
+        setMeta('meta[property="og:image"]',       'content', imgUrl);
+        setMeta('meta[name="twitter:title"]',      'content', `${nombre} – Pedidos | miColmApp`);
+        setMeta('meta[name="twitter:description"]','content', desc);
+        setMeta('meta[name="twitter:image"]',      'content', imgUrl);
+        setMeta('meta[name="description"]',        'content', desc);
+      } catch (e) {
+        console.warn('miColmApp meta-update:', e.message);
+      }
+    })();
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,600&display=swap"
     rel="stylesheet">
@@ -2098,6 +2169,7 @@
       appId: "1:767529335752:web:5967b10a0e0da050f91efd"
     };
 
+    window.__fbCfg = firebaseConfig; // exponer para el script de metas OG
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
