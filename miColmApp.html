@@ -6724,9 +6724,24 @@
         renderFacturasTabs();
         renderCarrito();
 
-        // Rellenar campo dirección
+        // Rellenar campo dirección en formato "Dirección - Nombre"
         const dirInput = document.getElementById('pos-direccion-cliente');
-        if (dirInput && tab) dirInput.value = tab.direccion || '';
+        if (dirInput && tab) {
+          const direccionVal = data.clienteDireccion || '';
+          const nombreVal = data.clienteNombre || '';
+          let dirNombreFmt = '';
+          if (direccionVal && nombreVal) {
+            dirNombreFmt = `${direccionVal} - ${nombreVal}`;
+          } else if (direccionVal) {
+            dirNombreFmt = direccionVal;
+          } else if (nombreVal) {
+            dirNombreFmt = nombreVal;
+          }
+          dirInput.value = dirNombreFmt;
+          // Actualizar también en la tab para sincronía
+          tab.direccion = dirNombreFmt;
+          _guardarTabsEnStorage();
+        }
         _syncClearBtn('pos-direccion-cliente', 'pos-dir-clear');
 
         // Ir al POS
