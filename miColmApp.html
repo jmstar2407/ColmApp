@@ -3435,9 +3435,11 @@
         const subtotalReal = window.calcularPrecioConCombo(item.qty, item.precio, item.comboPrecio, item.comboUnidades);
         const combosCompletos = Math.floor(item.qty / item.comboUnidades);
         const sueltas = item.qty % item.comboUnidades;
-        return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u · ${item.comboUnidades}x${fmt(item.comboPrecio)}</div><div><span class="item-subtotal">${fmt(subtotalReal)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
+        const qtyDisplayCombo = Number.isInteger(item.qty) ? item.qty : parseFloat(item.qty.toFixed(2));
+        return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u · ${item.comboUnidades}x${fmt(item.comboPrecio)}</div><div><span class="item-subtotal">${fmt(subtotalReal)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${qtyDisplayCombo}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
       }
-      return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
+      const qtyDisplayNormal = Number.isInteger(item.qty) ? item.qty : parseFloat(item.qty.toFixed(2));
+      return `<div class="carrito-item"><div class="img-producto" style="position:relative;">${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" onerror="this.outerHTML='<div class=&quot;item-emoji&quot;>📦</div>'">` : `<div class="item-emoji">📦</div>`}${pesoNeto}</div><div class="item-info"><div class="item-nombre">${item.nombre}</div><div class="item-precio">${fmt(item.precio)} c/u</div><div><span class="item-subtotal">${fmt(item.precio * item.qty)}</span></div></div><div class="item-ctrl"><button class="qty-btn minus" onclick="cambiarQty('${item.id}', -1)">−</button><span class="qty-num">${qtyDisplayNormal}</span><button class="qty-btn plus" onclick="cambiarQty('${item.id}', 1)">+</button></div></div>`;
     }
 
     function _renderItemDetallable(item) {
@@ -3526,7 +3528,7 @@
               if (cantEl) cantEl.textContent = `${qtyDisplay} ${unidadLabel}`;
             } else {
               const qtyEl = existing.querySelector('.qty-num');
-              if (qtyEl) qtyEl.textContent = item.qty;
+              if (qtyEl) qtyEl.textContent = Number.isInteger(item.qty) ? item.qty : parseFloat(item.qty.toFixed(2));
               const subEl = existing.querySelector('.item-subtotal');
               if (subEl) {
                 if (item.comboActivo && item.comboPrecio && item.comboUnidades >= 2) {
@@ -6662,15 +6664,42 @@
         const id = _crearNuevaTab(tabNombre);
         const tab = facturasTabs.find(t => t.id === id);
         if (tab) {
-          tab.carrito = itemsEnriquecidos.map(it => ({
-            id: it.id || '',
-            nombre: it.nombre || 'Producto',
-            precio: it.precio || 0,
-            qty: it.qty || 1,
-            imagen: it.imagen || null,
-            categoriaId: it.categoriaId || '',
-            stock: 9999 // pedidos entrantes no controlan stock
-          }));
+          tab.carrito = itemsEnriquecidos.map(it => {
+            const unidad = it.unidad || null;
+            const tieneCombo = it.comboActivo && it.comboPrecio && it.comboUnidades >= 2;
+            const esDetallableItem = unidad && ['libra','libras','lb','kilogramo','kilogramos','kg','kilo','kilos','onza','onzas','oz','litro','litros','lt','l'].includes(unidad.toLowerCase().trim());
+            // Calcular subtotal correcto
+            let subtotalCalc;
+            if (it.subtotal !== undefined) {
+              subtotalCalc = it.subtotal;
+            } else if (tieneCombo) {
+              const combosC = Math.floor((it.qty||1) / it.comboUnidades);
+              const sueltasC = (it.qty||1) % it.comboUnidades;
+              subtotalCalc = (combosC * it.comboPrecio) + (sueltasC * it.precio);
+            } else {
+              subtotalCalc = (it.precio || 0) * (it.qty || 1);
+            }
+            const base = {
+              id: it.id || '',
+              nombre: it.nombre || 'Producto',
+              precio: it.precio || 0,
+              qty: it.qty || 1,
+              imagen: it.imagen || null,
+              categoriaId: it.categoriaId || '',
+              unidad: unidad,
+              stock: 9999,
+              _precioInventario: it.precio || 0
+            };
+            if (esDetallableItem && !tieneCombo) {
+              base._precioBase = it.precio || 0;
+            }
+            if (tieneCombo) {
+              base.comboActivo = true;
+              base.comboPrecio = it.comboPrecio;
+              base.comboUnidades = it.comboUnidades;
+            }
+            return base;
+          });
           tab.direccion = data.clienteDireccion || '';
           tab.nombre = tabNombre;
           if (data.clienteNombre) tab.clienteNombre = data.clienteNombre;

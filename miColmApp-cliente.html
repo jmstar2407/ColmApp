@@ -3071,6 +3071,8 @@
         ex.qty++;
         if (p.comboActivo && p.comboPrecio && p.comboUnidades >= 2) {
           ex.subtotal = calcularPrecioConCombo(ex.qty, p.precio, p.comboPrecio, p.comboUnidades);
+        } else {
+          ex.subtotal = p.precio * ex.qty;
         }
       } else {
         const item = { id: prodId, categoriaId: p.categoriaId, nombre: p.nombre || 'Producto', precio: p.precio || 0, qty: 1, imagen: p.imagen || null, emoji: p.emoji || '📦' };
@@ -3079,6 +3081,8 @@
           item.comboPrecio = p.comboPrecio;
           item.comboUnidades = p.comboUnidades;
           item.subtotal = calcularPrecioConCombo(1, p.precio, p.comboPrecio, p.comboUnidades);
+        } else {
+          item.subtotal = p.precio || 0;
         }
         if (p.pesoNeto) item.pesoNeto = p.pesoNeto;
         carrito.push(item);
@@ -3095,6 +3099,8 @@
         carrito = carrito.filter(i => i.id !== prodId);
       } else if (ex.comboActivo && ex.comboPrecio && ex.comboUnidades >= 2) {
         ex.subtotal = calcularPrecioConCombo(ex.qty, ex.precio, ex.comboPrecio, ex.comboUnidades);
+      } else {
+        ex.subtotal = ex.precio * ex.qty;
       }
       actualizarCarritoUI();
       patchProdCard(prodId);
@@ -3130,10 +3136,10 @@
           ? `<img class="cart-item-img" src="${it.imagen}" alt="${esc(it.nombre)}" onerror="this.outerHTML='<div class=\\'cart-item-img-placeholder\\'>${it.emoji || '📦'}</div>'">`
           : `<div class="cart-item-img-placeholder">${it.emoji || '📦'}</div>`;
         const qtyLabel = isUnit
-          ? `${it.qty.toFixed(3)} ${lbl}`
+          ? `${it.qty.toFixed(2)} ${lbl}`
           : `${it.qty}`;
         const unitInfo = isUnit
-          ? `<div class="cart-item-unit">${it.qty.toFixed(3)} ${lbl} × ${fmtPrice(it.precio)}</div>`
+          ? `<div class="cart-item-unit">${it.qty.toFixed(2)} ${lbl} × ${fmtPrice(it.precio)}</div>`
           : it.comboActivo && it.comboPrecio && it.comboUnidades >= 2
             ? `<div class="cart-item-unit">${fmtPrice(it.precio)} c/u · <span style="color:var(--amarillo);font-weight:800;">${it.comboUnidades}x${fmtPrice(it.comboPrecio)}</span></div>`
             : '';
@@ -3267,7 +3273,7 @@
         const isUnit = esDetallable(it.unidad);
         const lbl = it._lbl || labelUnidad(it.unidad) || '';
         const sub = it.subtotal !== undefined ? it.subtotal : it.precio * it.qty;
-        const cantLabel = isUnit ? `${it.qty.toFixed(3)} ${lbl}` : `${it.qty}`;
+        const cantLabel = isUnit ? `${it.qty.toFixed(2)} ${lbl}` : `${it.qty}`;
         msg += `${idx + 1}. ${it.nombre}\n`;
         msg += `   Cantidad: ${cantLabel} × ${fmtPrice(it.precio)}${isUnit ? '/' + lbl : ''} = ${fmtPrice(sub)}\n`;
       });
@@ -3286,13 +3292,19 @@
         clienteNombre: nombre, clienteDireccion: direccion,
         items: carrito.map(i => {
           const sub = i.subtotal !== undefined ? i.subtotal : i.precio * i.qty;
-          return {
+          const item = {
             id: i.id, categoriaId: i.categoriaId,
             nombre: i.nombre, precio: i.precio,
             qty: i.qty, subtotal: sub,
             unidad: i.unidad || null,
             imagen: i.imagen || null
           };
+          if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) {
+            item.comboActivo = true;
+            item.comboPrecio = i.comboPrecio;
+            item.comboUnidades = i.comboUnidades;
+          }
+          return item;
         }),
         total, estado: 'pendiente', enlaceAdmin: link, fecha: serverTimestamp()
       };
@@ -3372,7 +3384,7 @@
 
       const itemsHtml = (data.items || []).map(it => {
         const lbl = it.unidad ? labelUnidad(it.unidad) : null;
-        const qtyLabel = lbl ? `${Number(it.qty).toFixed(3)} ${lbl}` : it.qty;
+        const qtyLabel = lbl ? `${Number(it.qty).toFixed(2)} ${lbl}` : it.qty;
         return `
         <div class="factura-item">
           <div class="factura-item-qty">${qtyLabel}</div>
@@ -3475,6 +3487,7 @@
         transform: translateX(-50%) translateY(20px);
       }
 
+      
       to {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
@@ -3512,6 +3525,8 @@
       margin-left: 6px;
       vertical-align: middle;
     }
+
+
   </style>
 </body>
 
