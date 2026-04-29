@@ -583,7 +583,7 @@
       overflow-x: hidden;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
-      padding: 4px 0px 4px;
+      padding: 4px 0px 70px;
     }
 
     .cats-sidebar::-webkit-scrollbar {
@@ -597,7 +597,7 @@
       overflow-x: hidden;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
-      padding: 4px 6px 0px;
+      padding: 4px 6px 56px;
     }
 
     .prods-panel::-webkit-scrollbar {
@@ -1036,23 +1036,23 @@
       transform: translateY(0);
     }
 
-    .cart-handle {
-      width: 36px;
-      height: 4px;
-      background: var(--border2);
-      border-radius: 2px;
-      margin: 12px auto 0;
-      flex-shrink: 0;
-    }
+.cart-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border2);
+    border-radius: 2px;
+    margin: 6px auto 2px;
+    flex-shrink: 0;
+}
 
-    .cart-drawer-header {
-      padding: 12px 20px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-      border-bottom: 1px solid var(--border);
-    }
+.cart-drawer-header {
+    padding: 0px 14px 7px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+}
 
     .cart-drawer-title {
       font-family: var(--font-display);
@@ -1201,18 +1201,18 @@
       letter-spacing: .4px;
     }
 
-    .form-input {
-      width: 100%;
-      padding: 11px 13px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-family: var(--font);
-      font-size: .88rem;
-      color: var(--text);
-      outline: none;
-      transition: border-color .15s, box-shadow .15s;
-      background: var(--white);
-    }
+.form-input {
+    width: 100%;
+    padding: 8px 13px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: .88rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    background: var(--white);
+}
 
     .form-input:focus {
       border-color: var(--verde);
@@ -1283,15 +1283,16 @@
       display: inline-block;
     }
 
-    .cart-total-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 20px;
-      background: var(--bg2);
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
-    }
+.cart-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 20px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
 
     .cart-total-label {
       font-weight: 700;
@@ -2016,7 +2017,7 @@
           <div style="font-size:.72rem;color:var(--muted);margin-top:1px;">Tu nombre y dirección se guardan en este
             dispositivo para futuros pedidos.</div>
         </div>
-        <span class="remember-saved-badge" id="saved-badge">✓ Guardado</span>
+        <span class="remember-saved-badge" id="saved-badge">Guardado</span>
       </label>
     </div>
     <div class="cart-total-row">
@@ -3187,12 +3188,13 @@
       const drawer = document.getElementById('cart-drawer');
       let startY = 0, currentY = 0, isDragging = false;
 
+      let _gestureBlocked = false;
+
       function onTouchStart(e) {
-        const itemsList = document.getElementById('cart-items-list');
-        if (itemsList && itemsList.scrollTop > 0) return;
         startY = e.touches[0].clientY;
         currentY = startY;
         isDragging = true;
+        _gestureBlocked = false;
         drawer.style.transition = 'none';
       }
 
@@ -3200,9 +3202,25 @@
         if (!isDragging) return;
         currentY = e.touches[0].clientY;
         const delta = currentY - startY;
-        if (delta > 0) {
+
+        // If gesture goes upward, block the drag (let the list scroll normally)
+        if (delta < 0) {
+          _gestureBlocked = true;
+        }
+
+        if (_gestureBlocked) return;
+
+        // Gesture is going downward — only drag drawer if list is scrolled to top
+        const itemsList = document.getElementById('cart-items-list');
+        const atTop = !itemsList || itemsList.scrollTop === 0;
+
+        if (delta > 0 && atTop) {
           drawer.style.transform = `translateY(${delta}px)`;
           e.preventDefault();
+        } else if (delta > 0 && !atTop) {
+          // List still has scroll room — let it scroll, don't drag drawer yet
+          _gestureBlocked = true;
+          drawer.style.transform = '';
         }
       }
 
@@ -3211,12 +3229,13 @@
         isDragging = false;
         drawer.style.transition = '';
         const delta = currentY - startY;
-        if (delta > 100) {
+        if (!_gestureBlocked && delta > 100) {
           drawer.style.transform = '';
           cerrarCarrito();
         } else {
           drawer.style.transform = '';
         }
+        _gestureBlocked = false;
       }
 
       drawer.addEventListener('touchstart', onTouchStart, { passive: true });
