@@ -7,6 +7,7 @@
   <meta name="format-detection" content="telephone=no, date=no, email=no, address=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>miColmApp – Pedidos</title>
+  <link rel="icon" type="image/png" href="./img/micolmapp_logo_solo_blanco.png">
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,600&display=swap"
     rel="stylesheet">
@@ -218,14 +219,20 @@
       backdrop-filter: blur(8px);
     }
 
-    .header-logo {
-      font-family: var(--font-display);
-      font-size: 1.35rem;
-      font-weight: 900;
-      color: var(--verde);
-      flex: 1;
-      letter-spacing: -0.5px;
-    }
+.header-logo {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: var(--verde);
+    flex: 1;
+    letter-spacing: -0.5px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.header-logo img{
+    height: 40px;
+}
 
     .header-logo span {
       color: var(--azul);
@@ -417,6 +424,7 @@
       height: 130px;
       border-radius: 50%;
       background: rgba(255, 255, 255, .07);
+      pointer-events: none;
     }
 
     .shop-banner::after {
@@ -1906,7 +1914,7 @@
   <!-- COLMADOS -->
   <div class="screen" id="screen-colmados">
     <div class="app-header">
-      <div class="header-logo">mi<span>Colm</span>App</div>
+      <div class="header-logo"><img src="./img/micolmapp_logo_1_letra.png"></div>
     </div>
     <div class="page-content">
       <div class="page-hero">
@@ -3294,16 +3302,14 @@
         const sub = it.subtotal !== undefined ? it.subtotal : it.precio * it.qty;
         const cantLabel = isUnit ? `${it.qty.toFixed(2)} ${lbl}` : `${it.qty}`;
         msg += `${idx + 1}. ${it.nombre}\n`;
-        msg += `   Cantidad: ${cantLabel} × ${fmtPrice(it.precio)}${isUnit ? '/' + lbl : ''} = ${fmtPrice(sub)}\n`;
+        msg += `   Cant.: ${cantLabel} × ${fmtPrice(it.precio)}${isUnit ? '/' + lbl : ''} = ${fmtPrice(sub)}\n`;
       });
 
       msg += `\n`;
       msg += `------------------------------------------------------------------\n`;
       msg += `TOTAL: *${fmtPrice(total)}*\n`;
       msg += `================================\n\n`;
-      msg += `Enlace de seguimiento:\n`;
-      msg += `${link}\n\n`;
-      msg += `Gracias por su compra.`;
+      msg += `${link}`;
 
       const pedidoData = {
         pedidoId, colmadoId: colmadoIdActual,

@@ -6,6 +6,7 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>miColmApp – POS Colmados RD</title>
+  <link rel="icon" type="image/png" href="./img/micolmapp_logo_solo_blanco.png">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Nunito:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -143,10 +144,14 @@
     <!-- NAVBAR -->
     <nav class="navbar">
       <div class="navbar-brand">
-        <div class="brand-icon">🏪</div>
+        <div class="brand-icon"><img src="./img/micolmapp_logo_solo_blanco.png" style="height: 100%;"></div>
         <div>
-          <h1><span style="color: #4a5568">mi</span><span style="color: #1a2135">Colm</span><span
-              style="color: #fc4f62;">app</span></h1>
+          <!-- <h1><span style="color: #4a5568">mi</span><span style="color: #1a2135">Colm</span><span
+              style="color: #fc4f62;">app</span></h1> -->
+
+              <img src="./img/micolmapp_logo_1_letra.png" style="height: 27px;top: 5px;position: relative;">
+
+
           <div class="negocio-nombre" id="nav-negocio-nombre">Cargando...</div>
         </div>
       </div>
@@ -4236,7 +4241,17 @@
     };
 
     function _facturaTotalActual() {
-      return getCarrito().reduce((s, i) => s + (i._precioBase || i.precio) * i.qty, 0) * (1 + (config.itbisCliente === true ? (config.itbisPct || 18) / 100 : 0));
+      const carrito = getCarrito();
+      const subtotal = carrito.reduce((s, i) => {
+        if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2)
+          return s + window.calcularPrecioConCombo(i.qty, i.precio, i.comboPrecio, i.comboUnidades);
+        if (i._precioBase !== undefined)
+          return s + i._precioBase * i.qty; // productos detallables (libras, kg, etc.)
+        return s + i.precio * i.qty;
+      }, 0);
+      const itbisPct = config.itbisPct || 18;
+      const itbisCliente = config.itbisCliente === true;
+      return subtotal * (1 + (itbisCliente ? itbisPct / 100 : 0));
     }
     window.ponerMontoExacto = () => {
       const inp = document.getElementById('monto-recibido');

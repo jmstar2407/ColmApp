@@ -319,8 +319,8 @@ body {
 }
 
 .navbar-brand .brand-icon {
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   background: var(--verde);
   border-radius: 8px;
   display: flex;
