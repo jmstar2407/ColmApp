@@ -3265,10 +3265,15 @@
       if (!nombre) { mostrarError('Por favor escribe tu nombre'); return; }
       if (!direccion) { mostrarError('Por favor escribe tu dirección de entrega'); return; }
 
+      const total = carrito.reduce((s, i) => s + (i.subtotal !== undefined ? i.subtotal : i.precio * i.qty), 0);
+      if (total < 50) {
+        mostrarError('El pedido mínimo es de RD$ 50.00. Agrega más productos para continuar.');
+        return;
+      }
+
       guardarDatosSiRecordar();
 
       const pedidoId = idCorto();
-      const total = carrito.reduce((s, i) => s + (i.subtotal !== undefined ? i.subtotal : i.precio * i.qty), 0);
       const fecha = new Date().toLocaleString('es-DO', {
         year: 'numeric',
         month: '2-digit',
@@ -3341,14 +3346,26 @@
         console.error(e); return;
       }
 
-      const wsNumero = colmadoActual?.whatsapp || '';
-      let waUrl;
+      // Leer el whatsapp del negocio directo de Firestore para garantizar el número correcto
+      let wsNumero = colmadoActual?.whatsapp || '';
+      try {
+        const negSnap = await getDoc(doc(db, 'negocios', colmadoIdActual));
+        if (negSnap.exists()) {
+          const negData = negSnap.data();
+          if (negData.whatsapp) wsNumero = negData.whatsapp;
+          colmadoActual = { ...colmadoActual, ...negData, id: colmadoIdActual };
+        }
+      } catch (e) {
+        console.warn('No se pudo leer whatsapp fresco, usando caché:', e);
+      }
 
+      let waUrl;
       if (wsNumero) {
         const wsDigits = wsNumero.replace(/\D/g, '');
         waUrl = `https://wa.me/${wsDigits}?text=${encodeURIComponent(msg)}`;
       } else {
-        waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+        mostrarError('Este negocio no tiene número de WhatsApp configurado.');
+        return;
       }
 
       window.open(waUrl, '_blank');
