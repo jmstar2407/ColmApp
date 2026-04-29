@@ -862,7 +862,6 @@
 
     .prod-add-btn {
       width: 100%;
-      margin-top: 8px;
       padding: 8px;
       border: none;
       border-radius: var(--radius-xs);
@@ -2589,14 +2588,20 @@
         }
       }
 
-      // Smooth scroll products panel so the section LABEL appears at the top
+      // Smooth scroll products panel so the section LABEL appears right below the col-header
       const panel = document.getElementById('shop-prods');
       const anchor = document.getElementById(`sec-${id}`);
       if (anchor && panel) {
-        // offsetTop of the anchor gives us position relative to the panel's scroll container
-        // We want the section LABEL (next sibling) to be at the very top with a tiny padding
-        const labelEl = anchor.nextElementSibling; // the .cat-section-label div
-        const targetTop = labelEl ? labelEl.offsetTop - 6 : anchor.offsetTop;
+        // Use getBoundingClientRect to get position relative to the visible viewport,
+        // then convert to scroll position within the panel.
+        const labelEl = anchor.nextElementSibling; // .cat-section-label
+        const refEl = labelEl || anchor;
+        const panelRect = panel.getBoundingClientRect();
+        const refRect = refEl.getBoundingClientRect();
+        // refRect.top - panelRect.top = distance from top of panel's visible area
+        // panel.scrollTop = current scroll offset
+        // So absolute scroll target = current scrollTop + (refTop - panelTop)
+        const targetTop = panel.scrollTop + (refRect.top - panelRect.top);
         panel.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
         // Re-enable scroll spy after scroll settles
         clearTimeout(_scrollSpyTimer);
@@ -2710,14 +2715,23 @@
         if (productosLista.some(p => p.categoriaId === cat.id)) sectionIds.push(cat.id);
       }
 
-      // Find which section is currently at the top — use the label element for accuracy
+      // Activate the category whose prods-grid has the most visible pixels inside the panel
+      const panelRect = panel.getBoundingClientRect();
       let activeSec = sectionIds[0];
+      let bestVisible = -1;
       for (const secId of sectionIds) {
         const anchor = document.getElementById(`sec-${secId}`);
         if (!anchor) continue;
+        // DOM order: anchor → cat-section-label → prods-grid
         const labelEl = anchor.nextElementSibling;
-        const refEl = labelEl || anchor;
-        if (refEl.offsetTop <= scrollTop + 16) {
+        const gridEl = labelEl ? labelEl.nextElementSibling : null;
+        if (!gridEl) continue;
+        const gridRect = gridEl.getBoundingClientRect();
+        const visTop = Math.max(gridRect.top, panelRect.top);
+        const visBottom = Math.min(gridRect.bottom, panelRect.bottom);
+        const visible = Math.max(0, visBottom - visTop);
+        if (visible > bestVisible) {
+          bestVisible = visible;
           activeSec = secId;
         }
       }
@@ -2777,10 +2791,7 @@
         ? `RD$ ${Number(p.precio).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         : 'Sin precio';
       let precioLabel = detallable ? `${precioFmt} / ${lbl}` : precioFmt;
-      if (tieneCombo) {
-        const comboPrecioFmt = `RD$ ${Number(p.comboPrecio).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        precioLabel = `${precioFmt} · <span style="color:var(--amarillo);font-size:.78rem;">${p.comboUnidades}x${comboPrecioFmt}</span>`;
-      }
+      // combo span removed — badge already shown on image
 
       const imgHtml = p.imagen
         ? `<img class="prod-img" src="${p.imagen}" alt="${esc(p.nombre || '')}" onerror="this.parentElement.innerHTML='<div class=\\'prod-placeholder\\'>${p.emoji || '📦'}</div>'">`
@@ -2795,7 +2806,7 @@
         : '';
 
       const comboBadge = tieneCombo
-        ? `<div class="prod-combo-badge">${p.comboUnidades}x${Number(p.comboPrecio).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>`
+        ? `<div class="prod-combo-badge">${p.comboUnidades}x${Math.round(p.comboPrecio)}</div>`
         : '';
 
       const nombreHtml = highlightText(p.nombre || 'Producto', query);
