@@ -2321,24 +2321,37 @@ background: #0000008c;
 
     // RECORDAR DATOS
     const LS_KEY = 'micolmapp_cliente_datos';
+    const LS_CART_KEY = 'micolmapp_carrito';
 
     function cargarDatosGuardados() {
       try {
         const raw = localStorage.getItem(LS_KEY);
-        if (!raw) return;
+        if (!raw) {
+          // No saved data yet, but checkbox is ON by default
+          document.getElementById('recordar-check').checked = true;
+          return;
+        }
         const datos = JSON.parse(raw);
         if (datos.nombre) document.getElementById('cliente-nombre').value = datos.nombre;
         if (datos.direccion) document.getElementById('cliente-direccion').value = datos.direccion;
-        if (datos.recordar) {
-          document.getElementById('recordar-check').checked = true;
+        // Default checked unless user explicitly turned it off
+        const recordar = datos.recordar !== false;
+        document.getElementById('recordar-check').checked = recordar;
+        if (recordar) {
           document.getElementById('saved-badge').classList.add('visible');
         }
-      } catch (e) { }
+      } catch (e) {
+        document.getElementById('recordar-check').checked = true;
+      }
     }
 
     function guardarDatosSiRecordar() {
       const recordar = document.getElementById('recordar-check').checked;
-      if (!recordar) { localStorage.removeItem(LS_KEY); return; }
+      if (!recordar) {
+        // Save the preference that user explicitly turned it off
+        localStorage.setItem(LS_KEY, JSON.stringify({ recordar: false }));
+        return;
+      }
       const nombre = document.getElementById('cliente-nombre').value.trim();
       const direccion = document.getElementById('cliente-direccion').value.trim();
       if (nombre || direccion) {
@@ -2389,6 +2402,7 @@ background: #0000008c;
     window.selColmado = (id) => abrirShop(id);
     window.volverColmados = () => {
       carrito = []; actualizarCarritoUI();
+      try { localStorage.removeItem(LS_CART_KEY); } catch (e) { }
       showScreen('colmados');
       history.pushState({ screen: 'colmados' }, '', location.pathname);
       cargarColmados();
@@ -2417,6 +2431,7 @@ background: #0000008c;
       const shopScreen = document.getElementById('screen-shop');
       if (shopScreen && shopScreen.classList.contains('active')) {
         carrito = []; actualizarCarritoUI();
+        try { localStorage.removeItem(LS_CART_KEY); } catch (e) { }
         showScreen('colmados');
         history.replaceState({ screen: 'colmados' }, '', location.pathname);
         cargarColmados();
@@ -2429,10 +2444,27 @@ background: #0000008c;
       showScreen('shop');
       ocultarLoading();
       colmadoIdActual = id;
-      carrito = [];
       catFiltro = '';
       busqueda = '';
       _scrollSpyAttached = false;
+
+      // Restore cart from localStorage if it belongs to this colmado
+      try {
+        const savedCart = localStorage.getItem(LS_CART_KEY);
+        if (savedCart) {
+          const parsed = JSON.parse(savedCart);
+          if (parsed.colmadoId === id && Array.isArray(parsed.items) && parsed.items.length > 0) {
+            carrito = parsed.items;
+          } else {
+            carrito = [];
+          }
+        } else {
+          carrito = [];
+        }
+      } catch (e) {
+        carrito = [];
+      }
+
       actualizarCarritoUI();
 
       if (!history.state || history.state.screen !== 'shop' || history.state.colmadoId !== id) {
@@ -3142,6 +3174,11 @@ background: #0000008c;
     };
 
     function actualizarCarritoUI() {
+      // Persist cart to localStorage so it survives page refresh
+      try {
+        localStorage.setItem(LS_CART_KEY, JSON.stringify({ colmadoId: colmadoIdActual, items: carrito }));
+      } catch (e) { }
+
       const total = carrito.reduce((s, i) => s + (i.subtotal !== undefined ? i.subtotal : i.precio * i.qty), 0);
       const count = carrito.length;
       const tf = fmtPrice(total);
@@ -3380,7 +3417,14 @@ background: #0000008c;
       let waUrl;
       if (wsNumero) {
         const wsDigits = wsNumero.replace(/\D/g, '');
-        waUrl = `https://wa.me/${wsDigits}?text=${encodeURIComponent(msg)}`;
+        const encodedMsg = encodeURIComponent(msg);
+        // On iOS use whatsapp:// deep link to open the app directly
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isIOS) {
+          waUrl = `whatsapp://send?phone=${wsDigits}&text=${encodedMsg}`;
+        } else {
+          waUrl = `https://wa.me/${wsDigits}?text=${encodedMsg}`;
+        }
       } else {
         mostrarError('Este negocio no tiene número de WhatsApp configurado.');
         return;
@@ -3390,6 +3434,11 @@ background: #0000008c;
       linkGenerado = link;
       document.getElementById('link-pedido-box').style.display = 'block';
       document.getElementById('link-pedido-url').textContent = link;
+
+      // Clear cart after successful order
+      carrito = [];
+      try { localStorage.removeItem(LS_CART_KEY); } catch (e) { }
+      actualizarCarritoUI();
 
     };
 
