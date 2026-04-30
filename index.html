@@ -7,7 +7,7 @@
   <meta name="format-detection" content="telephone=no, date=no, email=no, address=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>miColmApp – Pedidos</title>
-  <link rel="icon" type="image/png" href="./img/micolmapp_logo_solo_blanco.png">
+  <link rel="icon" type="image/png" href="./img/micolmapp_logo_favico.png">
 
   <!-- ── Open Graph / Meta para compartir ── -->
   <meta property="og:type"        content="website">
@@ -3565,8 +3565,19 @@ background: #0000008c;
       document.getElementById(`screen-${name}`).classList.add('active');
     }
 
+    // Timestamp de inicio de carga (siempre al cargar la página)
+    const _loadingStart = Date.now();
+    const _loadingMin = 3000; // 3 segundos mínimos
+
     function ocultarLoading() {
-      document.getElementById('loading-screen').style.display = 'none';
+      const elapsed = Date.now() - _loadingStart;
+      const remaining = Math.max(0, _loadingMin - elapsed);
+      setTimeout(() => {
+        const ls = document.getElementById('loading-screen');
+        ls.style.transition = 'opacity .4s ease';
+        ls.style.opacity = '0';
+        setTimeout(() => { ls.style.display = 'none'; }, 400);
+      }, remaining);
     }
 
     function mostrarError(msg) {
