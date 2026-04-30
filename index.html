@@ -3414,23 +3414,14 @@ background: #0000008c;
         console.warn('No se pudo leer whatsapp fresco, usando caché:', e);
       }
 
-      let waUrl;
-      if (wsNumero) {
-        const wsDigits = wsNumero.replace(/\D/g, '');
-        const encodedMsg = encodeURIComponent(msg);
-        // On iOS use whatsapp:// deep link to open the app directly
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        if (isIOS) {
-          waUrl = `whatsapp://send?phone=${wsDigits}&text=${encodedMsg}`;
-        } else {
-          waUrl = `https://wa.me/${wsDigits}?text=${encodedMsg}`;
-        }
-      } else {
+      if (!wsNumero) {
         mostrarError('Este negocio no tiene número de WhatsApp configurado.');
         return;
       }
 
-      window.open(waUrl, '_blank');
+      const wsDigits = wsNumero.replace(/\D/g, '');
+      const waUrl = `https://wa.me/${wsDigits}?text=${encodeURIComponent(msg)}`;
+      location.href = waUrl;
       linkGenerado = link;
       document.getElementById('link-pedido-box').style.display = 'block';
       document.getElementById('link-pedido-url').textContent = link;
