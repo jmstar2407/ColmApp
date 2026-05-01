@@ -1323,10 +1323,12 @@
     if (anchor) anchor.href = adminLink;
     if (urlEl)  urlEl.textContent = adminLink;
 
-    // Limpiar carrito
+    // Limpiar carrito y reiniciar controles de productos en el DOM
     carrito = [];
     try { localStorage.removeItem(LS_CART_KEY); } catch(e){}
     actualizarCarritoUI();
+    // Re-renderizar productos para resetear todos los controles de cantidad a "Agregar"
+    renderProductos();
     if (btnWa) btnWa.classList.remove('loading');
 
     // Abrir WhatsApp nativamente según plataforma

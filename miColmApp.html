@@ -60,11 +60,23 @@
   <div id="loading-screen">
     <div class="ls-icon">🏪</div>
     <h2>miColmApp</h2>
-    <p>Cargando sistema...</p>
+    <p id="ls-msg">Cargando sistema...</p>
     <div class="progress-bar">
       <div class="progress-fill"></div>
     </div>
   </div>
+  <script>
+    // Mostrar mensaje de pedido entrante si la URL tiene ?c=&p= (antes de que cargue el módulo)
+    (function() {
+      try {
+        var p = new URLSearchParams(window.location.search);
+        if (p.get('c') && p.get('p')) {
+          var el = document.getElementById('ls-msg');
+          if (el) el.textContent = 'Cargando pedido entrante...';
+        }
+      } catch(e) {}
+    })();
+  </script>
 
   <!-- AUTH SCREEN -->
   <div id="auth-screen">
@@ -2284,6 +2296,8 @@
     // ==================== AUTH STATE ====================
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Cancelar cualquier timer de espera pendiente
+        if (window._authWaitTimer) { clearTimeout(window._authWaitTimer); window._authWaitTimer = null; }
         currentUser = user;
         // Verificar si había un negocio activo en sesión anterior
         const negActivo = localStorage.getItem(`negocio_activo_${user.uid}`);
@@ -2294,6 +2308,23 @@
           await mostrarSelectorNegocios(user);
         }
       } else {
+        // Si la URL tiene parámetros de pedido entrante (?c=&p=), el BroadcastChannel
+        // ya está intentando ceder el pedido a la pestaña principal.
+        // NO mostrar la pantalla de auth en este caso — esperar a que el canal actúe
+        // o a que Firebase Auth resuelva la sesión persistida (puede tardar hasta 1 s).
+        const _urlParams = new URLSearchParams(window.location.search);
+        const _hasOrderParams = !!((_urlParams.get('c')) && (_urlParams.get('p')));
+        if (_hasOrderParams) {
+          // Dejar la pantalla de carga visible; el BroadcastChannel manejará el cierre
+          // o manejarPedidoEntrante() cargará el pedido una vez que la sesión resuelva.
+          // Si en 3 s la sesión sigue sin resolver, entonces sí mostrar auth.
+          if (!window._authWaitTimer) {
+            window._authWaitTimer = setTimeout(() => {
+              if (!currentUser) { currentUser = null; negocioId = null; negocioData = null; showScreen('auth'); }
+            }, 3000);
+          }
+          return;
+        }
         currentUser = null;
         negocioId = null;
         negocioData = null;
