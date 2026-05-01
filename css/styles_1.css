@@ -2055,14 +2055,14 @@ body {
     }
 
   .prods-panel {
-    padding: 4px 16px 80px;
+padding: 4px 10px 80px;
   }
 
   /* Ajustar grid de productos a 2 columnas cómodas */
-  .prods-grid {
-    grid-template-columns: repeat(2, 1fr);
-gap: 0.9rem;
-  }
+    .prods-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
 }
 
 /* ── Responsive ──────────────────────────────────────────────────── */
