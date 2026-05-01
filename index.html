@@ -197,7 +197,7 @@
         <div class="link-pedido-label" style="font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:4px;">
           <i class="fas fa-store"></i> Enlace para el administrador del colmado
         </div>
-        <a id="link-pedido-anchor" href="#" target="_blank" rel="noopener" class="link-pedido-admin">
+        <a id="link-pedido-anchor" href="#" target="micolmapp_admin" rel="noopener" class="link-pedido-admin">
           <i class="fas fa-external-link-alt"></i>
           <div>
             <div id="link-pedido-url" style="word-break:break-all;"></div>
@@ -1255,17 +1255,27 @@
     msg    += 'Nombre: ' + nombre + '\nDirección: ' + direccion + '\n\n';
     msg    += '*DETALLE DEL PEDIDO*\n---------------------------------------\n';
     carrito.forEach((it, idx) => {
-      const isUnit = esDetallable(it.unidad);
-      const lbl    = it._lbl || labelUnidad(it.unidad) || '';
-      const sub    = it.subtotal !== undefined ? it.subtotal : it.precio * it.qty;
+      const isUnit     = esDetallable(it.unidad);
+      const lbl        = it._lbl || labelUnidad(it.unidad) || '';
+      const sub        = it.subtotal !== undefined ? it.subtotal : it.precio * it.qty;
+      const tieneCombo = !isUnit && it.comboActivo && it.comboPrecio && it.comboUnidades >= 2;
       msg += (idx+1) + '. ' + it.nombre + '\n';
-      msg += '   Cant.: ' + (isUnit ? it.qty.toFixed(2)+' '+lbl : it.qty);
-      msg += ' × ' + fmtPrice(it.precio) + (isUnit ? '/'+lbl : '') + ' = ' + fmtPrice(sub) + '\n';
+      if (tieneCombo) {
+        const combos  = Math.floor(it.qty / it.comboUnidades);
+        const sueltas = it.qty % it.comboUnidades;
+        let detalle = '';
+        if (combos > 0)  detalle += combos + ' combo' + (combos > 1 ? 's' : '') + ' (' + it.comboUnidades + 'uds × ' + fmtPrice(it.comboPrecio) + ')';
+        if (sueltas > 0) detalle += (detalle ? ' + ' : '') + sueltas + 'ud × ' + fmtPrice(it.precio);
+        msg += '   Cant.: ' + it.qty + ' (' + detalle + ') = ' + fmtPrice(sub) + '\n';
+      } else {
+        msg += '   Cant.: ' + (isUnit ? it.qty.toFixed(2)+' '+lbl : it.qty);
+        msg += ' × ' + fmtPrice(it.precio) + (isUnit ? '/'+lbl : '') + ' = ' + fmtPrice(sub) + '\n';
+      }
     });
     msg += '\n------------------------------------------------------------------\n';
     msg += 'TOTAL: *' + fmtPrice(total) + '*\n';
     msg += '================================\n\n';
-    msg += '📋 *Ver y gestionar pedido:*\n' + adminLink;
+    msg += adminLink;
 
     const pedidoData = {
       pedidoId,

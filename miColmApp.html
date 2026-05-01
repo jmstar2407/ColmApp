@@ -6615,6 +6615,7 @@
           }
           if (tipo === 'pedido_entrante' && c && p) {
             bc.postMessage({ tipo: 'pedido_recibido', p });
+            window.focus();
             await window._manejarPedidoEntranteConParams(c, p);
           }
         };
