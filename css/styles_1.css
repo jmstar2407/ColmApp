@@ -285,11 +285,12 @@ body {
   padding: 0 4px;
 }
 
-#cart-header-btn{
-      flex-shrink: 0;
+#cart-header-btn {
+    flex-shrink: 0;
     position: relative;
     background: rgb(0 169 61);
     border: 1.5px solid rgba(255, 255, 255, 0.4);
+    border: none;
     border-radius: 12px;
     width: 38px;
     height: 38px;
@@ -300,7 +301,20 @@ body {
     font-size: 1.1rem;
     cursor: pointer;
     backdrop-filter: blur(4px);
-    transition: background 0.15s;
+}
+
+#cart-header-btn:hover,
+#cart-header-btn:active,
+#cart-header-btn:focus {
+  background: rgb(0 169 61) !important;
+  outline: none;
+}
+
+#volverComadobtn:hover,
+#volverComadobtn:active,
+#volverComadobtn:focus {
+  background: rgb(0 164 59) !important;
+  outline: none;
 }
 
 /* ── Lista de colmados ───────────────────────────────────────────── */
@@ -483,8 +497,6 @@ body {
   font-size: 1rem;
   cursor: pointer;
   backdrop-filter: blur(4px);
-  transition: background .15s;
-
 }
 
 
@@ -584,7 +596,6 @@ body {
   background: var(--white);
   padding: 8px 8px 7px;
   border-bottom: 1px solid var(--border);
-  border-top: 1px solid var(--border);
   text-align: center;
   position: sticky;
   top: 0;
@@ -672,12 +683,10 @@ body {
   height: 48px;
   border-radius: 8px;
   overflow: hidden;
-  border: 2px solid transparent;
   transition: border-color .15s;
 }
 
 .cat-chip.active .cat-chip-img-wrap {
-  border-color: var(--verde);
 }
 
 .cat-chip-image {
@@ -831,18 +840,18 @@ background: #0000007a;
 }
 
 .prod-peso-neto-badge {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  background: rgb(0 192 75);
-  color: #fff;
-  border-radius: 5px;
-  font-size: .6rem;
-  font-weight: 700;
-  padding: 2px 5px;
-  letter-spacing: .2px;
-  line-height: 1.3;
-  pointer-events: none;
+    position: absolute;
+    bottom: 5px;
+    right: 0px;
+    background: rgb(0 169 61);
+    color: #fff;
+    border-radius: 5px 0px 5px 0px;
+    font-size: .6rem;
+    font-weight: 700;
+    padding: 2px 5px;
+    letter-spacing: .2px;
+    line-height: 1.3;
+    pointer-events: none;
 }
 
 .prod-combo-badge {
@@ -862,7 +871,26 @@ background: #0000007a;
 }
 
 .prod-body {
-  padding: 0px 5px 5px;
+    padding: 0px 0px 5px;
+}
+
+#cart-header-badge{
+  position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #ff660c;
+    color: white;
+    border-radius: 20px;
+    font-size: .58rem;
+    font-weight: 900;
+    min-width: 17px;
+    height: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid white;
+    line-height: 1;
 }
 
 .prod-nombre {
@@ -992,7 +1020,7 @@ background: #0000007a;
   justify-content: space-between;
   color: white;
   cursor: pointer;
-  box-shadow: var(--shadow-verde);
+  /*box-shadow: var(--shadow-verde);*/
   z-index: 150;
   transform: translateY(130px);
   opacity: 0;
@@ -1078,46 +1106,61 @@ background: #0000007a;
 }
 
 .cart-drawer-header {
-  padding: 0px 14px 7px 4px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
+    padding: 0px 16px 7px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
 }
 
 .cart-drawer-title {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 900;
-  color: var(--text);
+    font-family: system-ui;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #475569;
 }
 
 .cart-close-btn {
-  background: var(--bg2);
-  border: none;
-  border-radius: var(--radius-xs);
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  color: var(--text2);
-  font-size: .9rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    background: #cb4b4b;
+    border: none;
+    border-radius: var(--radius-xs);
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    color: #ffffff;
+    font-size: .9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .cart-items-list {
   overflow-y: auto;
   flex: 1;
   padding: 6px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--verde) transparent;
+}
+
+.cart-items-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cart-items-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cart-items-list::-webkit-scrollbar-thumb {
+  background: var(--verde);
+  border-radius: 4px;
 }
 
 .cart-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
+  padding: 4px 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -1126,8 +1169,8 @@ background: #0000007a;
 }
 
 .cart-item-img {
-  width: 54px;
-  height: 54px;
+  width: 52px;
+  height: 52px;
   border-radius: 10px;
   object-fit: cover;
   flex-shrink: 0;
@@ -1135,8 +1178,8 @@ background: #0000007a;
 }
 
 .cart-item-img-placeholder {
-  width: 54px;
-  height: 54px;
+  width: 52px;
+  height: 52px;
   border-radius: 10px;
   background: linear-gradient(135deg, var(--bg), var(--bg2));
   display: flex;
@@ -1347,22 +1390,22 @@ background: #0000007a;
 }
 
 .btn-whatsapp {
-  width: 100%;
-  padding: 15px;
-  background: linear-gradient(135deg, #25D366, #1aad52);
-  border: none;
-  border-radius: var(--radius-sm);
-  color: white;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 900;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  box-shadow: 0 4px 16px rgba(37, 211, 102, .35);
-  transition: transform .15s, box-shadow .15s;
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #25D366, #1aad52);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-family: sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(37, 211, 102, .35);
+    transition: transform .15s, box-shadow .15s;
 }
 
 .btn-whatsapp:active {
@@ -1370,7 +1413,7 @@ background: #0000007a;
 }
 
 .btn-whatsapp i {
-  font-size: 1.1rem;
+    font-size: 1.4rem;
 }
 
 .link-pedido-box {
@@ -1996,7 +2039,7 @@ background: #ffffff !important;
   font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: .6px;
-  color: #505050;
+    color: #5f687a;
   padding: 4px 2px 6px;
   margin-top: 4px;
   text-align: center;
@@ -2082,6 +2125,7 @@ font-size: .6rem;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+    border-bottom: 1px solid var(--border);
   }
 
   .cats-sidebar::-webkit-scrollbar {
@@ -2106,8 +2150,9 @@ font-size: .6rem;
     }
 
   .cat-chip.active {
-    background: rgba(0,192,75,0.18);
-    border-color: var(--verde);
+    /*background: rgba(0,192,75,0.18);
+    border-color: var(--verde);*/
+    box-shadow: 0px 0px 0px 1px rgb(255 255 255), 0px 0px 0px 3px rgb(0 159 72);
   }
 
   /* Indicador izquierdo (vertical) → ocultarlo en modo horizontal */
@@ -2119,13 +2164,12 @@ font-size: .6rem;
     .cat-chip-img-wrap {
         width: 90px;
         height: 52px;
-                border-radius: 9px;
+        border-radius: 9px;
         flex-shrink: 0;
-        border: 2px solid transparent;
+
     }
 
   .cat-chip.active .cat-chip-img-wrap {
-    border-color: var(--verde);
   }
 
   .cat-chip-emoji {

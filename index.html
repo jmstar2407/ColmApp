@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="format-detection" content="telephone=no, date=no, email=no, address=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>miColmApp – Pedidos</title>
@@ -74,9 +74,7 @@
   <!-- ══ PANTALLA: TIENDA ══ -->
   <div class="screen" id="screen-shop">
     <div id="shop-header" class="shop-banner">
-      <button id="volverComadobtn" onclick="volverColmados()"
-        onmouseenter="this.style.background='rgb(0 123 44)'"
-        onmouseleave="this.style.background='rgb(0 169 61)'">
+      <button id="volverComadobtn" onclick="volverColmados()">
         <i class="fas fa-arrow-left"></i>
       </button>
       <div style="flex:1;min-width:0;overflow:hidden;">
@@ -84,12 +82,9 @@
         <div id="shop-header-dir"></div>
         <div id="shop-header-ws"></div>
       </div>
-      <button id="cart-header-btn" onclick="abrirCarrito()"
-        onmouseenter="this.style.background='rgba(255,255,255,.32)'"
-        onmouseleave="this.style.background='rgba(255,255,255,.2)'">
+      <button id="cart-header-btn" onclick="abrirCarrito()">
         <i class="fas fa-shopping-cart"></i>
-        <span id="cart-header-badge"
-          style="position:absolute;top:-6px;right:-6px;background:var(--rojo);color:white;border-radius:20px;font-size:.58rem;font-weight:900;min-width:17px;height:17px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid white;line-height:1;">0</span>
+        <span id="cart-header-badge">0</span>
       </button>
     </div>
     <div class="shop-body">
@@ -99,7 +94,8 @@
             <i class="fas fa-search"></i>
             <input type="text" id="search-input" placeholder="Buscar producto..."
               oninput="filtrarBusqueda(this.value)"
-              autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search">
+              autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search"
+              data-form-type="other" data-lpignore="true" data-1p-ignore="true" role="searchbox">
             <button class="search-clear-btn" id="search-clear-btn"
               ontouchend="event.preventDefault();limpiarBusqueda();"
               onclick="limpiarBusqueda()" type="button">
@@ -146,12 +142,12 @@
   <div class="cart-drawer" id="cart-drawer">
     <div class="cart-handle"></div>
     <div class="cart-drawer-header">
-      <div class="cart-drawer-title">🛒 Tu Carrito</div>
+      <div class="cart-drawer-title"><i class="fas fa-shopping-cart"></i> Tu Carrito</div>
       <button class="cart-close-btn" onclick="cerrarCarrito()"><i class="fas fa-times"></i></button>
     </div>
     <div class="cart-items-list" id="cart-items-list"></div>
     <div class="cart-form">
-      <div class="cart-form-title">📦 Datos de entrega</div>
+      <div class="cart-form-title">Datos de entrega:</div>
       <div class="form-row">
         <label class="form-label"><i class="fas fa-user"></i> Tu Nombre</label>
         <input type="text" class="form-input" id="cliente-nombre" placeholder="Ej: Juan Pérez"
@@ -168,7 +164,7 @@
           <div class="remember-label"><strong>Recordar mis datos</strong></div>
           <div style="font-size:.72rem;color:var(--muted);margin-top:1px;">Tu nombre y dirección se guardan en este dispositivo para futuros pedidos.</div>
         </div>
-        <span class="remember-saved-badge" id="saved-badge">Guardado</span>
+
       </label>
     </div>
     <div class="cart-total-row">
@@ -229,6 +225,30 @@
        para que funcione abriendo el archivo local (file://)
        sin necesidad de servidor
   ══════════════════════════════════════════════════════════════════ -->
+  <!-- Bloquear zoom en iOS Safari y Android Chrome -->
+  <script>
+    // Prevenir pinch-to-zoom en iOS Safari (que ignora user-scalable=no a veces)
+    document.addEventListener('touchstart', function(e) {
+      if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('gesturechange', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('gestureend', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+    // Prevenir doble-tap zoom en iOS/Android
+    let _lastTap = 0;
+    document.addEventListener('touchend', function(e) {
+      const now = Date.now();
+      if (now - _lastTap < 300) e.preventDefault();
+      _lastTap = now;
+    }, { passive: false });
+  </script>
+
   <script type="module">
 
   // ════════════════════════════════════════════════════════════════
@@ -555,18 +575,28 @@
 
     if (mvProds.length > 0) {
       const isActive = catFiltro === '__mas_vendidos__';
-      const mvImg = mvProds.find(p=>p.imagen&&p.imagen.startsWith('http'));
-      if (mvImg) {
+      const masVendidosBg = colmadoActual?.masVendidosBg;
+      if (masVendidosBg && masVendidosBg.startsWith('http')) {
         chips += `<div class="cat-chip ${isActive?'active':''}" id="cat-chip-__mas_vendidos__" onclick="setCatFiltro('__mas_vendidos__')">
           <div class="cat-chip-img-wrap">
-            <img class="cat-chip-image" src="${mvImg.imagen}" alt="Más Vendidos" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <img class="cat-chip-image" src="${masVendidosBg}" alt="Más Vendidos" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,#fff3cd,#ffe082);position:absolute;inset:0;">⭐</div>
-            <span class="cat-chip-img-label">⭐ Más Vendidos</span>
+            <span class="cat-chip-img-label"><i class="fa-solid fa-star" style="color: #00a93d;"></i> Más Vendidos</span>
           </div></div>`;
       } else {
-        chips += `<div class="cat-chip ${isActive?'active':''}" id="cat-chip-__mas_vendidos__" onclick="setCatFiltro('__mas_vendidos__')">
-          <div class="cat-chip-emoji" style="${isActive?'border-color:var(--verde);background:rgba(0,192,75,.1);':''}background:linear-gradient(135deg,#fff3cd,#ffe082);border-color:#ffe082;">⭐</div>
-          <span class="cat-chip-name">Más Vendidos</span></div>`;
+        const mvImg = mvProds.find(p=>p.imagen&&p.imagen.startsWith('http'));
+        if (mvImg) {
+          chips += `<div class="cat-chip ${isActive?'active':''}" id="cat-chip-__mas_vendidos__" onclick="setCatFiltro('__mas_vendidos__')">
+            <div class="cat-chip-img-wrap">
+              <img class="cat-chip-image" src="${mvImg.imagen}" alt="Más Vendidos" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,#fff3cd,#ffe082);position:absolute;inset:0;">⭐</div>
+              <span class="cat-chip-img-label"><i class="fa-solid fa-star" style="color: #00a93d;"></i> Más Vendidos</span>
+            </div></div>`;
+        } else {
+          chips += `<div class="cat-chip ${isActive?'active':''}" id="cat-chip-__mas_vendidos__" onclick="setCatFiltro('__mas_vendidos__')">
+            <div class="cat-chip-emoji" style="${isActive?'border-color:var(--verde);background:rgba(0,192,75,.1);':''}background:linear-gradient(135deg,#fff3cd,#ffe082);border-color:#ffe082;">⭐</div>
+            <span class="cat-chip-name">Más Vendidos</span></div>`;
+        }
       }
     }
     for (const c of categoriasLista) {
@@ -653,7 +683,7 @@
     const masV = productosLista.filter(p=>p.masVendidos===true);
     if (masV.length>0) {
       html += `<span class="cat-section-anchor" id="sec-__mas_vendidos__"></span>
-        <div class="cat-section-label">⭐ Más Vendidos</div>
+        <div class="cat-section-label"><i class="fa-solid fa-star" style="color: #00a93d;"></i> Más Vendidos</div>
         <div class="prods-grid" style="margin-bottom:16px;">${ordenarAlf(masV).map(p=>prodCardHTML(p,'')).join('')}</div>`;
     }
     for (const cat of categoriasLista) {
@@ -742,7 +772,7 @@
     const lbl = labelUnidad(p.unidad);
     const tieneCombo = p.comboActivo && p.comboPrecio && p.comboUnidades>=2;
     const precioFmt = (p.precio!=null) ? `RD$ ${Number(p.precio).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2})}` : 'Sin precio';
-    const precioLabel = det ? `${precioFmt} / ${lbl}` : precioFmt;
+    const precioLabel = det ? `${precioFmt}/${lbl}` : precioFmt;
     const imgHtml = p.imagen ? `<img class="prod-img" src="${p.imagen}" alt="${esc(p.nombre||'')}" onerror="this.parentElement.innerHTML='<div class=\\'prod-placeholder\\'>${p.emoji||'📦'}</div>'">` : `<div class="prod-placeholder">${p.emoji||'📦'}</div>`;
     const cartBadge = qty>0 ? `<div class="prod-in-cart-badge">${det?qty.toFixed(2)+' '+lbl:qty}</div>` : '';
     const pesoNetoBadge = p.pesoNeto ? `<div class="prod-peso-neto-badge">${esc(p.pesoNeto)}</div>` : '';
@@ -752,17 +782,17 @@
     if (!det) {
       ctrl = qty>0
         ? `<div class="prod-qty-ctrl"><button class="qty-btn minus" onclick="event.stopPropagation();quitarProd('${p.id}')">−</button><div class="qty-display">${qty}</div><button class="qty-btn plus" onclick="event.stopPropagation();agregarProd('${p.id}')">+</button></div>`
-        : `<button class="prod-add-btn" onclick="event.stopPropagation();agregarProd('${p.id}')"><i class="fas fa-plus"></i> Agregar</button>`;
+        : `<button class="prod-add-btn" onclick="event.stopPropagation();agregarProd('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Agregar</button>`;
     } else {
       ctrl = enCarrito
         ? `<div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><button class="prod-add-btn" style="background:var(--rojo-light);color:var(--rojo);width:auto;padding:8px 10px;flex-shrink:0;" onclick="event.stopPropagation();eliminarDelCarrito('${p.id}')"><i class="fas fa-trash"></i></button><button class="prod-add-btn" style="background:var(--azul);flex:1;margin-top:0;" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fas fa-edit"></i> Editar</button></div>`
-        : `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fas fa-plus"></i> Agregar</button>`;
+        : `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Agregar</button>`;
     }
-    return `<div class="prod-card ${qty>0?'en-carrito':''}" data-prod-id="${p.id}" onclick="${det?'abrirModalUnidad(\''+p.id+'\')':'agregarProd(\''+p.id+'\')'}">
+    return `<div class="prod-card ${qty>0?'en-carrito':''}" data-prod-id="${p.id}">
       <div class="prod-img-wrap">${comboBadge}${imgHtml}${cartBadge}${pesoNetoBadge}</div>
       <div class="prod-body">
         <div class="prod-nombre">${highlightText(p.nombre||'Producto',query)}</div>
-        <div class="prod-precio">${precioLabel}</div>
+        <div class="prod-precio" ${det?'style="color:var(--azul);"':''}>${precioLabel}</div>
         ${det?`<div class="prod-unidad-badge">Se vende por ${lbl}</div>`:''}
         ${ctrl}
       </div></div>`;
@@ -791,11 +821,11 @@
       if (!det) {
         newCtrlHTML = qty>0
           ? `<div class="prod-qty-ctrl"><button class="qty-btn minus" onclick="event.stopPropagation();quitarProd('${p.id}')">−</button><div class="qty-display">${qty}</div><button class="qty-btn plus" onclick="event.stopPropagation();agregarProd('${p.id}')">+</button></div>`
-          : `<button class="prod-add-btn" onclick="event.stopPropagation();agregarProd('${p.id}')"><i class="fas fa-plus"></i> Agregar</button>`;
+          : `<button class="prod-add-btn" onclick="event.stopPropagation();agregarProd('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Agregar</button>`;
       } else {
         newCtrlHTML = enCarrito
           ? `<div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><button class="prod-add-btn" style="background:var(--rojo-light);color:var(--rojo);width:auto;padding:8px 10px;flex-shrink:0;" onclick="event.stopPropagation();eliminarDelCarrito('${p.id}')"><i class="fas fa-trash"></i></button><button class="prod-add-btn" style="background:var(--azul);flex:1;margin-top:0;" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fas fa-edit"></i> Editar</button></div>`
-          : `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fas fa-plus"></i> Agregar</button>`;
+          : `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Agregar</button>`;
       }
       const tmp = document.createElement('div'); tmp.innerHTML = newCtrlHTML;
       const newCtrl = tmp.firstElementChild;
@@ -813,7 +843,7 @@
     _modalProdId=prodId; _modalModo=_modoInput[prodId]||'unidad';
     const lbl=labelUnidad(p.unidad);
     const imgEl = p.imagen ? `<img class="unit-modal-prod-img" src="${p.imagen}" alt="${esc(p.nombre||'')}" onerror="this.outerHTML='<div class=\\'unit-modal-prod-emoji\\'>${p.emoji||'📦'}</div>'">` : `<div class="unit-modal-prod-emoji">${p.emoji||'📦'}</div>`;
-    document.getElementById('unit-modal-prod-info').innerHTML = `${imgEl}<div><div class="unit-modal-prod-name">${esc(p.nombre||'Producto')}</div><div class="unit-modal-prod-price">RD$ ${Number(p.precio).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2})} / ${lbl}</div></div>`;
+    document.getElementById('unit-modal-prod-info').innerHTML = `${imgEl}<div><div class="unit-modal-prod-name">${esc(p.nombre||'Producto')}</div><div class="unit-modal-prod-price">RD$ ${Number(p.precio).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2})}/${lbl}</div></div>`;
     document.getElementById('unit-modal-tab-unidad').textContent = `Por ${lbl}`;
     document.getElementById('unit-modal-tab-unidad').className = 'unit-modal-tab'+(_modalModo==='unidad'?' active':'');
     document.getElementById('unit-modal-tab-precio').className = 'unit-modal-tab'+(_modalModo==='precio'?' active':'');
