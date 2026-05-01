@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <!-- ══ ESTILOS PROPIOS (archivo separado) ══ -->
   <link rel="stylesheet" href="./css/styles_1.css">
+  <style>#saved-badge.visible{opacity:1!important;}</style>
 </head>
 
 <body>
@@ -161,10 +162,11 @@
       <label class="remember-row" onclick="toggleRecordar()">
         <input type="checkbox" class="remember-checkbox" id="recordar-check">
         <div>
-          <div class="remember-label"><strong>Recordar mis datos</strong></div>
+          <div class="remember-label"><strong>Recordar mis datos</strong>
+            <span id="saved-badge" style="display:inline-block;margin-left:6px;font-size:.68rem;background:var(--verde);color:#fff;border-radius:20px;padding:1px 8px;font-weight:700;vertical-align:middle;opacity:0;transition:opacity .3s;pointer-events:none;">Guardado</span>
+          </div>
           <div style="font-size:.72rem;color:var(--muted);margin-top:1px;">Tu nombre y dirección se guardan en este dispositivo para futuros pedidos.</div>
         </div>
-
       </label>
     </div>
     <div class="cart-total-row">
@@ -1171,7 +1173,7 @@
     guardarDatosSiRecordar();
     const pedidoId=idCorto();
     const fecha=new Date().toLocaleString('es-DO',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
-    const adminUrl=`${window.location.origin}/miColmApp.html`;
+    const adminUrl=`${window.location.origin}${window.location.pathname}`;
     const link=`${adminUrl}?c=${colmadoIdActual}&p=${pedidoId}`;
     const nombreColmado=colmadoActual?.nombre||'miColmApp';
     let msg=`*PEDIDO* - ${nombreColmado}\n================================\nID: #${pedidoId.toUpperCase()}\nFecha: ${fecha}\n================================\n\n*DATOS DEL CLIENTE*\n---------------------------------------\nNombre: ${nombre}\nDirección: ${direccion}\n\n*DETALLE DEL PEDIDO*\n---------------------------------------\n`;
@@ -1193,20 +1195,22 @@
       }),
       total, estado:'pendiente', enlaceAdmin:link, fecha:serverTimestamp()
     };
+    // Abrir ventana ANTES del await para evitar bloqueo de popups en móviles
+    const waWindow = window.open('', '_blank');
     try { await setDoc(doc(db,'negocios',colmadoIdActual,'pedidos_cliente',pedidoId),pedidoData); }
-    catch(e){ mostrarError('Error guardando pedido: '+e.message); console.error(e); return; }
+    catch(e){ if(waWindow) waWindow.close(); mostrarError('Error guardando pedido: '+e.message); console.error(e); return; }
     let wsNumero=colmadoActual?.whatsapp||'';
     try {
       const ns=await getDoc(doc(db,'negocios',colmadoIdActual));
       if(ns.exists()){const nd=ns.data();if(nd.whatsapp)wsNumero=nd.whatsapp;colmadoActual={...colmadoActual,...nd,id:colmadoIdActual};}
     } catch(e){console.warn('No se pudo leer whatsapp fresco:',e);}
-    if (!wsNumero){mostrarError('Este negocio no tiene número de WhatsApp configurado.');return;}
+    if (!wsNumero){ if(waWindow) waWindow.close(); mostrarError('Este negocio no tiene número de WhatsApp configurado.');return;}
     const waUrl=`https://wa.me/${wsNumero.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
     linkGenerado=link;
     document.getElementById('link-pedido-box').style.display='block';
     document.getElementById('link-pedido-url').textContent=link;
     carrito=[]; try{localStorage.removeItem(LS_CART_KEY);}catch(e){} actualizarCarritoUI();
-    window.open(waUrl, '_blank');
+    if(waWindow){ waWindow.location.href=waUrl; } else { window.open(waUrl,'_blank'); }
   };
 
   window.copiarEnlace = () => {
