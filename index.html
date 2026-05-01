@@ -94,16 +94,26 @@
     </div>
     <div class="shop-body">
       <div class="search-sticky">
-        <div class="search-wrap">
-          <i class="fas fa-search"></i>
-          <input type="text" id="search-input" placeholder="Buscar producto..."
-            oninput="filtrarBusqueda(this.value)"
-            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search">
-          <button class="search-clear-btn" id="search-clear-btn"
-            ontouchend="event.preventDefault();limpiarBusqueda();"
-            onclick="limpiarBusqueda()" type="button">
-            <i class="fas fa-times-circle"></i>
-          </button>
+        <div class="search-bar-row">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input" placeholder="Buscar producto..."
+              oninput="filtrarBusqueda(this.value)"
+              autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search">
+            <button class="search-clear-btn" id="search-clear-btn"
+              ontouchend="event.preventDefault();limpiarBusqueda();"
+              onclick="limpiarBusqueda()" type="button">
+              <i class="fas fa-times-circle"></i>
+            </button>
+          </div>
+          <div class="search-action-btns">
+            <button class="search-action-btn" id="toggle-grid-btn" onclick="toggleGridSize()" title="Cambiar tamaño de productos">
+              <img src="./img/icons/list.c.png" id="toggle-grid-icon" alt="grid" onerror="this.outerHTML='<i class=\'fas fa-th\'></i>'">
+            </button>
+            <button class="search-action-btn search-action-btn--cats" id="toggle-cats-btn" onclick="toggleCategorias()" title="Mostrar/Ocultar categorías">
+              <img src="./img/icons/cat_v.png" id="toggle-cats-icon" alt="categorías" onerror="this.outerHTML='<i class=\'fas fa-list\'></i>'" style="height: 26px;">
+            </button>
+          </div>
         </div>
       </div>
       <div class="shop-cols">
@@ -1079,6 +1089,62 @@
     if(!el){el=document.createElement('div');el.id='_inline-error';el.style.cssText='background:var(--rojo-light);color:var(--rojo);border:1.5px solid var(--rojo);border-radius:10px;padding:10px 14px;font-size:.82rem;font-weight:700;margin:0 20px 10px;text-align:center;';const footer=document.querySelector('.cart-footer');if(footer)footer.prepend(el);else document.body.appendChild(el);}
     el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>{el.style.display='none';},4000);
   }
+
+  // ── Vista de productos: big/small y categorías toggle ─────────
+  const LS_GRID_KEY  = 'micolmapp_grid_size';
+  const LS_CATS_KEY  = 'micolmapp_cats_visible';
+
+  let gridIsBig = (() => { try { return localStorage.getItem(LS_GRID_KEY) === 'big'; } catch(e){ return false; } })();
+  let catsVisible = (() => { try { const v = localStorage.getItem(LS_CATS_KEY); return v === null ? true : v === 'true'; } catch(e){ return true; } })();
+
+  function applyGridState() {
+    const grids = document.querySelectorAll('.prods-grid');
+    const icon  = document.getElementById('toggle-grid-icon');
+    if (gridIsBig) {
+      grids.forEach(g => g.style.gridTemplateColumns = 'repeat(2, 1fr)');
+      document.querySelectorAll('.prod-card').forEach(c => c.classList.add('prod-card-big'));
+      if (icon) { icon.src = './img/icons/list.c.png'; icon.alt = 'vista pequeña'; }
+    } else {
+      grids.forEach(g => g.style.gridTemplateColumns = 'repeat(3, 1fr)');
+      document.querySelectorAll('.prod-card').forEach(c => c.classList.remove('prod-card-big'));
+      if (icon) { icon.src = './img/icons/grid.c.png'; icon.alt = 'vista grande'; }
+    }
+    try { localStorage.setItem(LS_GRID_KEY, gridIsBig ? 'big' : 'small'); } catch(e){}
+  }
+
+  window.toggleGridSize = () => {
+    gridIsBig = !gridIsBig;
+    applyGridState();
+  };
+
+  function applyCatsState() {
+    const catsCol = document.querySelector('.cats-col');
+    const icon    = document.getElementById('toggle-cats-icon');
+    const btn     = document.getElementById('toggle-cats-btn');
+    if (!catsCol) return;
+    if (catsVisible) {
+      catsCol.classList.remove('cats-hidden');
+      if (icon) { icon.src = './img/icons/cat_v.png'; icon.alt = 'ocultar categorías'; }
+      if (btn)  btn.classList.add('search-action-btn--cats-active');
+    } else {
+      catsCol.classList.add('cats-hidden');
+      if (icon) { icon.src = './img/icons/cat_o.png'; icon.alt = 'mostrar categorías'; }
+      if (btn)  btn.classList.remove('search-action-btn--cats-active');
+    }
+    try { localStorage.setItem(LS_CATS_KEY, catsVisible ? 'true' : 'false'); } catch(e){}
+  }
+
+  window.toggleCategorias = () => {
+    catsVisible = !catsVisible;
+    applyCatsState();
+  };
+
+  // Aplicar grid y cats tras cada render de productos
+  const _origRenderProductos = renderProductos;
+  renderProductos = function() {
+    _origRenderProductos();
+    requestAnimationFrame(() => { applyGridState(); applyCatsState(); });
+  };
 
   // ── Arranque ──────────────────────────────────────────────────
   init();

@@ -291,8 +291,8 @@ body {
     background: rgb(0 169 61);
     border: 1.5px solid rgba(255, 255, 255, 0.4);
     border-radius: 12px;
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -473,9 +473,9 @@ body {
   flex-shrink: 0;
   background: rgb(0 164 59);
   border: none;
-  border-radius: 10px;
-  width: 36px;
-  height: 36px;
+  border-radius: 12px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -484,7 +484,6 @@ body {
   cursor: pointer;
   backdrop-filter: blur(4px);
   transition: background .15s;
-  "
 
 }
 
@@ -585,6 +584,7 @@ body {
   background: var(--white);
   padding: 8px 8px 7px;
   border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
   text-align: center;
   position: sticky;
   top: 0;
@@ -691,7 +691,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: #0000008c;
+background: #0000007a;
   border-radius: 6px;
 }
 
@@ -784,14 +784,15 @@ body {
 }
 
 .prod-img-wrap {
-  width: 100%;
-  height: 100px;
-  background: #f8f9fa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
+    width: 100%;
+    height: 82px;
+    background: #ffffff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
 }
 
 .prod-img {
@@ -1885,6 +1886,99 @@ body {
   box-shadow: none;
 }
 
+/* ── Barra de búsqueda con botones de acción ─────────────────── */
+.search-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-bar-row .search-wrap {
+  flex: 1;
+}
+
+.search-action-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.search-action-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 12px;
+  background: var(--white);
+  box-shadow: 2px 3px 6px 1px rgb(0 0 0 / 8%);
+  border: 1px solid #cad1e9;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, border-color .15s, transform .12s;
+  padding: 0;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.search-action-btn:hover {
+  background: var(--bg2);
+  border-color: var(--verde);
+}
+
+.search-action-btn:active {
+  transform: scale(.93);
+}
+
+.search-action-btn--cats-active {
+background: #ffffff !important;
+    border-color: #cad1e9 !important;
+}
+
+.search-action-btn--cats-active:hover {
+  /*background: var(--verde-dark) !important;
+  border-color: var(--verde-dark) !important;*/
+}
+
+.search-action-btn img {
+  width: 100%;
+  height: 20px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ── prod-card modo big (2 columnas) ────────────────────────── */
+.prod-card-big .prod-img-wrap {
+  height: 90px;
+}
+
+.prod-card-big .prod-nombre {
+  font-size: .92rem;
+  font-weight: 800;
+}
+
+.prod-card-big .prod-precio {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* ── Ocultar/mostrar columna de categorías (desktop) ─────────── */
+.cats-col {
+  transition: width .38s cubic-bezier(.4,0,.2,1),
+              min-width .38s cubic-bezier(.4,0,.2,1),
+              opacity .28s ease,
+              padding .38s ease;
+}
+
+.cats-col.cats-hidden {
+  width: 0 !important;
+  min-width: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+  padding: 0 !important;
+}
+
 /* ── Secciones de categoría en el panel de productos ─────────────── */
 @keyframes fadeInUp {
   from {
@@ -1941,7 +2035,7 @@ body {
         top: 0;
         z-index: 90;
         background: #fefefe;
-        padding: 0px 8px 0;
+padding: 0px 14px;
         flex-shrink: 0;
     }
 
@@ -1953,11 +2047,28 @@ body {
         flex-shrink: 0;
         border-radius: 0;
         background: #fefefe;
-        overflow: visible;
+        overflow: hidden;
+        max-height: 200px;
+        transition: max-height .38s cubic-bezier(.4,0,.2,1),
+                    opacity .28s ease,
+                    padding .38s ease;
     }
+
+  .cats-col.cats-hidden {
+    max-height: 0 !important;
+    width: 100% !important;
+    min-width: unset !important;
+    opacity: 0;
+    pointer-events: none;
+    padding: 0 !important;
+  }
 
   .cats-col .col-header {
     display: none; /* Ocultamos el header "Categorías" en móvil */
+  }
+
+  .prod-nombre{
+font-size: .6rem;
   }
 
   .cats-sidebar {
@@ -2006,9 +2117,9 @@ body {
 
   /* Imagen/emoji de categoría en píldora */
     .cat-chip-img-wrap {
-        width: 77px;
-        height: 44px;
-        border-radius: 12px;
+        width: 90px;
+        height: 52px;
+                border-radius: 9px;
         flex-shrink: 0;
         border: 2px solid transparent;
     }
@@ -2055,7 +2166,7 @@ body {
     }
 
   .prods-panel {
-padding: 4px 10px 80px;
+padding: 0px 10px 80px;
   }
 
   /* Ajustar grid de productos a 2 columnas cómodas */
