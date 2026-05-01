@@ -34,10 +34,16 @@
     #saved-badge.visible{opacity:1!important;}
     .btn-whatsapp{position:relative;overflow:hidden;}
     .btn-whatsapp.loading{pointer-events:none;opacity:.75;}
-    .btn-whatsapp .btn-wa-spinner{display:none;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;}
+    .btn-whatsapp .btn-wa-spinner{display:none;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:_waspin .7s linear infinite;margin-right:8px;}
     .btn-whatsapp.loading .btn-wa-spinner{display:inline-block;}
     .btn-whatsapp.loading .btn-wa-icon{display:none;}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes _waspin{to{transform:rotate(360deg)}}
+    /* Link admin clickeable */
+    .link-pedido-box{margin-top:10px;}
+    .link-pedido-admin{display:flex;align-items:center;gap:8px;background:var(--verde-light,#e6faf0);border:1.5px solid var(--verde);border-radius:10px;padding:9px 12px;margin-top:6px;text-decoration:none;color:var(--verde);font-size:.78rem;font-weight:700;word-break:break-all;transition:background .18s;}
+    .link-pedido-admin:active{background:#c6f6d5;}
+    .link-pedido-admin i{font-size:1rem;flex-shrink:0;}
+    .link-admin-meta{font-size:.68rem;color:var(--muted);font-weight:400;margin-top:1px;}
   </style>
 </head>
 
@@ -188,9 +194,19 @@
         <i class="fab fa-whatsapp btn-wa-icon"></i> Completar por WhatsApp
       </button>
       <div class="link-pedido-box" id="link-pedido-box" style="display:none;">
-        <div class="link-pedido-label"><i class="fas fa-link"></i> Enlace del pedido</div>
-        <div class="link-pedido-url" id="link-pedido-url"></div>
-        <button class="link-copy-btn" onclick="copiarEnlace()"><i class="fas fa-copy"></i> Copiar enlace</button>
+        <div class="link-pedido-label" style="font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:4px;">
+          <i class="fas fa-store"></i> Enlace para el administrador del colmado
+        </div>
+        <a id="link-pedido-anchor" href="#" target="_blank" rel="noopener" class="link-pedido-admin">
+          <i class="fas fa-external-link-alt"></i>
+          <div>
+            <div id="link-pedido-url" style="word-break:break-all;"></div>
+            <div class="link-admin-meta">Toca para abrir y gestionar el pedido</div>
+          </div>
+        </a>
+        <button class="link-copy-btn" onclick="copiarEnlace()" style="margin-top:6px;">
+          <i class="fas fa-copy"></i> Copiar enlace admin
+        </button>
       </div>
     </div>
   </div>
@@ -1172,61 +1188,48 @@
   // ── Completar pedido por WhatsApp ─────────────────────────────
   function idCorto(){const c='abcdefghijklmnopqrstuvwxyz0123456789';let s='';for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
 
-  // ── Detección de plataforma (una sola vez al cargar) ─────────
-  const _ua      = navigator.userAgent || '';
-  const _isIOS   = /iPad|iPhone|iPod/.test(_ua) && !window.MSStream;
+  // Detección de plataforma (una sola vez al cargar)
+  const _ua        = navigator.userAgent || '';
+  const _isIOS     = /iPad|iPhone|iPod/.test(_ua) && !window.MSStream;
   const _isAndroid = /Android/.test(_ua);
 
   /**
    * abrirWhatsApp(numero, texto)
-   * Android  → Intent URI (nunca bloqueado, lanza app nativa directamente)
-   * iOS      → whatsapp:// scheme (abre app directamente sin popup)
+   * Android  → Intent URI  – lanza la app nativa directamente, sin bloqueo de popup
+   * iOS      → whatsapp:// – location.href nunca es bloqueado por Safari
    * Desktop  → wa.me en nueva pestaña
    */
   function abrirWhatsApp(numero, texto) {
     const num = numero.replace(/\D/g, '');
     const enc = encodeURIComponent(texto);
-    const fallback = encodeURIComponent(`https://wa.me/${num}?text=${enc}`);
+    const fallback = encodeURIComponent('https://wa.me/' + num + '?text=' + enc);
 
     if (_isAndroid) {
-      // Intent URI: el sistema Android lo intercepta y abre WhatsApp nativo.
-      // Si no está instalado, Android redirige al fallback (wa.me / Play Store).
       window.location.href =
-        `intent://send?phone=${num}&text=${enc}` +
-        `#Intent;scheme=whatsapp;package=com.whatsapp;` +
-        `S.browser_fallback_url=${fallback};end`;
+        'intent://send?phone=' + num + '&text=' + enc +
+        '#Intent;scheme=whatsapp;package=com.whatsapp;' +
+        'S.browser_fallback_url=' + fallback + ';end';
       return;
     }
-
     if (_isIOS) {
-      // whatsapp:// abre la app nativa en iOS.
-      // location.href NO es bloqueado por Safari (sólo window.open lo es tras async).
-      window.location.href = `whatsapp://send?phone=${num}&text=${enc}`;
-      // Fallback: si WhatsApp no está instalado, a los 1.5 s va a wa.me (→ App Store)
-      setTimeout(() => {
-        if (!document.hidden) {
-          window.location.href = `https://wa.me/${num}?text=${enc}`;
-        }
+      window.location.href = 'whatsapp://send?phone=' + num + '&text=' + enc;
+      setTimeout(function() {
+        if (!document.hidden) window.location.href = 'https://wa.me/' + num + '?text=' + enc;
       }, 1500);
       return;
     }
-
-    // Desktop / otros navegadores: abrir wa.me en nueva pestaña
-    window.open(`https://wa.me/${num}?text=${enc}`, '_blank', 'noopener,noreferrer');
+    window.open('https://wa.me/' + num + '?text=' + enc, '_blank', 'noopener,noreferrer');
   }
 
   window.completarPorWhatsapp = async () => {
     if (!carrito.length){ mostrarError('El carrito está vacío'); return; }
-
     const nombre    = document.getElementById('cliente-nombre').value.trim();
     const direccion = document.getElementById('cliente-direccion').value.trim();
     if (!nombre)    { mostrarError('Por favor escribe tu nombre'); return; }
     if (!direccion) { mostrarError('Por favor escribe tu dirección de entrega'); return; }
-
     const total = carrito.reduce((s,i) => s + (i.subtotal !== undefined ? i.subtotal : i.precio * i.qty), 0);
     if (total < 50){ mostrarError('El pedido mínimo es de RD$ 50.00. Agrega más productos para continuar.'); return; }
 
-    // Mostrar spinner en el botón
     const btnWa = document.getElementById('btn-whatsapp-main');
     if (btnWa) btnWa.classList.add('loading');
 
@@ -1234,41 +1237,61 @@
 
     const pedidoId      = idCorto();
     const fecha         = new Date().toLocaleString('es-DO',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
-    const adminUrl      = `${window.location.origin}${window.location.pathname}`;
-    const link          = `${adminUrl}?c=${colmadoIdActual}&p=${pedidoId}`;
+    const origen        = window.location.origin;
+    const carpeta       = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+
+    // Link para el ADMINISTRADOR del colmado (miColmApp.html)
+    const adminLink = origen + carpeta + 'miColmApp.html?c=' + colmadoIdActual + '&p=' + pedidoId;
+
+    // Link para el CLIENTE: reabre la tienda directamente en el colmado
+    const clienteLink = origen + window.location.pathname + '?c=' + colmadoIdActual;
+
     const nombreColmado = colmadoActual?.nombre || 'miColmApp';
 
-    let msg = `*PEDIDO* - ${nombreColmado}\n================================\nID: #${pedidoId.toUpperCase()}\nFecha: ${fecha}\n================================\n\n*DATOS DEL CLIENTE*\n---------------------------------------\nNombre: ${nombre}\nDirección: ${direccion}\n\n*DETALLE DEL PEDIDO*\n---------------------------------------\n`;
+    let msg = '*PEDIDO* - ' + nombreColmado + '\n================================\n';
+    msg    += 'ID: #' + pedidoId.toUpperCase() + '\nFecha: ' + fecha + '\n';
+    msg    += '================================\n\n';
+    msg    += '*DATOS DEL CLIENTE*\n---------------------------------------\n';
+    msg    += 'Nombre: ' + nombre + '\nDirección: ' + direccion + '\n\n';
+    msg    += '*DETALLE DEL PEDIDO*\n---------------------------------------\n';
     carrito.forEach((it, idx) => {
       const isUnit = esDetallable(it.unidad);
       const lbl    = it._lbl || labelUnidad(it.unidad) || '';
       const sub    = it.subtotal !== undefined ? it.subtotal : it.precio * it.qty;
-      msg += `${idx+1}. ${it.nombre}\n   Cant.: ${isUnit ? it.qty.toFixed(2)+' '+lbl : it.qty} × ${fmtPrice(it.precio)}${isUnit ? '/'+lbl : ''} = ${fmtPrice(sub)}\n`;
+      msg += (idx+1) + '. ' + it.nombre + '\n';
+      msg += '   Cant.: ' + (isUnit ? it.qty.toFixed(2)+' '+lbl : it.qty);
+      msg += ' × ' + fmtPrice(it.precio) + (isUnit ? '/'+lbl : '') + ' = ' + fmtPrice(sub) + '\n';
     });
-    msg += `\n------------------------------------------------------------------\nTOTAL: *${fmtPrice(total)}*\n================================\n\n${link}`;
+    msg += '\n------------------------------------------------------------------\n';
+    msg += 'TOTAL: *' + fmtPrice(total) + '*\n';
+    msg += '================================\n\n';
+    msg += '📋 *Ver y gestionar pedido:*\n' + adminLink;
 
     const pedidoData = {
-      pedidoId, colmadoId: colmadoIdActual, colmadoNombre: colmadoActual?.nombre || '',
-      clienteNombre: nombre, clienteDireccion: direccion,
+      pedidoId,
+      colmadoId:      colmadoIdActual,
+      colmadoNombre:  colmadoActual?.nombre || '',
+      clienteNombre:  nombre,
+      clienteDireccion: direccion,
       items: carrito.map(i => {
         const sub  = i.subtotal !== undefined ? i.subtotal : i.precio * i.qty;
         const item = {id:i.id, categoriaId:i.categoriaId, nombre:i.nombre, precio:i.precio, qty:i.qty, subtotal:sub, unidad:i.unidad||null, imagen:i.imagen||null};
         if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2){ item.comboActivo=true; item.comboPrecio=i.comboPrecio; item.comboUnidades=i.comboUnidades; }
         return item;
       }),
-      total, estado: 'pendiente', enlaceAdmin: link, fecha: serverTimestamp()
+      total,
+      estado:       'pendiente',
+      enlaceAdmin:  adminLink,
+      fecha:        serverTimestamp()
     };
 
-    // Guardar pedido en Firestore
     try { await setDoc(doc(db,'negocios',colmadoIdActual,'pedidos_cliente',pedidoId), pedidoData); }
     catch(e) {
       if (btnWa) btnWa.classList.remove('loading');
       mostrarError('Error guardando pedido: ' + e.message);
-      console.error(e);
-      return;
+      console.error(e); return;
     }
 
-    // Refrescar número de WhatsApp desde Firestore
     let wsNumero = colmadoActual?.whatsapp || '';
     try {
       const ns = await getDoc(doc(db,'negocios',colmadoIdActual));
@@ -1281,10 +1304,14 @@
       return;
     }
 
-    // Mostrar enlace del pedido
-    linkGenerado = link;
-    document.getElementById('link-pedido-box').style.display = 'block';
-    document.getElementById('link-pedido-url').textContent   = link;
+    // Mostrar el link admin clickeable en el carrito
+    linkGenerado = adminLink;
+    const box    = document.getElementById('link-pedido-box');
+    const anchor = document.getElementById('link-pedido-anchor');
+    const urlEl  = document.getElementById('link-pedido-url');
+    if (box)    box.style.display = 'block';
+    if (anchor) anchor.href = adminLink;
+    if (urlEl)  urlEl.textContent = adminLink;
 
     // Limpiar carrito
     carrito = [];
