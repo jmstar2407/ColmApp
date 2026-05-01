@@ -1,1960 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="format-detection" content="telephone=no, date=no, email=no, address=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>miColmApp – Pedidos</title>
-  <link rel="icon" type="image/png" href="./img/micolmapp_logo_favico.png">
+  <link rel="icon" type="image/png" href="./img/micolmapp_logo_favico.png" onerror="this.remove()">
 
-  <!-- ── Open Graph / Meta para compartir ── -->
-  <meta property="og:type"        content="website">
-  <meta property="og:url"         content="https://micolmapp.com/">
-  <meta property="og:title"       content="miColmApp – Pedidos Online de Colmados RD">
-  <meta property="og:description" content="Haz tu pedido en línea fácil y rápido desde tu colmado favorito. Elige tus productos, envía por WhatsApp y recíbelos en tu puerta.">
-  <meta property="og:image"       content="https://micolmapp.com/img/meta-background.jpg">
-  <meta property="og:image:width" content="1200">
+  <!-- Open Graph -->
+  <meta property="og:type"         content="website">
+  <meta property="og:url"          content="https://micolmapp.com/">
+  <meta property="og:title"        content="miColmApp – Pedidos Online de Colmados RD">
+  <meta property="og:description"  content="Haz tu pedido en línea fácil y rápido desde tu colmado favorito.">
+  <meta property="og:image"        content="https://micolmapp.com/img/meta-background.jpg">
+  <meta property="og:image:width"  content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:locale"      content="es_DO">
-  <meta property="og:site_name"   content="miColmApp">
-
+  <meta property="og:locale"       content="es_DO">
+  <meta property="og:site_name"    content="miColmApp">
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:title"       content="miColmApp – Pedidos Online de Colmados RD">
-  <meta name="twitter:description" content="Haz tu pedido en línea fácil y rápido desde tu colmado favorito. Elige tus productos, envía por WhatsApp y recíbelos en tu puerta.">
+  <meta name="twitter:description" content="Haz tu pedido en línea fácil y rápido desde tu colmado favorito.">
   <meta name="twitter:image"       content="https://micolmapp.com/img/meta-background.jpg">
-
-  <meta name="description" content="miColmApp – Pedidos online de colmados en República Dominicana. Elige tus productos y recíbelos en tu puerta.">
-
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,600&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <style>
-    :root {
-      --verde: #00c04b;
-      --verde-dark: #009e3c;
-      --verde-light: #e6f9ee;
-      --azul: #1971c2;
-      --azul-light: #e8f1fb;
-      --rojo: #e03131;
-      --rojo-light: #fdeaea;
-      --amarillo: #f59f00;
-      --bg: #f5f7fa;
-      --bg2: #eef1f6;
-      --white: #ffffff;
-      --text: #0f172a;
-      --text2: #475569;
-      --muted: #94a3b8;
-      --border: #e2e8f0;
-      --border2: #cbd5e1;
-      --shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 4px 12px rgba(0, 0, 0, .06);
-      --shadow-md: 0 4px 16px rgba(0, 0, 0, .09), 0 1px 3px rgba(0, 0, 0, .05);
-      --shadow-lg: 0 8px 32px rgba(0, 0, 0, .12), 0 2px 8px rgba(0, 0, 0, .06);
-      --shadow-verde: 0 6px 24px rgba(0, 192, 75, .28);
-      --radius: 18px;
-      --radius-sm: 12px;
-      --radius-xs: 8px;
-      --font: 'Plus Jakarta Sans', sans-serif;
-      --font-display: 'Fraunces', serif;
-      --highlight-bg: #fff176;
-      --highlight-color: #5a4000;
-      --header-h: 60px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html,
-    body {
-      height: 100%;
-      height: 100dvh;
-      overflow: hidden;
-      max-width: 100vw;
-      touch-action: manipulation;
-    }
-
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      height: 100dvh;
-      overscroll-behavior: none;
-      -webkit-font-smoothing: antialiased;
-      width: 100%;
-      overflow: hidden;
-    }
-
-    /* NET BANNER */
-    #net-banner {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 16px;
-      font-size: .82rem;
-      font-weight: 700;
-      letter-spacing: .2px;
-      transform: translateY(-100%);
-      transition: transform .38s cubic-bezier(.34, 1.2, .64, 1);
-      box-shadow: 0 3px 12px rgba(0, 0, 0, .18);
-    }
-
-    /* LOADING */
-    #loading-screen {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(145deg, #00b341 0%, #0f8f3e 45%, #1971c2 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      gap: 22px;
-      background: white;
-    }
-
-    .loading-logo {
-      font-family: var(--font-display);
-      font-size: 2.5rem;
-      font-weight: 900;
-      color: white;
-      letter-spacing: -1px;
-    }
-
-    .loading-logo img{
-      height: 210px;
-    }
-
-    .loading-logo span {
-      color: rgba(255, 255, 255, .55);
-    }
-
-    .loading-tagline {
-      font-size: .82rem;
-      color: rgba(255, 255, 255, .7);
-      font-weight: 500;
-      letter-spacing: .5px;
-    }
-
-.loading-spinner {
-    width: 38px;
-    height: 38px;
-    border: 3px solid rgb(0 0 0 / 0%);
-    border-top-color: #959595;
-    border-radius: 50%;
-    animation: spin .75s linear infinite;
-}
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* SCREENS */
-    .screen {
-      display: none;
-      height: 100dvh;
-      width: 100%;
-      overflow: hidden;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
-
-    #screen-shop {
-      overflow: hidden;
-      height: 100dvh;
-    }
-
-    .screen.active {
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Screen colmados: header fijo + lista scrollable */
-    #screen-colmados {
-      display: none;
-      flex-direction: column;
-    }
-
-    #screen-colmados.active {
-      display: flex;
-    }
-
-    #screen-colmados .page-content {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
-    }
-
-    /* Screen pedido: header fijo + body scrollable */
-    #screen-pedido {
-      display: none;
-      flex-direction: column;
-    }
-
-    #screen-pedido.active {
-      display: flex;
-    }
-
-    #screen-pedido .pedido-loading,
-    #screen-pedido #pedido-body {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
-    }
-
-    /* Screen shop layout */
-    #screen-shop.active {
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* HEADER */
-.app-header {
-    background: var(--white);
-    padding: 0 16px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(8px);
-}
-
-.header-logo {
-    /* font-family: var(--font-display); */
-    /* font-size: 1.35rem; */
-    font-weight: 900;
-    /* color: var(--verde); */
-    flex: 1;
-    letter-spacing: -0.5px;
-    display: inline-flex;
-    align-items: center;
-    /* width: 100%; */
-    /* background: red; */
-    justify-content: center;
-}
-
-.header-logo img{
-    height: 32px;
-}
-
-    .header-logo span {
-      color: var(--azul);
-    }
-
-    .header-back {
-      background: var(--bg2);
-      border: none;
-      border-radius: var(--radius-xs);
-      color: var(--text2);
-      cursor: pointer;
-      padding: 7px 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--font);
-      font-weight: 700;
-      font-size: .82rem;
-      transition: background .15s;
-    }
-
-    .header-back:hover {
-      background: var(--border);
-    }
-
-    .cart-btn {
-      position: relative;
-      background: var(--verde);
-      border: none;
-      border-radius: var(--radius-xs);
-      padding: 8px 14px;
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-family: var(--font);
-      font-weight: 700;
-      font-size: .83rem;
-      transition: background .15s, box-shadow .15s;
-    }
-
-    .cart-btn:hover {
-      background: var(--verde-dark);
-      box-shadow: var(--shadow-verde);
-    }
-
-    .cart-badge {
-      background: var(--rojo);
-      color: white;
-      border-radius: 20px;
-      font-size: .65rem;
-      font-weight: 900;
-      min-width: 18px;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 4px;
-    }
-
-    /* COLMADOS LIST */
-    .page-content {
-      padding: 20px 16px;
-      max-width: 640px;
-      margin: 0 auto;
-      width: 100%;
-      overflow-x: hidden;
-    }
-
-    .page-hero {
-      margin-bottom: 24px;
-    }
-
-    .page-hero-label {
-      font-size: .7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--verde);
-      margin-bottom: 6px;
-    }
-
-    .page-hero-title {
-      font-family: var(--font-display);
-      font-size: 1.7rem;
-      font-weight: 900;
-      line-height: 1.15;
-      color: var(--text);
-      margin-bottom: 6px;
-      letter-spacing: -0.5px;
-    }
-
-    .page-hero-sub {
-      color: var(--text2);
-      font-size: .875rem;
-      line-height: 1.5;
-    }
-
-    .colmado-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 16px 18px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      cursor: pointer;
-      transition: transform .15s, box-shadow .15s, border-color .15s;
-      border: 2px solid transparent;
-    }
-
-    .colmado-card:active {
-      transform: scale(.985);
-    }
-
-    .colmado-card:hover {
-      border-color: var(--verde);
-      box-shadow: var(--shadow-md);
-    }
-
-    .colmado-avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--verde), var(--azul));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-display);
-      font-size: 1.4rem;
-      font-weight: 900;
-      flex-shrink: 0;
-      color: white;
-    }
-
-    .colmado-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .colmado-nombre {
-      font-weight: 800;
-      font-size: .97rem;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .colmado-dir {
-      color: var(--muted);
-      font-size: .77rem;
-      margin-top: 3px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .colmado-arrow {
-      width: 32px;
-      height: 32px;
-      background: var(--verde-light);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--verde);
-      font-size: .8rem;
-      flex-shrink: 0;
-    }
-
-    /* SHOP BANNER */
-    .shop-banner {
-      padding: 20px 16px 16px;
-      background: linear-gradient(135deg, var(--verde) 0%, var(--verde-dark) 50%, #0d6db5 100%);
-      color: white;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .shop-banner::before {
-      content: '';
-      position: absolute;
-      top: -30px;
-      right: -30px;
-      width: 130px;
-      height: 130px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, .07);
-      pointer-events: none;
-    }
-
-    .shop-banner::after {
-      content: '';
-      position: absolute;
-      bottom: -20px;
-      left: 30%;
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, .05);
-    }
-
-    .shop-banner-name {
-      font-family: var(--font-display);
-      font-size: 1.3rem;
-      font-weight: 900;
-      letter-spacing: -0.3px;
-      position: relative;
-    }
-
-    .shop-banner-addr {
-      font-size: .78rem;
-      opacity: .82;
-      margin-top: 4px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      position: relative;
-    }
-
-    /* SHOP LAYOUT - two-column */
-    .shop-body {
-      display: flex;
-      flex-direction: column;
-      max-width: 640px;
-      margin: 0 auto;
-      width: 100%;
-      flex: 1;
-      overflow: hidden;
-      min-height: 0;
-      background: #a8dbbd;
-    }
-
-    /* Search bar sticky under header */
-    .search-sticky {
-      position: sticky;
-      /* top: 62px; */
-      z-index: 90;
-      /* background: #d4d4d4; */
-      padding: 8px 10px 6px;
-      /* border-bottom: 1px solid var(--border); */
-    }
-
-    .search-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--white);
-      border-radius: 16px;
-      padding: 0 14px;
-      /* border: 2px solid var(--border); */
-      transition: border-color .2s, box-shadow .2s;
-      flex-shrink: 0;
-      box-shadow: 2px 3px 6px 1px rgb(0 0 0 / 8%);
-    }
-
-    .search-wrap:focus-within {
-      border-color: var(--verde);
-      box-shadow: 0 0 0 3px rgba(0, 192, 75, .1);
-    }
-
-    .search-wrap i {
-      color: var(--muted);
-      font-size: .9rem;
-    }
-
-    .search-wrap input {
-      flex: 1;
-      padding: 11px 0;
-      border: none;
-      outline: none;
-      font-family: var(--font);
-      font-size: .88rem;
-      background: transparent;
-      color: var(--text);
-    }
-
-    .search-clear-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      padding: 8px;
-      font-size: .9rem;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      min-width: 36px;
-      min-height: 36px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      flex-shrink: 0;
-    }
-
-    .search-clear-btn.visible {
-      display: flex;
-    }
-
-    /* Two-column wrapper */
-    .shop-cols {
-      display: flex;
-      gap: 0.5rem;
-      flex: 1;
-      min-height: 0;
-      overflow: hidden;
-      /* background: #d4d4d4; */
-    }
-
-    /* Column headers */
-    .col-header {
-      font-size: .65rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .8px;
-      color: var(--muted);
-      background: var(--white);
-      padding: 8px 8px 7px;
-      border-bottom: 1px solid var(--border);
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      flex-shrink: 0;
-      /* margin: 0 2px; */
-      /* border-radius: 6px; */
-    }
-
-    .cats-col {
-      width: 30%;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      background: var(--white);
-      /* border-right: 1px solid var(--border); */
-      overflow: hidden;
-      border-radius: 0px 14px 0px 0px;
-    }
-
-    .prods-col {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      /* background: var(--bg); */
-      overflow: hidden;
-      background: #ffffff61;
-      border-radius: 14px 0px 0px 0px;
-    }
-
-    /* LEFT: categories sidebar */
-    .cats-sidebar {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-      padding: 4px 0px 70px;
-    }
-
-    .cats-sidebar::-webkit-scrollbar {
-      display: none;
-    }
-
-    /* RIGHT: products panel */
-    .prods-panel {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-      padding: 4px 6px 56px;
-    }
-
-    .prods-panel::-webkit-scrollbar {
-      display: none;
-    }
-
-    .cat-chip {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-      transition: all .15s;
-      width: 100%;
-      border-radius: 9px;
-      background: transparent;
-      border: none;
-      padding: 2px 8px;
-      margin-bottom: 2px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .cat-chip.active::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 6px;
-      bottom: 6px;
-      width: 3px;
-      background: var(--verde);
-      border-radius: 0 3px 3px 0;
-      z-index: 2;
-    }
-
-    /* Image chip: image with text overlay */
-    .cat-chip-img-wrap {
-      position: relative;
-      width: 100%;
-      height: 48px;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 2px solid transparent;
-      transition: border-color .15s;
-    }
-
-    .cat-chip.active .cat-chip-img-wrap {
-      border-color: var(--verde);
-    }
-
-    .cat-chip-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    /* dark gradient overlay so text is always readable */
-    .cat-chip-img-wrap::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-background: #0000008c;
-      border-radius: 6px;
-    }
-
-    .cat-chip-img-label {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 1;
-      font-size: .56rem;
-      font-weight: 800;
-      color: #fff;
-      text-align: center;
-      line-height: 1.2;
-      padding: 3px 3px 4px;
-      word-break: break-word;
-      white-space: normal;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
-    }
-
-    .cat-chip.active .cat-chip-img-label {
-      color: #fff;
-    }
-
-    /* Emoji chip: emoji box + name below */
-    .cat-chip-emoji {
-      width: 100%;
-      height: 48px;
-      border-radius: 8px;
-      background: var(--bg2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      border: 2px solid var(--border);
-      transition: all .15s;
-    }
-
-    .cat-chip.active .cat-chip-emoji {
-      border-color: var(--verde);
-      background: rgba(0, 192, 75, .1);
-    }
-
-    .cat-chip-name {
-      font-size: .58rem;
-      font-weight: 600;
-      color: var(--text2);
-      text-align: center;
-      width: 100%;
-      white-space: normal;
-      word-break: break-word;
-      line-height: 1.2;
-      padding: 3px 2px 0;
-    }
-
-    .cat-chip.active .cat-chip-name {
-      color: var(--verde-dark);
-      font-weight: 800;
-    }
-
-    /* PRODUCTS GRID - always 2 columns inside panel */
-    .prods-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .prod-card {
-      background: var(--white);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      /* border: 8px solid transparent; */
-      padding: 1px 5px;
-      transition: all .15s;
-      cursor: pointer;
-    }
-
-    .prod-card.en-carrito {
-      border-color: var(--verde);
-    }
-
-    .prod-card:active {
-      transform: scale(.97);
-    }
-
-    .prod-card:hover {
-      box-shadow: var(--shadow-md);
-    }
-
-    .prod-img-wrap {
-      width: 100%;
-      height: 100px;
-      background: #f8f9fa;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .prod-img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      border-radius: 10px;
-    }
-
-    .prod-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.5rem;
-      background: linear-gradient(135deg, var(--bg), var(--bg2));
-    }
-
-    .prod-in-cart-badge {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      background: var(--verde);
-      color: white;
-      border-radius: 20px;
-      font-size: .65rem;
-      font-weight: 800;
-      min-width: 22px;
-      height: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 5px;
-      box-shadow: 0 2px 6px rgba(0, 192, 75, .4);
-    }
-
-    .prod-peso-neto-badge {
-      position: absolute;
-      bottom: 5px;
-      right: 5px;
-      background: rgb(0 192 75);
-      color: #fff;
-      border-radius: 5px;
-      font-size: .6rem;
-      font-weight: 700;
-      padding: 2px 5px;
-      letter-spacing: .2px;
-      line-height: 1.3;
-      pointer-events: none;
-    }
-
-    .prod-combo-badge {
-      position: absolute;
-      top: 4px;
-      left: 4px;
-      background: linear-gradient(135deg, #f59f00, #e67700);
-      color: #fff;
-      border-radius: 5px;
-      padding: 2px 6px;
-      font-size: .6rem;
-      font-weight: 800;
-      letter-spacing: .3px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, .22);
-      z-index: 2;
-      pointer-events: none;
-    }
-
-    .prod-body {
-      padding: 0px 5px 5px;
-    }
-
-    .prod-nombre {
-      font-weight: 700;
-      font-size: .8rem;
-      line-height: 1.3;
-      color: var(--text);
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      min-height: 32px;
-    }
-
-    .prod-nombre .highlight {
-      background: var(--highlight-bg);
-      color: var(--highlight-color);
-      border-radius: 3px;
-      padding: 0 2px;
-    }
-
-    .prod-precio {
-      color: var(--verde);
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-top: 4px;
-      font-family: var(--font-display);
-      font-family: system-ui;
-    }
-
-    .prod-add-btn {
-      width: 100%;
-      padding: 8px;
-      border: none;
-      border-radius: var(--radius-xs);
-      background: var(--verde);
-      color: white;
-      font-family: var(--font);
-      font-weight: 700;
-      font-size: .75rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      transition: background .15s;
-    }
-
-    .prod-add-btn:hover {
-      background: var(--verde-dark);
-    }
-
-    .prod-qty-ctrl {
-      width: 100%;
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      border-radius: var(--radius-xs);
-      overflow: hidden;
-      border: 1.5px solid var(--verde);
-    }
-
-    .qty-btn {
-      flex: 0 0 32px;
-      height: 30px;
-      border: none;
-      font-size: 1rem;
-      font-weight: 900;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background .12s;
-    }
-
-    .qty-btn.minus {
-      background: var(--verde-light);
-      color: var(--verde-dark);
-    }
-
-    .qty-btn.minus:hover {
-      background: #c8f0d8;
-    }
-
-    .qty-btn.plus {
-      background: var(--verde);
-      color: white;
-    }
-
-    .qty-btn.plus:hover {
-      background: var(--verde-dark);
-    }
-
-    .qty-display {
-      flex: 1;
-      text-align: center;
-      font-weight: 800;
-      font-size: .85rem;
-      background: white;
-      color: var(--text);
-      padding: 5px 0;
-    }
-
-    .prod-unidad-badge {
-      display: inline-block;
-      background: var(--azul-light);
-      color: var(--azul);
-      font-size: .64rem;
-      font-weight: 800;
-      border-radius: 20px;
-      padding: 1px 7px;
-      margin-top: 3px;
-      letter-spacing: .3px;
-      display: none;
-    }
-
-    /* FLOAT CART */
-    .float-cart {
-      position: fixed;
-      bottom: 7px;
-      left: 10px;
-      right: 10px;
-      background: var(--verde);
-      border-radius: 12px;
-      padding: 8px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: white;
-      cursor: pointer;
-      box-shadow: var(--shadow-verde);
-      z-index: 150;
-      transform: translateY(130px);
-      opacity: 0;
-      transition: transform .35s cubic-bezier(.34, 1.56, .64, 1), opacity .3s ease;
-    }
-
-    .float-cart.visible {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .float-cart-left {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .float-cart-count {
-      font-size: .73rem;
-      opacity: .85;
-    }
-
-    .float-cart-total {
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: 900;
-      letter-spacing: -0.3px;
-    }
-
-    .float-cart-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, .2);
-      border-radius: 10px;
-      padding: 8px 14px;
-      font-weight: 700;
-      font-size: .83rem;
-    }
-
-    /* CART DRAWER */
-    .cart-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, .5);
-      z-index: 200;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .25s;
-      backdrop-filter: blur(2px);
-    }
-
-    .cart-overlay.open {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .cart-drawer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--white);
-      border-radius: 24px 24px 0 0;
-      z-index: 201;
-      transform: translateY(100%);
-      transition: transform .32s cubic-bezier(.25, .46, .45, .94);
-      max-height: 94dvh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .cart-drawer.open {
-      transform: translateY(0);
-    }
-
-.cart-handle {
-    width: 36px;
-    height: 4px;
-    background: var(--border2);
-    border-radius: 2px;
-    margin: 6px auto 2px;
-    flex-shrink: 0;
-}
-
-.cart-drawer-header {
-    padding: 0px 14px 7px 4px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-    border-bottom: 1px solid var(--border);
-}
-
-    .cart-drawer-title {
-      font-family: var(--font-display);
-      font-size: 1.15rem;
-      font-weight: 900;
-      color: var(--text);
-    }
-
-    .cart-close-btn {
-      background: var(--bg2);
-      border: none;
-      border-radius: var(--radius-xs);
-      width: 32px;
-      height: 32px;
-      cursor: pointer;
-      color: var(--text2);
-      font-size: .9rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .cart-items-list {
-      overflow-y: auto;
-      flex: 1;
-      padding: 6px 20px;
-    }
-
-    .cart-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .cart-item:last-child {
-      border-bottom: none;
-    }
-
-    .cart-item-img {
-      width: 54px;
-      height: 54px;
-      border-radius: 10px;
-      object-fit: cover;
-      flex-shrink: 0;
-      background: var(--bg);
-    }
-
-    .cart-item-img-placeholder {
-      width: 54px;
-      height: 54px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--bg), var(--bg2));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.6rem;
-      flex-shrink: 0;
-    }
-
-    .cart-item-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .cart-item-name {
-      font-weight: 600;
-      font-size: .86rem;
-      color: var(--text);
-      line-height: 1.3;
-    }
-
-    .cart-item-price {
-      font-weight: 800;
-      font-size: .9rem;
-      color: var(--verde);
-      font-family: var(--font-display);
-      margin-top: 3px;
-    }
-
-    .cart-item-qty {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .cart-qty-btn {
-      width: 28px;
-      height: 28px;
-      border: none;
-      border-radius: 7px;
-      cursor: pointer;
-      font-size: .95rem;
-      font-weight: 900;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background .12s;
-    }
-
-    .cart-qty-btn.minus {
-      background: var(--bg2);
-      color: var(--text2);
-    }
-
-    .cart-qty-btn.plus {
-      background: var(--verde);
-      color: white;
-    }
-
-    .cart-item-unit {
-      font-size: .72rem;
-      color: var(--muted);
-      margin-top: 1px;
-    }
-
-    /* CART FORM */
-    .cart-form {
-      padding: 14px 20px 8px;
-      border-top: 2px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .cart-form-title {
-      font-size: .7rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .8px;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-
-    .form-row {
-      margin-bottom: 10px;
-    }
-
-    .form-label {
-      display: block;
-      font-size: .72rem;
-      font-weight: 700;
-      color: var(--text2);
-      margin-bottom: 5px;
-      text-transform: uppercase;
-      letter-spacing: .4px;
-    }
-
-.form-input {
-    width: 100%;
-    padding: 8px 13px;
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: var(--font);
-    font-size: .88rem;
-    color: var(--text);
-    outline: none;
-    transition: border-color .15s, box-shadow .15s;
-    background: var(--white);
-}
-
-    .form-input:focus {
-      border-color: var(--verde);
-      box-shadow: 0 0 0 3px rgba(0, 192, 75, .1);
-    }
-
-    .remember-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 0 4px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .remember-checkbox {
-      appearance: none;
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      border: 2px solid var(--border2);
-      border-radius: 6px;
-      cursor: pointer;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      transition: all .15s;
-      background: white;
-    }
-
-    .remember-checkbox:checked {
-      background: var(--verde);
-      border-color: var(--verde);
-    }
-
-    .remember-checkbox:checked::after {
-      content: '✓';
-      position: absolute;
-      color: white;
-      font-size: .7rem;
-      font-weight: 900;
-    }
-
-    .remember-label {
-      font-size: .8rem;
-      font-weight: 600;
-      color: var(--text2);
-      line-height: 1.4;
-    }
-
-    .remember-label strong {
-      color: var(--text);
-    }
-
-    .remember-saved-badge {
-      font-size: .68rem;
-      background: var(--verde-light);
-      color: var(--verde-dark);
-      border-radius: 20px;
-      padding: 2px 8px;
-      font-weight: 700;
-      display: none;
-    }
-
-    .remember-saved-badge.visible {
-      display: inline-block;
-    }
-
-.cart-total-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 20px;
-    background: var(--bg2);
-    border-top: 1px solid var(--border);
-    flex-shrink: 0;
-}
-
-
-    .cart-total-label {
-      font-weight: 700;
-      color: var(--text2);
-      font-size: .85rem;
-    }
-
-    .cart-total-amount {
-      font-family: var(--font-display);
-      font-size: 1.35rem;
-      font-weight: 900;
-      color: var(--verde);
-    }
-
-    .cart-footer {
-      padding: 12px 20px 28px;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .btn-whatsapp {
-      width: 100%;
-      padding: 15px;
-      background: linear-gradient(135deg, #25D366, #1aad52);
-      border: none;
-      border-radius: var(--radius-sm);
-      color: white;
-      font-family: var(--font-display);
-      font-size: 1rem;
-      font-weight: 900;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 4px 16px rgba(37, 211, 102, .35);
-      transition: transform .15s, box-shadow .15s;
-    }
-
-    .btn-whatsapp:active {
-      transform: scale(.98);
-    }
-
-    .btn-whatsapp i {
-      font-size: 1.1rem;
-    }
-
-    .link-pedido-box {
-      background: var(--bg2);
-      border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      border: 1.5px dashed var(--border2);
-    }
-
-    .link-pedido-label {
-      font-size: .7rem;
-      font-weight: 800;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .link-pedido-url {
-      font-size: .72rem;
-      word-break: break-all;
-      color: var(--azul);
-      font-weight: 600;
-      line-height: 1.5;
-    }
-
-    .link-copy-btn {
-      margin-top: 8px;
-      padding: 7px 13px;
-      background: var(--azul);
-      color: white;
-      border: none;
-      border-radius: var(--radius-xs);
-      cursor: pointer;
-      font-family: var(--font);
-      font-weight: 700;
-      font-size: .77rem;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    /* PEDIDO VIEW */
-    #screen-pedido {
-      background: var(--bg);
-    }
-
-    .pedido-loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-      gap: 16px;
-    }
-
-    .pedido-content {
-      padding: 16px;
-      max-width: 640px;
-      margin: 0 auto;
-      padding-bottom: 40px;
-    }
-
-    .factura-top {
-      background: linear-gradient(135deg, var(--verde), #0d6db5);
-      color: white;
-      border-radius: var(--radius);
-      padding: 22px 20px;
-      margin-bottom: 14px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .factura-neg {
-      font-family: var(--font-display);
-      font-size: 1.25rem;
-      font-weight: 900;
-      position: relative;
-    }
-
-    .factura-pid {
-      font-size: .75rem;
-      opacity: .8;
-      margin-top: 4px;
-      position: relative;
-    }
-
-    .factura-estado-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 12px;
-      background: rgba(255, 255, 255, .2);
-      padding: 5px 14px;
-      border-radius: 20px;
-      font-size: .78rem;
-      font-weight: 700;
-    }
-
-    .info-box {
-      background: var(--white);
-      border-radius: var(--radius-sm);
-      padding: 14px 16px;
-      margin-bottom: 12px;
-      border-left: 3px solid var(--verde);
-      box-shadow: var(--shadow);
-    }
-
-    .info-box-title {
-      font-size: .68rem;
-      font-weight: 800;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .7px;
-      margin-bottom: 10px;
-    }
-
-    .info-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 9px;
-      font-size: .88rem;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--text);
-    }
-
-    .info-row i {
-      color: var(--verde);
-      width: 14px;
-      margin-top: 2px;
-      flex-shrink: 0;
-    }
-
-    .items-card {
-      background: var(--white);
-      border-radius: var(--radius-sm);
-      padding: 14px 16px;
-      margin-bottom: 12px;
-      box-shadow: var(--shadow);
-    }
-
-    .items-card-title {
-      font-family: var(--font-display);
-      font-size: .95rem;
-      font-weight: 900;
-      margin-bottom: 12px;
-      color: var(--text);
-    }
-
-    .factura-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .factura-item:last-child {
-      border-bottom: none;
-    }
-
-    .factura-item-qty {
-      background: var(--verde);
-      color: white;
-      border-radius: 7px;
-      font-weight: 800;
-      font-size: .75rem;
-      min-width: 26px;
-      height: 26px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .factura-item-name {
-      flex: 1;
-      font-weight: 600;
-      font-size: .86rem;
-      color: var(--text);
-    }
-
-    .factura-item-price {
-      font-weight: 800;
-      font-size: .86rem;
-      color: var(--verde);
-      font-family: var(--font-display);
-    }
-
-    .total-box {
-      background: var(--text);
-      color: white;
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      margin-bottom: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .total-box-label {
-      font-size: .85rem;
-      opacity: .75;
-    }
-
-    .total-box-amount {
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      font-weight: 900;
-      color: var(--amarillo);
-    }
-
-    .acciones {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .btn-accion {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: var(--radius-sm);
-      color: white;
-      font-family: var(--font-display);
-      font-size: .95rem;
-      font-weight: 900;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-      transition: transform .15s;
-    }
-
-    .btn-accion:active {
-      transform: scale(.98);
-    }
-
-    .btn-procesando {
-      background: var(--azul);
-      box-shadow: 0 4px 14px rgba(25, 113, 194, .3);
-    }
-
-    .btn-entregado {
-      background: #f59f00;
-      box-shadow: 0 4px 14px rgba(245, 159, 0, .3);
-    }
-
-    .entregado-badge {
-      text-align: center;
-      padding: 16px 0;
-    }
-
-    .entregado-badge span {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      background: #d4edda;
-      color: #155724;
-      padding: 9px 22px;
-      border-radius: 20px;
-      font-size: .9rem;
-      font-weight: 700;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 48px 20px;
-      color: var(--muted);
-    }
-
-    .empty-state i {
-      font-size: 2.4rem;
-      margin-bottom: 14px;
-      display: block;
-      opacity: .4;
-    }
-
-    .skeleton {
-      background: linear-gradient(90deg, var(--bg) 25%, var(--bg2) 50%, var(--bg) 75%);
-      background-size: 200% 100%;
-      animation: skel 1.3s infinite;
-      border-radius: var(--radius);
-    }
-
-    @keyframes skel {
-      to {
-        background-position: -200% 0;
-      }
-    }
-
-    .skel-card {
-      height: 76px;
-      margin-bottom: 10px;
-    }
-
-    /* MODAL UNIDAD */
-    .unit-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, .52);
-      z-index: 500;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .22s;
-      backdrop-filter: blur(2px);
-      padding: 20px 16px;
-    }
-
-    .unit-modal-overlay.open {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .unit-modal {
-      background: var(--white);
-      border-radius: 24px;
-      width: 100%;
-      max-width: 480px;
-      padding: 0 0 24px;
-      transform: scale(.93) translateY(16px);
-      transition: transform .28s cubic-bezier(.25, .46, .45, .94);
-      box-shadow: 0 8px 40px rgba(0, 0, 0, .22);
-    }
-
-    .unit-modal-overlay.open .unit-modal {
-      transform: scale(1) translateY(0);
-    }
-
-    .unit-modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 20px 10px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .unit-modal-title {
-      font-family: var(--font-display);
-      font-size: 1.05rem;
-      font-weight: 900;
-      color: var(--text);
-    }
-
-    .unit-modal-close {
-      background: var(--bg2);
-      border: none;
-      border-radius: var(--radius-xs);
-      width: 32px;
-      height: 32px;
-      cursor: pointer;
-      color: var(--text2);
-      font-size: .9rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .unit-modal-body {
-      padding: 18px 20px 0;
-    }
-
-    .unit-modal-prod-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 18px;
-      background: var(--bg2);
-      border-radius: var(--radius-sm);
-      padding: 12px 14px;
-    }
-
-    .unit-modal-prod-img {
-      width: 50px;
-      height: 50px;
-      border-radius: 10px;
-      object-fit: cover;
-      background: var(--bg);
-      flex-shrink: 0;
-    }
-
-    .unit-modal-prod-emoji {
-      width: 50px;
-      height: 50px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--bg), var(--border));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.6rem;
-      flex-shrink: 0;
-    }
-
-    .unit-modal-prod-name {
-      font-weight: 700;
-      font-size: .92rem;
-      color: var(--text);
-    }
-
-    .unit-modal-prod-price {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: .9rem;
-      color: var(--verde);
-      margin-top: 2px;
-    }
-
-    .unit-modal-tabs {
-      display: flex;
-      border-radius: var(--radius-xs);
-      overflow: hidden;
-      border: 1.5px solid var(--border2);
-      margin-bottom: 14px;
-    }
-
-    .unit-modal-tab {
-      flex: 1;
-      padding: 10px 4px;
-      border: none;
-      background: var(--bg2);
-      color: var(--text2);
-      font-family: var(--font);
-      font-size: .82rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .15s;
-      text-align: center;
-    }
-
-    .unit-modal-tab.active {
-      background: var(--azul);
-      color: white;
-    }
-
-    .unit-modal-input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--white);
-      border: 2px solid var(--border2);
-      border-radius: var(--radius-sm);
-      padding: 0 14px;
-      transition: border-color .15s, box-shadow .15s;
-      margin-bottom: 10px;
-    }
-
-    .unit-modal-input-wrap:focus-within {
-      border-color: var(--azul);
-      box-shadow: 0 0 0 3px rgba(25, 113, 194, .1);
-    }
-
-    .unit-modal-input {
-      flex: 1;
-      padding: 13px 0;
-      border: none;
-      outline: none;
-      font-family: var(--font);
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text);
-      background: transparent;
-    }
-
-    .unit-modal-suffix {
-      font-size: .82rem;
-      font-weight: 800;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    .unit-modal-result {
-      font-size: .82rem;
-      color: var(--verde-dark);
-      font-weight: 700;
-      min-height: 18px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    .unit-modal-add-btn {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: var(--radius-sm);
-      background: var(--azul);
-      color: white;
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: .97rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background .15s, transform .12s;
-      box-shadow: 0 4px 14px rgba(25, 113, 194, .28);
-      margin-bottom: 8px;
-    }
-
-    .unit-modal-add-btn:active {
-      transform: scale(.98);
-    }
-
-    .unit-modal-add-btn:disabled {
-      background: var(--border2);
-      color: #999;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    @media(min-width:768px) {
-      .cart-drawer {
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%) translateY(100%);
-        width: 520px;
-        border-radius: var(--radius) var(--radius) 0 0;
-      }
-
-      .cart-drawer.open {
-        transform: translateX(-50%) translateY(0);
-      }
-
-      .float-cart {
-        max-width: 600px;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%) translateY(130px);
-      }
-
-      .float-cart.visible {
-        transform: translateX(-50%) translateY(0);
-      }
-
-      .page-content {
-        padding: 28px 24px;
-      }
-    }
-  </style>
+  <meta name="description"         content="miColmApp – Pedidos online de colmados en República Dominicana.">
+
+  <!-- Tipografías -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,600&display=swap" rel="stylesheet">
+  <!-- Iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- ══ ESTILOS PROPIOS (archivo separado) ══ -->
+  <link rel="stylesheet" href="./css/styles_1.css">
 </head>
 
 <body>
 
-  <!-- CONNECTIVITY BANNER -->
+  <!-- BANNER CONECTIVIDAD -->
   <div id="net-banner">
     <i id="net-banner-icon" class="fas fa-wifi-slash"></i>
     <span id="net-banner-text">Sin conexión a internet</span>
   </div>
 
+  <!-- PANTALLA DE CARGA -->
   <div id="loading-screen">
-
-    <div class="loading-logo"><img src="./img/micolmapp_logo_1.png"></div>
-
-    <!-- <div class="loading-logo">mi<span>Colm</span>App</div>
-    <div class="loading-tagline">Tu colmado, a un toque</div> -->
-
-
+    <div class="loading-logo">
+      <img src="./img/micolmapp_logo_1.png" alt="miColmApp"
+        onerror="this.outerHTML='<span style=\'font-family:var(--font-display);font-size:2.2rem;font-weight:900;color:#00c04b;letter-spacing:-1px;\'>mi<span style=\'color:#1971c2;\'>Colm</span>App</span>'">
+    </div>
     <div class="loading-spinner"></div>
   </div>
 
-  <!-- COLMADOS -->
+  <!-- ══ PANTALLA: COLMADOS ══ -->
   <div class="screen" id="screen-colmados">
     <div class="app-header">
-      <div class="header-logo"><img src="./img/micolmapp_logo_1_letra.png"></div>
+      <div class="header-logo">
+        <img src="./img/micolmapp_logo_1_letra.png" alt="miColmApp"
+          onerror="this.outerHTML='mi<span style=\'color:var(--azul);\'>Colm</span>App'">
+      </div>
     </div>
     <div class="page-content">
       <div class="page-hero">
         <div class="page-hero-label">🌴 Bienvenido</div>
         <div class="page-hero-title">Colmados disponibles</div>
-        <div class="page-hero-sub">Selecciona tu colmado favorito para ver el catálogo y hacer tu pedido fácilmente.
-        </div>
+        <div class="page-hero-sub">Selecciona tu colmado favorito para ver el catálogo y hacer tu pedido fácilmente.</div>
       </div>
       <div id="colmados-list">
         <div class="skeleton skel-card"></div>
@@ -1964,29 +71,20 @@ background: #0000008c;
     </div>
   </div>
 
-  <!-- TIENDA -->
+  <!-- ══ PANTALLA: TIENDA ══ -->
   <div class="screen" id="screen-shop">
-    <div id="shop-header" class="shop-banner"
-      style="position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px;padding:0 14px;height:62px;overflow:visible;">
-      <button onclick="volverColmados()"
-        style="flex-shrink:0;background:rgba(255,255,255,.18);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;cursor:pointer;backdrop-filter:blur(4px);transition:background .15s;"
-        onmouseenter="this.style.background='rgba(255,255,255,.28)'"
-        onmouseleave="this.style.background='rgba(255,255,255,.18)'">
+    <div id="shop-header" class="shop-banner">
+      <button id="volverComadobtn" onclick="volverColmados()"
+        onmouseenter="this.style.background='rgb(0 123 44)'"
+        onmouseleave="this.style.background='rgb(0 169 61)'">
         <i class="fas fa-arrow-left"></i>
       </button>
       <div style="flex:1;min-width:0;overflow:hidden;">
-        <div id="shop-header-nombre"
-          style="font-family:var(--font-display);font-weight:900;font-size:1rem;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.15);">
-        </div>
-        <div id="shop-header-dir"
-          style="font-size:.68rem;color:rgba(255,255,255,.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;display:flex;align-items:center;gap:4px;">
-        </div>
-        <div id="shop-header-ws"
-          style="font-size:.66rem;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;display:none;align-items:center;gap:4px;">
-        </div>
+        <div id="shop-header-nombre"></div>
+        <div id="shop-header-dir"></div>
+        <div id="shop-header-ws"></div>
       </div>
       <button id="cart-header-btn" onclick="abrirCarrito()"
-        style="flex-shrink:0;position:relative;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;cursor:pointer;backdrop-filter:blur(4px);transition:background .15s;"
         onmouseenter="this.style.background='rgba(255,255,255,.32)'"
         onmouseleave="this.style.background='rgba(255,255,255,.2)'">
         <i class="fas fa-shopping-cart"></i>
@@ -1998,10 +96,14 @@ background: #0000008c;
       <div class="search-sticky">
         <div class="search-wrap">
           <i class="fas fa-search"></i>
-          <input type="text" id="search-input" placeholder="Buscar producto..." oninput="filtrarBusqueda(this.value)"
+          <input type="text" id="search-input" placeholder="Buscar producto..."
+            oninput="filtrarBusqueda(this.value)"
             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search">
-          <button class="search-clear-btn" id="search-clear-btn" ontouchend="event.preventDefault();limpiarBusqueda();"
-            onclick="limpiarBusqueda()" type="button"><i class="fas fa-times-circle"></i></button>
+          <button class="search-clear-btn" id="search-clear-btn"
+            ontouchend="event.preventDefault();limpiarBusqueda();"
+            onclick="limpiarBusqueda()" type="button">
+            <i class="fas fa-times-circle"></i>
+          </button>
         </div>
       </div>
       <div class="shop-cols">
@@ -2017,20 +119,19 @@ background: #0000008c;
     </div>
   </div>
 
-  <!-- PEDIDO -->
+  <!-- ══ PANTALLA: PEDIDO ══ -->
   <div class="screen" id="screen-pedido">
     <div class="app-header">
       <div class="header-logo">mi<span>Colm</span>App</div>
       <span style="font-size:.73rem;color:var(--muted);font-weight:600;">Pedido del cliente</span>
     </div>
     <div id="pedido-body" class="pedido-loading">
-      <div class="loading-spinner" style="border-color:#e2e8f0;border-top-color:var(--verde);width:34px;height:34px;">
-      </div>
+      <div class="loading-spinner" style="border-color:#e2e8f0;border-top-color:var(--verde);width:34px;height:34px;"></div>
       <div style="font-size:.88rem;color:var(--muted);">Cargando pedido...</div>
     </div>
   </div>
 
-  <!-- CARRITO -->
+  <!-- ══ CARRITO OVERLAY + DRAWER ══ -->
   <div class="cart-overlay" id="cart-overlay" onclick="cerrarCarrito()"></div>
   <div class="cart-drawer" id="cart-drawer">
     <div class="cart-handle"></div>
@@ -2055,8 +156,7 @@ background: #0000008c;
         <input type="checkbox" class="remember-checkbox" id="recordar-check">
         <div>
           <div class="remember-label"><strong>Recordar mis datos</strong></div>
-          <div style="font-size:.72rem;color:var(--muted);margin-top:1px;">Tu nombre y dirección se guardan en este
-            dispositivo para futuros pedidos.</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:1px;">Tu nombre y dirección se guardan en este dispositivo para futuros pedidos.</div>
         </div>
         <span class="remember-saved-badge" id="saved-badge">Guardado</span>
       </label>
@@ -2077,7 +177,7 @@ background: #0000008c;
     </div>
   </div>
 
-  <!-- FLOAT CART -->
+  <!-- ══ CARRITO FLOTANTE ══ -->
   <div class="float-cart" id="float-cart" onclick="abrirCarrito()">
     <div class="float-cart-left">
       <div class="float-cart-count" id="float-cart-count">0 productos</div>
@@ -2086,7 +186,7 @@ background: #0000008c;
     <div class="float-cart-right"><i class="fas fa-shopping-bag"></i> Ver carrito</div>
   </div>
 
-  <!-- MODAL UNIDAD -->
+  <!-- ══ MODAL UNIDAD ══ -->
   <div class="unit-modal-overlay" id="unit-modal-overlay" onclick="cerrarModalUnidad(event)">
     <div class="unit-modal" id="unit-modal">
       <div class="unit-modal-handle"></div>
@@ -2097,13 +197,12 @@ background: #0000008c;
       <div class="unit-modal-body">
         <div class="unit-modal-prod-info" id="unit-modal-prod-info"></div>
         <div class="unit-modal-tabs" id="unit-modal-tabs">
-          <button class="unit-modal-tab active" id="unit-modal-tab-unidad" onclick="setModalModo('unidad')">Por
-            unidad</button>
+          <button class="unit-modal-tab active" id="unit-modal-tab-unidad" onclick="setModalModo('unidad')">Por unidad</button>
           <button class="unit-modal-tab" id="unit-modal-tab-precio" onclick="setModalModo('precio')">Por precio</button>
         </div>
         <div class="unit-modal-input-wrap">
-          <input class="unit-modal-input" id="unit-modal-input" type="number" min="0" step="0.1" placeholder="Ej: 2.5"
-            oninput="calcModalResult()" autocomplete="off" inputmode="decimal">
+          <input class="unit-modal-input" id="unit-modal-input" type="number" min="0" step="0.1"
+            placeholder="Ej: 2.5" oninput="calcModalResult()" autocomplete="off" inputmode="decimal">
           <span class="unit-modal-suffix" id="unit-modal-suffix">lb</span>
         </div>
         <div class="unit-modal-result" id="unit-modal-result"></div>
@@ -2114,1544 +213,876 @@ background: #0000008c;
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════════════════════
+       SCRIPTS
+       firebase.js + app.js unidos en un solo <script type="module">
+       para que funcione abriendo el archivo local (file://)
+       sin necesidad de servidor
+  ══════════════════════════════════════════════════════════════════ -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-      getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc,
-      query, orderBy, serverTimestamp, onSnapshot,
-      enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB7cX3O8Nkhg5XYsuH1UIn0ZDyxoxLzTB4",
-      authDomain: "colmapp-4aaa4.firebaseapp.com",
-      projectId: "colmapp-4aaa4",
-      storageBucket: "colmapp-4aaa4.firebasestorage.app",
-      messagingSenderId: "767529335752",
-      appId: "1:767529335752:web:5967b10a0e0da050f91efd"
-    };
+  // ════════════════════════════════════════════════════════════════
+  //  firebase.js  –  Config e inicialización
+  // ════════════════════════════════════════════════════════════════
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getFirestore, collection, doc, getDoc, getDocs,
+    setDoc, updateDoc, serverTimestamp, onSnapshot,
+    enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const firebaseConfig = {
+    apiKey:            "AIzaSyB7cX3O8Nkhg5XYsuH1UIn0ZDyxoxLzTB4",
+    authDomain:        "colmapp-4aaa4.firebaseapp.com",
+    projectId:         "colmapp-4aaa4",
+    storageBucket:     "colmapp-4aaa4.firebasestorage.app",
+    messagingSenderId: "767529335752",
+    appId:             "1:767529335752:web:5967b10a0e0da050f91efd"
+  };
 
-    // ── FIRESTORE OFFLINE PERSISTENCE ────────────────────────────────────
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  try {
+    await enableIndexedDbPersistence(db, { cacheSizeBytes: CACHE_SIZE_UNLIMITED });
+  } catch (err) {
+    if (err.code === 'failed-precondition') console.warn('Firestore persistence: múltiples pestañas.');
+    else if (err.code === 'unimplemented')  console.warn('Firestore persistence no disponible.');
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  //  app.js  –  Lógica principal
+  // ════════════════════════════════════════════════════════════════
+
+  // ── Caché local ───────────────────────────────────────────────
+  const CACHE_VERSION = 2;
+  const CK = {
+    colmados:   `mca_v${CACHE_VERSION}_colmados`,
+    negocio:    (id) => `mca_v${CACHE_VERSION}_neg_${id}`,
+    categorias: (id) => `mca_v${CACHE_VERSION}_cats_${id}`,
+    productos:  (id) => `mca_v${CACHE_VERSION}_prods_${id}`,
+    ts:         (key) => `${key}_ts`,
+  };
+  const CACHE_TTL_MS = 30 * 60 * 1000;
+
+  function cacheSet(key, data) {
+    try { localStorage.setItem(key, JSON.stringify(data)); localStorage.setItem(CK.ts(key), Date.now().toString()); } catch(e){}
+  }
+  function cacheGet(key) {
+    try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; } catch(e){ return null; }
+  }
+
+  // ── Banner conectividad ───────────────────────────────────────
+  let _wasOffline = false, _bannerTimer = null;
+
+  function showNetBanner(offline) {
+    const banner = document.getElementById('net-banner');
+    const icon   = document.getElementById('net-banner-icon');
+    const text   = document.getElementById('net-banner-text');
+    clearTimeout(_bannerTimer);
+    if (offline) {
+      banner.style.background = '#e03131'; banner.style.color = '#fff';
+      icon.className = 'fas fa-wifi-slash';
+      text.textContent = 'Sin conexión — mostrando datos guardados';
+      banner.style.transform = 'translateY(0)';
+    } else {
+      banner.style.background = '#00c04b'; banner.style.color = '#fff';
+      icon.className = 'fas fa-wifi';
+      text.textContent = '¡De nuevo en línea!';
+      banner.style.transform = 'translateY(0)';
+      _bannerTimer = setTimeout(() => { banner.style.transform = 'translateY(-110%)'; }, 2800);
+    }
+  }
+
+  window.addEventListener('offline', () => { _wasOffline = true; showNetBanner(true); });
+  window.addEventListener('online',  () => { if (_wasOffline) { showNetBanner(false); _wasOffline = false; } });
+  if (!navigator.onLine) { _wasOffline = true; showNetBanner(true); }
+
+  // ── Fetchers offline-first ────────────────────────────────────
+  async function fetchColmados() {
+    const cached = cacheGet(CK.colmados);
+    if (cached) renderColmados(cached);
     try {
-      await enableIndexedDbPersistence(db, { cacheSizeBytes: CACHE_SIZE_UNLIMITED });
-    } catch (err) {
-      if (err.code === 'failed-precondition') {
-        console.warn('Firestore persistence: múltiples pestañas abiertas.');
-      } else if (err.code === 'unimplemented') {
-        console.warn('Firestore persistence no disponible en este navegador.');
+      const snap = await getDocs(collection(db, 'negocios'));
+      const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      cacheSet(CK.colmados, lista); renderColmados(lista);
+    } catch(e) {
+      if (!cached) document.getElementById('colmados-list').innerHTML =
+        `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${navigator.onLine ? 'Error: '+e.message : 'Sin conexión y sin datos guardados.<br>Conéctate para cargar los colmados.'}</p></div>`;
+    }
+  }
+
+  async function fetchNegocio(id) {
+    const cached = cacheGet(CK.negocio(id));
+    if (cached) return cached;
+    const snap = await getDoc(doc(db, 'negocios', id));
+    if (!snap.exists()) return null;
+    const data = { id, ...snap.data() };
+    cacheSet(CK.negocio(id), data); return data;
+  }
+
+  async function fetchCategorias(id) {
+    const cached = cacheGet(CK.categorias(id));
+    if (cached && !navigator.onLine) return cached;
+    try {
+      const snap = await getDocs(collection(db, 'negocios', id, 'categorias'));
+      const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      lista.sort((a,b) => (a.orden??9999)-(b.orden??9999));
+      cacheSet(CK.categorias(id), lista); return lista;
+    } catch(e) { if (cached) return cached; throw e; }
+  }
+
+  async function fetchProductos(negId, cats) {
+    const cached = cacheGet(CK.productos(negId));
+    if (cached && !navigator.onLine) return cached;
+    try {
+      const todos = [];
+      for (const cat of cats) {
+        try {
+          const pSnap = await getDocs(collection(db, 'negocios', negId, 'categorias', cat.id, 'productos'));
+          pSnap.docs.forEach(d => todos.push({
+            id: d.id, categoriaId: cat.id, categoriaNombre: cat.nombre,
+            categoriaEmoji: cat.emoji||'📦', categoriaImagen: cat.imagen||null,
+            ...d.data(), precio: d.data().precio??0
+          }));
+        } catch(catErr) { console.warn(`Error cat ${cat.id}:`, catErr); }
       }
+      cacheSet(CK.productos(negId), todos); return todos;
+    } catch(e) { if (cached) return cached; throw e; }
+  }
+
+  // ── Estado global ─────────────────────────────────────────────
+  let colmadoActual=null, colmadoIdActual=null, categoriasLista=[], productosLista=[];
+  let carrito=[], catFiltro='all', busqueda='', linkGenerado=null, datosModificados=false;
+
+  const params = new URLSearchParams(window.location.search);
+  const routeC = params.get('c');
+  const routeP = params.get('p');
+
+  // ── Init ──────────────────────────────────────────────────────
+  async function init() {
+    if (routeC && routeP) { await mostrarPedido(routeC, routeP); return; }
+    if (routeC)           { await abrirShop(routeC); return; }
+    await cargarColmados();
+  }
+
+  // ── Datos guardados del cliente ───────────────────────────────
+  const LS_KEY = 'micolmapp_cliente_datos';
+  const LS_CART_KEY = 'micolmapp_carrito';
+
+  function cargarDatosGuardados() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) { document.getElementById('recordar-check').checked = true; return; }
+      const datos = JSON.parse(raw);
+      if (datos.nombre)    document.getElementById('cliente-nombre').value    = datos.nombre;
+      if (datos.direccion) document.getElementById('cliente-direccion').value = datos.direccion;
+      const recordar = datos.recordar !== false;
+      document.getElementById('recordar-check').checked = recordar;
+      if (recordar) document.getElementById('saved-badge').classList.add('visible');
+    } catch(e) { document.getElementById('recordar-check').checked = true; }
+  }
+
+  function guardarDatosSiRecordar() {
+    const recordar = document.getElementById('recordar-check').checked;
+    if (!recordar) { localStorage.setItem(LS_KEY, JSON.stringify({ recordar: false })); return; }
+    const nombre    = document.getElementById('cliente-nombre').value.trim();
+    const direccion = document.getElementById('cliente-direccion').value.trim();
+    if (nombre || direccion) {
+      localStorage.setItem(LS_KEY, JSON.stringify({ nombre, direccion, recordar: true }));
+      document.getElementById('saved-badge').classList.add('visible');
     }
+  }
 
-    // ── CACHE LOCAL (IndexedDB via localForage-style wrapper over localStorage) ─
-    // Usamos localStorage como caché secundaria rápida (strings JSON)
-    const CACHE_VERSION = 2;
-    const CK = {
-      colmados: `mca_v${CACHE_VERSION}_colmados`,
-      negocio: (id) => `mca_v${CACHE_VERSION}_neg_${id}`,
-      categorias: (id) => `mca_v${CACHE_VERSION}_cats_${id}`,
-      productos: (id) => `mca_v${CACHE_VERSION}_prods_${id}`,
-      ts: (key) => `${key}_ts`,
-    };
-    const CACHE_TTL_MS = 30 * 60 * 1000; // 30 min
-
-    function cacheSet(key, data) {
-      try {
-        localStorage.setItem(key, JSON.stringify(data));
-        localStorage.setItem(CK.ts(key), Date.now().toString());
-      } catch (e) { /* storage full — ignore */ }
-    }
-
-    function cacheGet(key) {
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return null;
-        return JSON.parse(raw);
-      } catch (e) { return null; }
-    }
-
-    function cacheFresh(key) {
-      const ts = parseInt(localStorage.getItem(CK.ts(key)) || '0', 10);
-      return (Date.now() - ts) < CACHE_TTL_MS;
-    }
-
-    // ── CONNECTIVITY BANNER ───────────────────────────────────────────────
-    let _wasOffline = false;
-    let _bannerTimer = null;
-
-    function showNetBanner(offline) {
-      const banner = document.getElementById('net-banner');
-      const icon = document.getElementById('net-banner-icon');
-      const text = document.getElementById('net-banner-text');
-      clearTimeout(_bannerTimer);
-
-      if (offline) {
-        banner.style.background = '#e03131';
-        banner.style.color = '#fff';
-        icon.className = 'fas fa-wifi-slash';
-        text.textContent = 'Sin conexión — mostrando datos guardados';
-        banner.style.transform = 'translateY(0)';
-      } else {
-        banner.style.background = '#00c04b';
-        banner.style.color = '#fff';
-        icon.className = 'fas fa-wifi';
-        text.textContent = '¡De nuevo en línea!';
-        banner.style.transform = 'translateY(0)';
-        _bannerTimer = setTimeout(() => {
-          banner.style.transform = 'translateY(-110%)';
-        }, 2800);
-      }
-    }
-
-    function hideNetBanner() {
-      const banner = document.getElementById('net-banner');
-      clearTimeout(_bannerTimer);
-      banner.style.transform = 'translateY(-110%)';
-    }
-
-    window.addEventListener('offline', () => {
-      _wasOffline = true;
-      showNetBanner(true);
-    });
-
-    window.addEventListener('online', () => {
-      if (_wasOffline) {
-        showNetBanner(false);
-        _wasOffline = false;
-      }
-    });
-
-    // Check initial state
-    if (!navigator.onLine) {
-      _wasOffline = true;
-      showNetBanner(true);
-    }
-
-    // ── OFFLINE-FIRST DATA FETCHERS ───────────────────────────────────────
-    // Each fetcher: 1) serve from cache instantly if available
-    //               2) fetch from Firestore (works offline via IndexedDB persistence)
-    //               3) update cache on success
-
-    async function fetchColmados() {
-      // Try cache first for instant render
-      const cached = cacheGet(CK.colmados);
-      if (cached) renderColmados(cached);
-
-      try {
-        const snap = await getDocs(collection(db, 'negocios'));
-        const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        cacheSet(CK.colmados, lista);
-        renderColmados(lista);
-      } catch (e) {
-        if (!cached) {
-          document.getElementById('colmados-list').innerHTML =
-            `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${navigator.onLine ? 'Error: ' + e.message : 'Sin conexión y sin datos guardados.<br>Conéctate para cargar los colmados.'}</p></div>`;
-        }
-      }
-    }
-
-    async function fetchNegocio(id) {
-      const cached = cacheGet(CK.negocio(id));
-      if (cached) return cached;
-      const snap = await getDoc(doc(db, 'negocios', id));
-      if (!snap.exists()) return null;
-      const data = { id, ...snap.data() };
-      cacheSet(CK.negocio(id), data);
-      return data;
-    }
-
-    async function fetchCategorias(id) {
-      const cached = cacheGet(CK.categorias(id));
-      if (cached && !navigator.onLine) return cached;
-
-      try {
-        const snap = await getDocs(collection(db, 'negocios', id, 'categorias'));
-        const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        lista.sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
-        cacheSet(CK.categorias(id), lista);
-        return lista;
-      } catch (e) {
-        if (cached) return cached;
-        throw e;
-      }
-    }
-
-    async function fetchProductos(negId, cats) {
-      const cached = cacheGet(CK.productos(negId));
-      if (cached && !navigator.onLine) return cached;
-
-      try {
-        const todos = [];
-        for (const cat of cats) {
-          try {
-            const pSnap = await getDocs(
-              collection(db, 'negocios', negId, 'categorias', cat.id, 'productos')
-            );
-            pSnap.docs.forEach(d => {
-              todos.push({
-                id: d.id,
-                categoriaId: cat.id,
-                categoriaNombre: cat.nombre,
-                categoriaEmoji: cat.emoji || '📦',
-                categoriaImagen: cat.imagen || null,
-                ...d.data(),
-                precio: d.data().precio ?? 0
-              });
-            });
-          } catch (catErr) {
-            console.warn(`Error cat ${cat.id}:`, catErr);
-          }
-        }
-        cacheSet(CK.productos(negId), todos);
-        return todos;
-      } catch (e) {
-        if (cached) return cached;
-        throw e;
-      }
-    }
-
-    let colmadoActual = null;
-    let colmadoIdActual = null;
-    let categoriasLista = [];
-    let productosLista = [];
-    let carrito = [];
-    let catFiltro = 'all';
-    let busqueda = '';
-    let linkGenerado = null;
-    let datosModificados = false;
-
-    const params = new URLSearchParams(window.location.search);
-    const routeC = params.get('c');
-    const routeP = params.get('p');
-
-    async function init() {
-      if (routeC && routeP) { await mostrarPedido(routeC, routeP); return; }
-      if (routeC) { await abrirShop(routeC); return; }
-      await cargarColmados();
-    }
-
-    // RECORDAR DATOS
-    const LS_KEY = 'micolmapp_cliente_datos';
-    const LS_CART_KEY = 'micolmapp_carrito';
-
-    function cargarDatosGuardados() {
-      try {
-        const raw = localStorage.getItem(LS_KEY);
-        if (!raw) {
-          // No saved data yet, but checkbox is ON by default
-          document.getElementById('recordar-check').checked = true;
-          return;
-        }
-        const datos = JSON.parse(raw);
-        if (datos.nombre) document.getElementById('cliente-nombre').value = datos.nombre;
-        if (datos.direccion) document.getElementById('cliente-direccion').value = datos.direccion;
-        // Default checked unless user explicitly turned it off
-        const recordar = datos.recordar !== false;
-        document.getElementById('recordar-check').checked = recordar;
-        if (recordar) {
-          document.getElementById('saved-badge').classList.add('visible');
-        }
-      } catch (e) {
-        document.getElementById('recordar-check').checked = true;
-      }
-    }
-
-    function guardarDatosSiRecordar() {
+  window.toggleRecordar = () => {
+    setTimeout(() => {
       const recordar = document.getElementById('recordar-check').checked;
-      if (!recordar) {
-        // Save the preference that user explicitly turned it off
-        localStorage.setItem(LS_KEY, JSON.stringify({ recordar: false }));
-        return;
-      }
-      const nombre = document.getElementById('cliente-nombre').value.trim();
-      const direccion = document.getElementById('cliente-direccion').value.trim();
-      if (nombre || direccion) {
-        localStorage.setItem(LS_KEY, JSON.stringify({ nombre, direccion, recordar: true }));
-        document.getElementById('saved-badge').classList.add('visible');
+      if (!recordar) { localStorage.removeItem(LS_KEY); document.getElementById('saved-badge').classList.remove('visible'); }
+      else guardarDatosSiRecordar();
+    }, 10);
+  };
+  window.marcarCambiado = () => { datosModificados = true; };
 
-      }
+  // ── Pantalla: Colmados ────────────────────────────────────────
+  async function cargarColmados() { showScreen('colmados'); ocultarLoading(); await fetchColmados(); }
+
+  function renderColmados(lista) {
+    const el = document.getElementById('colmados-list');
+    if (!lista.length) { el.innerHTML = `<div class="empty-state"><i class="fas fa-store"></i><p>No hay colmados registrados aún.</p></div>`; return; }
+    el.innerHTML = lista.map(c => `
+      <div class="colmado-card" onclick="selColmado('${c.id}')">
+        <div class="colmado-avatar">${(c.nombre||'C')[0].toUpperCase()}</div>
+        <div class="colmado-info">
+          <div class="colmado-nombre">${esc(c.nombre||'Sin nombre')}</div>
+          <div class="colmado-dir"><i class="fas fa-map-marker-alt" style="font-size:.7rem;"></i>${esc(c.direccion||'Sin dirección')}</div>
+        </div>
+        <div class="colmado-arrow"><i class="fas fa-chevron-right"></i></div>
+      </div>`).join('');
+  }
+
+  window.selColmado = (id) => abrirShop(id);
+  window.volverColmados = () => {
+    carrito = []; actualizarCarritoUI();
+    try { localStorage.removeItem(LS_CART_KEY); } catch(e){}
+    showScreen('colmados');
+    history.pushState({ screen:'colmados' }, '', location.pathname);
+    cargarColmados();
+  };
+
+  window.addEventListener('popstate', () => {
+    const unitOverlay = document.getElementById('unit-modal-overlay');
+    if (unitOverlay && unitOverlay.classList.contains('open')) {
+      unitOverlay.classList.remove('open'); _modalProdId = null;
+      history.pushState({ screen:'shop', colmadoId:colmadoIdActual }, '', location.href); return;
     }
-
-    window.toggleRecordar = () => {
-      setTimeout(() => {
-        const recordar = document.getElementById('recordar-check').checked;
-        if (!recordar) {
-          localStorage.removeItem(LS_KEY);
-          document.getElementById('saved-badge').classList.remove('visible');
-        } else {
-          guardarDatosSiRecordar();
-        }
-      }, 10);
-    };
-
-    window.marcarCambiado = () => { datosModificados = true; };
-
-    // COLMADOS
-    async function cargarColmados() {
-      showScreen('colmados');
-      ocultarLoading();
-      await fetchColmados();
+    const cartDrawer = document.getElementById('cart-drawer');
+    if (cartDrawer && cartDrawer.classList.contains('open')) {
+      cerrarCarrito();
+      history.pushState({ screen:'shop', colmadoId:colmadoIdActual }, '', location.href); return;
     }
-
-    function renderColmados(lista) {
-      const el = document.getElementById('colmados-list');
-      if (!lista.length) {
-        el.innerHTML = `<div class="empty-state"><i class="fas fa-store"></i><p>No hay colmados registrados aún.</p></div>`;
-        return;
-      }
-      el.innerHTML = lista.map(c => `
-        <div class="colmado-card" onclick="selColmado('${c.id}')">
-          <div class="colmado-avatar">${(c.nombre || 'C')[0].toUpperCase()}</div>
-          <div class="colmado-info">
-            <div class="colmado-nombre">${esc(c.nombre || 'Sin nombre')}</div>
-            <div class="colmado-dir"><i class="fas fa-map-marker-alt" style="font-size:.7rem;"></i>${esc(c.direccion || 'Sin dirección')}</div>
-          </div>
-          <div class="colmado-arrow"><i class="fas fa-chevron-right"></i></div>
-        </div>`).join('');
-    }
-
-    window.selColmado = (id) => abrirShop(id);
-    window.volverColmados = () => {
+    const shopScreen = document.getElementById('screen-shop');
+    if (shopScreen && shopScreen.classList.contains('active')) {
       carrito = []; actualizarCarritoUI();
-      try { localStorage.removeItem(LS_CART_KEY); } catch (e) { }
+      try { localStorage.removeItem(LS_CART_KEY); } catch(e){}
       showScreen('colmados');
-      history.pushState({ screen: 'colmados' }, '', location.pathname);
+      history.replaceState({ screen:'colmados' }, '', location.pathname);
       cargarColmados();
-    };
+    }
+  });
 
-    // Historial
-    function pushHistoryShop(id) {
-      history.pushState({ screen: 'shop', colmadoId: id }, '', `?c=${id}`);
+  // ── Pantalla: Shop ────────────────────────────────────────────
+  async function abrirShop(id) {
+    showScreen('shop'); ocultarLoading();
+    colmadoIdActual = id; catFiltro = ''; busqueda = ''; _scrollSpyAttached = false;
+
+    try {
+      const savedCart = localStorage.getItem(LS_CART_KEY);
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        carrito = (parsed.colmadoId===id && Array.isArray(parsed.items) && parsed.items.length>0) ? parsed.items : [];
+      } else { carrito = []; }
+    } catch(e) { carrito = []; }
+
+    actualizarCarritoUI();
+    if (!history.state || history.state.screen!=='shop' || history.state.colmadoId!==id)
+      history.pushState({ screen:'shop', colmadoId:id }, '', `?c=${id}`);
+
+    const prodsArea   = document.getElementById('shop-prods');
+    const cachedCats  = cacheGet(CK.categorias(id));
+    const cachedProds = cacheGet(CK.productos(id));
+    const cachedNeg   = cacheGet(CK.negocio(id));
+
+    if (cachedNeg) { colmadoActual = cachedNeg; _setShopHeader(cachedNeg); }
+    if (cachedCats && cachedProds && cachedProds.length > 0) {
+      categoriasLista = cachedCats; productosLista = cachedProds;
+      renderCategorias(); renderProductos(); _setInitialCat();
+      if (navigator.onLine && prodsArea) {
+        const sb = document.createElement('div'); sb.id = 'sync-badge';
+        sb.style.cssText = 'position:fixed;bottom:80px;right:12px;background:rgba(25,113,194,.88);color:#fff;border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:700;z-index:300;display:flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.18);';
+        sb.innerHTML = '<i class="fas fa-sync fa-spin" style="font-size:.65rem;"></i> Actualizando...';
+        document.body.appendChild(sb);
+      }
+    } else if (prodsArea) {
+      prodsArea.innerHTML = `<div class="empty-state"><div class="loading-spinner" style="border-color:#e2e8f0;border-top-color:var(--verde);width:30px;height:30px;margin:0 auto;"></div><p style="margin-top:12px;">Cargando productos...</p></div>`;
     }
 
-    window.addEventListener('popstate', (e) => {
-      const state = e.state;
-      const unitOverlay = document.getElementById('unit-modal-overlay');
-      if (unitOverlay && unitOverlay.classList.contains('open')) {
-        unitOverlay.classList.remove('open');
-        _modalProdId = null;
-        history.pushState({ screen: 'shop', colmadoId: colmadoIdActual }, '', location.href);
+    try {
+      colmadoActual = await fetchNegocio(id);
+      if (!colmadoActual) { console.error('Colmado no encontrado'); return; }
+      _setShopHeader(colmadoActual);
+      categoriasLista = await fetchCategorias(id);
+      productosLista  = await fetchProductos(id, categoriasLista);
+      console.log(`Productos: ${productosLista.length} de ${categoriasLista.length} cats`);
+
+      if (productosLista.length === 0) {
+        if (prodsArea) prodsArea.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles.<br>Vuelve más tarde.</p></div>`;
+        const cs = document.getElementById('cats-scroll');
+        if (cs) cs.innerHTML = `<div class="cat-chip active"><div class="cat-chip-emoji">📦</div><span class="cat-chip-name">Sin productos</span></div>`;
         return;
       }
-      const cartDrawer = document.getElementById('cart-drawer');
-      if (cartDrawer && cartDrawer.classList.contains('open')) {
-        cerrarCarrito();
-        history.pushState({ screen: 'shop', colmadoId: colmadoIdActual }, '', location.href);
-        return;
+      catFiltro = ''; renderCategorias(); renderProductos(); _setInitialCat();
+
+    } catch(e) {
+      console.error('Error cargando tienda:', e);
+      if (!cachedProds || !cachedProds.length) {
+        if (prodsArea) {
+          const msg = !navigator.onLine ? 'Sin conexión y sin datos guardados.<br>Conéctate para ver el catálogo.' : `Error al cargar: ${e.message}`;
+          prodsArea.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${msg}</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;background:var(--verde);color:white;border:none;border-radius:30px;">Reintentar</button></div>`;
+        }
       }
-      const shopScreen = document.getElementById('screen-shop');
-      if (shopScreen && shopScreen.classList.contains('active')) {
-        carrito = []; actualizarCarritoUI();
-        try { localStorage.removeItem(LS_CART_KEY); } catch (e) { }
-        showScreen('colmados');
-        history.replaceState({ screen: 'colmados' }, '', location.pathname);
-        cargarColmados();
-        return;
+    } finally {
+      const badge = document.getElementById('sync-badge');
+      if (badge) badge.remove();
+    }
+  }
+
+  function _setShopHeader(neg) {
+    const hN = document.getElementById('shop-header-nombre');
+    const hD = document.getElementById('shop-header-dir');
+    const hW = document.getElementById('shop-header-ws');
+    if (hN) hN.textContent = neg.nombre || 'Colmado';
+    if (hD) { hD.style.display='flex'; hD.innerHTML = neg.direccion ? `<i class="fas fa-map-marker-alt" style="opacity:.7;font-size:.6rem;"></i> ${esc(neg.direccion)}` : ''; }
+    if (hW) { if (neg.whatsapp) { hW.innerHTML=`<i class="fab fa-whatsapp" style="opacity:.7;font-size:.6rem;"></i> ${esc(neg.whatsapp)}`; hW.style.display='flex'; } else hW.style.display='none'; }
+  }
+
+  function _setInitialCat() {
+    const masV = productosLista.filter(p=>p.masVendidos===true);
+    const firstId = masV.length>0 ? '__mas_vendidos__' : (categoriasLista[0]?.id||'');
+    if (firstId) {
+      catFiltro = firstId;
+      document.querySelectorAll('.cat-chip').forEach(el=>el.classList.remove('active'));
+      const fc = document.getElementById(`cat-chip-${firstId}`);
+      if (fc) fc.classList.add('active');
+    }
+  }
+
+  // ── Render categorías ─────────────────────────────────────────
+  function renderCategorias() {
+    const scroll = document.getElementById('cats-scroll');
+    if (!scroll) return;
+    const mvProds = productosLista.filter(p=>p.masVendidos===true);
+    let chips = '';
+
+    if (mvProds.length > 0) {
+      const isActive = catFiltro === '__mas_vendidos__';
+      const mvImg = mvProds.find(p=>p.imagen&&p.imagen.startsWith('http'));
+      if (mvImg) {
+        chips += `<div class="cat-chip ${isActive?'active':''}" id="cat-chip-__mas_vendidos__" onclick="setCatFiltro('__mas_vendidos__')">
+          <div class="cat-chip-img-wrap">
+            <img class="cat-chip-image" src="${mvImg.imagen}" alt="Más Vendidos" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,#fff3cd,#ffe082);position:absolute;inset:0;">⭐</div>
+            <span class="cat-chip-img-label">⭐ Más Vendidos</span>
+          </div></div>`;
+      } else {
+        chips += `<div class="cat-chip ${isActive?'active':''}" id="cat-chip-__mas_vendidos__" onclick="setCatFiltro('__mas_vendidos__')">
+          <div class="cat-chip-emoji" style="${isActive?'border-color:var(--verde);background:rgba(0,192,75,.1);':''}background:linear-gradient(135deg,#fff3cd,#ffe082);border-color:#ffe082;">⭐</div>
+          <span class="cat-chip-name">Más Vendidos</span></div>`;
       }
+    }
+    for (const c of categoriasLista) {
+      const hasImg = c.imagen && c.imagen.startsWith('http');
+      const isActive = c.id === catFiltro;
+      if (hasImg) {
+        chips += `<div class="cat-chip ${isActive?'active':''}" id="cat-chip-${c.id}" onclick="setCatFiltro('${c.id}')">
+          <div class="cat-chip-img-wrap">
+            <img class="cat-chip-image" src="${c.imagen}" alt="${esc(c.nombre)}" onerror="this.closest('.cat-chip-img-wrap').outerHTML='<div class=\\'cat-chip-emoji\\'>${c.emoji||'📦'}</div><span class=\\'cat-chip-name\\'>${esc(c.nombre)}</span>'">
+            <span class="cat-chip-img-label">${esc(c.nombre)}</span>
+          </div></div>`;
+      } else {
+        chips += `<div class="cat-chip ${isActive?'active':''}" id="cat-chip-${c.id}" onclick="setCatFiltro('${c.id}')">
+          <div class="cat-chip-emoji" style="${isActive?'border-color:var(--verde);background:rgba(0,192,75,.1);':''}">${c.emoji||'📦'}</div>
+          <span class="cat-chip-name">${esc(c.nombre)}</span></div>`;
+      }
+    }
+    scroll.innerHTML = chips;
+  }
+
+  window.setCatFiltro = (id) => {
+    if (busqueda) { busqueda=''; document.getElementById('search-input').value=''; document.getElementById('search-clear-btn').classList.remove('visible'); renderProductos(); }
+    catFiltro = id; _scrollSpyEnabled = false;
+    document.querySelectorAll('.cat-chip').forEach(el=>el.classList.remove('active'));
+    const chip = document.getElementById(`cat-chip-${id}`);
+    if (chip) {
+      chip.classList.add('active');
+      const sb = document.getElementById('cats-scroll');
+      if (sb) {
+        const isMobile = window.innerWidth < 768;
+        if (isMobile) {
+          // Scroll horizontal: centra el chip activo en la barra
+          const chipLeft = chip.offsetLeft;
+          const chipWidth = chip.offsetWidth;
+          const sbWidth = sb.clientWidth;
+          sb.scrollTo({ left: chipLeft - sbWidth / 2 + chipWidth / 2, behavior: 'smooth' });
+        } else {
+          // Scroll vertical en desktop
+          sb.scrollTo({ top: chip.offsetTop - sb.clientHeight / 2 + chip.offsetHeight / 2, behavior: 'smooth' });
+        }
+      }
+    }
+    const panel = document.getElementById('shop-prods');
+    const anchor = document.getElementById(`sec-${id}`);
+    if (anchor && panel) {
+      const refEl = anchor.nextElementSibling || anchor;
+      const targetTop = panel.scrollTop + (refEl.getBoundingClientRect().top - panel.getBoundingClientRect().top);
+      panel.scrollTo({ top: Math.max(0, targetTop), behavior:'smooth' });
+      clearTimeout(_scrollSpyTimer);
+      _scrollSpyTimer = setTimeout(() => { _scrollSpyEnabled = true; }, 700);
+    } else { _scrollSpyEnabled = true; }
+  };
+
+  window.filtrarBusqueda = (val) => {
+    busqueda = val.toLowerCase().trim();
+    document.getElementById('search-clear-btn').classList.toggle('visible', busqueda.length>0);
+    renderProductos();
+    const panel = document.getElementById('shop-prods');
+    if (panel) panel.scrollTop = 0;
+  };
+
+  window.limpiarBusqueda = () => {
+    busqueda = ''; document.getElementById('search-input').value = '';
+    document.getElementById('search-clear-btn').classList.remove('visible');
+    renderProductos();
+  };
+
+  // ── Render productos ──────────────────────────────────────────
+  function ordenarAlf(list) { return [...list].sort((a,b)=>(a.nombre||'').toLowerCase().localeCompare((b.nombre||'').toLowerCase())); }
+
+  function renderProductos() {
+    const area = document.getElementById('shop-prods');
+    if (!area) return;
+    if (!productosLista || !productosLista.length) { area.innerHTML=`<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles.</p></div>`; return; }
+
+    if (busqueda) {
+      let filtered = productosLista.filter(p=>(p.nombre||'').toLowerCase().includes(busqueda));
+      if (!filtered.length) { area.innerHTML=`<div class="empty-state"><i class="fas fa-box-open"></i><p>No se encontraron productos para "<strong>${esc(busqueda)}</strong>"</p></div>`; return; }
+      area.innerHTML = `<div class="prods-grid">${ordenarAlf(filtered).map(p=>prodCardHTML(p,busqueda)).join('')}</div>`;
+      return;
+    }
+
+    let html = '';
+    const masV = productosLista.filter(p=>p.masVendidos===true);
+    if (masV.length>0) {
+      html += `<span class="cat-section-anchor" id="sec-__mas_vendidos__"></span>
+        <div class="cat-section-label">⭐ Más Vendidos</div>
+        <div class="prods-grid" style="margin-bottom:16px;">${ordenarAlf(masV).map(p=>prodCardHTML(p,'')).join('')}</div>`;
+    }
+    for (const cat of categoriasLista) {
+      let prods = productosLista.filter(p=>p.categoriaId===cat.id);
+      if (!prods.length) continue;
+      html += `<span class="cat-section-anchor" id="sec-${cat.id}"></span>
+        <div class="cat-section-label">${esc(cat.nombre)}</div>
+        <div class="prods-grid" style="margin-bottom:16px;">${ordenarAlf(prods).map(p=>prodCardHTML(p,'')).join('')}</div>`;
+    }
+    if (!html) { area.innerHTML=`<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles en este colmado.</p></div>`; }
+    else { area.innerHTML = html; initScrollSpy(); }
+  }
+
+  let _scrollSpyEnabled=true, _scrollSpyTimer=null, _scrollSpyAttached=false;
+
+  function initScrollSpy() {
+    if (_scrollSpyAttached) return;
+    const panel = document.getElementById('shop-prods');
+    if (!panel) return;
+    panel.addEventListener('scroll', onProdsScroll, { passive:true });
+    _scrollSpyAttached = true;
+  }
+
+  function onProdsScroll() {
+    if (!_scrollSpyEnabled) return;
+    const panel = document.getElementById('shop-prods');
+    if (!panel) return;
+    const masV = productosLista.filter(p=>p.masVendidos===true);
+    const ids = [];
+    if (masV.length>0) ids.push('__mas_vendidos__');
+    for (const cat of categoriasLista) if (productosLista.some(p=>p.categoriaId===cat.id)) ids.push(cat.id);
+    const pRect = panel.getBoundingClientRect();
+    let activeSec = ids[0], bestVis = -1;
+    for (const secId of ids) {
+      const anchor = document.getElementById(`sec-${secId}`);
+      if (!anchor) continue;
+      const labelEl = anchor.nextElementSibling;
+      const gridEl  = labelEl ? labelEl.nextElementSibling : null;
+      if (!gridEl) continue;
+      const gRect = gridEl.getBoundingClientRect();
+      const vis = Math.max(0, Math.min(gRect.bottom, pRect.bottom) - Math.max(gRect.top, pRect.top));
+      if (vis > bestVis) { bestVis=vis; activeSec=secId; }
+    }
+    if (activeSec===catFiltro) return;
+    catFiltro = activeSec;
+    document.querySelectorAll('.cat-chip').forEach(el=>el.classList.remove('active'));
+    const chip = document.getElementById(`cat-chip-${activeSec}`);
+    if (chip) {
+      chip.classList.add('active');
+      const sb = document.getElementById('cats-scroll');
+      if (sb) {
+        const isMobile = window.innerWidth < 768;
+        if (isMobile) {
+          const chipLeft = chip.offsetLeft;
+          const chipWidth = chip.offsetWidth;
+          const sbWidth = sb.clientWidth;
+          sb.scrollTo({ left: chipLeft - sbWidth / 2 + chipWidth / 2, behavior: 'smooth' });
+        } else {
+          sb.scrollTo({ top: chip.offsetTop - sb.clientHeight / 2 + chip.offsetHeight / 2, behavior: 'smooth' });
+        }
+      }
+    }
+  }
+
+  // ── Tarjeta de producto ───────────────────────────────────────
+  function highlightText(text, query) {
+    if (!query) return esc(text);
+    const idx = text.toLowerCase().indexOf(query.toLowerCase());
+    if (idx===-1) return esc(text);
+    return `${esc(text.slice(0,idx))}<span class="highlight">${esc(text.slice(idx,idx+query.length))}</span>${esc(text.slice(idx+query.length))}`;
+  }
+
+  const UNIDADES_DETALLABLES = ['libra','libras','lb','kilogramo','kilogramos','kg','kilo','kilos','onza','onzas','oz','litro','litros','lt','l','galon','galones','gal','galón'];
+  function esDetallable(u) { return UNIDADES_DETALLABLES.includes((u||'').toLowerCase().trim()); }
+  function labelUnidad(u) {
+    const map={libra:'lb',libras:'lb',lb:'lb',kilogramo:'kg',kilogramos:'kg',kg:'kg',kilo:'kg',kilos:'kg',onza:'oz',onzas:'oz',oz:'oz',litro:'L',litros:'L',lt:'L',l:'L',galon:'gal',galones:'gal',gal:'gal','galón':'gal'};
+    return map[(u||'').toLowerCase().trim()]||u||'';
+  }
+
+  const _modoInput = {};
+
+  function prodCardHTML(p, query) {
+    const enCarrito = carrito.find(i=>i.id===p.id);
+    const qty = enCarrito ? enCarrito.qty : 0;
+    const det = esDetallable(p.unidad);
+    const lbl = labelUnidad(p.unidad);
+    const tieneCombo = p.comboActivo && p.comboPrecio && p.comboUnidades>=2;
+    const precioFmt = (p.precio!=null) ? `RD$ ${Number(p.precio).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2})}` : 'Sin precio';
+    const precioLabel = det ? `${precioFmt} / ${lbl}` : precioFmt;
+    const imgHtml = p.imagen ? `<img class="prod-img" src="${p.imagen}" alt="${esc(p.nombre||'')}" onerror="this.parentElement.innerHTML='<div class=\\'prod-placeholder\\'>${p.emoji||'📦'}</div>'">` : `<div class="prod-placeholder">${p.emoji||'📦'}</div>`;
+    const cartBadge = qty>0 ? `<div class="prod-in-cart-badge">${det?qty.toFixed(2)+' '+lbl:qty}</div>` : '';
+    const pesoNetoBadge = p.pesoNeto ? `<div class="prod-peso-neto-badge">${esc(p.pesoNeto)}</div>` : '';
+    const comboBadge = tieneCombo ? `<div class="prod-combo-badge">${p.comboUnidades}x${Math.round(p.comboPrecio)}</div>` : '';
+
+    let ctrl = '';
+    if (!det) {
+      ctrl = qty>0
+        ? `<div class="prod-qty-ctrl"><button class="qty-btn minus" onclick="event.stopPropagation();quitarProd('${p.id}')">−</button><div class="qty-display">${qty}</div><button class="qty-btn plus" onclick="event.stopPropagation();agregarProd('${p.id}')">+</button></div>`
+        : `<button class="prod-add-btn" onclick="event.stopPropagation();agregarProd('${p.id}')"><i class="fas fa-plus"></i> Agregar</button>`;
+    } else {
+      ctrl = enCarrito
+        ? `<div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><button class="prod-add-btn" style="background:var(--rojo-light);color:var(--rojo);width:auto;padding:8px 10px;flex-shrink:0;" onclick="event.stopPropagation();eliminarDelCarrito('${p.id}')"><i class="fas fa-trash"></i></button><button class="prod-add-btn" style="background:var(--azul);flex:1;margin-top:0;" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fas fa-edit"></i> Editar</button></div>`
+        : `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fas fa-plus"></i> Agregar</button>`;
+    }
+    return `<div class="prod-card ${qty>0?'en-carrito':''}" data-prod-id="${p.id}" onclick="${det?'abrirModalUnidad(\''+p.id+'\')':'agregarProd(\''+p.id+'\')'}">
+      <div class="prod-img-wrap">${comboBadge}${imgHtml}${cartBadge}${pesoNetoBadge}</div>
+      <div class="prod-body">
+        <div class="prod-nombre">${highlightText(p.nombre||'Producto',query)}</div>
+        <div class="prod-precio">${precioLabel}</div>
+        ${det?`<div class="prod-unidad-badge">Se vende por ${lbl}</div>`:''}
+        ${ctrl}
+      </div></div>`;
+  }
+
+  function patchProdCard(prodId) {
+    const panel = document.getElementById('shop-prods');
+    if (!panel) return;
+    const cards = panel.querySelectorAll(`[data-prod-id="${prodId}"]`);
+    if (!cards.length) { renderProductos(); return; }
+    const p = productosLista.find(x=>x.id===prodId);
+    if (!p) return;
+    const enCarrito = carrito.find(i=>i.id===prodId);
+    const qty = enCarrito ? enCarrito.qty : 0;
+    const det = esDetallable(p.unidad);
+    const lbl = labelUnidad(p.unidad);
+    cards.forEach(card => {
+      card.className = `prod-card${qty>0?' en-carrito':''}`;
+      const wrap = card.querySelector('.prod-img-wrap');
+      const old  = wrap ? wrap.querySelector('.prod-in-cart-badge') : null;
+      if (old) old.remove();
+      if (qty>0 && wrap) { const b=document.createElement('div'); b.className='prod-in-cart-badge'; b.textContent=det?qty.toFixed(2)+' '+lbl:qty; wrap.appendChild(b); }
+      const body = card.querySelector('.prod-body');
+      if (!body) return;
+      let newCtrlHTML = '';
+      if (!det) {
+        newCtrlHTML = qty>0
+          ? `<div class="prod-qty-ctrl"><button class="qty-btn minus" onclick="event.stopPropagation();quitarProd('${p.id}')">−</button><div class="qty-display">${qty}</div><button class="qty-btn plus" onclick="event.stopPropagation();agregarProd('${p.id}')">+</button></div>`
+          : `<button class="prod-add-btn" onclick="event.stopPropagation();agregarProd('${p.id}')"><i class="fas fa-plus"></i> Agregar</button>`;
+      } else {
+        newCtrlHTML = enCarrito
+          ? `<div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><button class="prod-add-btn" style="background:var(--rojo-light);color:var(--rojo);width:auto;padding:8px 10px;flex-shrink:0;" onclick="event.stopPropagation();eliminarDelCarrito('${p.id}')"><i class="fas fa-trash"></i></button><button class="prod-add-btn" style="background:var(--azul);flex:1;margin-top:0;" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fas fa-edit"></i> Editar</button></div>`
+          : `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fas fa-plus"></i> Agregar</button>`;
+      }
+      const tmp = document.createElement('div'); tmp.innerHTML = newCtrlHTML;
+      const newCtrl = tmp.firstElementChild;
+      const toRemove = body.querySelector('.prod-qty-ctrl') || body.querySelector('.prod-add-btn') || body.querySelector('[style*="display:flex"]');
+      if (toRemove) body.replaceChild(newCtrl, toRemove); else body.appendChild(newCtrl);
     });
+  }
 
-    // SHOP
-    async function abrirShop(id) {
-      showScreen('shop');
-      ocultarLoading();
-      colmadoIdActual = id;
-      catFiltro = '';
-      busqueda = '';
-      _scrollSpyAttached = false;
+  // ── Modal de unidad ───────────────────────────────────────────
+  let _modalProdId=null, _modalModo='unidad';
 
-      // Restore cart from localStorage if it belongs to this colmado
-      try {
-        const savedCart = localStorage.getItem(LS_CART_KEY);
-        if (savedCart) {
-          const parsed = JSON.parse(savedCart);
-          if (parsed.colmadoId === id && Array.isArray(parsed.items) && parsed.items.length > 0) {
-            carrito = parsed.items;
-          } else {
-            carrito = [];
-          }
-        } else {
-          carrito = [];
-        }
-      } catch (e) {
-        carrito = [];
-      }
+  window.abrirModalUnidad = (prodId) => {
+    const p = productosLista.find(x=>x.id===prodId);
+    if (!p) return;
+    _modalProdId=prodId; _modalModo=_modoInput[prodId]||'unidad';
+    const lbl=labelUnidad(p.unidad);
+    const imgEl = p.imagen ? `<img class="unit-modal-prod-img" src="${p.imagen}" alt="${esc(p.nombre||'')}" onerror="this.outerHTML='<div class=\\'unit-modal-prod-emoji\\'>${p.emoji||'📦'}</div>'">` : `<div class="unit-modal-prod-emoji">${p.emoji||'📦'}</div>`;
+    document.getElementById('unit-modal-prod-info').innerHTML = `${imgEl}<div><div class="unit-modal-prod-name">${esc(p.nombre||'Producto')}</div><div class="unit-modal-prod-price">RD$ ${Number(p.precio).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2})} / ${lbl}</div></div>`;
+    document.getElementById('unit-modal-tab-unidad').textContent = `Por ${lbl}`;
+    document.getElementById('unit-modal-tab-unidad').className = 'unit-modal-tab'+(_modalModo==='unidad'?' active':'');
+    document.getElementById('unit-modal-tab-precio').className = 'unit-modal-tab'+(_modalModo==='precio'?' active':'');
+    const inp=document.getElementById('unit-modal-input');
+    inp.value=''; inp.placeholder=_modalModo==='unidad'?'Ej: 2.5':'Ej: 100';
+    document.getElementById('unit-modal-suffix').textContent=_modalModo==='unidad'?lbl:'RD$';
+    document.getElementById('unit-modal-result').textContent='';
+    document.getElementById('unit-modal-add-btn').disabled=true;
+    const enC=carrito.find(i=>i.id===prodId);
+    if (enC) { inp.value=_modalModo==='unidad'?enC.qty.toFixed(3):enC.subtotal.toFixed(2); calcModalResult(); }
+    document.getElementById('unit-modal-overlay').classList.add('open');
+    setTimeout(()=>inp.focus(),200);
+    history.pushState({modal:'unit',screen:'shop',colmadoId:colmadoIdActual},'',location.href);
+  };
 
-      actualizarCarritoUI();
+  window.cerrarModalUnidad = (e) => {
+    if (e && e.target!==document.getElementById('unit-modal-overlay')) return;
+    document.getElementById('unit-modal-overlay').classList.remove('open');
+    _modalProdId=null;
+  };
 
-      if (!history.state || history.state.screen !== 'shop' || history.state.colmadoId !== id) {
-        history.pushState({ screen: 'shop', colmadoId: id }, '', `?c=${id}`);
-      }
+  window.setModalModo = (modo) => {
+    _modalModo=modo; if (_modalProdId) _modoInput[_modalProdId]=modo;
+    const p=_modalProdId?productosLista.find(x=>x.id===_modalProdId):null;
+    const lbl=p?labelUnidad(p.unidad):'';
+    document.getElementById('unit-modal-tab-unidad').className='unit-modal-tab'+(modo==='unidad'?' active':'');
+    document.getElementById('unit-modal-tab-precio').className='unit-modal-tab'+(modo==='precio'?' active':'');
+    const inp=document.getElementById('unit-modal-input');
+    inp.value=''; inp.placeholder=modo==='unidad'?'Ej: 2.5':'Ej: 100';
+    document.getElementById('unit-modal-suffix').textContent=modo==='unidad'?lbl:'RD$';
+    document.getElementById('unit-modal-result').textContent='';
+    document.getElementById('unit-modal-add-btn').disabled=true;
+    inp.focus();
+  };
 
-      const prodsArea = document.getElementById('shop-prods');
+  window.calcModalResult = () => {
+    const p=_modalProdId?productosLista.find(x=>x.id===_modalProdId):null;
+    if (!p) return;
+    const lbl=labelUnidad(p.unidad);
+    const inp=document.getElementById('unit-modal-input');
+    const result=document.getElementById('unit-modal-result');
+    const btn=document.getElementById('unit-modal-add-btn');
+    const val=parseFloat(inp.value);
+    if (!val||val<=0) { result.textContent=''; btn.disabled=true; return; }
+    btn.disabled=false;
+    if (_modalModo==='unidad') result.textContent=`${val} ${lbl} × ${fmtPrice(p.precio)} = ${fmtPrice(val*p.precio)}`;
+    else { const c=val/p.precio; result.textContent=`${fmtPrice(val)} ÷ ${fmtPrice(p.precio)}/${lbl} = ${c.toFixed(3)} ${lbl}`; }
+  };
 
-      // ── Show cached data instantly while fetching ──────────────────────
-      const cachedCats = cacheGet(CK.categorias(id));
-      const cachedProds = cacheGet(CK.productos(id));
-      const cachedNeg = cacheGet(CK.negocio(id));
+  window.confirmarModalUnidad = () => {
+    const p=_modalProdId?productosLista.find(x=>x.id===_modalProdId):null;
+    if (!p) return;
+    const inp=document.getElementById('unit-modal-input');
+    const val=parseFloat(inp.value);
+    if (!val||val<=0) return;
+    const lbl=labelUnidad(p.unidad);
+    let qty,subtotal;
+    if (_modalModo==='unidad') { qty=val; subtotal=val*p.precio; } else { qty=val/p.precio; subtotal=val; }
+    const ex=carrito.find(i=>i.id===p.id);
+    if (ex) { ex.qty=qty; ex.subtotal=subtotal; }
+    else carrito.push({ id:p.id, categoriaId:p.categoriaId, nombre:p.nombre||'Producto', precio:p.precio||0, qty, subtotal, imagen:p.imagen||null, emoji:p.emoji||'📦', unidad:p.unidad, _lbl:lbl });
+    document.getElementById('unit-modal-overlay').classList.remove('open');
+    const cId=_modalProdId; _modalProdId=null;
+    actualizarCarritoUI(); patchProdCard(cId);
+  };
 
-      if (cachedNeg) {
-        colmadoActual = cachedNeg;
-        _setShopHeader(cachedNeg);
-      }
+  // ── Carrito ───────────────────────────────────────────────────
+  function calcularPrecioConCombo(qty,precioUnit,comboPrecio,comboUnidades) {
+    if (!comboPrecio||!comboUnidades||comboUnidades<2||!precioUnit) return qty*precioUnit;
+    return Math.floor(qty/comboUnidades)*comboPrecio + (qty%comboUnidades)*precioUnit;
+  }
 
-      if (cachedCats && cachedProds && cachedProds.length > 0) {
-        categoriasLista = cachedCats;
-        productosLista = cachedProds;
-        renderCategorias();
-        renderProductos();
-        _setInitialCat();
-        // Show subtle "updating" indicator if online
-        if (navigator.onLine && prodsArea) {
-          const syncBadge = document.createElement('div');
-          syncBadge.id = 'sync-badge';
-          syncBadge.style.cssText = 'position:fixed;bottom:80px;right:12px;background:rgba(25,113,194,.88);color:#fff;border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:700;z-index:300;display:flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.18);';
-          syncBadge.innerHTML = '<i class="fas fa-sync fa-spin" style="font-size:.65rem;"></i> Actualizando...';
-          document.body.appendChild(syncBadge);
-        }
-      } else if (prodsArea) {
-        prodsArea.innerHTML = `<div class="empty-state"><div class="loading-spinner" style="border-color:#e2e8f0;border-top-color:var(--verde);width:30px;height:30px;margin:0 auto;"></div><p style="margin-top:12px;">Cargando productos...</p></div>`;
-      }
-
-      // ── Fetch fresh data ───────────────────────────────────────────────
-      try {
-        colmadoActual = await fetchNegocio(id);
-        if (!colmadoActual) { console.error('Colmado no encontrado'); return; }
-        _setShopHeader(colmadoActual);
-
-        categoriasLista = await fetchCategorias(id);
-        productosLista = await fetchProductos(id, categoriasLista);
-
-        console.log(`Productos cargados: ${productosLista.length} de ${categoriasLista.length} categorías`);
-
-        if (productosLista.length === 0) {
-          if (prodsArea) prodsArea.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles en este colmado.<br>Vuelve más tarde.</p></div>`;
-          const catsScroll = document.getElementById('cats-scroll');
-          if (catsScroll) catsScroll.innerHTML = `<div class="cat-chip active"><div class="cat-chip-emoji">📦</div><span class="cat-chip-name">Sin productos</span></div>`;
-          return;
-        }
-
-        catFiltro = '';
-        renderCategorias();
-        renderProductos();
-        _setInitialCat();
-
-      } catch (e) {
-        console.error('Error cargando tienda:', e);
-        // Only show error if we have nothing cached
-        if (!cachedProds || !cachedProds.length) {
-          if (prodsArea) {
-            const msg = !navigator.onLine
-              ? 'Sin conexión y sin datos guardados.<br>Conéctate para ver el catálogo.'
-              : `Error al cargar: ${e.message}`;
-            prodsArea.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${msg}</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;background:var(--verde);color:white;border:none;border-radius:30px;">Reintentar</button></div>`;
-          }
-        }
-      } finally {
-        // Remove sync badge
-        const badge = document.getElementById('sync-badge');
-        if (badge) badge.remove();
-      }
+  window.agregarProd = (prodId) => {
+    const p=productosLista.find(x=>x.id===prodId); if (!p) return;
+    const ex=carrito.find(i=>i.id===prodId);
+    if (ex) {
+      ex.qty++;
+      ex.subtotal=(p.comboActivo&&p.comboPrecio&&p.comboUnidades>=2)?calcularPrecioConCombo(ex.qty,p.precio,p.comboPrecio,p.comboUnidades):p.precio*ex.qty;
+    } else {
+      const item={id:prodId,categoriaId:p.categoriaId,nombre:p.nombre||'Producto',precio:p.precio||0,qty:1,imagen:p.imagen||null,emoji:p.emoji||'📦'};
+      if (p.comboActivo&&p.comboPrecio&&p.comboUnidades>=2) { item.comboActivo=true; item.comboPrecio=p.comboPrecio; item.comboUnidades=p.comboUnidades; item.subtotal=calcularPrecioConCombo(1,p.precio,p.comboPrecio,p.comboUnidades); }
+      else item.subtotal=p.precio||0;
+      if (p.pesoNeto) item.pesoNeto=p.pesoNeto;
+      carrito.push(item);
     }
+    actualizarCarritoUI(); patchProdCard(prodId);
+  };
 
-    function _setShopHeader(neg) {
-      const hNombre = document.getElementById('shop-header-nombre');
-      const hDir = document.getElementById('shop-header-dir');
-      const hWs = document.getElementById('shop-header-ws');
-      if (hNombre) hNombre.textContent = neg.nombre || 'Colmado';
-      if (hDir) {
-        hDir.style.display = 'flex';
-        hDir.innerHTML = neg.direccion ? `<i class="fas fa-map-marker-alt" style="opacity:.7;font-size:.6rem;"></i> ${esc(neg.direccion)}` : '';
-      }
-      if (hWs) {
-        if (neg.whatsapp) {
-          hWs.innerHTML = `<i class="fab fa-whatsapp" style="opacity:.7;font-size:.6rem;"></i> ${esc(neg.whatsapp)}`;
-          hWs.style.display = 'flex';
-        } else {
-          hWs.style.display = 'none';
-        }
-      }
+  window.quitarProd = (prodId) => {
+    const ex=carrito.find(i=>i.id===prodId); if (!ex) return;
+    ex.qty--;
+    if (ex.qty<=0) carrito=carrito.filter(i=>i.id!==prodId);
+    else if (ex.comboActivo&&ex.comboPrecio&&ex.comboUnidades>=2) ex.subtotal=calcularPrecioConCombo(ex.qty,ex.precio,ex.comboPrecio,ex.comboUnidades);
+    else ex.subtotal=ex.precio*ex.qty;
+    actualizarCarritoUI(); patchProdCard(prodId);
+  };
+
+  window.eliminarDelCarrito = (prodId) => { carrito=carrito.filter(i=>i.id!==prodId); actualizarCarritoUI(); patchProdCard(prodId); };
+
+  function actualizarCarritoUI() {
+    try { localStorage.setItem(LS_CART_KEY, JSON.stringify({colmadoId:colmadoIdActual,items:carrito})); } catch(e){}
+    const total=carrito.reduce((s,i)=>s+(i.subtotal!==undefined?i.subtotal:i.precio*i.qty),0);
+    const count=carrito.length; const tf=fmtPrice(total);
+    document.getElementById('cart-total-display').textContent=tf;
+    document.getElementById('cart-header-badge').textContent=count;
+    document.getElementById('float-cart-count').textContent=`${count} producto${count!==1?'s':''}`;
+    document.getElementById('float-cart-total').textContent=tf;
+    document.getElementById('float-cart').classList.toggle('visible',count>0);
+    const listEl=document.getElementById('cart-items-list');
+    if (!carrito.length) { listEl.innerHTML=`<div class="empty-state"><i class="fas fa-shopping-cart"></i><p>Agrega productos para continuar.</p></div>`; return; }
+    listEl.innerHTML=carrito.map(it=>{
+      const lbl=it._lbl||labelUnidad(it.unidad)||'';
+      const isUnit=esDetallable(it.unidad);
+      const sub=it.subtotal!==undefined?it.subtotal:it.precio*it.qty;
+      const imgEl=it.imagen?`<img class="cart-item-img" src="${it.imagen}" alt="${esc(it.nombre)}" onerror="this.outerHTML='<div class=\\'cart-item-img-placeholder\\'>${it.emoji||'📦'}</div>'">`:`<div class="cart-item-img-placeholder">${it.emoji||'📦'}</div>`;
+      const unitInfo=isUnit?`<div class="cart-item-unit">${it.qty.toFixed(2)} ${lbl} × ${fmtPrice(it.precio)}</div>`:it.comboActivo&&it.comboPrecio&&it.comboUnidades>=2?`<div class="cart-item-unit">${fmtPrice(it.precio)} c/u · <span style="color:var(--amarillo);font-weight:800;">${it.comboUnidades}x${fmtPrice(it.comboPrecio)}</span></div>`:'';
+      const qtyCtrl=isUnit
+        ?`<div style="display:flex;align-items:center;gap:6px;"><button class="cart-qty-btn minus" style="background:var(--rojo-light);color:var(--rojo);" onclick="eliminarDelCarrito('${it.id}')"><i class="fas fa-trash" style="font-size:.6rem;"></i></button><button class="cart-qty-btn" style="background:var(--azul-light);color:var(--azul);width:auto;padding:0 10px;font-size:.72rem;font-weight:800;border-radius:7px;border:none;cursor:pointer;" onclick="abrirModalUnidad('${it.id}')"><i class="fas fa-edit" style="font-size:.6rem;margin-right:3px;"></i>Editar</button></div>`
+        :`<div style="display:flex;align-items:center;gap:6px;"><button class="cart-qty-btn minus" onclick="quitarProd('${it.id}')">−</button><span style="font-weight:800;min-width:22px;text-align:center;">${it.qty}</span><button class="cart-qty-btn plus" onclick="agregarProd('${it.id}')">+</button></div>`;
+      return `<div class="cart-item">${imgEl}<div class="cart-item-info"><div class="cart-item-name">${esc(it.nombre)}</div>${unitInfo}<div class="cart-item-price">${fmtPrice(sub)}</div></div><div class="cart-item-qty" style="flex-shrink:0;margin-top:0;">${qtyCtrl}</div></div>`;
+    }).join('');
+  }
+
+  window.abrirCarrito = () => {
+    actualizarCarritoUI(); cargarDatosGuardados();
+    document.getElementById('cart-overlay').classList.add('open');
+    document.getElementById('cart-drawer').classList.add('open');
+    document.getElementById('link-pedido-box').style.display='none';
+    linkGenerado=null; datosModificados=false;
+    history.pushState({modal:'cart',screen:'shop',colmadoId:colmadoIdActual},'',location.href);
+  };
+
+  window.cerrarCarrito = () => {
+    if (datosModificados) guardarDatosSiRecordar();
+    document.getElementById('cart-overlay').classList.remove('open');
+    document.getElementById('cart-drawer').classList.remove('open');
+  };
+
+  // Swipe para cerrar drawer
+  (function(){
+    const drawer=document.getElementById('cart-drawer');
+    let startY=0,currentY=0,isDragging=false,_gb=false;
+    function onTS(e){startY=e.touches[0].clientY;currentY=startY;isDragging=true;_gb=false;drawer.style.transition='none';}
+    function onTM(e){
+      if(!isDragging)return; currentY=e.touches[0].clientY;
+      const delta=currentY-startY;
+      if(delta<0){_gb=true;} if(_gb)return;
+      const il=document.getElementById('cart-items-list');
+      const atTop=!il||il.scrollTop===0;
+      if(delta>0&&atTop){drawer.style.transform=`translateY(${delta}px)`;e.preventDefault();}
+      else if(delta>0&&!atTop){_gb=true;drawer.style.transform='';}
     }
-
-    function _setInitialCat() {
-      const masV = productosLista.filter(p => p.masVendidos === true);
-      const firstId = masV.length > 0 ? '__mas_vendidos__' : (categoriasLista[0]?.id || '');
-      if (firstId) {
-        catFiltro = firstId;
-        document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('active'));
-        const fc = document.getElementById(`cat-chip-${firstId}`);
-        if (fc) fc.classList.add('active');
-      }
+    function onTE(){
+      if(!isDragging)return; isDragging=false; drawer.style.transition='';
+      const delta=currentY-startY;
+      if(!_gb&&delta>100){drawer.style.transform='';cerrarCarrito();}else drawer.style.transform='';
+      _gb=false;
     }
+    drawer.addEventListener('touchstart',onTS,{passive:true});
+    drawer.addEventListener('touchmove',onTM,{passive:false});
+    drawer.addEventListener('touchend',onTE);
+  })();
 
-    function renderCategorias() {
-      const scroll = document.getElementById('cats-scroll');
-      if (!scroll) return;
+  // ── Completar pedido por WhatsApp ─────────────────────────────
+  function idCorto(){const c='abcdefghijklmnopqrstuvwxyz0123456789';let s='';for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
 
-      const masVendidosProds = productosLista.filter(p => p.masVendidos === true);
-      let chips = '';
-
-      if (masVendidosProds.length > 0) {
-        const isActive = catFiltro === '__mas_vendidos__';
-        // Use first más vendido product image as background, or a star image fallback
-        const mvImg = masVendidosProds.find(p => p.imagen && p.imagen.startsWith('http'));
-        if (mvImg) {
-          chips += `<div class="cat-chip ${isActive ? 'active' : ''}" id="cat-chip-__mas_vendidos__" onclick="setCatFiltro('__mas_vendidos__')">
-            <div class="cat-chip-img-wrap">
-              <img class="cat-chip-image" src="${mvImg.imagen}" alt="Más Vendidos"
-                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-              <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,#fff3cd,#ffe082);position:absolute;inset:0;">⭐</div>
-              <span class="cat-chip-img-label">⭐ Más Vendidos</span>
-            </div>
-          </div>`;
-        } else {
-          chips += `<div class="cat-chip ${isActive ? 'active' : ''}" id="cat-chip-__mas_vendidos__" onclick="setCatFiltro('__mas_vendidos__')">
-            <div class="cat-chip-emoji" style="${isActive ? 'border-color:var(--verde);background:rgba(0,192,75,.1);' : ''}background:linear-gradient(135deg,#fff3cd,#ffe082);border-color:#ffe082;">⭐</div>
-            <span class="cat-chip-name">Más Vendidos</span>
-          </div>`;
-        }
-      }
-
-      for (const c of categoriasLista) {
-        const hasImage = c.imagen && c.imagen.startsWith('http');
-        const isActive = c.id === catFiltro;
-        if (hasImage) {
-          chips += `<div class="cat-chip ${isActive ? 'active' : ''}" id="cat-chip-${c.id}" onclick="setCatFiltro('${c.id}')">
-            <div class="cat-chip-img-wrap">
-              <img class="cat-chip-image" src="${c.imagen}" alt="${esc(c.nombre)}"
-                onerror="this.closest('.cat-chip-img-wrap').outerHTML='<div class=\\'cat-chip-emoji\\'>${c.emoji || '📦'}</div><span class=\\'cat-chip-name\\'>${esc(c.nombre)}</span>'">
-              <span class="cat-chip-img-label">${esc(c.nombre)}</span>
-            </div>
-          </div>`;
-        } else {
-          chips += `<div class="cat-chip ${isActive ? 'active' : ''}" id="cat-chip-${c.id}" onclick="setCatFiltro('${c.id}')">
-            <div class="cat-chip-emoji" style="${isActive ? 'border-color:var(--verde);background:rgba(0,192,75,.1);' : ''}">${c.emoji || '📦'}</div>
-            <span class="cat-chip-name">${esc(c.nombre)}</span>
-          </div>`;
-        }
-      }
-
-      scroll.innerHTML = chips;
-    }
-
-    window.setCatFiltro = (id) => {
-      // If searching, clear search first
-      if (busqueda) {
-        busqueda = '';
-        document.getElementById('search-input').value = '';
-        document.getElementById('search-clear-btn').classList.remove('visible');
-        renderProductos();
-      }
-
-      catFiltro = id;
-      _scrollSpyEnabled = false; // pause spy while we programmatically scroll
-
-      // Update category highlight
-      document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('active'));
-      const activeChip = document.getElementById(`cat-chip-${id}`);
-      if (activeChip) {
-        activeChip.classList.add('active');
-        // Scroll the category sidebar to show the active chip
-        const sidebar = document.getElementById('cats-scroll');
-        if (sidebar) {
-          const chipTop = activeChip.offsetTop;
-          const chipH = activeChip.offsetHeight;
-          const sidebarH = sidebar.clientHeight;
-          sidebar.scrollTo({ top: chipTop - sidebarH / 2 + chipH / 2, behavior: 'smooth' });
-        }
-      }
-
-      // Smooth scroll products panel so the section LABEL appears right below the col-header
-      const panel = document.getElementById('shop-prods');
-      const anchor = document.getElementById(`sec-${id}`);
-      if (anchor && panel) {
-        // Use getBoundingClientRect to get position relative to the visible viewport,
-        // then convert to scroll position within the panel.
-        const labelEl = anchor.nextElementSibling; // .cat-section-label
-        const refEl = labelEl || anchor;
-        const panelRect = panel.getBoundingClientRect();
-        const refRect = refEl.getBoundingClientRect();
-        // refRect.top - panelRect.top = distance from top of panel's visible area
-        // panel.scrollTop = current scroll offset
-        // So absolute scroll target = current scrollTop + (refTop - panelTop)
-        const targetTop = panel.scrollTop + (refRect.top - panelRect.top);
-        panel.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-        // Re-enable scroll spy after scroll settles
-        clearTimeout(_scrollSpyTimer);
-        _scrollSpyTimer = setTimeout(() => { _scrollSpyEnabled = true; }, 700);
-      } else {
-        _scrollSpyEnabled = true;
-      }
+  window.completarPorWhatsapp = async () => {
+    if (!carrito.length){mostrarError('El carrito está vacío');return;}
+    const nombre=document.getElementById('cliente-nombre').value.trim();
+    const direccion=document.getElementById('cliente-direccion').value.trim();
+    if (!nombre){mostrarError('Por favor escribe tu nombre');return;}
+    if (!direccion){mostrarError('Por favor escribe tu dirección de entrega');return;}
+    const total=carrito.reduce((s,i)=>s+(i.subtotal!==undefined?i.subtotal:i.precio*i.qty),0);
+    if (total<50){mostrarError('El pedido mínimo es de RD$ 50.00. Agrega más productos para continuar.');return;}
+    guardarDatosSiRecordar();
+    const pedidoId=idCorto();
+    const fecha=new Date().toLocaleString('es-DO',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+    const adminUrl=`${window.location.origin}/miColmApp.html`;
+    const link=`${adminUrl}?c=${colmadoIdActual}&p=${pedidoId}`;
+    const nombreColmado=colmadoActual?.nombre||'miColmApp';
+    let msg=`*PEDIDO* - ${nombreColmado}\n================================\nID: #${pedidoId.toUpperCase()}\nFecha: ${fecha}\n================================\n\n*DATOS DEL CLIENTE*\n---------------------------------------\nNombre: ${nombre}\nDirección: ${direccion}\n\n*DETALLE DEL PEDIDO*\n---------------------------------------\n`;
+    carrito.forEach((it,idx)=>{
+      const isUnit=esDetallable(it.unidad);
+      const lbl=it._lbl||labelUnidad(it.unidad)||'';
+      const sub=it.subtotal!==undefined?it.subtotal:it.precio*it.qty;
+      msg+=`${idx+1}. ${it.nombre}\n   Cant.: ${isUnit?it.qty.toFixed(2)+' '+lbl:it.qty} × ${fmtPrice(it.precio)}${isUnit?'/'+lbl:''} = ${fmtPrice(sub)}\n`;
+    });
+    msg+=`\n------------------------------------------------------------------\nTOTAL: *${fmtPrice(total)}*\n================================\n\n${link}`;
+    const pedidoData={
+      pedidoId, colmadoId:colmadoIdActual, colmadoNombre:colmadoActual?.nombre||'',
+      clienteNombre:nombre, clienteDireccion:direccion,
+      items:carrito.map(i=>{
+        const sub=i.subtotal!==undefined?i.subtotal:i.precio*i.qty;
+        const item={id:i.id,categoriaId:i.categoriaId,nombre:i.nombre,precio:i.precio,qty:i.qty,subtotal:sub,unidad:i.unidad||null,imagen:i.imagen||null};
+        if(i.comboActivo&&i.comboPrecio&&i.comboUnidades>=2){item.comboActivo=true;item.comboPrecio=i.comboPrecio;item.comboUnidades=i.comboUnidades;}
+        return item;
+      }),
+      total, estado:'pendiente', enlaceAdmin:link, fecha:serverTimestamp()
     };
+    try { await setDoc(doc(db,'negocios',colmadoIdActual,'pedidos_cliente',pedidoId),pedidoData); }
+    catch(e){ mostrarError('Error guardando pedido: '+e.message); console.error(e); return; }
+    let wsNumero=colmadoActual?.whatsapp||'';
+    try {
+      const ns=await getDoc(doc(db,'negocios',colmadoIdActual));
+      if(ns.exists()){const nd=ns.data();if(nd.whatsapp)wsNumero=nd.whatsapp;colmadoActual={...colmadoActual,...nd,id:colmadoIdActual};}
+    } catch(e){console.warn('No se pudo leer whatsapp fresco:',e);}
+    if (!wsNumero){mostrarError('Este negocio no tiene número de WhatsApp configurado.');return;}
+    const waUrl=`https://wa.me/${wsNumero.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
+    location.href=waUrl;
+    linkGenerado=link;
+    document.getElementById('link-pedido-box').style.display='block';
+    document.getElementById('link-pedido-url').textContent=link;
+    carrito=[]; try{localStorage.removeItem(LS_CART_KEY);}catch(e){} actualizarCarritoUI();
+  };
 
-    window.filtrarBusqueda = (val) => {
-      busqueda = val.toLowerCase().trim();
-      const clearBtn = document.getElementById('search-clear-btn');
-      clearBtn.classList.toggle('visible', busqueda.length > 0);
-      renderProductos();
-      const panel = document.getElementById('shop-prods');
-      if (panel) panel.scrollTop = 0;
-    };
+  window.copiarEnlace = () => {
+    if (!linkGenerado) return;
+    navigator.clipboard.writeText(linkGenerado).then(()=>{
+      const btn=document.querySelector('.link-copy-btn');
+      if(btn){const orig=btn.innerHTML;btn.innerHTML='<i class="fas fa-check"></i> ¡Copiado!';btn.style.background='var(--verde)';setTimeout(()=>{btn.innerHTML=orig;btn.style.background='';},2000);}
+    }).catch(()=>console.error('No se pudo copiar'));
+  };
 
-    window.limpiarBusqueda = () => {
-      busqueda = '';
-      document.getElementById('search-input').value = '';
-      document.getElementById('search-clear-btn').classList.remove('visible');
-      renderProductos();
-    };
+  // ── Vista de pedido ───────────────────────────────────────────
+  async function mostrarPedido(colmadoId, pedidoId) {
+    showScreen('pedido'); ocultarLoading();
+    try {
+      const ref=doc(db,'negocios',colmadoId,'pedidos_cliente',pedidoId);
+      const snap=await getDoc(ref);
+      if (!snap.exists()){document.getElementById('pedido-body').innerHTML=`<div class="empty-state" style="padding-top:80px;"><i class="fas fa-search"></i><p><strong>Pedido no encontrado</strong><br><span style="font-size:.82rem;">Verifica el enlace.</span></p></div>`;return;}
+      onSnapshot(ref, s=>{if(s.exists())renderPedido({id:s.id,...s.data()},colmadoId,pedidoId);});
+    } catch(e){document.getElementById('pedido-body').innerHTML=`<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></div>`;}
+  }
 
-    // Ordenar productos alfabéticamente
-    function ordenarProductosAlfabeticamente(prodList) {
-      return [...prodList].sort((a, b) => {
-        const nombreA = (a.nombre || '').toLowerCase();
-        const nombreB = (b.nombre || '').toLowerCase();
-        return nombreA.localeCompare(nombreB);
-      });
+  function renderPedido(data,colmadoId,pedidoId){
+    const total=data.total||(data.items||[]).reduce((s,i)=>s+(i.subtotal||i.precio*i.qty),0);
+    const fecha=data.fecha?.toDate?data.fecha.toDate().toLocaleString('es-DO'):(data.fecha?new Date(data.fecha).toLocaleString('es-DO'):'—');
+    const estMap={pendiente:{icon:'fa-clock',label:'Pendiente'},procesando:{icon:'fa-cog fa-spin',label:'Procesando'},entregado:{icon:'fa-check-circle',label:'Entregado'}};
+    const est=estMap[data.estado]||estMap.pendiente;
+    const itemsHtml=(data.items||[]).map(it=>{
+      const lbl=it.unidad?labelUnidad(it.unidad):null;
+      const qtyLabel=lbl?`${Number(it.qty).toFixed(2)} ${lbl}`:it.qty;
+      return `<div class="factura-item"><div class="factura-item-qty">${qtyLabel}</div><div class="factura-item-name">${esc(it.nombre||'')}</div><div class="factura-item-price">${fmtPrice(it.subtotal||it.precio*it.qty)}</div></div>`;
+    }).join('');
+    let accionesHtml='';
+    if (data.estado==='entregado') accionesHtml=`<div class="entregado-badge"><span><i class="fas fa-check-circle"></i> Pedido Entregado</span></div>`;
+    else {
+      accionesHtml=`<div class="acciones">`;
+      if(data.estado==='pendiente') accionesHtml+=`<button class="btn-accion btn-procesando" onclick="cambiarEstado('${colmadoId}','${pedidoId}','procesando')"><i class="fas fa-cog"></i> Marcar como Procesando</button>`;
+      accionesHtml+=`<button class="btn-accion btn-entregado" onclick="cambiarEstado('${colmadoId}','${pedidoId}','entregado')"><i class="fas fa-check-circle"></i> Marcar como Entregado</button></div>`;
     }
+    document.getElementById('pedido-body').innerHTML=`<div class="pedido-content"><div class="factura-top"><div class="factura-neg">${esc(data.colmadoNombre||'Colmado')}</div><div class="factura-pid">Pedido #${esc((data.pedidoId||pedidoId).toUpperCase())} · ${fecha}</div><div class="factura-estado-badge"><i class="fas ${est.icon}"></i> ${est.label}</div></div><div class="info-box"><div class="info-box-title">Datos del cliente</div><div class="info-row"><i class="fas fa-user"></i><span>${esc(data.clienteNombre||'—')}</span></div><div class="info-row"><i class="fas fa-map-marker-alt"></i><span>${esc(data.clienteDireccion||'—')}</span></div></div><div class="items-card"><div class="items-card-title">🧾 Productos pedidos</div>${itemsHtml}</div><div class="total-box"><div class="total-box-label">Total del pedido</div><div class="total-box-amount">${fmtPrice(total)}</div></div>${accionesHtml}</div>`;
+  }
+
+  window.cambiarEstado = async (colmadoId,pedidoId,nuevoEstado) => {
+    try { await updateDoc(doc(db,'negocios',colmadoId,'pedidos_cliente',pedidoId),{estado:nuevoEstado,[`fecha_${nuevoEstado}`]:serverTimestamp()}); }
+    catch(e){console.error('Error:',e.message);}
+  };
+
+  // ── Utilidades ────────────────────────────────────────────────
+  function fmtPrice(val){return `RD$ ${(val||0).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2})}`;}
+  function esc(str){return String(str||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function showScreen(name){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(`screen-${name}`).classList.add('active');}
+
+  const _loadingStart=Date.now(),_loadingMin=3000;
+  function ocultarLoading(){
+    const rem=Math.max(0,_loadingMin-(Date.now()-_loadingStart));
+    setTimeout(()=>{const ls=document.getElementById('loading-screen');ls.style.transition='opacity .4s ease';ls.style.opacity='0';setTimeout(()=>{ls.style.display='none';},400);},rem);
+  }
+
+  function mostrarError(msg){
+    let el=document.getElementById('_inline-error');
+    if(!el){el=document.createElement('div');el.id='_inline-error';el.style.cssText='background:var(--rojo-light);color:var(--rojo);border:1.5px solid var(--rojo);border-radius:10px;padding:10px 14px;font-size:.82rem;font-weight:700;margin:0 20px 10px;text-align:center;';const footer=document.querySelector('.cart-footer');if(footer)footer.prepend(el);else document.body.appendChild(el);}
+    el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>{el.style.display='none';},4000);
+  }
+
+  // ── Arranque ──────────────────────────────────────────────────
+  init();
 
-    function renderProductos() {
-      const area = document.getElementById('shop-prods');
-      if (!area) return;
-
-      if (!productosLista || productosLista.length === 0) {
-        area.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles.</p></div>`;
-        return;
-      }
-
-      // ── SEARCH MODE ──────────────────────────────────────────────────
-      if (busqueda && busqueda.length > 0) {
-        let filtered = productosLista.filter(p => (p.nombre || '').toLowerCase().includes(busqueda.toLowerCase()));
-        if (!filtered.length) {
-          area.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No se encontraron productos para "<strong>${esc(busqueda)}</strong>"</p></div>`;
-          return;
-        }
-        filtered = ordenarProductosAlfabeticamente(filtered);
-        area.innerHTML = `<div class="prods-grid">${filtered.map(p => prodCardHTML(p, busqueda)).join('')}</div>`;
-        return;
-      }
-
-      // ── FULL LAYOUT: sections with anchors ───────────────────────────
-      let html = '';
-
-      // Más Vendidos section first
-      const masVendidos = productosLista.filter(p => p.masVendidos === true);
-      if (masVendidos.length > 0) {
-        const sorted = ordenarProductosAlfabeticamente(masVendidos);
-        html += `<span class="cat-section-anchor" id="sec-__mas_vendidos__"></span>
-          <div class="cat-section-label">⭐ Más Vendidos</div>
-          <div class="prods-grid" style="margin-bottom:16px;">${sorted.map(p => prodCardHTML(p, '')).join('')}</div>`;
-      }
-
-      // Then each category section
-      for (const cat of categoriasLista) {
-        let prods = productosLista.filter(p => p.categoriaId === cat.id);
-        if (!prods.length) continue;
-        prods = ordenarProductosAlfabeticamente(prods);
-        html += `<span class="cat-section-anchor" id="sec-${cat.id}"></span>
-          <div class="cat-section-label">${esc(cat.nombre)}</div>
-          <div class="prods-grid" style="margin-bottom:16px;">${prods.map(p => prodCardHTML(p, '')).join('')}</div>`;
-      }
-
-      if (html === '') {
-        area.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles en este colmado.</p></div>`;
-      } else {
-        area.innerHTML = html;
-        initScrollSpy();
-      }
-    }
-
-    // ── SCROLL SPY ───────────────────────────────────────────────────────
-    let _scrollSpyEnabled = true;
-    let _scrollSpyTimer = null;
-    let _scrollSpyAttached = false;
-
-    function initScrollSpy() {
-      if (_scrollSpyAttached) return; // already attached
-      const panel = document.getElementById('shop-prods');
-      if (!panel) return;
-      panel.addEventListener('scroll', onProdsScroll, { passive: true });
-      _scrollSpyAttached = true;
-    }
-
-    function onProdsScroll() {
-      if (!_scrollSpyEnabled) return;
-      const panel = document.getElementById('shop-prods');
-      if (!panel) return;
-
-      const scrollTop = panel.scrollTop;
-      const masVendidos = productosLista.filter(p => p.masVendidos === true);
-
-      // Build ordered list of section ids as rendered
-      const sectionIds = [];
-      if (masVendidos.length > 0) sectionIds.push('__mas_vendidos__');
-      for (const cat of categoriasLista) {
-        if (productosLista.some(p => p.categoriaId === cat.id)) sectionIds.push(cat.id);
-      }
-
-      // Activate the category whose prods-grid has the most visible pixels inside the panel
-      const panelRect = panel.getBoundingClientRect();
-      let activeSec = sectionIds[0];
-      let bestVisible = -1;
-      for (const secId of sectionIds) {
-        const anchor = document.getElementById(`sec-${secId}`);
-        if (!anchor) continue;
-        // DOM order: anchor → cat-section-label → prods-grid
-        const labelEl = anchor.nextElementSibling;
-        const gridEl = labelEl ? labelEl.nextElementSibling : null;
-        if (!gridEl) continue;
-        const gridRect = gridEl.getBoundingClientRect();
-        const visTop = Math.max(gridRect.top, panelRect.top);
-        const visBottom = Math.min(gridRect.bottom, panelRect.bottom);
-        const visible = Math.max(0, visBottom - visTop);
-        if (visible > bestVisible) {
-          bestVisible = visible;
-          activeSec = secId;
-        }
-      }
-
-      if (activeSec === catFiltro) return;
-      catFiltro = activeSec;
-
-      // Update cat chips
-      document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('active'));
-      const activeChip = document.getElementById(`cat-chip-${activeSec}`);
-      if (activeChip) {
-        activeChip.classList.add('active');
-        // Auto-scroll sidebar to show active chip
-        const sidebar = document.getElementById('cats-scroll');
-        if (sidebar) {
-          const chipTop = activeChip.offsetTop;
-          const chipH = activeChip.offsetHeight;
-          const sidebarH = sidebar.clientHeight;
-          sidebar.scrollTo({ top: chipTop - sidebarH / 2 + chipH / 2, behavior: 'smooth' });
-        }
-      }
-    }
-
-    function highlightText(text, query) {
-      if (!query) return esc(text);
-      const idx = text.toLowerCase().indexOf(query.toLowerCase());
-      if (idx === -1) return esc(text);
-      const before = esc(text.slice(0, idx));
-      const match = esc(text.slice(idx, idx + query.length));
-      const after = esc(text.slice(idx + query.length));
-      return `${before}<span class="highlight">${match}</span>${after}`;
-    }
-
-    const UNIDADES_DETALLABLES = ['libra', 'libras', 'lb', 'kilogramo', 'kilogramos', 'kg', 'kilo', 'kilos', 'onza', 'onzas', 'oz', 'litro', 'litros', 'lt', 'l', 'galon', 'galones', 'gal', 'galón'];
-
-    function esDetallable(unidad) {
-      return UNIDADES_DETALLABLES.includes((unidad || '').toLowerCase().trim());
-    }
-
-    function labelUnidad(unidad) {
-      const map = { libra: 'lb', libras: 'lb', lb: 'lb', kilogramo: 'kg', kilogramos: 'kg', kg: 'kg', kilo: 'kg', kilos: 'kg', onza: 'oz', onzas: 'oz', oz: 'oz', litro: 'L', litros: 'L', lt: 'L', l: 'L', galon: 'gal', galones: 'gal', gal: 'gal', 'galón': 'gal' };
-      return map[(unidad || '').toLowerCase().trim()] || unidad || '';
-    }
-
-    const _modoInput = {};
-
-    function prodCardHTML(p, query) {
-      const enCarrito = carrito.find(i => i.id === p.id);
-      const qty = enCarrito ? enCarrito.qty : 0;
-      const detallable = esDetallable(p.unidad);
-      const lbl = labelUnidad(p.unidad);
-
-      // Combo logic
-      const tieneCombo = p.comboActivo && p.comboPrecio && p.comboUnidades >= 2;
-
-      const precioFmt = (p.precio !== undefined && p.precio !== null)
-        ? `RD$ ${Number(p.precio).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-        : 'Sin precio';
-      let precioLabel = detallable ? `${precioFmt} / ${lbl}` : precioFmt;
-      // combo span removed — badge already shown on image
-
-      const imgHtml = p.imagen
-        ? `<img class="prod-img" src="${p.imagen}" alt="${esc(p.nombre || '')}" onerror="this.parentElement.innerHTML='<div class=\\'prod-placeholder\\'>${p.emoji || '📦'}</div>'">`
-        : `<div class="prod-placeholder">${p.emoji || '📦'}</div>`;
-
-      const cartBadge = qty > 0
-        ? `<div class="prod-in-cart-badge">${detallable ? qty.toFixed(2) + ' ' + lbl : qty}</div>`
-        : '';
-
-      const pesoNetoBadge = p.pesoNeto
-        ? `<div class="prod-peso-neto-badge">${esc(p.pesoNeto)}</div>`
-        : '';
-
-      const comboBadge = tieneCombo
-        ? `<div class="prod-combo-badge">${p.comboUnidades}x${Math.round(p.comboPrecio)}</div>`
-        : '';
-
-      const nombreHtml = highlightText(p.nombre || 'Producto', query);
-
-      let ctrl = '';
-      if (!detallable) {
-        ctrl = qty > 0
-          ? `<div class="prod-qty-ctrl">
-               <button class="qty-btn minus" onclick="event.stopPropagation();quitarProd('${p.id}')">−</button>
-               <div class="qty-display">${qty}</div>
-               <button class="qty-btn plus" onclick="event.stopPropagation();agregarProd('${p.id}')">+</button>
-             </div>`
-          : `<button class="prod-add-btn" onclick="event.stopPropagation();agregarProd('${p.id}')">
-               <i class="fas fa-plus"></i> Agregar
-             </button>`;
-      } else {
-        if (enCarrito) {
-          ctrl = `<div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-                    <button class="prod-add-btn" style="background:var(--rojo-light);color:var(--rojo);width:auto;padding:8px 10px;flex-shrink:0;" onclick="event.stopPropagation();eliminarDelCarrito('${p.id}')">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                    <button class="prod-add-btn" style="background:var(--azul);flex:1;margin-top:0;" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')">
-                      <i class="fas fa-edit"></i> Editar
-                    </button>
-                  </div>`;
-        } else {
-          ctrl = `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')">
-                    <i class="fas fa-plus"></i> Agregar
-                  </button>`;
-        }
-      }
-
-      return `<div class="prod-card ${qty > 0 ? 'en-carrito' : ''}" data-prod-id="${p.id}" onclick="${detallable ? 'abrirModalUnidad(\'' + p.id + '\')' : 'agregarProd(\'' + p.id + '\')'}">
-                <div class="prod-img-wrap">${comboBadge}${imgHtml}${cartBadge}${pesoNetoBadge}</div>
-                <div class="prod-body">
-                  <div class="prod-nombre">${nombreHtml}</div>
-                  <div class="prod-precio">${precioLabel}</div>
-                  ${detallable ? `<div class="prod-unidad-badge">Se vende por ${lbl}</div>` : ''}
-                  ${ctrl}
-                </div>
-              </div>`;
-    }
-
-    // ── PATCH INDIVIDUAL CARD (no scroll reset) ──────────────────────────
-    // Updates only the specific product card(s) in the DOM instead of re-rendering everything
-    function patchProdCard(prodId) {
-      const panel = document.getElementById('shop-prods');
-      if (!panel) return;
-
-      // Find all rendered instances of this product (may appear in Más Vendidos + its category)
-      const cards = panel.querySelectorAll(`[data-prod-id="${prodId}"]`);
-      if (!cards.length) {
-        // Fallback: full re-render if card not found (e.g. search mode)
-        renderProductos();
-        return;
-      }
-
-      const p = productosLista.find(x => x.id === prodId);
-      if (!p) return;
-
-      const enCarrito = carrito.find(i => i.id === prodId);
-      const qty = enCarrito ? enCarrito.qty : 0;
-      const detallable = esDetallable(p.unidad);
-      const lbl = labelUnidad(p.unidad);
-      const tieneCombo = p.comboActivo && p.comboPrecio && p.comboUnidades >= 2;
-
-      cards.forEach(card => {
-        // Update border class
-        card.className = `prod-card${qty > 0 ? ' en-carrito' : ''}`;
-
-        // Update cart badge
-        const wrap = card.querySelector('.prod-img-wrap');
-        const oldBadge = wrap ? wrap.querySelector('.prod-in-cart-badge') : null;
-        if (oldBadge) oldBadge.remove();
-        if (qty > 0 && wrap) {
-          const badge = document.createElement('div');
-          badge.className = 'prod-in-cart-badge';
-          badge.textContent = detallable ? qty.toFixed(2) + ' ' + lbl : qty;
-          wrap.appendChild(badge);
-        }
-
-        // Update control buttons
-        const body = card.querySelector('.prod-body');
-        if (!body) return;
-        const oldCtrl = body.querySelector('.prod-qty-ctrl, .prod-add-btn, [data-ctrl]');
-
-        let newCtrlHTML = '';
-        if (!detallable) {
-          newCtrlHTML = qty > 0
-            ? `<div class="prod-qty-ctrl">
-                 <button class="qty-btn minus" onclick="event.stopPropagation();quitarProd('${p.id}')">−</button>
-                 <div class="qty-display">${qty}</div>
-                 <button class="qty-btn plus" onclick="event.stopPropagation();agregarProd('${p.id}')">+</button>
-               </div>`
-            : `<button class="prod-add-btn" onclick="event.stopPropagation();agregarProd('${p.id}')">
-                 <i class="fas fa-plus"></i> Agregar
-               </button>`;
-        } else {
-          if (enCarrito) {
-            newCtrlHTML = `<div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-              <button class="prod-add-btn" style="background:var(--rojo-light);color:var(--rojo);width:auto;padding:8px 10px;flex-shrink:0;" onclick="event.stopPropagation();eliminarDelCarrito('${p.id}')"><i class="fas fa-trash"></i></button>
-              <button class="prod-add-btn" style="background:var(--azul);flex:1;margin-top:0;" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fas fa-edit"></i> Editar</button>
-            </div>`;
-          } else {
-            newCtrlHTML = `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fas fa-plus"></i> Agregar</button>`;
-          }
-        }
-
-        // Replace the control element
-        const tmp = document.createElement('div');
-        tmp.innerHTML = newCtrlHTML;
-        const newCtrl = tmp.firstElementChild;
-
-        // Find and replace existing control
-        const existingQtyCtrl = body.querySelector('.prod-qty-ctrl');
-        const existingAddBtn = body.querySelector('.prod-add-btn');
-        const existingEditRow = body.querySelector('[style*="display:flex"]');
-        const toRemove = existingQtyCtrl || existingAddBtn || existingEditRow;
-        if (toRemove) {
-          body.replaceChild(newCtrl, toRemove);
-        } else {
-          body.appendChild(newCtrl);
-        }
-      });
-    }
-
-    window.setModoInput = (prodId, modo) => {
-      _modoInput[prodId] = modo;
-      renderProductos();
-    };
-
-    let _modalProdId = null;
-    let _modalModo = 'unidad';
-
-    window.abrirModalUnidad = (prodId) => {
-      const p = productosLista.find(x => x.id === prodId);
-      if (!p) return;
-      _modalProdId = prodId;
-      _modalModo = _modoInput[prodId] || 'unidad';
-      const lbl = labelUnidad(p.unidad);
-
-      const imgEl = p.imagen
-        ? `<img class="unit-modal-prod-img" src="${p.imagen}" alt="${esc(p.nombre || '')}" onerror="this.outerHTML='<div class=\\'unit-modal-prod-emoji\\'>${p.emoji || '📦'}</div>'">`
-        : `<div class="unit-modal-prod-emoji">${p.emoji || '📦'}</div>`;
-      const precioLabel = `RD$ ${Number(p.precio).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ${lbl}`;
-      document.getElementById('unit-modal-prod-info').innerHTML = `
-        ${imgEl}
-        <div>
-          <div class="unit-modal-prod-name">${esc(p.nombre || 'Producto')}</div>
-          <div class="unit-modal-prod-price">${precioLabel}</div>
-        </div>`;
-
-      document.getElementById('unit-modal-tab-unidad').textContent = `Por ${lbl}`;
-      document.getElementById('unit-modal-tab-unidad').className = 'unit-modal-tab' + (_modalModo === 'unidad' ? ' active' : '');
-      document.getElementById('unit-modal-tab-precio').className = 'unit-modal-tab' + (_modalModo === 'precio' ? ' active' : '');
-
-      const inp = document.getElementById('unit-modal-input');
-      inp.value = '';
-      inp.placeholder = _modalModo === 'unidad' ? 'Ej: 2.5' : 'Ej: 100';
-      document.getElementById('unit-modal-suffix').textContent = _modalModo === 'unidad' ? lbl : 'RD$';
-      document.getElementById('unit-modal-result').textContent = '';
-      document.getElementById('unit-modal-add-btn').disabled = true;
-
-      const enCarrito = carrito.find(i => i.id === prodId);
-      if (enCarrito) {
-        inp.value = _modalModo === 'unidad' ? enCarrito.qty.toFixed(3) : enCarrito.subtotal.toFixed(2);
-        calcModalResult();
-      }
-
-      document.getElementById('unit-modal-overlay').classList.add('open');
-      setTimeout(() => inp.focus(), 200);
-      history.pushState({ modal: 'unit', screen: 'shop', colmadoId: colmadoIdActual }, '', location.href);
-    };
-
-    window.cerrarModalUnidad = (e) => {
-      if (e && e.target !== document.getElementById('unit-modal-overlay')) return;
-      document.getElementById('unit-modal-overlay').classList.remove('open');
-      _modalProdId = null;
-    };
-
-    window.setModalModo = (modo) => {
-      _modalModo = modo;
-      if (_modalProdId) _modoInput[_modalProdId] = modo;
-      const p = _modalProdId ? productosLista.find(x => x.id === _modalProdId) : null;
-      const lbl = p ? labelUnidad(p.unidad) : '';
-      document.getElementById('unit-modal-tab-unidad').className = 'unit-modal-tab' + (modo === 'unidad' ? ' active' : '');
-      document.getElementById('unit-modal-tab-precio').className = 'unit-modal-tab' + (modo === 'precio' ? ' active' : '');
-      const inp = document.getElementById('unit-modal-input');
-      inp.value = '';
-      inp.placeholder = modo === 'unidad' ? 'Ej: 2.5' : 'Ej: 100';
-      document.getElementById('unit-modal-suffix').textContent = modo === 'unidad' ? lbl : 'RD$';
-      document.getElementById('unit-modal-result').textContent = '';
-      document.getElementById('unit-modal-add-btn').disabled = true;
-      inp.focus();
-    };
-
-    window.calcModalResult = () => {
-      const p = _modalProdId ? productosLista.find(x => x.id === _modalProdId) : null;
-      if (!p) return;
-      const lbl = labelUnidad(p.unidad);
-      const inp = document.getElementById('unit-modal-input');
-      const result = document.getElementById('unit-modal-result');
-      const btn = document.getElementById('unit-modal-add-btn');
-      const val = parseFloat(inp.value);
-      if (!val || val <= 0) { result.textContent = ''; btn.disabled = true; return; }
-      btn.disabled = false;
-      if (_modalModo === 'unidad') {
-        const subtotal = val * p.precio;
-        result.textContent = `${val} ${lbl} × ${fmtPrice(p.precio)} = ${fmtPrice(subtotal)}`;
-      } else {
-        const cantEquiv = val / p.precio;
-        result.textContent = `${fmtPrice(val)} ÷ ${fmtPrice(p.precio)}/${lbl} = ${cantEquiv.toFixed(3)} ${lbl}`;
-      }
-    };
-
-    window.confirmarModalUnidad = () => {
-      const p = _modalProdId ? productosLista.find(x => x.id === _modalProdId) : null;
-      if (!p) return;
-      const inp = document.getElementById('unit-modal-input');
-      const val = parseFloat(inp.value);
-      if (!val || val <= 0) return;
-      const lbl = labelUnidad(p.unidad);
-      let qty, subtotal;
-      if (_modalModo === 'unidad') {
-        qty = val; subtotal = val * p.precio;
-      } else {
-        qty = val / p.precio; subtotal = val;
-      }
-      const ex = carrito.find(i => i.id === p.id);
-      if (ex) {
-        ex.qty = qty; ex.subtotal = subtotal;
-      } else {
-        carrito.push({
-          id: p.id, categoriaId: p.categoriaId, nombre: p.nombre || 'Producto',
-          precio: p.precio || 0, qty, subtotal, imagen: p.imagen || null, emoji: p.emoji || '📦',
-          unidad: p.unidad, _lbl: lbl
-        });
-      }
-      document.getElementById('unit-modal-overlay').classList.remove('open');
-      const confirmedId = _modalProdId;
-      _modalProdId = null;
-      actualizarCarritoUI();
-      patchProdCard(confirmedId);
-    };
-
-    // COMBO PRICE CALCULATION
-    function calcularPrecioConCombo(qty, precioUnit, comboPrecio, comboUnidades) {
-      if (!comboPrecio || !comboUnidades || comboUnidades < 2 || !precioUnit) {
-        return qty * precioUnit;
-      }
-      const combosCompletos = Math.floor(qty / comboUnidades);
-      const sueltas = qty % comboUnidades;
-      return (combosCompletos * comboPrecio) + (sueltas * precioUnit);
-    }
-
-    // CARRITO
-    window.agregarProd = (prodId) => {
-      const p = productosLista.find(x => x.id === prodId);
-      if (!p) return;
-      const ex = carrito.find(i => i.id === prodId);
-      if (ex) {
-        ex.qty++;
-        if (p.comboActivo && p.comboPrecio && p.comboUnidades >= 2) {
-          ex.subtotal = calcularPrecioConCombo(ex.qty, p.precio, p.comboPrecio, p.comboUnidades);
-        } else {
-          ex.subtotal = p.precio * ex.qty;
-        }
-      } else {
-        const item = { id: prodId, categoriaId: p.categoriaId, nombre: p.nombre || 'Producto', precio: p.precio || 0, qty: 1, imagen: p.imagen || null, emoji: p.emoji || '📦' };
-        if (p.comboActivo && p.comboPrecio && p.comboUnidades >= 2) {
-          item.comboActivo = true;
-          item.comboPrecio = p.comboPrecio;
-          item.comboUnidades = p.comboUnidades;
-          item.subtotal = calcularPrecioConCombo(1, p.precio, p.comboPrecio, p.comboUnidades);
-        } else {
-          item.subtotal = p.precio || 0;
-        }
-        if (p.pesoNeto) item.pesoNeto = p.pesoNeto;
-        carrito.push(item);
-      }
-      actualizarCarritoUI();
-      patchProdCard(prodId);
-    };
-
-    window.quitarProd = (prodId) => {
-      const ex = carrito.find(i => i.id === prodId);
-      if (!ex) return;
-      ex.qty--;
-      if (ex.qty <= 0) {
-        carrito = carrito.filter(i => i.id !== prodId);
-      } else if (ex.comboActivo && ex.comboPrecio && ex.comboUnidades >= 2) {
-        ex.subtotal = calcularPrecioConCombo(ex.qty, ex.precio, ex.comboPrecio, ex.comboUnidades);
-      } else {
-        ex.subtotal = ex.precio * ex.qty;
-      }
-      actualizarCarritoUI();
-      patchProdCard(prodId);
-    };
-
-    window.eliminarDelCarrito = (prodId) => {
-      carrito = carrito.filter(i => i.id !== prodId);
-      actualizarCarritoUI();
-      patchProdCard(prodId);
-    };
-
-    function actualizarCarritoUI() {
-      // Persist cart to localStorage so it survives page refresh
-      try {
-        localStorage.setItem(LS_CART_KEY, JSON.stringify({ colmadoId: colmadoIdActual, items: carrito }));
-      } catch (e) { }
-
-      const total = carrito.reduce((s, i) => s + (i.subtotal !== undefined ? i.subtotal : i.precio * i.qty), 0);
-      const count = carrito.length;
-      const tf = fmtPrice(total);
-
-      document.getElementById('cart-total-display').textContent = tf;
-      document.getElementById('cart-header-badge').textContent = count;
-      document.getElementById('float-cart-count').textContent = `${count} producto${count !== 1 ? 's' : ''}`;
-      document.getElementById('float-cart-total').textContent = tf;
-      document.getElementById('float-cart').classList.toggle('visible', count > 0);
-
-      const listEl = document.getElementById('cart-items-list');
-      if (!carrito.length) {
-        listEl.innerHTML = `<div class="empty-state"><i class="fas fa-shopping-cart"></i><p>Agrega productos para continuar.</p></div>`;
-        return;
-      }
-      listEl.innerHTML = carrito.map(it => {
-        const lbl = it._lbl || labelUnidad(it.unidad) || '';
-        const isUnit = esDetallable(it.unidad);
-        const sub = it.subtotal !== undefined ? it.subtotal : it.precio * it.qty;
-        const imgEl = it.imagen
-          ? `<img class="cart-item-img" src="${it.imagen}" alt="${esc(it.nombre)}" onerror="this.outerHTML='<div class=\\'cart-item-img-placeholder\\'>${it.emoji || '📦'}</div>'">`
-          : `<div class="cart-item-img-placeholder">${it.emoji || '📦'}</div>`;
-        const qtyLabel = isUnit
-          ? `${it.qty.toFixed(2)} ${lbl}`
-          : `${it.qty}`;
-        const unitInfo = isUnit
-          ? `<div class="cart-item-unit">${it.qty.toFixed(2)} ${lbl} × ${fmtPrice(it.precio)}</div>`
-          : it.comboActivo && it.comboPrecio && it.comboUnidades >= 2
-            ? `<div class="cart-item-unit">${fmtPrice(it.precio)} c/u · <span style="color:var(--amarillo);font-weight:800;">${it.comboUnidades}x${fmtPrice(it.comboPrecio)}</span></div>`
-            : '';
-        const qtyCtrl = isUnit
-          ? `<div style="display:flex;align-items:center;gap:6px;">
-               <button class="cart-qty-btn minus" style="background:var(--rojo-light);color:var(--rojo);" onclick="eliminarDelCarrito('${it.id}')"><i class="fas fa-trash" style="font-size:.6rem;"></i></button>
-               <button class="cart-qty-btn" style="background:var(--azul-light);color:var(--azul);width:auto;padding:0 10px;font-size:.72rem;font-weight:800;border-radius:7px;border:none;cursor:pointer;" onclick="abrirModalUnidad('${it.id}')"><i class="fas fa-edit" style="font-size:.6rem;margin-right:3px;"></i>Editar</button>
-             </div>`
-          : `<div style="display:flex;align-items:center;gap:6px;">
-               <button class="cart-qty-btn minus" onclick="quitarProd('${it.id}')">−</button>
-               <span style="font-weight:800;min-width:22px;text-align:center;">${it.qty}</span>
-               <button class="cart-qty-btn plus" onclick="agregarProd('${it.id}')">+</button>
-             </div>`;
-        return `
-        <div class="cart-item">
-          ${imgEl}
-          <div class="cart-item-info">
-            <div class="cart-item-name">${esc(it.nombre)}</div>
-            ${unitInfo}
-            <div class="cart-item-price">${fmtPrice(sub)}</div>
-          </div>
-          <div class="cart-item-qty" style="flex-shrink:0;margin-top:0;">${qtyCtrl}</div>
-        </div>`;
-      }).join('');
-    }
-
-    window.abrirCarrito = () => {
-      actualizarCarritoUI();
-      cargarDatosGuardados();
-      document.getElementById('cart-overlay').classList.add('open');
-      document.getElementById('cart-drawer').classList.add('open');
-      document.getElementById('link-pedido-box').style.display = 'none';
-      linkGenerado = null;
-      datosModificados = false;
-      history.pushState({ modal: 'cart', screen: 'shop', colmadoId: colmadoIdActual }, '', location.href);
-    };
-
-    window.cerrarCarrito = () => {
-      if (datosModificados) guardarDatosSiRecordar();
-      document.getElementById('cart-overlay').classList.remove('open');
-      document.getElementById('cart-drawer').classList.remove('open');
-    };
-
-    (function () {
-      const drawer = document.getElementById('cart-drawer');
-      let startY = 0, currentY = 0, isDragging = false;
-
-      let _gestureBlocked = false;
-
-      function onTouchStart(e) {
-        startY = e.touches[0].clientY;
-        currentY = startY;
-        isDragging = true;
-        _gestureBlocked = false;
-        drawer.style.transition = 'none';
-      }
-
-      function onTouchMove(e) {
-        if (!isDragging) return;
-        currentY = e.touches[0].clientY;
-        const delta = currentY - startY;
-
-        // If gesture goes upward, block the drag (let the list scroll normally)
-        if (delta < 0) {
-          _gestureBlocked = true;
-        }
-
-        if (_gestureBlocked) return;
-
-        // Gesture is going downward — only drag drawer if list is scrolled to top
-        const itemsList = document.getElementById('cart-items-list');
-        const atTop = !itemsList || itemsList.scrollTop === 0;
-
-        if (delta > 0 && atTop) {
-          drawer.style.transform = `translateY(${delta}px)`;
-          e.preventDefault();
-        } else if (delta > 0 && !atTop) {
-          // List still has scroll room — let it scroll, don't drag drawer yet
-          _gestureBlocked = true;
-          drawer.style.transform = '';
-        }
-      }
-
-      function onTouchEnd() {
-        if (!isDragging) return;
-        isDragging = false;
-        drawer.style.transition = '';
-        const delta = currentY - startY;
-        if (!_gestureBlocked && delta > 100) {
-          drawer.style.transform = '';
-          cerrarCarrito();
-        } else {
-          drawer.style.transform = '';
-        }
-        _gestureBlocked = false;
-      }
-
-      drawer.addEventListener('touchstart', onTouchStart, { passive: true });
-      drawer.addEventListener('touchmove', onTouchMove, { passive: false });
-      drawer.addEventListener('touchend', onTouchEnd);
-    })();
-
-    // COMPLETAR PEDIDO
-    function idCorto() {
-      const c = 'abcdefghijklmnopqrstuvwxyz0123456789';
-      let s = ''; for (let i = 0; i < 6; i++) s += c[Math.floor(Math.random() * c.length)];
-      return s;
-    }
-
-    window.completarPorWhatsapp = async () => {
-      if (!carrito.length) { mostrarError('El carrito está vacío'); return; }
-      const nombre = document.getElementById('cliente-nombre').value.trim();
-      const direccion = document.getElementById('cliente-direccion').value.trim();
-      if (!nombre) { mostrarError('Por favor escribe tu nombre'); return; }
-      if (!direccion) { mostrarError('Por favor escribe tu dirección de entrega'); return; }
-
-      const total = carrito.reduce((s, i) => s + (i.subtotal !== undefined ? i.subtotal : i.precio * i.qty), 0);
-      if (total < 50) {
-        mostrarError('El pedido mínimo es de RD$ 50.00. Agrega más productos para continuar.');
-        return;
-      }
-
-      guardarDatosSiRecordar();
-
-      const pedidoId = idCorto();
-      const fecha = new Date().toLocaleString('es-DO', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      });
-
-      const adminUrl = `${window.location.origin}/miColmApp.html`;
-      const link = `${adminUrl}?c=${colmadoIdActual}&p=${pedidoId}`;
-
-      const nombreColmado = colmadoActual?.nombre || 'miColmApp';
-      let msg = `*PEDIDO* - ${nombreColmado}\n`;
-      msg += `================================\n`;
-      msg += `ID: #${pedidoId.toUpperCase()}\n`;
-      msg += `Fecha: ${fecha}\n`;
-      msg += `================================\n\n`;
-      msg += `*DATOS DEL CLIENTE*\n`;
-      msg += `---------------------------------------\n`;
-      msg += `Nombre: ${nombre}\n`;
-      msg += `Dirección: ${direccion}\n\n`;
-      msg += `*DETALLE DEL PEDIDO*\n`;
-      msg += `---------------------------------------\n`;
-
-      carrito.forEach((it, idx) => {
-        const isUnit = esDetallable(it.unidad);
-        const lbl = it._lbl || labelUnidad(it.unidad) || '';
-        const sub = it.subtotal !== undefined ? it.subtotal : it.precio * it.qty;
-        const cantLabel = isUnit ? `${it.qty.toFixed(2)} ${lbl}` : `${it.qty}`;
-        msg += `${idx + 1}. ${it.nombre}\n`;
-        msg += `   Cant.: ${cantLabel} × ${fmtPrice(it.precio)}${isUnit ? '/' + lbl : ''} = ${fmtPrice(sub)}\n`;
-      });
-
-      msg += `\n`;
-      msg += `------------------------------------------------------------------\n`;
-      msg += `TOTAL: *${fmtPrice(total)}*\n`;
-      msg += `================================\n\n`;
-      msg += `${link}`;
-
-      const pedidoData = {
-        pedidoId, colmadoId: colmadoIdActual,
-        colmadoNombre: colmadoActual?.nombre || '',
-        clienteNombre: nombre, clienteDireccion: direccion,
-        items: carrito.map(i => {
-          const sub = i.subtotal !== undefined ? i.subtotal : i.precio * i.qty;
-          const item = {
-            id: i.id, categoriaId: i.categoriaId,
-            nombre: i.nombre, precio: i.precio,
-            qty: i.qty, subtotal: sub,
-            unidad: i.unidad || null,
-            imagen: i.imagen || null
-          };
-          if (i.comboActivo && i.comboPrecio && i.comboUnidades >= 2) {
-            item.comboActivo = true;
-            item.comboPrecio = i.comboPrecio;
-            item.comboUnidades = i.comboUnidades;
-          }
-          return item;
-        }),
-        total, estado: 'pendiente', enlaceAdmin: link, fecha: serverTimestamp()
-      };
-
-      try {
-        await setDoc(doc(db, 'negocios', colmadoIdActual, 'pedidos_cliente', pedidoId), pedidoData);
-      } catch (e) {
-        mostrarError('Error guardando pedido: ' + e.message);
-        console.error(e); return;
-      }
-
-      // Leer el whatsapp del negocio directo de Firestore para garantizar el número correcto
-      let wsNumero = colmadoActual?.whatsapp || '';
-      try {
-        const negSnap = await getDoc(doc(db, 'negocios', colmadoIdActual));
-        if (negSnap.exists()) {
-          const negData = negSnap.data();
-          if (negData.whatsapp) wsNumero = negData.whatsapp;
-          colmadoActual = { ...colmadoActual, ...negData, id: colmadoIdActual };
-        }
-      } catch (e) {
-        console.warn('No se pudo leer whatsapp fresco, usando caché:', e);
-      }
-
-      if (!wsNumero) {
-        mostrarError('Este negocio no tiene número de WhatsApp configurado.');
-        return;
-      }
-
-      const wsDigits = wsNumero.replace(/\D/g, '');
-      const waUrl = `https://wa.me/${wsDigits}?text=${encodeURIComponent(msg)}`;
-      location.href = waUrl;
-      linkGenerado = link;
-      document.getElementById('link-pedido-box').style.display = 'block';
-      document.getElementById('link-pedido-url').textContent = link;
-
-      // Clear cart after successful order
-      carrito = [];
-      try { localStorage.removeItem(LS_CART_KEY); } catch (e) { }
-      actualizarCarritoUI();
-
-    };
-
-    window.copiarEnlace = () => {
-      if (!linkGenerado) return;
-      navigator.clipboard.writeText(linkGenerado)
-        .then(() => {
-          const btn = document.querySelector('.link-copy-btn');
-          if (btn) { const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!'; btn.style.background = 'var(--verde)'; setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2000); }
-        })
-        .catch(() => console.error('No se pudo copiar'));
-    };
-
-    // VISTA PEDIDO
-    async function mostrarPedido(colmadoId, pedidoId) {
-      showScreen('pedido');
-      ocultarLoading();
-
-      try {
-        const ref = doc(db, 'negocios', colmadoId, 'pedidos_cliente', pedidoId);
-        const snap = await getDoc(ref);
-        if (!snap.exists()) {
-          document.getElementById('pedido-body').innerHTML = `
-            <div class="empty-state" style="padding-top:80px;">
-              <i class="fas fa-search"></i>
-              <p><strong>Pedido no encontrado</strong><br>
-              <span style="font-size:.82rem;">Verifica el enlace.</span></p>
-            </div>`;
-          return;
-        }
-        onSnapshot(ref, s => {
-          if (s.exists()) renderPedido({ id: s.id, ...s.data() }, colmadoId, pedidoId);
-        });
-      } catch (e) {
-        document.getElementById('pedido-body').innerHTML =
-          `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></div>`;
-      }
-    }
-
-    function renderPedido(data, colmadoId, pedidoId) {
-      const total = data.total || (data.items || []).reduce((s, i) => s + (i.subtotal || i.precio * i.qty), 0);
-      const fecha = data.fecha?.toDate
-        ? data.fecha.toDate().toLocaleString('es-DO')
-        : (data.fecha ? new Date(data.fecha).toLocaleString('es-DO') : '—');
-
-      const estMap = {
-        pendiente: { icon: 'fa-clock', label: 'Pendiente' },
-        procesando: { icon: 'fa-cog fa-spin', label: 'Procesando' },
-        entregado: { icon: 'fa-check-circle', label: 'Entregado' }
-      };
-      const est = estMap[data.estado] || estMap.pendiente;
-
-      const itemsHtml = (data.items || []).map(it => {
-        const lbl = it.unidad ? labelUnidad(it.unidad) : null;
-        const qtyLabel = lbl ? `${Number(it.qty).toFixed(2)} ${lbl}` : it.qty;
-        return `
-        <div class="factura-item">
-          <div class="factura-item-qty">${qtyLabel}</div>
-          <div class="factura-item-name">${esc(it.nombre || '')}</div>
-          <div class="factura-item-price">${fmtPrice(it.subtotal || it.precio * it.qty)}</div>
-        </div>`;
-      }).join('');
-
-      let accionesHtml = '';
-      if (data.estado === 'entregado') {
-        accionesHtml = `<div class="entregado-badge"><span><i class="fas fa-check-circle"></i> Pedido Entregado</span></div>`;
-      } else {
-        accionesHtml = `<div class="acciones">`;
-        if (data.estado === 'pendiente') {
-          accionesHtml += `<button class="btn-accion btn-procesando" onclick="cambiarEstado('${colmadoId}','${pedidoId}','procesando')">
-            <i class="fas fa-cog"></i> Marcar como Procesando</button>`;
-        }
-        accionesHtml += `<button class="btn-accion btn-entregado" onclick="cambiarEstado('${colmadoId}','${pedidoId}','entregado')">
-          <i class="fas fa-check-circle"></i> Marcar como Entregado</button></div>`;
-      }
-
-      document.getElementById('pedido-body').innerHTML = `
-        <div class="pedido-content">
-          <div class="factura-top">
-            <div class="factura-neg">${esc(data.colmadoNombre || 'Colmado')}</div>
-            <div class="factura-pid">Pedido #${esc((data.pedidoId || pedidoId).toUpperCase())} · ${fecha}</div>
-            <div class="factura-estado-badge"><i class="fas ${est.icon}"></i> ${est.label}</div>
-          </div>
-          <div class="info-box">
-            <div class="info-box-title">Datos del cliente</div>
-            <div class="info-row"><i class="fas fa-user"></i><span>${esc(data.clienteNombre || '—')}</span></div>
-            <div class="info-row"><i class="fas fa-map-marker-alt"></i><span>${esc(data.clienteDireccion || '—')}</span></div>
-          </div>
-          <div class="items-card">
-            <div class="items-card-title">🧾 Productos pedidos</div>
-            ${itemsHtml}
-          </div>
-          <div class="total-box">
-            <div class="total-box-label">Total del pedido</div>
-            <div class="total-box-amount">${fmtPrice(total)}</div>
-          </div>
-          ${accionesHtml}
-        </div>`;
-    }
-
-    window.cambiarEstado = async (colmadoId, pedidoId, nuevoEstado) => {
-      try {
-        await updateDoc(doc(db, 'negocios', colmadoId, 'pedidos_cliente', pedidoId), {
-          estado: nuevoEstado,
-          [`fecha_${nuevoEstado}`]: serverTimestamp()
-        });
-      } catch (e) { console.error('Error:', e.message); }
-    };
-
-    function fmtPrice(val) {
-      return `RD$ ${(val || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
-
-    function esc(str) {
-      return String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-    }
-
-    function showScreen(name) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(`screen-${name}`).classList.add('active');
-    }
-
-    // Timestamp de inicio de carga (siempre al cargar la página)
-    const _loadingStart = Date.now();
-    const _loadingMin = 3000; // 3 segundos mínimos
-
-    function ocultarLoading() {
-      const elapsed = Date.now() - _loadingStart;
-      const remaining = Math.max(0, _loadingMin - elapsed);
-      setTimeout(() => {
-        const ls = document.getElementById('loading-screen');
-        ls.style.transition = 'opacity .4s ease';
-        ls.style.opacity = '0';
-        setTimeout(() => { ls.style.display = 'none'; }, 400);
-      }, remaining);
-    }
-
-    function mostrarError(msg) {
-      // Show error inline in cart form area
-      let el = document.getElementById('_inline-error');
-      if (!el) {
-        el = document.createElement('div');
-        el.id = '_inline-error';
-        el.style.cssText = 'background:var(--rojo-light);color:var(--rojo);border:1.5px solid var(--rojo);border-radius:10px;padding:10px 14px;font-size:.82rem;font-weight:700;margin:0 20px 10px;text-align:center;';
-        const footer = document.querySelector('.cart-footer');
-        if (footer) footer.prepend(el);
-        else document.body.appendChild(el);
-      }
-      el.textContent = msg;
-      el.style.display = 'block';
-      clearTimeout(el._t);
-      el._t = setTimeout(() => { el.style.display = 'none'; }, 4000);
-    }
-
-    function toast(msg, type = 'info', duration = 3000) {
-      // Toast removed — no-op
-    }
-
-    init();
   </script>
-
-  <style>
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(20px);
-      }
-
-      
-      to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-    }
-
-    .cat-section-label {
-      font-size: 0.9rem;
-      font-weight: 800;
-      /* text-transform: uppercase; */
-      letter-spacing: .6px;
-      color: #505050;
-      padding: 4px 2px 6px;
-      margin-top: 4px;
-      text-align: center;
-    }
-
-    .cat-section-anchor {
-      display: block;
-      height: 0;
-      visibility: hidden;
-    }
-
-    .mas-vendidos-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: linear-gradient(135deg, #fffbe6, #fff3cd);
-      color: #7a5500;
-      border: 1px solid #ffe082;
-      border-radius: 20px;
-      font-size: .6rem;
-      font-weight: 800;
-      padding: 1px 7px;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
-
-
-  </style>
 </body>
-
 </html>
