@@ -6,7 +6,7 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>miColmApp – POS Colmados RD</title>
-  <link rel="icon" type="image/png" href="./img/micolmapp_logo_solo_blanco.png">
+  <link rel="icon" type="image/png" href="./img/micolmapp_logo_favico.png">
 
   <!-- ── Open Graph / Meta para compartir ── -->
   <meta property="og:type"         content="website">
@@ -1088,7 +1088,7 @@
           <div>
             <div class="form-group"><label>Imagen del Producto</label>
               <div class="file-upload-area" id="prod-img-area"
-                onclick="document.getElementById('prod-img-input').click()"><img id="prod-img-preview" src=""><i
+                onclick="abrirSelectorImagen('prod-img-input')"><img id="prod-img-preview" src=""><i
                   id="prod-img-icon" class="fas fa-cloud-upload-alt"
                   style="font-size:32px;color:var(--gris-suave);margin-bottom:8px;display:block;"></i>
                 <p id="prod-img-hint1" style="font-size:13px;color:var(--gris-suave);">Clic para subir imagen</p>
@@ -1096,7 +1096,7 @@
               </div>
               <p id="prod-img-replace-hint"
                 style="display:none;font-size:12px;color:var(--gris-suave);text-align:center;margin-top:6px;cursor:pointer;"
-                onclick="document.getElementById('prod-img-input').click()"><i class="fas fa-sync-alt"></i> Clic para
+                onclick="abrirSelectorImagen('prod-img-input')"><i class="fas fa-sync-alt"></i> Toca para
                 reemplazar imagen del producto</p><input type="file" id="prod-img-input" accept="image/*"
                 style="display:none;" onchange="previewImagen(this)">
             </div>
@@ -1165,10 +1165,10 @@
         <div class="form-group"><label>Nombre de la Categoría</label><input type="text" id="cat-nombre"
             placeholder="Ej: Bebidas, Lácteos, Frutas..."></div><input type="hidden" id="cat-emoji" value="📦">
         <div class="form-group"><label>Imagen de la Categoría</label>
-          <div class="file-upload-area" id="cat-img-area" onclick="document.getElementById('cat-img-input').click()">
+          <div class="file-upload-area" id="cat-img-area" onclick="abrirSelectorImagen('cat-img-input')">
             <img id="cat-img-preview" src="" style="display:none;"><i id="cat-img-icon" class="fas fa-image"
               style="font-size:28px;color:var(--gris-suave);margin-bottom:6px;display:block;"></i>
-            <p id="cat-img-hint" style="font-size:13px;color:var(--gris-suave);">Clic para subir imagen</p>
+            <p id="cat-img-hint" style="font-size:13px;color:var(--gris-suave);">Toca para subir imagen</p>
           </div><input type="file" id="cat-img-input" accept="image/*" style="display:none;"
             onchange="previewCatImagen(this)">
         </div>
@@ -7573,6 +7573,74 @@
       return await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
     }
 
+  })();
+  </script>
+
+  <!-- ── MOBILE IMAGE SOURCE CHOOSER ── -->
+  <div id="mob-img-chooser-overlay" onclick="cerrarSelectorImagen()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:99998;"></div>
+  <div id="mob-img-chooser" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;z-index:99999;padding:0 0 env(safe-area-inset-bottom,0) 0;box-shadow:0 -4px 32px rgba(0,0,0,0.18);">
+    <div style="width:40px;height:4px;background:#ddd;border-radius:4px;margin:12px auto 4px;"></div>
+    <div style="font-weight:700;font-size:15px;color:#1a2135;text-align:center;padding:8px 20px 14px;">Cargar Imagen</div>
+    <button id="mob-img-btn-camara" onclick="elegirFuenteImagen('camara')" style="display:flex;align-items:center;gap:16px;width:100%;padding:16px 24px;border:none;background:none;font-family:inherit;font-size:15px;font-weight:600;color:#1a2135;cursor:pointer;border-top:1px solid #f0f0f0;">
+      <span style="width:44px;height:44px;background:#e8f4fd;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-camera" style="font-size:20px;color:#1971c2;"></i></span>
+      <div style="text-align:left;"><div>Tomar foto con la cámara</div><div style="font-size:12px;font-weight:400;color:#888;margin-top:2px;">Usa la cámara del dispositivo</div></div>
+    </button>
+    <button id="mob-img-btn-galeria" onclick="elegirFuenteImagen('galeria')" style="display:flex;align-items:center;gap:16px;width:100%;padding:16px 24px;border:none;background:none;font-family:inherit;font-size:15px;font-weight:600;color:#1a2135;cursor:pointer;border-top:1px solid #f0f0f0;">
+      <span style="width:44px;height:44px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-images" style="font-size:20px;color:#2f9e44;"></i></span>
+      <div style="text-align:left;"><div>Elegir desde la galería</div><div style="font-size:12px;font-weight:400;color:#888;margin-top:2px;">Selecciona una foto guardada</div></div>
+    </button>
+    <button onclick="cerrarSelectorImagen()" style="display:flex;align-items:center;justify-content:center;width:calc(100% - 48px);margin:12px 24px 16px;padding:14px;border:2px solid #e0e0e0;border-radius:12px;background:none;font-family:inherit;font-size:15px;font-weight:600;color:#666;cursor:pointer;">Cancelar</button>
+  </div>
+
+  <script>
+  (function(){
+    var _imgTargetInputId = null;
+
+    function esMobile() {
+      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth < 900);
+    }
+
+    window.abrirSelectorImagen = function(inputId) {
+      _imgTargetInputId = inputId;
+      if (esMobile()) {
+        document.getElementById('mob-img-chooser-overlay').style.display = 'block';
+        var sheet = document.getElementById('mob-img-chooser');
+        sheet.style.display = 'block';
+        sheet.style.transform = 'translateY(100%)';
+        sheet.style.transition = 'transform 0.28s cubic-bezier(.32,1.18,.68,1)';
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){
+          sheet.style.transform = 'translateY(0)';
+        });});
+      } else {
+        document.getElementById(inputId).removeAttribute('capture');
+        document.getElementById(inputId).click();
+      }
+    };
+
+    window.cerrarSelectorImagen = function() {
+      var sheet = document.getElementById('mob-img-chooser');
+      sheet.style.transform = 'translateY(100%)';
+      setTimeout(function(){
+        sheet.style.display = 'none';
+        document.getElementById('mob-img-chooser-overlay').style.display = 'none';
+      }, 280);
+    };
+
+    window.elegirFuenteImagen = function(fuente) {
+      cerrarSelectorImagen();
+      if (!_imgTargetInputId) return;
+      var input = document.getElementById(_imgTargetInputId);
+      if (!input) return;
+      setTimeout(function(){
+        if (fuente === 'camara') {
+          input.setAttribute('capture', 'environment');
+        } else {
+          input.removeAttribute('capture');
+        }
+        input.value = '';
+        input.click();
+      }, 320);
+    };
   })();
   </script>
 
