@@ -411,6 +411,24 @@
     } catch(e) { if (cached) return cached; throw e; }
   }
 
+  // Carga progresiva: renderiza cada categoría apenas llega, sin esperar todas
+  async function fetchProductosProgresivo(negId, cats, onCatLoaded) {
+    const todos = [];
+    for (const cat of cats) {
+      try {
+        const pSnap = await getDocs(collection(db, 'negocios', negId, 'categorias', cat.id, 'productos'));
+        pSnap.docs.forEach(d => todos.push({
+          id: d.id, categoriaId: cat.id, categoriaNombre: cat.nombre,
+          categoriaEmoji: cat.emoji||'📦', categoriaImagen: cat.imagen||null,
+          ...d.data(), precio: d.data().precio??0
+        }));
+        onCatLoaded([...todos]);
+      } catch(catErr) { console.warn(`Error cat ${cat.id}:`, catErr); }
+    }
+    cacheSet(CK.productos(negId), todos);
+    return todos;
+  }
+
   // ── Estado global ─────────────────────────────────────────────
   let colmadoActual=null, colmadoIdActual=null, categoriasLista=[], productosLista=[];
   let carrito=[], catFiltro='all', busqueda='', linkGenerado=null, datosModificados=false;
@@ -453,12 +471,12 @@
             if (!exists) {
               productosLista.push(prodData);
               try { cacheSet(CK.productos(negId), productosLista); } catch(e){}
-              renderCategorias(); renderProductos(); _setInitialCat();
+              renderCategorias(); renderProductos(true); _setInitialCat();
             }
           } else if (change.type === 'removed') {
             productosLista = productosLista.filter(p => !(p.id === prodData.id && p.categoriaId === cat.id));
             try { cacheSet(CK.productos(negId), productosLista); } catch(e){}
-            renderCategorias(); renderProductos(); _setInitialCat();
+            renderCategorias(); renderProductos(true); _setInitialCat();
           }
         });
       }, (err) => { console.warn('onSnapshot error cat', cat.id, err); });
@@ -622,6 +640,7 @@
   async function abrirShop(id) {
     showScreen('shop'); ocultarLoading();
     colmadoIdActual = id; catFiltro = ''; busqueda = ''; _scrollSpyAttached = false;
+    _primerRender = true;
 
     try {
       const savedCart = localStorage.getItem(LS_CART_KEY);
@@ -639,28 +658,39 @@
     const cachedCats  = cacheGet(CK.categorias(id));
     const cachedProds = cacheGet(CK.productos(id));
     const cachedNeg   = cacheGet(CK.negocio(id));
+    const tieneCache  = !!(cachedCats && cachedProds && cachedProds.length > 0);
 
-    if (cachedNeg) { colmadoActual = cachedNeg; _setShopHeader(cachedNeg); }
-    if (cachedCats && cachedProds && cachedProds.length > 0) {
-      categoriasLista = cachedCats; productosLista = cachedProds;
-      renderCategorias(); renderProductos(); _setInitialCat();
-      if (navigator.onLine && prodsArea) {
-        const sb = document.createElement('div'); sb.id = 'sync-badge';
-        sb.style.cssText = 'position:fixed;bottom:80px;right:12px;background:rgba(25,113,194,.88);color:#fff;border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:700;z-index:300;display:flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.18);';
-        sb.innerHTML = '<i class="fas fa-sync fa-spin" style="font-size:.65rem;"></i> Actualizando...';
-        document.body.appendChild(sb);
+    if (tieneCache) {
+      // Mostrar caché de inmediato sin animación (ya es data real)
+      if (cachedNeg) { colmadoActual = cachedNeg; _setShopHeader(cachedNeg); }
+      categoriasLista = cachedCats;
+      productosLista  = cachedProds;
+      _primerRender = false; // la caché no necesita animación de entrada
+      renderCategorias(); renderProductos(false); _setInitialCat();
+    } else {
+      // Sin caché: mostrar skeletons de categoría genéricos mientras bajan los datos
+      if (prodsArea) {
+        let skelHtml = '';
+        for (let i = 0; i < 2; i++) skelHtml += `<div class="cat-section-label" style="background:linear-gradient(90deg,#e8ecf0 25%,#f4f6f8 50%,#e8ecf0 75%);background-size:300% 100%;animation:skel-shine 1.4s ease-in-out infinite;border-radius:8px;height:22px;margin-bottom:8px;"></div><div class="prods-grid" style="margin-bottom:16px;">${'<div class="prod-card-skel"><div class="skel-img"></div><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line btn"></div></div>'.repeat(6)}</div>`;
+        prodsArea.innerHTML = skelHtml;
       }
-    } else if (prodsArea) {
-      prodsArea.innerHTML = `<div class="empty-state"><div class="loading-spinner" style="border-color:#e2e8f0;border-top-color:var(--verde);width:30px;height:30px;margin:0 auto;"></div><p style="margin-top:12px;">Cargando productos...</p></div>`;
     }
 
     try {
       colmadoActual = await fetchNegocio(id);
       if (!colmadoActual) { console.error('Colmado no encontrado'); return; }
       _setShopHeader(colmadoActual);
+
       categoriasLista = await fetchCategorias(id);
-      productosLista  = await fetchProductos(id, categoriasLista);
-      console.log(`Productos: ${productosLista.length} de ${categoriasLista.length} cats`);
+
+      // Si ya teníamos caché pero las categorías cambiaron, actualizar skeleton
+      if (!tieneCache) {
+        productosLista = [];
+        mostrarSkeleton(); // ahora sí conocemos las categorías reales
+        renderCategorias(); _setInitialCat();
+      }
+
+      productosLista = await fetchProductos(id, categoriasLista);
 
       if (productosLista.length === 0) {
         if (prodsArea) prodsArea.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles.<br>Vuelve más tarde.</p></div>`;
@@ -668,21 +698,27 @@
         if (cs) cs.innerHTML = `<div class="cat-chip active"><div class="cat-chip-emoji">📦</div><span class="cat-chip-name">Sin productos</span></div>`;
         return;
       }
-      catFiltro = ''; renderCategorias(); renderProductos(); _setInitialCat();
-      // ── Activar escucha en tiempo real de cambios en productos ──
+
+      if (tieneCache) {
+        // Datos frescos llegaron: actualizar en silencio sin animación
+        _primerRender = false;
+        renderCategorias(); renderProductos(true); _setInitialCat();
+      } else {
+        // Primera carga: swap skeleton → cards con fade
+        _primerRender = true;
+        renderCategorias(); renderProductos(false); _setInitialCat();
+      }
+
       iniciarListenersRealtime(id, categoriasLista);
 
     } catch(e) {
       console.error('Error cargando tienda:', e);
-      if (!cachedProds || !cachedProds.length) {
+      if (!tieneCache) {
         if (prodsArea) {
           const msg = !navigator.onLine ? 'Sin conexión y sin datos guardados.<br>Conéctate para ver el catálogo.' : `Error al cargar: ${e.message}`;
           prodsArea.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${msg}</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;background:var(--verde);color:white;border:none;border-radius:30px;">Reintentar</button></div>`;
         }
       }
-    } finally {
-      const badge = document.getElementById('sync-badge');
-      if (badge) badge.remove();
     }
   }
 
@@ -815,34 +851,77 @@
   // ── Render productos ──────────────────────────────────────────
   function ordenarAlf(list) { return [...list].sort((a,b)=>(a.nombre||'').toLowerCase().localeCompare((b.nombre||'').toLowerCase())); }
 
-  function renderProductos() {
+  function _buildSectionHtml(label, count, id) {
+    return `<span class="cat-section-anchor" id="sec-${id}"></span><div class="cat-section-label"><span>${label}</span><span class="cat-section-count">${count}</span></div>`;
+  }
+
+  function _skelCardHTML() {
+    return `<div class="prod-card-skel"><div class="skel-img"></div><div class="skel-line"></div><div class="skel-line short"></div><div class="skel-line btn"></div></div>`;
+  }
+
+  // Muestra skeleton usando la estructura de categorías ya conocida
+  function mostrarSkeleton() {
     const area = document.getElementById('shop-prods');
     if (!area) return;
-    if (!productosLista || !productosLista.length) { area.innerHTML=`<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles.</p></div>`; return; }
+    let html = '';
+    const masV = productosLista.filter(p=>p.masVendidos===true);
+    const count = (n) => _skelCardHTML().repeat(Math.min(n, 6));
+    if (masV.length > 0) html += _buildSectionHtml('<i class="fa-solid fa-star" style="color:#00a93d;"></i> Más Vendidos', masV.length, '__mas_vendidos__') + `<div class="prods-grid" style="margin-bottom:16px;">${count(masV.length)}</div>`;
+    for (const cat of categoriasLista) {
+      const n = productosLista.filter(p=>p.categoriaId===cat.id).length;
+      if (!n) continue;
+      html += _buildSectionHtml(esc(cat.nombre), n, cat.id) + `<div class="prods-grid" style="margin-bottom:16px;">${count(n)}</div>`;
+    }
+    if (html) area.innerHTML = html;
+  }
+
+  // _primerRender: true = primera vez que se pinta (viene de skeleton), false = actualización en vivo
+  let _primerRender = true;
+
+  function renderProductos(silent = false) {
+    const area = document.getElementById('shop-prods');
+    if (!area) return;
+
+    if (!productosLista || !productosLista.length) {
+      _primerRender = true;
+      area.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles.</p></div>`;
+      return;
+    }
 
     if (busqueda) {
-      let filtered = productosLista.filter(p=>(p.nombre||'').toLowerCase().includes(busqueda));
-      if (!filtered.length) { area.innerHTML=`<div class="empty-state"><i class="fas fa-box-open"></i><p>No se encontraron productos para "<strong>${esc(busqueda)}</strong>"</p></div>`; return; }
+      const filtered = productosLista.filter(p=>(p.nombre||'').toLowerCase().includes(busqueda));
+      if (!filtered.length) {
+        area.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No se encontraron productos para "<strong>${esc(busqueda)}</strong>"</p></div>`;
+        return;
+      }
       area.innerHTML = `<div class="prods-grid">${ordenarAlf(filtered).map(p=>prodCardHTML(p,busqueda)).join('')}</div>`;
       return;
     }
 
     let html = '';
     const masV = productosLista.filter(p=>p.masVendidos===true);
-    if (masV.length>0) {
-      html += `<span class="cat-section-anchor" id="sec-__mas_vendidos__"></span>
-        <div class="cat-section-label"><span><i class="fa-solid fa-star" style="color: #00a93d;"></i> Más Vendidos</span><span class="cat-section-count">${masV.length}</span></div>
-        <div class="prods-grid" style="margin-bottom:16px;">${ordenarAlf(masV).map(p=>prodCardHTML(p,'')).join('')}</div>`;
-    }
+    if (masV.length > 0) html += _buildSectionHtml('<i class="fa-solid fa-star" style="color:#00a93d;"></i> Más Vendidos', masV.length, '__mas_vendidos__') + `<div class="prods-grid" style="margin-bottom:16px;">${ordenarAlf(masV).map(p=>prodCardHTML(p,'')).join('')}</div>`;
     for (const cat of categoriasLista) {
-      let prods = productosLista.filter(p=>p.categoriaId===cat.id);
+      const prods = productosLista.filter(p=>p.categoriaId===cat.id);
       if (!prods.length) continue;
-      html += `<span class="cat-section-anchor" id="sec-${cat.id}"></span>
-        <div class="cat-section-label"><span>${esc(cat.nombre)}</span><span class="cat-section-count">${prods.length}</span></div>
-        <div class="prods-grid" style="margin-bottom:16px;">${ordenarAlf(prods).map(p=>prodCardHTML(p,'')).join('')}</div>`;
+      html += _buildSectionHtml(esc(cat.nombre), prods.length, cat.id) + `<div class="prods-grid" style="margin-bottom:16px;">${ordenarAlf(prods).map(p=>prodCardHTML(p,'')).join('')}</div>`;
     }
-    if (!html) { area.innerHTML=`<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles en este colmado.</p></div>`; }
-    else { area.innerHTML = html; initScrollSpy(); }
+    if (!html) { area.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles en este colmado.</p></div>`; return; }
+
+    // Solo animar en la primera carga real (después del skeleton)
+    if (!silent && _primerRender) {
+      area.style.opacity = '0';
+      area.innerHTML = html;
+      area.offsetHeight; // force reflow para que la transición funcione
+      area.style.transition = 'opacity 0.25s ease';
+      area.style.opacity = '1';
+      setTimeout(() => { area.style.transition = ''; }, 300);
+      _primerRender = false;
+    } else {
+      area.innerHTML = html;
+    }
+
+    initScrollSpy();
   }
 
   let _scrollSpyEnabled=true, _scrollSpyTimer=null, _scrollSpyAttached=false;
@@ -923,7 +1002,7 @@
     const precioLabel = det ? `${precioFmt}/${lbl}` : precioFmt;
     const agotado = (p.stock !== undefined && p.stock !== null && Number(p.stock) === 0);
     const imgStyle = agotado ? ' style=""' : '';
-    const imgHtml = p.imagen ? `<img class="prod-img" src="${p.imagen}" alt="${esc(p.nombre||'')}"${imgStyle} onerror="this.parentElement.innerHTML='<div class=\\'prod-placeholder\\'>${p.emoji||'📦'}</div>'">` : `<div class="prod-placeholder">${p.emoji||'📦'}</div>`;
+    const imgHtml = p.imagen ? `<img class="prod-img" loading="lazy" src="${p.imagen}" alt="${esc(p.nombre||'')}"${imgStyle} onerror="this.parentElement.innerHTML='<div class=\\'prod-placeholder\\'>${p.emoji||'📦'}</div>'">` : `<div class="prod-placeholder">${p.emoji||'📦'}</div>`;
     const cartBadge = qty>0 ? `<div class="prod-in-cart-badge">${det?qty.toFixed(2)+' '+lbl:qty}</div>` : '';
     const pesoNetoBadge = p.pesoNeto ? `<div class="prod-peso-neto-badge">${esc(p.pesoNeto)}</div>` : '';
     const comboBadge = tieneCombo ? `<div class="prod-combo-badge">${p.comboUnidades}x${Math.round(p.comboPrecio)}</div>` : '';
@@ -981,7 +1060,7 @@
       }
       const tmp = document.createElement('div'); tmp.innerHTML = newCtrlHTML;
       const newCtrl = tmp.firstElementChild;
-      const toRemove = body.querySelector('.prod-qty-ctrl') || body.querySelector('.prod-add-btn') || body.querySelector('[style*="display:flex"]');
+      const toRemove = body.querySelector('.prod-qty-ctrl') || body.querySelector('[style*="margin-top:8px"]') || body.querySelector('[style*="display:flex"]') || body.querySelector('.prod-add-btn');
       if (toRemove) body.replaceChild(newCtrl, toRemove); else body.appendChild(newCtrl);
     });
   }
@@ -1447,8 +1526,8 @@
 
   // Aplicar grid y cats tras cada render de productos
   const _origRenderProductos = renderProductos;
-  renderProductos = function() {
-    _origRenderProductos();
+  renderProductos = function(silent = false) {
+    _origRenderProductos(silent);
     requestAnimationFrame(() => { applyGridState(); applyCatsState(); });
   };
 
