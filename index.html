@@ -700,7 +700,7 @@
     const hW = document.getElementById('shop-header-ws');
     if (hN) hN.textContent = neg.nombre || 'Colmado';
     if (hD) { hD.style.display='flex'; hD.innerHTML = neg.direccion ? `<i class="fas fa-map-marker-alt" style="opacity:.7;font-size:.6rem;"></i> ${esc(neg.direccion)}` : ''; }
-    if (hW) { if (neg.whatsapp) { hW.innerHTML=`<i class="fab fa-whatsapp" style="opacity:.7;font-size:.6rem;"></i> ${esc(formatWhatsapp(neg.whatsapp))}`; hW.style.display='flex'; } else hW.style.display='none'; }
+    if (hW) { if (neg.whatsapp) { hW.innerHTML=`<i class="fab fa-whatsapp" style="opacity:.7;font-size:.6rem;font-weight: 600;margin-top: 2px;"></i> ${esc(formatWhatsapp(neg.whatsapp))}`; hW.style.display='flex'; } else hW.style.display='none'; }
   }
 
   function _setInitialCat() {
@@ -729,7 +729,7 @@
           <div class="cat-chip-img-wrap">
             <img class="cat-chip-image" src="${masVendidosBg}" alt="Más Vendidos" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,#fff3cd,#ffe082);position:absolute;inset:0;">⭐</div>
-            <span class="cat-chip-img-label"><i class="fa-solid fa-star" style="color: #00a93d;"></i> Más Vendidos</span>
+            <span class="cat-chip-img-label" style="text-align: left;margin-left: 8px;margin-bottom: 4px;"><i class="fa-solid fa-star" style="color: #00a93d;background: #ffffff;padding: 3px 3px 3px 3px;border-radius: 10px;text-shadow: 0 0 BLACK;position: absolute;left: 3px;top: -16px;font-size: 7px;"></i> Más <br>Vendidos</span>
           </div></div>`;
       } else {
         const mvImg = mvProds.find(p=>p.imagen&&p.imagen.startsWith('http'));
