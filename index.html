@@ -831,14 +831,14 @@
     const masV = productosLista.filter(p=>p.masVendidos===true);
     if (masV.length>0) {
       html += `<span class="cat-section-anchor" id="sec-__mas_vendidos__"></span>
-        <div class="cat-section-label"><i class="fa-solid fa-star" style="color: #00a93d;"></i> Más Vendidos</div>
+        <div class="cat-section-label"><span><i class="fa-solid fa-star" style="color: #00a93d;"></i> Más Vendidos</span><span class="cat-section-count">${masV.length}</span></div>
         <div class="prods-grid" style="margin-bottom:16px;">${ordenarAlf(masV).map(p=>prodCardHTML(p,'')).join('')}</div>`;
     }
     for (const cat of categoriasLista) {
       let prods = productosLista.filter(p=>p.categoriaId===cat.id);
       if (!prods.length) continue;
       html += `<span class="cat-section-anchor" id="sec-${cat.id}"></span>
-        <div class="cat-section-label">${esc(cat.nombre)}</div>
+        <div class="cat-section-label"><span>${esc(cat.nombre)}</span><span class="cat-section-count">${prods.length}</span></div>
         <div class="prods-grid" style="margin-bottom:16px;">${ordenarAlf(prods).map(p=>prodCardHTML(p,'')).join('')}</div>`;
     }
     if (!html) { area.innerHTML=`<div class="empty-state"><i class="fas fa-box-open"></i><p>No hay productos disponibles en este colmado.</p></div>`; }
