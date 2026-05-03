@@ -41,8 +41,10 @@
       inset: 0;
       z-index: 10000;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 20px;
       background: rgba(5, 10, 20, .72);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
@@ -76,43 +78,65 @@
       opacity: 1;
     }
 
-    /* close btn */
+    /* close btn – pill exterior debajo del modal */
 .pv-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: 1px solid rgb(236 236 236);
-    background: rgb(0 0 0 / 36%);
-    color: rgb(237 237 237);
-    font-size: .75rem;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background .2s, transform .2s;
+    gap: 8px;
+    padding: 11px 32px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(255, 255, 255, .22);
+    background: rgba(255, 255, 255, .1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: rgba(255, 255, 255, .9);
+    font-family: var(--font);
+    font-size: .82rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transform: translateY(12px) scale(.88);
+    opacity: 0;
+    transition: transform .32s cubic-bezier(.34, 1.3, .64, 1) .1s,
+                opacity .25s ease .1s,
+                background .2s, border-color .2s;
 }
 
-    .pv-close:active {
-      background: rgba(255, 255, 255, .18);
-      transform: scale(.92);
-    }
+.pv-overlay.open .pv-close {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/*.pv-close:hover {
+    background: rgba(255, 255, 255, .18);
+    border-color: rgba(255, 255, 255, .4);
+}*/
+
+/*.pv-close:active {
+    background: rgba(255, 255, 255, .22);
+    transform: scale(.95);
+}*/
 
     /* image area */
 .pv-img-area {
     width: 100%;
     height: 204px;
     background: #ffffff;
-    border-radius: 10px;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     overflow: hidden;
-    padding: 3px;
+    padding: 10px;
+    margin: 12px 0 0;
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow);
+    width: calc(100% - 24px);
+    margin-left: 12px;
+    margin-right: 12px;
 }
 
 .pv-img-area::after {
@@ -128,7 +152,7 @@
     height: 100%;
     object-fit: contain;
     transition: transform .35s ease;
-    border-radius: 21px;
+    border-radius: 10px;
 }
 
     .pv-overlay.open .pv-img-area img {
@@ -142,10 +166,131 @@
 
     /* info area */
     .pv-info {
-      padding: 14px 20px 0;
+      padding: 14px 16px 0;
       position: relative;
       z-index: 2;
     }
+
+    /* fila precio + acción juntos */
+.pv-precio-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: space-between;
+}
+
+    /* ── Acción inline junto al precio ── */
+    .pv-action {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Botón agregar */
+    .pv-add-btn {
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--verde);
+      color: white;
+      font-size: .82rem;
+      font-weight: 800;
+      font-family: var(--font);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 3px 10px rgba(0,192,75,.3);
+      transition: background .15s, transform .12s, box-shadow .15s;
+    }
+
+    .pv-add-btn:active { transform: scale(.93); }
+    .pv-add-btn:hover  { background: var(--verde-dark); box-shadow: 0 5px 14px rgba(0,192,75,.4); }
+
+    /* Botón agregar para detallables (por lb/kg) – azul */
+    .pv-add-btn.pv-add-btn--unit {
+      background: var(--azul);
+      box-shadow: 0 3px 10px rgba(25,113,194,.3);
+    }
+    .pv-add-btn.pv-add-btn--unit:hover {
+      background: #1562a8;
+      box-shadow: 0 5px 14px rgba(25,113,194,.4);
+    }
+
+    /* Control qty +/− dentro del modal – horizontal */
+    .pv-qty-ctrl {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0;
+      background: var(--bg2);
+      border-radius: 12px;
+      padding: 3px;
+    }
+
+    .pv-qty-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 900;
+      transition: background .15s, transform .1s;
+      flex-shrink: 0;
+    }
+
+    .pv-qty-btn:active { transform: scale(.88); }
+
+    .pv-qty-btn.plus {
+      background: var(--verde);
+      color: white;
+      box-shadow: 0 2px 8px rgba(0,192,75,.3);
+    }
+    .pv-qty-btn.plus:hover { background: var(--verde-dark); }
+
+    .pv-qty-btn.minus {
+      background: var(--white);
+      color: var(--rojo);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .pv-qty-btn.minus:hover { background: var(--rojo-light); }
+
+    .pv-qty-num {
+      font-size: .88rem;
+      font-weight: 900;
+      color: var(--text);
+      min-width: 26px;
+      text-align: center;
+      line-height: 1;
+    }
+
+    /* Botón editar (detallables ya en carrito) */
+    .pv-edit-btn {
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: none;
+      background: var(--azul-light);
+      color: var(--azul);
+      font-size: .82rem;
+      font-weight: 800;
+      font-family: var(--font);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: background .15s, transform .12s;
+    }
+    .pv-edit-btn:active { transform: scale(.93); }
+    .pv-edit-btn:hover  { background: #d0e4f7; }
 
 .pv-nombre {
     font-family: var(--font);
@@ -191,7 +336,6 @@
     }
 
 .pv-precio {
-    margin-top: 12px;
     font-size: 1.22rem;
     font-weight: 900;
     color: #25b85b;
@@ -498,14 +642,19 @@
   <!-- ══ MODAL VISTA RÁPIDA PRODUCTO ══ -->
   <div class="pv-overlay" id="pv-overlay" onclick="cerrarProdView(event)">
     <div class="pv-modal" id="pv-modal">
-      <button class="pv-close" onclick="cerrarProdView()"><i class="fas fa-times"></i></button>
       <div class="pv-img-area" id="pv-img-area"></div>
       <div class="pv-info">
         <div class="pv-nombre" id="pv-nombre"></div>
         <div class="pv-badges" id="pv-badges"></div>
-        <div class="pv-precio" id="pv-precio"></div>
+        <div class="pv-precio-row">
+          <div class="pv-precio" id="pv-precio"></div>
+          <div class="pv-action" id="pv-action"></div>
+        </div>
       </div>
     </div>
+    <button class="pv-close" onclick="event.stopPropagation();cerrarProdView()">
+      <i class="fas fa-times"></i> Cerrar
+    </button>
   </div>
 
   <!-- ══════════════════════════════════════════════════════════════
@@ -1400,6 +1549,7 @@
       document.getElementById('unit-modal-overlay').classList.remove('open');
       const cId = _modalProdId; _modalProdId = null;
       actualizarCarritoUI(); patchProdCard(cId);
+      if (pvProdIdActual === cId) renderPvAction(cId);
     };
 
     // ── Carrito ───────────────────────────────────────────────────
@@ -1422,6 +1572,7 @@
         carrito.push(item);
       }
       actualizarCarritoUI(); patchProdCard(prodId);
+      if (pvProdIdActual === prodId) renderPvAction(prodId);
     };
 
     window.quitarProd = (prodId) => {
@@ -1431,9 +1582,10 @@
       else if (ex.comboActivo && ex.comboPrecio && ex.comboUnidades >= 2) ex.subtotal = calcularPrecioConCombo(ex.qty, ex.precio, ex.comboPrecio, ex.comboUnidades);
       else ex.subtotal = ex.precio * ex.qty;
       actualizarCarritoUI(); patchProdCard(prodId);
+      if (pvProdIdActual === prodId) renderPvAction(prodId);
     };
 
-    window.eliminarDelCarrito = (prodId) => { carrito = carrito.filter(i => i.id !== prodId); actualizarCarritoUI(); patchProdCard(prodId); };
+    window.eliminarDelCarrito = (prodId) => { carrito = carrito.filter(i => i.id !== prodId); actualizarCarritoUI(); patchProdCard(prodId); if (pvProdIdActual === prodId) renderPvAction(prodId); };
 
     function actualizarCarritoUI() {
       try { localStorage.setItem(LS_CART_KEY, JSON.stringify({ colmadoId: colmadoIdActual, items: carrito })); } catch (e) { }
@@ -1793,9 +1945,48 @@
     };
 
     // ── Vista rápida de producto ──────────────────────────────────
+    // ID del producto actualmente abierto en el pv-modal
+    let pvProdIdActual = null;
+
+    function renderPvAction(prodId) {
+      const actionEl = document.getElementById('pv-action');
+      if (!actionEl || !prodId) return;
+      const p = productosLista.find(x => x.id === prodId);
+      if (!p) return;
+      const det = esDetallable(p.unidad);
+      const enCarrito = carrito.find(i => i.id === prodId);
+      const qty = enCarrito ? enCarrito.qty : 0;
+      if (p.agotado) {
+        actionEl.innerHTML = `<div style="font-size:.6rem;font-weight:800;color:var(--rojo);text-align:center;padding:4px 2px;opacity:.85;line-height:1.3;">Sin<br>stock</div>`;
+        return;
+      }
+      if (det) {
+        // Por peso/litros → agregar abre modal de cantidad; si ya está, editar
+        if (qty > 0) {
+          actionEl.innerHTML = `<button class="pv-edit-btn" onclick="event.stopPropagation();abrirModalUnidad('${prodId}')" title="Editar cantidad"><i class="fas fa-edit"></i> Editar</button>`;
+        } else {
+          actionEl.innerHTML = `<button class="pv-add-btn pv-add-btn--unit" onclick="event.stopPropagation();abrirModalUnidad('${prodId}')" title="Agregar"><i class="fa-solid fa-cart-plus"></i> Agregar</button>`;
+        }
+      } else {
+        // Por unidad → control +/−
+        if (qty > 0) {
+          actionEl.innerHTML = `
+            <div class="pv-qty-ctrl">
+
+                            <button class="pv-qty-btn minus" onclick="event.stopPropagation();quitarProd('${prodId}')">−</button>
+              <div class="pv-qty-num">${qty}</div>
+              <button class="pv-qty-btn plus" onclick="event.stopPropagation();agregarProd('${prodId}')">+</button>
+            </div>`;
+        } else {
+          actionEl.innerHTML = `<button class="pv-add-btn" onclick="event.stopPropagation();agregarProd('${prodId}')" title="Agregar"><i class="fa-solid fa-cart-plus"></i></button>`;
+        }
+      }
+    }
+
     window.abrirProdView = (prodId) => {
       const p = productosLista.find(x => x.id === prodId);
       if (!p) return;
+      pvProdIdActual = prodId;
       const det = esDetallable(p.unidad);
       const lbl = labelUnidad(p.unidad);
       const precioFmt = (p.precio != null)
@@ -1806,7 +1997,7 @@
       // Imagen o placeholder
       const imgArea = document.getElementById('pv-img-area');
       if (p.imagen) {
-        imgArea.innerHTML = `<img src="${p.imagen}" alt="${esc(p.nombre || '')}" onerror="this.outerHTML='<div class=\\'pv-placeholder\\'>${p.emoji || '📦'}</div>'">`;
+        imgArea.innerHTML = `<img src="${p.imagen}" alt="${esc(p.nombre || '')}" onerror="this.outerHTML='<div class=\'pv-placeholder\'>${p.emoji || '📦'}</div>'">`;
       } else {
         imgArea.innerHTML = `<div class="pv-placeholder">${p.emoji || '📦'}</div>`;
       }
@@ -1823,12 +2014,16 @@
 
       document.getElementById('pv-precio').textContent = precioLabel;
 
+      // Renderizar acción derecha
+      renderPvAction(prodId);
+
       document.getElementById('pv-overlay').classList.add('open');
     };
 
     window.cerrarProdView = (e) => {
       if (e && e.target !== document.getElementById('pv-overlay')) return;
       document.getElementById('pv-overlay').classList.remove('open');
+      pvProdIdActual = null;
     };
 
     // ── Arranque ──────────────────────────────────────────────────
