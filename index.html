@@ -31,6 +31,40 @@
   <!-- ══ ESTILOS PROPIOS (archivo separado) ══ -->
   <link rel="stylesheet" href="./css/styles_1.css">
   <style>
+    /* ── Modal Vista Rápida de Producto ── */
+    .pv-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(5,10,20,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .28s ease;}
+    .pv-overlay.open{opacity:1;pointer-events:all;}
+    .pv-modal{position:relative;width:min(84vw,320px);background:linear-gradient(160deg,#0d1b2a 0%,#112240 60%,#0a2a1a 100%);border:1px solid rgba(0,192,75,.22);border-radius:24px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06);transform:scale(.82) translateY(20px);transition:transform .32s cubic-bezier(.34,1.3,.64,1),opacity .28s ease;opacity:0;padding:0 0 24px;}
+    .pv-overlay.open .pv-modal{transform:scale(1) translateY(0);opacity:1;}
+    /* scan line animada */
+    .pv-scan-line{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,192,75,.9),transparent);animation:pv-scan 2.8s ease-in-out infinite;pointer-events:none;}
+    @keyframes pv-scan{0%{top:0;opacity:.5}50%{top:100%;opacity:1}100%{top:0;opacity:.5}}
+    /* corner decorations */
+    .pv-modal::before,.pv-modal::after{content:'';position:absolute;width:40px;height:40px;border-color:rgba(0,192,75,.55);border-style:solid;z-index:1;pointer-events:none;}
+    .pv-modal::before{top:8px;left:8px;border-width:2px 0 0 2px;border-radius:4px 0 0 0;}
+    .pv-modal::after{bottom:8px;right:8px;border-width:0 2px 2px 0;border-radius:0 0 4px 0;}
+    /* close btn */
+    .pv-close{position:absolute;top:10px;right:10px;z-index:10;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s;}
+    .pv-close:active{background:rgba(255,255,255,.18);transform:scale(.92);}
+    /* image area */
+    .pv-img-area{width:100%;height:200px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+    .pv-img-area::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(5,15,30,.9) 100%);pointer-events:none;}
+    .pv-img-area img{width:100%;height:100%;object-fit:cover;transition:transform .35s ease;}
+    .pv-overlay.open .pv-img-area img{transform:scale(1.04);}
+    .pv-img-area .pv-placeholder{font-size:80px;line-height:1;filter:drop-shadow(0 4px 16px rgba(0,0,0,.4));}
+    /* glow ring behind image */
+    .pv-img-glow{position:absolute;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(0,192,75,.18) 0%,transparent 70%);pointer-events:none;}
+    /* info area */
+    .pv-info{padding:14px 20px 0;position:relative;z-index:2;}
+    .pv-nombre{font-family:var(--font);font-size:1.08rem;font-weight:800;color:#fff;line-height:1.3;letter-spacing:-.2px;text-shadow:0 2px 8px rgba(0,0,0,.4);}
+    .pv-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+    .pv-badge{font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.4px;text-transform:uppercase;}
+    .pv-badge-cat{background:rgba(0,192,75,.18);color:#4ade80;border:1px solid rgba(0,192,75,.3);}
+    .pv-badge-unit{background:rgba(25,113,194,.2);color:#60abff;border:1px solid rgba(25,113,194,.3);}
+    .pv-badge-combo{background:rgba(245,159,0,.18);color:#fbbf24;border:1px solid rgba(245,159,0,.3);}
+    .pv-precio{margin-top:12px;font-size:1.22rem;font-weight:900;color:#4ade80;letter-spacing:-.3px;font-family:var(--font);text-shadow:0 0 20px rgba(0,192,75,.5);}
+    /* prod-img-wrap click trigger */
+    .prod-img-wrap{cursor:zoom-in;}
     #saved-badge.visible{opacity:1!important;}
     .btn-whatsapp{position:relative;overflow:hidden;}
     .btn-whatsapp.loading{pointer-events:none;opacity:.75;}
@@ -247,6 +281,20 @@
           <i class="fas fa-cart-plus"></i> Agregar al carrito
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL VISTA RÁPIDA PRODUCTO ══ -->
+  <div class="pv-overlay" id="pv-overlay" onclick="cerrarProdView(event)">
+    <div class="pv-modal" id="pv-modal">
+      <button class="pv-close" onclick="cerrarProdView()"><i class="fas fa-times"></i></button>
+      <div class="pv-img-area" id="pv-img-area"></div>
+      <div class="pv-info">
+        <div class="pv-nombre" id="pv-nombre"></div>
+        <div class="pv-badges" id="pv-badges"></div>
+        <div class="pv-precio" id="pv-precio"></div>
+      </div>
+      <div class="pv-scan-line"></div>
     </div>
   </div>
 
@@ -1023,7 +1071,7 @@
         : `<button class="prod-add-btn" style="background:var(--azul);" onclick="event.stopPropagation();abrirModalUnidad('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Agregar</button>`;
     }
     return `<div class="prod-card ${qty>0?'en-carrito':''} ${agotado?'prod-agotado':''}" data-prod-id="${p.id}">
-      <div class="prod-img-wrap">${comboBadge}${imgHtml}${cartBadge}${pesoNetoBadge}</div>
+      <div class="prod-img-wrap" onclick="event.stopPropagation();abrirProdView('${p.id}')">${comboBadge}${imgHtml}${cartBadge}${pesoNetoBadge}</div>
       <div class="prod-body">
         <div class="prod-nombre">${highlightText(p.nombre||'Producto',query)}</div>
         <div class="prod-precio" ${det?'style="color:var(--azul);"':''}>${precioLabel}</div>
@@ -1532,6 +1580,45 @@
   renderProductos = function(silent = false) {
     _origRenderProductos(silent);
     requestAnimationFrame(() => { applyGridState(); applyCatsState(); });
+  };
+
+  // ── Vista rápida de producto ──────────────────────────────────
+  window.abrirProdView = (prodId) => {
+    const p = productosLista.find(x => x.id === prodId);
+    if (!p) return;
+    const det = esDetallable(p.unidad);
+    const lbl = labelUnidad(p.unidad);
+    const precioFmt = (p.precio != null)
+      ? `RD$ ${Number(p.precio).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2})}`
+      : 'Sin precio';
+    const precioLabel = det ? `${precioFmt} / ${lbl}` : precioFmt;
+
+    // Imagen o placeholder
+    const imgArea = document.getElementById('pv-img-area');
+    if (p.imagen) {
+      imgArea.innerHTML = `<div class="pv-img-glow"></div><img src="${p.imagen}" alt="${esc(p.nombre||'')}" onerror="this.outerHTML='<div class=\\'pv-placeholder\\'>${p.emoji||'📦'}</div>'">`;
+    } else {
+      imgArea.innerHTML = `<div class="pv-img-glow"></div><div class="pv-placeholder">${p.emoji||'📦'}</div>`;
+    }
+
+    document.getElementById('pv-nombre').textContent = p.nombre || 'Producto';
+
+    // Badges
+    let badgesHtml = '';
+    if (p.categoriaNombre) badgesHtml += `<span class="pv-badge pv-badge-cat"><i class="fas fa-tag" style="margin-right:3px;font-size:.55rem;"></i>${esc(p.categoriaNombre)}</span>`;
+    if (det) badgesHtml += `<span class="pv-badge pv-badge-unit"><i class="fas fa-weight" style="margin-right:3px;font-size:.55rem;"></i>Por ${lbl}</span>`;
+    if (p.comboActivo && p.comboPrecio && p.comboUnidades >= 2) badgesHtml += `<span class="pv-badge pv-badge-combo">⚡ ${p.comboUnidades}x RD$ ${Math.round(p.comboPrecio)}</span>`;
+    if (p.pesoNeto) badgesHtml += `<span class="pv-badge pv-badge-unit">${esc(p.pesoNeto)}</span>`;
+    document.getElementById('pv-badges').innerHTML = badgesHtml;
+
+    document.getElementById('pv-precio').textContent = precioLabel;
+
+    document.getElementById('pv-overlay').classList.add('open');
+  };
+
+  window.cerrarProdView = (e) => {
+    if (e && e.target !== document.getElementById('pv-overlay')) return;
+    document.getElementById('pv-overlay').classList.remove('open');
   };
 
   // ── Arranque ──────────────────────────────────────────────────
