@@ -329,12 +329,11 @@
     border: 1px solid rgb(36 131 219 / 74%);
 }
 
-    .pv-badge-combo {
-      background: rgba(245, 159, 0, .18);
-      color: #fbbf24;
-      border: 1px solid rgba(245, 159, 0, .3);
-    }
-
+.pv-badge-combo {
+    background: rgb(245 159 0 / 14%);
+    color: #de730f;
+    border: 1px solid rgb(222 115 15 / 84%);
+}
 .pv-precio {
     font-size: 1.22rem;
     font-weight: 900;
@@ -2008,7 +2007,7 @@
       let badgesHtml = '';
       if (p.categoriaNombre) badgesHtml += `<span class="pv-badge pv-badge-cat"><i class="fas fa-tag" style="margin-right:3px;font-size:.55rem;"></i>${esc(p.categoriaNombre)}</span>`;
       if (det) badgesHtml += `<span class="pv-badge pv-badge-unit"><i class="fas fa-weight" style="margin-right:3px;font-size:.55rem;"></i>Por ${lbl}</span>`;
-      if (p.comboActivo && p.comboPrecio && p.comboUnidades >= 2) badgesHtml += `<span class="pv-badge pv-badge-combo">⚡ ${p.comboUnidades}x RD$ ${Math.round(p.comboPrecio)}</span>`;
+      if (p.comboActivo && p.comboPrecio && p.comboUnidades >= 2) badgesHtml += `<span class="pv-badge pv-badge-combo">${p.comboUnidades}x RD$ ${Math.round(p.comboPrecio)}</span>`;
       if (p.pesoNeto) badgesHtml += `<span class="pv-badge pv-badge-unit">${esc(p.pesoNeto)}</span>`;
       document.getElementById('pv-badges').innerHTML = badgesHtml;
 
