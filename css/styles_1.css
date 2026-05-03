@@ -104,7 +104,7 @@ body {
 }
 
 .loading-logo img {
-  height: 210px;
+  height: 174px;
 }
 
 .loading-logo span {
@@ -119,12 +119,12 @@ body {
 }
 
 .loading-spinner {
-  width: 38px;
-  height: 38px;
-  border: 3px solid rgb(0 0 0 / 0%);
-  border-top-color: #959595;
-  border-radius: 50%;
-  animation: spin .75s linear infinite;
+    width: 38px;
+    height: 38px;
+    border: 3px solid rgb(0 0 0 / 0%);
+    border-top-color: #00b42f;
+    border-radius: 50%;
+    animation: spin .75s linear infinite;
 }
 
 @keyframes spin {
