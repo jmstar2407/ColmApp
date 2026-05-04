@@ -958,6 +958,8 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   /*min-height: 32px;*/
+  font-family: system-ui;
+  text-transform: capitalize;
 }
 
 .prod-nombre .highlight {
@@ -2052,7 +2054,7 @@ body {
 
 .prod-card-big .prod-nombre {
   font-size: .92rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .prod-card-big .prod-precio {
