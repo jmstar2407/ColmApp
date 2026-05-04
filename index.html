@@ -495,9 +495,7 @@
               autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search"
               data-form-type="other" data-lpignore="true" data-1p-ignore="true" role="searchbox">
             <button class="search-clear-btn" id="search-clear-btn"
-              ontouchend="event.preventDefault();limpiarBusqueda();" onclick="limpiarBusqueda()" type="button">
-              <i class="fas fa-times-circle"></i>
-            </button>
+              ontouchend="event.preventDefault();limpiarBusqueda();" onclick="limpiarBusqueda()" type="button">X</button>
           </div>
           <div class="search-action-btns">
             <button class="search-action-btn" id="toggle-grid-btn" onclick="toggleGridSize()"
@@ -1310,12 +1308,22 @@
       } else { _scrollSpyEnabled = true; }
     };
 
+    // Timer para el debounce del render (no del input — el input es siempre instantáneo)
+    let _searchRenderTimer = null;
+
     window.filtrarBusqueda = (val) => {
+      // Actualizar la variable de búsqueda y el botón X de forma INMEDIATA
       busqueda = val.toLowerCase().trim();
       document.getElementById('search-clear-btn').classList.toggle('visible', busqueda.length > 0);
-      renderProductos();
-      const panel = document.getElementById('shop-prods');
-      if (panel) panel.scrollTop = 0;
+
+      // Cancelar render pendiente anterior y programar uno nuevo de forma asíncrona
+      // Así el teclado nunca espera al render para seguir aceptando teclas
+      clearTimeout(_searchRenderTimer);
+      _searchRenderTimer = setTimeout(() => {
+        renderProductos();
+        const panel = document.getElementById('shop-prods');
+        if (panel) panel.scrollTop = 0;
+      }, 0);
     };
 
     window.limpiarBusqueda = () => {
@@ -1365,12 +1373,27 @@
       }
 
       if (busqueda) {
-        const filtered = productosLista.filter(p => (p.nombre || '').toLowerCase().includes(busqueda));
+        // Detectar si la busqueda es un numero para buscar por precio exacto
+        const _bNum = parseFloat(busqueda.trim());
+        const _esPrecio = !isNaN(_bNum) && /^\d+(\.\d+)?$/.test(busqueda.trim());
+
+        let filtered;
+        if (_esPrecio) {
+          // Precio exacto: "50" -> solo precio 50.xx, no 500
+          const _parteEntera = busqueda.trim().split('.')[0];
+          filtered = productosLista.filter(p => {
+            if (p.precio == null) return false;
+            return String(Math.floor(Number(p.precio))) === _parteEntera;
+          });
+        } else {
+          filtered = productosLista.filter(p => (p.nombre || '').toLowerCase().includes(busqueda));
+        }
+
         if (!filtered.length) {
           area.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No se encontraron productos para "<strong>${esc(busqueda)}</strong>"</p></div>`;
           return;
         }
-        area.innerHTML = `<div class="prods-grid">${ordenarAlf(filtered).map(p => prodCardHTML(p, busqueda)).join('')}</div>`;
+        area.innerHTML = `<div class="prods-grid" style="padding-top:0.5rem;">${ordenarAlf(filtered).map(p => prodCardHTML(p, _esPrecio ? '' : busqueda)).join('')}</div>`;
         return;
       }
 
